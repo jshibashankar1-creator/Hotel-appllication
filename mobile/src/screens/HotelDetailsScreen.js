@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
   FlatList,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import RoomCard from '../components/RoomCard';
@@ -51,7 +52,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B3D37" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       
       {/* Scrollable Content */}
       <ScrollView
@@ -129,12 +130,12 @@ export default function HotelDetailsScreen({ route, navigation }) {
               <View style={styles.locationRow}>
                 <Text style={styles.locationPin}>📍</Text>
                 <Text style={styles.locationText} numberOfLines={2}>
-                  {hotel.location || `${hotel.address || '5th Avenue, Manhattan'}, ${hotel.city || 'New York'}, ${hotel.country || 'USA'}`}
+                  {hotel.location || `${hotel.address || 'Sea Beach Road'}, ${hotel.city || 'New Digha'}, West Bengal`}
                 </Text>
               </View>
               
               <Text style={styles.distanceText}>
-                {hotel.distance || '2.4 km from city center'}
+                {hotel.distance || 'Near Sea Beach Promenade'}
               </Text>
             </View>
 
@@ -219,32 +220,33 @@ export default function HotelDetailsScreen({ route, navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B3D37',
+    backgroundColor: COLORS.white,
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
   carouselWrapper: {
-    width: '100%',
-    height: 320,
     position: 'relative',
-    backgroundColor: COLORS.primaryDark,
+    height: 330,
+    backgroundColor: COLORS.background,
   },
   carouselImage: {
     width: width,
-    height: 320,
+    height: 330,
     resizeMode: 'cover',
   },
   carouselTopBar: {
     position: 'absolute',
-    top: 16,
+    top: STATUSBAR_HEIGHT + 12,
     left: 20,
     right: 20,
     flexDirection: 'row',
@@ -257,17 +259,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(7, 40, 36, 0.65)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   iconText: {
-    color: COLORS.white,
+    color: COLORS.primary,
     fontSize: 20,
     fontWeight: '700',
   },
@@ -275,20 +282,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     left: 20,
-    backgroundColor: 'rgba(7, 40, 36, 0.75)',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     paddingVertical: 5,
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   counterText: {
-    color: COLORS.white,
+    color: COLORS.textDark,
     fontSize: 12,
     fontWeight: '700',
   },
   detailsPanel: {
-    backgroundColor: '#0B3D37',
+    backgroundColor: COLORS.white,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginTop: -20,
@@ -307,9 +314,9 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   hotelTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.primary,
     letterSpacing: 0.2,
   },
   ratingRow: {
@@ -323,9 +330,9 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   ratingScore: {
-    color: COLORS.white,
+    color: COLORS.textDark,
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '850',
     marginRight: 4,
   },
   reviewsText: {
@@ -342,20 +349,20 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   locationText: {
-    color: COLORS.white,
+    color: COLORS.textBody,
     fontSize: 13,
     fontWeight: '500',
     opacity: 0.9,
     flex: 1,
   },
   distanceText: {
-    color: COLORS.goldLight,
+    color: COLORS.gold,
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
   },
   luxuryEmblemBadge: {
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.white,
     borderWidth: 1.5,
     borderColor: COLORS.gold,
     borderRadius: 14,
@@ -376,7 +383,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   emblemTextSub: {
-    color: COLORS.goldLight,
+    color: COLORS.gold,
     fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -393,9 +400,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.background,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.35)',
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -404,7 +411,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   amenityName: {
-    color: COLORS.white,
+    color: COLORS.textBody,
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
@@ -412,7 +419,7 @@ const styles = StyleSheet.create({
   },
   sectionDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: COLORS.border,
     marginVertical: 18,
   },
   aboutSection: {},
@@ -425,7 +432,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 17,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.primary,
     letterSpacing: 0.2,
   },
   viewMoreText: {
@@ -434,7 +441,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   aboutDescription: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: COLORS.textBody,
     fontSize: 13,
     lineHeight: 20,
     fontWeight: '400',

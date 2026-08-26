@@ -40,16 +40,16 @@ export default function BookingDetailsScreen({ route, navigation }) {
   }
 
   const currentBooking = booking || {
-    id: 'BKG-PLAZA-01',
-    booking_code: 'BK-PLZ-8921',
-    hotel_name: 'The Plaza Hotel',
-    location: '5th Avenue, Manhattan, New York, USA',
+    id: 'BKG-DIGH-01',
+    booking_code: 'BK-DGH-8921',
+    hotel_name: 'Hotel Sea Hawk New Digha',
+    location: 'Sea Beach Road, New Digha, West Bengal',
     check_in_date: '12 Aug, Mon',
     check_out_date: '15 Aug, Thu',
     guests_count: 2,
     rooms_count: 1,
-    room_name: 'Deluxe Room',
-    total_amount: 1050,
+    room_name: 'Deluxe Sea Facing Room',
+    total_amount: 3500,
     booking_status: 'confirmed',
     payment_status: 'paid',
   };
@@ -59,7 +59,7 @@ export default function BookingDetailsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -163,7 +163,7 @@ export default function BookingDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   container: {
     flex: 1,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   passCard: {
-    backgroundColor: '#0B3D37',
+    backgroundColor: COLORS.primary,
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   qrContainer: {
     marginTop: 18,
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',

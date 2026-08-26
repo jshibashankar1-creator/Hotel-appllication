@@ -52,3 +52,9 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Standalone builds and screenshots
+*.apk
+*.png
+mobile/android/app/build/
+mobile/android/build/

@@ -1,50 +1,50 @@
 /* Design Tokens & Theme Variables */
 :root {
-  /* Color Palette - Luxury Midnight & High-Tech Indigo */
-  --bg-primary: #0b0f19;
-  --bg-secondary: #111827;
-  --bg-card: rgba(17, 24, 39, 0.85);
-  --bg-card-hover: rgba(31, 41, 55, 0.9);
-  --bg-surface: #1f2937;
-  --bg-input: rgba(15, 23, 42, 0.7);
-  --bg-glass: rgba(17, 24, 39, 0.75);
+  /* Color Palette - Premium Luxury Burgundy & Champagne Gold */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #FAF9F7;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: rgba(250, 249, 247, 0.95);
+  --bg-surface: #FAF9F7;
+  --bg-input: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.85);
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-color-focus: rgba(99, 102, 241, 0.5);
-  --border-light: rgba(255, 255, 255, 0.12);
+  --border-color: #E8E5E2;
+  --border-color-focus: #D6A72C;
+  --border-light: #E8E5E2;
 
   /* Primary & Accent Colors */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-light: rgba(99, 102, 241, 0.15);
-  --primary-glow: rgba(99, 102, 241, 0.35);
+  --primary: #5A1635;
+  --primary-hover: #431126;
+  --primary-light: rgba(90, 22, 53, 0.08);
+  --primary-glow: rgba(90, 22, 53, 0.25);
 
-  --accent-gold: #f59e0b;
-  --accent-gold-light: rgba(245, 158, 11, 0.15);
+  --accent-gold: #D6A72C;
+  --accent-gold-light: rgba(214, 167, 44, 0.15);
 
   /* Status Colors */
   --success: #10b981;
   --success-light: rgba(16, 185, 129, 0.15);
   --success-glow: rgba(16, 185, 129, 0.3);
 
-  --warning: #f59e0b;
-  --warning-light: rgba(245, 158, 11, 0.15);
+  --warning: #D6A72C;
+  --warning-light: rgba(214, 167, 44, 0.15);
 
   --danger: #ef4444;
   --danger-light: rgba(239, 68, 68, 0.15);
   --danger-glow: rgba(239, 68, 68, 0.3);
 
-  --info: #3b82f6;
-  --info-light: rgba(59, 130, 246, 0.15);
+  --info: #5A1635;
+  --info-light: rgba(90, 22, 53, 0.08);
 
-  --purple: #8b5cf6;
-  --purple-light: rgba(139, 92, 246, 0.15);
+  --purple: #65234E;
+  --purple-light: rgba(101, 35, 78, 0.15);
 
   /* Typography */
-  --text-main: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-inverse: #0f172a;
+  --text-main: #171717;
+  --text-secondary: #666666;
+  --text-muted: #8A8A8A;
+  --text-inverse: #ffffff;
 
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

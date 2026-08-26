@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { RECOMMENDED_HOTELS } from '../data/mockData';
@@ -15,14 +16,14 @@ import { RECOMMENDED_HOTELS } from '../data/mockData';
 export default function BookingConfirmationScreen({ route, navigation }) {
   const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
   const booking = route.params?.booking || {
-    booking_code: 'BK-PLZ-8921',
-    hotel_name: hotel.name || 'The Plaza Hotel',
-    location: hotel.location || 'New York, USA',
+    booking_code: 'BK-DGH-8921',
+    hotel_name: hotel.name || 'Hotel Sea Hawk New Digha',
+    location: hotel.location || 'New Digha, West Bengal',
     check_in_date: '12 Aug, Mon',
     check_out_date: '15 Aug, Thu',
     guests_count: 2,
     rooms_count: 1,
-    total_amount: 1050,
+    total_amount: 3500,
   };
 
   const handleViewDetails = () => {
@@ -143,35 +144,37 @@ export default function BookingConfirmationScreen({ route, navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.background,
   },
   container: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.background,
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   topBar: {
-    paddingTop: 12,
+    paddingTop: STATUSBAR_HEIGHT + 12,
     marginBottom: 10,
   },
   backButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: COLORS.border,
   },
   backIcon: {
-    color: COLORS.white,
+    color: COLORS.textDark,
     fontSize: 24,
     fontWeight: '700',
     marginTop: -2,
@@ -194,13 +197,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#10B981',
+    backgroundColor: COLORS.goldLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,
-    shadowColor: '#10B981',
+    shadowColor: COLORS.gold,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 8,
   },
@@ -212,14 +215,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.textDark,
     letterSpacing: 0.3,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 19,
     paddingHorizontal: 10,
@@ -230,7 +233,7 @@ const styles = StyleSheet.create({
     padding: 18,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 8,
   },
@@ -303,42 +306,45 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     marginTop: 28,
-    gap: 14,
+    flexDirection: 'row',
+    gap: 12,
   },
   primaryGoldButton: {
-    backgroundColor: COLORS.gold,
-    paddingVertical: 16,
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    paddingVertical: 14,
     borderRadius: 18,
     alignItems: 'center',
-    shadowColor: COLORS.goldDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 5,
+    justifyContent: 'center',
   },
   primaryButtonText: {
-    color: COLORS.primaryDark,
-    fontSize: 16,
+    color: COLORS.primary,
+    fontSize: 13,
     fontWeight: '800',
-    letterSpacing: 0.3,
   },
   secondaryTealButton: {
+    flex: 1.2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0E4942',
-    borderWidth: 1.5,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
-    paddingVertical: 15,
+    backgroundColor: COLORS.gold,
+    paddingVertical: 14,
     borderRadius: 18,
+    shadowColor: COLORS.goldDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   secondaryButtonIcon: {
-    fontSize: 14,
-    marginRight: 6,
+    fontSize: 13,
+    marginRight: 4,
   },
   secondaryButtonText: {
     color: COLORS.white,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

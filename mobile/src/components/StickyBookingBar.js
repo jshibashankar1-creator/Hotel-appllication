@@ -27,7 +27,7 @@ export default function StickyBookingBar({ price = 350, currency = '$', buttonLa
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.primaryDark,
+    backgroundColor: COLORS.white,
     paddingHorizontal: 20,
     paddingVertical: 14,
     paddingBottom: 24,
@@ -35,10 +35,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(212, 175, 55, 0.25)',
+    borderTopColor: COLORS.border,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 10,
   },
@@ -50,20 +50,19 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   currency: {
-    color: COLORS.gold,
+    color: COLORS.primary,
     fontSize: 16,
     fontWeight: '700',
   },
   price: {
-    color: COLORS.white,
+    color: COLORS.primary,
     fontSize: 22,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
   perNight: {
-    color: COLORS.white,
+    color: COLORS.textMuted,
     fontSize: 12,
-    opacity: 0.8,
     fontWeight: '500',
   },
   taxInfo: {
@@ -72,18 +71,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   bookButton: {
-    backgroundColor: COLORS.gold,
+    backgroundColor: COLORS.primary,
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: 16,
-    shadowColor: COLORS.goldDark,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
   },
   buttonText: {
-    color: COLORS.primaryDark,
+    color: COLORS.white,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.3,

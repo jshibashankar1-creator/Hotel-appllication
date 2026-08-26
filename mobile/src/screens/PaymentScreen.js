@@ -75,7 +75,7 @@ export default function PaymentScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -155,7 +155,7 @@ export default function PaymentScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   container: {
     flex: 1,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   payableCard: {
-    backgroundColor: '#0B3D37',
+    backgroundColor: COLORS.primary,
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',

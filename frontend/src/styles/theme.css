@@ -4,30 +4,30 @@
    ========================================================================== */
 
 :root {
-  /* Primary Brand: Deep Enterprise Navy */
-  --color-primary: #0b192c;
-  --color-primary-light: #1e293b;
-  --color-primary-hover: #172554;
-  --color-primary-subtle: #f1f5f9;
+  /* Primary Brand: Deep Burgundy / Wine */
+  --color-primary: #5A1635;
+  --color-primary-light: #65234E;
+  --color-primary-hover: #431126;
+  --color-primary-subtle: #FAF9F7;
 
-  /* Accent: Subtle Warm Gold / Champagne */
-  --color-accent: #c5a880;
-  --color-accent-dark: #9a7b4f;
-  --color-accent-light: #fbf7f2;
-  --color-accent-border: #e8dccb;
+  /* Accent: Champagne Gold & Soft Gold */
+  --color-accent: #D6A72C;
+  --color-accent-dark: #B08422;
+  --color-accent-light: #E4BE55;
+  --color-accent-border: #E8E5E2;
 
   /* Neutral Backgrounds */
-  --bg-app: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-surface-secondary: #f1f5f9;
-  --bg-surface-muted: #e2e8f0;
-  --bg-sidebar: #0b192c;
+  --bg-app: #FFFFFF;
+  --bg-surface: #FAF9F7;
+  --bg-surface-secondary: #FFFFFF;
+  --bg-surface-muted: #E8E5E2;
+  --bg-sidebar: #431126;
 
   /* Typography */
-  --text-main: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-main: #171717;
+  --text-secondary: #666666;
+  --text-muted: #8A8A8A;
+  --text-light: #8A8A8A;
   --text-inverse: #ffffff;
 
   /* Status Colors */
@@ -48,9 +48,9 @@
   --status-info-border: #bfdbfe;
 
   /* Borders & Dividers */
-  --border-light: #e2e8f0;
-  --border-medium: #cbd5e1;
-  --border-dark: #94a3b8;
+  --border-light: #E8E5E2;
+  --border-medium: #E8E5E2;
+  --border-dark: #cbd5e1;
 
   /* Restrained SaaS Shadows */
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);

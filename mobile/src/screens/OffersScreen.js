@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import DealCard from '../components/DealCard';
@@ -55,7 +56,7 @@ export default function OffersScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -135,21 +136,23 @@ export default function OffersScreen({ navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   container: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primary,
   },
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: 40,
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: STATUSBAR_HEIGHT + 12,
     paddingBottom: 16,
   },
   headerTop: {
@@ -273,9 +276,9 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   timeBox: {
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
+    borderColor: 'rgba(214, 167, 44, 0.4)',
     paddingVertical: 3,
     paddingHorizontal: 6,
     borderRadius: 6,

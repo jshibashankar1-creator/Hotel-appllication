@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Platform } from 'react-native';
 
 import { COLORS } from './src/theme/colors';
 
@@ -25,6 +25,8 @@ import BookingDetailsScreen from './src/screens/BookingDetailsScreen';
 import CancellationScreen from './src/screens/CancellationScreen';
 import ReviewModalScreen from './src/screens/ReviewModalScreen';
 
+import { TabIcon } from './src/components/TabIcons';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -33,31 +35,38 @@ function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: COLORS.gold,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarActiveTintColor: '#4A1738',
+        tabBarInactiveTintColor: '#777777',
         tabBarStyle: {
-          backgroundColor: '#0B3D37',
-          borderTopColor: 'rgba(212, 175, 55, 0.25)',
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E8E1DA',
+          borderTopWidth: 1,
+          height: Platform.OS === 'ios' ? 84 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+          paddingTop: 6,
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
+          letterSpacing: 0.1,
+          marginTop: 2,
         },
-        tabBarIcon: ({ focused }) => {
-          let icon = '🏨';
-          if (route.name === 'Home') icon = '🏠';
-          else if (route.name === 'Explore') icon = '🔍';
-          else if (route.name === 'Bookings') icon = '📅';
-          else if (route.name === 'Deals') icon = '🏷️';
-          else if (route.name === 'Wishlist') icon = '🤍';
-          else if (route.name === 'Profile') icon = '👤';
+        tabBarItemStyle: {
+          paddingVertical: 2,
+        },
+        tabBarIcon: ({ focused, color, size }) => {
           return (
-            <Text style={{ fontSize: 18, color: focused ? COLORS.gold : COLORS.textMuted }}>
-              {icon}
-            </Text>
+            <TabIcon
+              name={route.name}
+              focused={focused}
+              color={color}
+              size={size}
+            />
           );
         },
       })}
@@ -75,11 +84,11 @@ function MainTabNavigator() {
 export default function App() {
   return (
     <NavigationContainer>
-      <StatusBar style="light" backgroundColor="#072824" />
+      <StatusBar style="dark" backgroundColor="#FFFFFF" />
       <Stack.Navigator
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#072824',
+            backgroundColor: '#4A0E20',
           },
           headerTintColor: COLORS.white,
           headerTitleStyle: {
@@ -142,3 +151,16 @@ export default function App() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconContainer: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabIconContainerActive: {
+    backgroundColor: 'rgba(74, 23, 56, 0.08)',
+  },
+});

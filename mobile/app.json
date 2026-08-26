@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "HotelHub Customer",
-    "slug": "hotelhub-customer",
+    "name": "HotelHub Digha - Luxury Stays",
+    "slug": "hotelhub-digha",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,17 +9,22 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0b192c"
+      "backgroundColor": "#072824"
     },
     "ios": {
-      "supportsTabletMode": true
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.hotelhub.digha"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0b192c"
+        "backgroundColor": "#072824"
       },
-      "package": "com.hotelhub.customer"
+      "package": "com.hotelhub.digha",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -1,7 +1,14 @@
 import { Platform } from 'react-native';
 
-// Read from EXPO_PUBLIC_API_URL environment variable or fallback to emulator/localhost
-const DEFAULT_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
+// Priority: EXPO_PUBLIC_API_URL -> LAN IP (for physical devices) -> localhost / emulator
+const LAN_API_URL = 'http://192.168.1.2:5000/api';
+const EMULATOR_API_URL = 'http://10.0.2.2:5000/api';
+const LOCAL_API_URL = 'http://localhost:5000/api';
+
+const DEFAULT_URL = Platform.OS === 'android'
+  ? (process.env.EXPO_PUBLIC_API_URL || LAN_API_URL)
+  : (process.env.EXPO_PUBLIC_API_URL || LOCAL_API_URL);
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_URL;
 
 class MobileApiService {
@@ -26,10 +33,16 @@ class MobileApiService {
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
       const res = await fetch(`${BASE_URL}${endpoint}`, {
         ...options,
-        headers
+        headers,
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Mobile API error');

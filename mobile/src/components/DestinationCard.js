@@ -13,9 +13,7 @@ export default function DestinationCard({ item, onPress }) {
       <View style={styles.gradientOverlay}>
         <Text style={styles.city}>{item.city}</Text>
         <Text style={styles.country}>{item.country}</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{item.hotelsCount}</Text>
-        </View>
+        <Text style={styles.hotelsCount}>{item.hotelsCount}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -23,17 +21,17 @@ export default function DestinationCard({ item, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 140,
-    height: 200,
-    borderRadius: 20,
+    width: 135,
+    height: 175,
+    borderRadius: 18,
     overflow: 'hidden',
-    marginRight: 14,
-    backgroundColor: COLORS.primaryDark,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 5,
+    marginRight: 12,
+    backgroundColor: COLORS.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 4,
   },
   image: {
     width: '100%',
@@ -45,33 +43,28 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 12,
-    paddingTop: 36,
-    backgroundColor: 'rgba(7, 40, 36, 0.75)',
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+    paddingTop: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
   },
   city: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
     letterSpacing: 0.2,
   },
   country: {
-    color: COLORS.goldLight,
+    color: '#E2E8F0',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     marginTop: 2,
   },
-  badge: {
-    marginTop: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  badgeText: {
-    color: COLORS.white,
-    fontSize: 10,
+  hotelsCount: {
+    color: '#FFFFFF',
+    fontSize: 11,
     fontWeight: '600',
+    marginTop: 2,
+    opacity: 0.95,
   },
 });

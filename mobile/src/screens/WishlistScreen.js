@@ -28,7 +28,7 @@ export default function WishlistScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -78,13 +78,13 @@ export default function WishlistScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },

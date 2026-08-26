@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { ACTIVE_USER_PROFILE } from '../data/mockData';
@@ -27,7 +28,7 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -99,10 +100,12 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   container: {
     flex: 1,
@@ -112,8 +115,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileHeroCard: {
-    backgroundColor: '#0B3D37',
-    paddingTop: 24,
+    backgroundColor: COLORS.primary,
+    paddingTop: STATUSBAR_HEIGHT + 16,
     paddingBottom: 26,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     borderWidth: 1,
     borderColor: COLORS.gold,
     paddingVertical: 5,
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
   },
   pointsBox: {
     flexDirection: 'row',
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     borderRadius: 16,
     marginTop: 18,
     paddingVertical: 12,

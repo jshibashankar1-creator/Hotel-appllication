@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import HotelCard from '../components/HotelCard';
@@ -108,7 +109,7 @@ export default function SearchScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       
       {/* TOP SEARCH BAR */}
       <View style={styles.header}>
@@ -126,6 +127,31 @@ export default function SearchScreen({ route, navigation }) {
               <Text style={styles.clearIcon}>✕</Text>
             </TouchableOpacity>
           ) : null}
+        </View>
+
+        {/* Quick Area Filter Pills: All Digha, New Digha, Old Digha */}
+        <View style={styles.dighaAreaRow}>
+          {[
+            { label: 'All Digha', query: '' },
+            { label: '🏖️ New Digha', query: 'New Digha' },
+            { label: '🌊 Old Digha', query: 'Old Digha' },
+          ].map(area => {
+            const isSelected = area.query === ''
+              ? (searchQuery === '' || searchQuery.toLowerCase() === 'digha')
+              : searchQuery.toLowerCase().includes(area.query.toLowerCase());
+            return (
+              <TouchableOpacity
+                key={area.label}
+                activeOpacity={0.8}
+                style={[styles.dighaPill, isSelected && styles.dighaPillActive]}
+                onPress={() => setSearchQuery(area.query)}
+              >
+                <Text style={[styles.dighaPillText, isSelected && styles.dighaPillTextActive]}>
+                  {area.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Filter & Sort Bar */}
@@ -213,16 +239,18 @@ export default function SearchScreen({ route, navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   header: {
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: STATUSBAR_HEIGHT + 10,
+    paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -250,18 +278,43 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     padding: 4,
   },
+  dighaAreaRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  dighaPill: {
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.primarySurface,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  dighaPillActive: {
+    backgroundColor: COLORS.gold,
+    borderColor: COLORS.gold,
+  },
+  dighaPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  dighaPillTextActive: {
+    color: COLORS.primaryDark,
+  },
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 10,
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.35)',
+    borderColor: 'rgba(214, 167, 44, 0.35)',
     paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 12,

@@ -11,6 +11,7 @@ import {
   StatusBar,
   FlatList,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import SearchCard from '../components/SearchCard';
@@ -87,14 +88,15 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor="#2D0812" />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* HERO SECTION */}
+        {/* HERO SECTION + SEARCH CARD combined so banner goes behind card */}
         <View style={styles.heroWrapper}>
+          {/* Full-height banner image covering hero + card area */}
           <ImageBackground
             source={{ uri: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&auto=format&fit=crop&q=80' }}
             style={styles.heroBackground}
@@ -126,14 +128,14 @@ export default function HomeScreen({ navigation }) {
             {/* Hero Headlines */}
             <View style={styles.heroTextContainer}>
               <Text style={styles.heroTitle}>Find Your{'\n'}Perfect Stay</Text>
-              <Text style={styles.heroSubtitle}>Luxury & Comfort</Text>
+              <Text style={styles.heroSubtitle}>New Digha & Old Digha, WB</Text>
+            </View>
+
+            {/* SEARCH CARD floats inside banner image */}
+            <View style={styles.searchCardWrapper}>
+              <SearchCard onSearch={handleSearchSubmit} />
             </View>
           </ImageBackground>
-        </View>
-
-        {/* FLOATING BOOKING SEARCH CARD */}
-        <View style={styles.searchCardWrapper}>
-          <SearchCard onSearch={handleSearchSubmit} />
         </View>
 
         {/* POPULAR DESTINATIONS */}
@@ -179,10 +181,12 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: '#2D0812',
   },
   container: {
     flex: 1,
@@ -192,37 +196,39 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   heroWrapper: {
-    width: '100%',
-    height: 320,
-    backgroundColor: COLORS.primaryDark,
+    width: width,
+    backgroundColor: '#2D0812',
+    overflow: 'hidden',
   },
   heroBackground: {
-    width: '100%',
-    height: '100%',
+    width: width,
     justifyContent: 'space-between',
-    paddingTop: 16,
+    paddingTop: STATUSBAR_HEIGHT + 14,
     paddingHorizontal: 20,
-    paddingBottom: 60,
+    paddingBottom: 0,
+    minHeight: 350 + STATUSBAR_HEIGHT,
   },
   heroBackgroundImage: {
+    width: width,
+    height: '100%',
     resizeMode: 'cover',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7, 40, 36, 0.45)',
+    backgroundColor: 'rgba(45, 8, 18, 0.42)',
   },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     zIndex: 10,
-    marginTop: 8,
+    marginTop: 4,
   },
   iconCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: 'rgba(45, 8, 18, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -251,6 +257,9 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     lineHeight: 38,
     letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.65)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   heroSubtitle: {
     fontSize: 18,
@@ -259,10 +268,16 @@ const styles = StyleSheet.create({
     color: COLORS.goldLight,
     marginTop: 4,
     letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.65)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   searchCardWrapper: {
-    marginTop: -55,
+    marginTop: 18,
     zIndex: 20,
+    width: '100%',
+    paddingHorizontal: 0,
+    paddingBottom: 24,
   },
   sectionHeader: {
     flexDirection: 'row',

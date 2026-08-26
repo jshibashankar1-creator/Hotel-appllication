@@ -26,7 +26,7 @@ export default function RoomDetailsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Image
           source={{ uri: room.image || (room.photos && room.photos[0]) || hotel.coverImage || hotel.cover_image }}
@@ -87,7 +87,7 @@ export default function RoomDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   scrollContent: {
     paddingBottom: 20,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   roomTypeBadge: {
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 8,
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     color: COLORS.textBody,
   },
   bottomBar: {
-    backgroundColor: '#0B3D37',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 20,
     paddingVertical: 14,
     paddingBottom: 22,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(212, 175, 55, 0.25)',
+    borderTopColor: COLORS.border,
   },
   priceLabel: {
     fontSize: 11,
@@ -179,11 +179,11 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 20,
     fontWeight: '900',
-    color: COLORS.white,
+    color: COLORS.textDark,
   },
   gstText: {
     fontSize: 11,
-    color: COLORS.goldLight,
+    color: COLORS.textMuted,
   },
   bookBtn: {
     backgroundColor: COLORS.gold,

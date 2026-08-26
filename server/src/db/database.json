@@ -4,7 +4,7 @@
       "id": "USR-SUPER-ADMIN",
       "name": "Super Administrator Master",
       "email": "admin@hotelhub.com",
-      "password": "$2a$10$A9XXvptc6M63rSr4KJayx.W4h5gSRg7fKJ1NNVth9mQxzkxSJcWU2",
+      "password": "$2a$10$QhWvYlCtLotcjocwM.zLm.EgTO.eosSp372C56Dz.jVRUbXuv13Re",
       "role": "super_admin",
       "status": "active",
       "permissions": [
@@ -40,14 +40,14 @@
       ],
       "createdBy": "system",
       "phone": "+91 98000 00001",
-      "lastLoginAt": "2026-08-26T03:57:36.788Z",
+      "lastLoginAt": "2026-08-26T04:23:06.447Z",
       "created_at": "2026-01-01T00:00:00Z"
     },
     {
       "id": "USR-ADMIN-GEN",
       "name": "Operations Manager",
       "email": "manager@hotelhub.com",
-      "password": "$2a$10$A9XXvptc6M63rSr4KJayx.W4h5gSRg7fKJ1NNVth9mQxzkxSJcWU2",
+      "password": "$2a$10$QhWvYlCtLotcjocwM.zLm.EgTO.eosSp372C56Dz.jVRUbXuv13Re",
       "role": "admin",
       "status": "active",
       "permissions": [
@@ -69,14 +69,14 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00002",
-      "lastLoginAt": "2026-08-26T03:57:36.864Z",
+      "lastLoginAt": "2026-08-26T04:23:06.517Z",
       "created_at": "2026-01-05T00:00:00Z"
     },
     {
       "id": "USR-SUPPORT-ADMIN",
       "name": "Support Executive",
       "email": "support.admin@hotelhub.com",
-      "password": "$2a$10$A9XXvptc6M63rSr4KJayx.W4h5gSRg7fKJ1NNVth9mQxzkxSJcWU2",
+      "password": "$2a$10$QhWvYlCtLotcjocwM.zLm.EgTO.eosSp372C56Dz.jVRUbXuv13Re",
       "role": "support_admin",
       "status": "active",
       "permissions": [
@@ -89,14 +89,14 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00003",
-      "lastLoginAt": "2026-08-26T03:57:37.007Z",
+      "lastLoginAt": "2026-08-26T04:23:06.674Z",
       "created_at": "2026-01-10T00:00:00Z"
     },
     {
       "id": "USR-FINANCE-ADMIN",
       "name": "Finance Controller",
       "email": "finance.admin@hotelhub.com",
-      "password": "$2a$10$A9XXvptc6M63rSr4KJayx.W4h5gSRg7fKJ1NNVth9mQxzkxSJcWU2",
+      "password": "$2a$10$QhWvYlCtLotcjocwM.zLm.EgTO.eosSp372C56Dz.jVRUbXuv13Re",
       "role": "finance_admin",
       "status": "active",
       "permissions": [
@@ -112,14 +112,14 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00004",
-      "lastLoginAt": "2026-08-26T03:57:36.942Z",
+      "lastLoginAt": "2026-08-26T04:23:06.596Z",
       "created_at": "2026-01-15T00:00:00Z"
     },
     {
       "id": "USR-HOTEL-ADMIN-MAIN",
       "name": "Grand Horizon Admin",
       "email": "hoteladmin@hotelhub.com",
-      "password": "$2a$10$OCVbnccGAdOsaNxoVqR6EeUv6oMKRJw3SlGUb4meQflnfUzLrF7ny",
+      "password": "$2a$10$BigJmFKkeUMs6/JVcn61nueFYDEWgmmYfJ4NA8EcZ..boGMZzNL7q",
       "role": "hotel_admin",
       "hotel_id": "HTL-001",
       "status": "active",
@@ -134,14 +134,14 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00005",
-      "lastLoginAt": "2026-08-26T03:57:37.083Z",
+      "lastLoginAt": "2026-08-26T04:23:06.753Z",
       "created_at": "2026-01-20T00:00:00Z"
     },
     {
       "id": "USR-HOTEL-ADMIN-A",
       "name": "Grand Horizon Admin A",
       "email": "hoteladminA@hotelhub.com",
-      "password": "$2a$10$OCVbnccGAdOsaNxoVqR6EeUv6oMKRJw3SlGUb4meQflnfUzLrF7ny",
+      "password": "$2a$10$BigJmFKkeUMs6/JVcn61nueFYDEWgmmYfJ4NA8EcZ..boGMZzNL7q",
       "role": "hotel_admin",
       "hotel_id": "HTL-001",
       "status": "active",
@@ -163,7 +163,7 @@
       "id": "USR-HOTEL-ADMIN-B",
       "name": "Royal Heritage Admin B",
       "email": "hoteladminB@hotelhub.com",
-      "password": "$2a$10$OCVbnccGAdOsaNxoVqR6EeUv6oMKRJw3SlGUb4meQflnfUzLrF7ny",
+      "password": "$2a$10$BigJmFKkeUMs6/JVcn61nueFYDEWgmmYfJ4NA8EcZ..boGMZzNL7q",
       "role": "hotel_admin",
       "hotel_id": "HTL-002",
       "status": "active",
@@ -185,7 +185,7 @@
       "id": "USR-HOTEL-ADMIN",
       "name": "Hotel Operations Lead",
       "email": "hotel.admin@hotelhub.com",
-      "password": "$2a$10$A9XXvptc6M63rSr4KJayx.W4h5gSRg7fKJ1NNVth9mQxzkxSJcWU2",
+      "password": "$2a$10$QhWvYlCtLotcjocwM.zLm.EgTO.eosSp372C56Dz.jVRUbXuv13Re",
       "role": "hotel_admin",
       "hotel_id": "HTL-001",
       "status": "active",
@@ -207,17 +207,17 @@
       "id": "USR-OWNER-1",
       "name": "Rajesh Singhania",
       "email": "rajesh@grandhorizon.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "owner",
       "phone": "+91 98201 44521",
       "created_at": "2026-02-10T10:00:00Z",
-      "lastLoginAt": "2026-08-26T03:57:37.146Z"
+      "lastLoginAt": "2026-08-26T04:23:06.853Z"
     },
     {
       "id": "USR-OWNER-2",
       "name": "Vikramaditya Rathore",
       "email": "vikram@palaceheritage.in",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "owner",
       "phone": "+91 94140 88219",
       "created_at": "2026-03-15T11:00:00Z"
@@ -226,7 +226,7 @@
       "id": "USR-OWNER-3",
       "name": "Anthony D'Souza",
       "email": "anthony@azurebaygoa.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "owner",
       "phone": "+91 98221 77391",
       "created_at": "2026-04-01T09:00:00Z"
@@ -235,7 +235,7 @@
       "id": "USR-OWNER-4",
       "name": "Sunil Kumar Mittal",
       "email": "sunil@theclaridgesdelhi.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "owner",
       "phone": "+91 98110 33928",
       "created_at": "2026-08-20T14:40:00Z"
@@ -244,17 +244,17 @@
       "id": "USR-CUST-1",
       "name": "Aarav Sharma",
       "email": "aarav.sharma@gmail.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "customer",
       "phone": "+91 98200 11928",
       "created_at": "2026-05-10T08:00:00Z",
-      "lastLoginAt": "2026-08-26T03:57:37.247Z"
+      "lastLoginAt": "2026-08-26T04:23:06.927Z"
     },
     {
       "id": "USR-CUST-2",
       "name": "Meera Iyer",
       "email": "meera.iyer@outlook.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "customer",
       "phone": "+91 99401 88372",
       "created_at": "2026-05-12T10:30:00Z"
@@ -263,7 +263,7 @@
       "id": "USR-CUST-3",
       "name": "Rohan Deshmukh",
       "email": "rohan.d@gmail.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "customer",
       "phone": "+91 98210 99481",
       "created_at": "2026-05-15T12:00:00Z"
@@ -272,7 +272,7 @@
       "id": "USR-CUST-4",
       "name": "Ananya Verma",
       "email": "ananya.v@yahoo.com",
-      "password": "$2a$10$v4sRoxVVfiNJ.SKo3C2nxus5ysG63zZpSMjLUfHOnu.SYbKN6MduC",
+      "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "customer",
       "phone": "+91 97110 44821",
       "created_at": "2026-06-01T14:00:00Z"
@@ -337,14 +337,15 @@
       "id": "HTL-001",
       "owner_id": "USR-OWNER-1",
       "owner_name": "Rajesh Singhania",
-      "name": "The Grand Horizon Hotel & Suites",
-      "hotel_type": "Luxury Business & Leisure",
-      "description": "Ultra-luxury 5-star hotel located in the heart of BKC Mumbai with world-class fine dining, skyline infinity pool, and premium executive suites.",
-      "address": "Bandra Kurla Complex, Bandra East",
-      "city": "Mumbai",
-      "state": "Maharashtra",
+      "name": "Hotel Sea Hawk New Digha",
+      "hotel_type": "Luxury Beach Resort",
+      "description": "Premier luxury beachfront resort in New Digha offering panoramic Bay of Bengal views, private balcony sea-facing suites, swimming pool, and authentic Bengali and Continental seafood dining.",
+      "address": "Sea Beach Road, Near Digha Science Centre",
+      "area": "New Digha Beach",
+      "city": "New Digha",
+      "state": "West Bengal",
       "country": "India",
-      "postal_code": "400051",
+      "postal_code": "721463",
       "rating": 4.8,
       "reviews_count": 142,
       "star_category": 5,
@@ -356,14 +357,13 @@
         "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
       ],
       "amenities": [
-        "High-speed Wi-Fi",
+        "Direct Beach Access",
         "Infinity Pool",
-        "Luxury Spa",
-        "Fine Dining Restaurant",
+        "Ayurvedic Wellness Spa",
+        "Multi-Cuisine Seafood Restaurant",
         "24/7 Room Service",
         "Valet Parking",
-        "Fitness Center",
-        "Airport Shuttle"
+        "Free High-speed Wi-Fi"
       ],
       "created_at": "2026-02-15T10:00:00Z"
     },
@@ -371,14 +371,15 @@
       "id": "HTL-002",
       "owner_id": "USR-OWNER-2",
       "owner_name": "Vikramaditya Rathore",
-      "name": "Royal Heritage Palace & Spa",
-      "hotel_type": "Heritage Palace",
-      "description": "A 200-year-old restored Rajput palace offering authentic royal hospitality, regal courtyards, Ayurvedic wellness, and handcrafted luxury.",
-      "address": "Amer Road, Near Jal Mahal",
-      "city": "Jaipur",
-      "state": "Rajasthan",
+      "name": "Grand Digha Luxury Resort & Spa",
+      "hotel_type": "5-Star Luxury Resort",
+      "description": "Sprawling 5-star luxury property in New Digha near the Science Park featuring landscaped gardens, swimming pool, Ayurvedic wellness spa, and grand banquet facilities.",
+      "address": "Near Marine Aquarium & Science Centre, New Digha",
+      "area": "New Digha Science Park",
+      "city": "New Digha",
+      "state": "West Bengal",
       "country": "India",
-      "postal_code": "302002",
+      "postal_code": "721463",
       "rating": 4.9,
       "reviews_count": 220,
       "star_category": 5,
@@ -389,13 +390,12 @@
         "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80"
       ],
       "amenities": [
-        "Royal Courtyard",
-        "Ayurvedic Spa",
-        "Outdoor Pool",
-        "Folk Music Evenings",
-        "Complimentary Breakfast",
-        "Heritage Architecture",
-        "Concierge Service"
+        "Lush Garden",
+        "Spa & Wellness",
+        "Outdoor Swimming Pool",
+        "Live Bengali Folk Music",
+        "Complimentary Buffet Breakfast",
+        "Concierge Desk"
       ],
       "created_at": "2026-03-20T11:00:00Z"
     },
@@ -403,14 +403,15 @@
       "id": "HTL-003",
       "owner_id": "USR-OWNER-3",
       "owner_name": "Anthony D'Souza",
-      "name": "Azure Bay Beach Resort & Club",
-      "hotel_type": "Beachfront Resort",
-      "description": "Vibrant beachfront resort steps away from Calangute sands with sun decks, poolside cocktails, and authentic Goan seafood dining.",
-      "address": "Calangute Beach Road, North Goa",
-      "city": "Goa",
-      "state": "Goa",
+      "name": "Old Digha Heritage Beach Hotel",
+      "hotel_type": "Heritage Coastal Hotel",
+      "description": "Iconic heritage beachfront hotel in Old Digha with tranquil sea-facing promenades, historic colonial architecture, and fresh coastal dining.",
+      "address": "Barrister Colony, Main Beach Road, Old Digha",
+      "area": "Old Digha Barrister Colony",
+      "city": "Old Digha",
+      "state": "West Bengal",
       "country": "India",
-      "postal_code": "403516",
+      "postal_code": "721428",
       "rating": 4.7,
       "reviews_count": 189,
       "star_category": 4,
@@ -421,10 +422,9 @@
         "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80"
       ],
       "amenities": [
-        "Direct Beach Access",
-        "Beachfront Bar",
-        "Swimming Pool",
-        "Water Sports Desk",
+        "Direct Sea Promenade Access",
+        "Heritage Architecture",
+        "Seafood Special Restaurant",
         "Free Wi-Fi",
         "Complimentary Breakfast"
       ],
@@ -434,33 +434,34 @@
       "id": "HTL-004",
       "owner_id": "USR-OWNER-4",
       "owner_name": "Sunil Kumar Mittal",
-      "name": "The Imperial Suites New Delhi",
-      "hotel_type": "Boutique Executive",
-      "description": "Centrally located luxury boutique suites in Connaught Place, blending Victorian colonial charm with modern 5-star executive amenities.",
-      "address": "Janpath, Connaught Place",
-      "city": "Delhi",
-      "state": "Delhi NCR",
+      "name": "Hotel Sea Sand & Suites Old Digha",
+      "hotel_type": "Boutique Beach Stay",
+      "description": "Popular family boutique hotel in Old Digha located just 50 meters from the sea beach with 24/7 room service, air-conditioned executive rooms, and multi-cuisine restaurant.",
+      "address": "Sea Beach Road, Near Old Digha Market",
+      "area": "Old Digha Market Area",
+      "city": "Old Digha",
+      "state": "West Bengal",
       "country": "India",
-      "postal_code": "110001",
+      "postal_code": "721428",
       "rating": 4.6,
       "reviews_count": 98,
-      "star_category": 5,
-      "status": "under_review",
+      "star_category": 4,
+      "status": "active",
       "cover_image": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=80",
       "gallery": [
         "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1200&q=80"
       ],
       "amenities": [
-        "Business Center",
-        "Metro Proximity",
-        "Gym & Fitness",
-        "Multi-Cuisine Buffet",
-        "Airport Shuttle"
+        "Beach Proximity (50m)",
+        "AC Rooms",
+        "Multi-Cuisine Dining",
+        "Travel Desk",
+        "Room Service"
       ],
       "created_at": "2026-08-20T14:45:00Z"
     },
     {
-      "id": "HTL-MT9JRC0Q",
+      "id": "HTL-MT9L91PF",
       "owner_id": "USR-OWNER-1",
       "owner_name": "Rajesh Singhania",
       "name": "QA Test Grand Palace Resort",
@@ -485,91 +486,7 @@
         "Fine Dining",
         "Spa & Wellness"
       ],
-      "created_at": "2026-08-26T03:41:21.434Z"
-    },
-    {
-      "id": "HTL-MT9JRMHW",
-      "owner_id": "USR-OWNER-1",
-      "owner_name": "Rajesh Singhania",
-      "name": "QA Test Grand Palace Resort",
-      "hotel_type": "5-Star Luxury Resort",
-      "description": "Updated luxury beachfront property description.",
-      "address": "Beachfront Road 101",
-      "city": "Goa",
-      "state": "Goa",
-      "country": "India",
-      "postal_code": "403001",
-      "rating": 5,
-      "reviews_count": 1,
-      "star_category": 5,
-      "status": "active",
-      "cover_image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200",
-      "gallery": [
-        "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&auto=format&fit=crop&q=80"
-      ],
-      "amenities": [
-        "Private Beach",
-        "Infinity Pool",
-        "Fine Dining",
-        "Spa & Wellness"
-      ],
-      "created_at": "2026-08-26T03:41:35.012Z"
-    },
-    {
-      "id": "HTL-MT9JYZOM",
-      "owner_id": "USR-OWNER-1",
-      "owner_name": "Rajesh Singhania",
-      "name": "QA Test Grand Palace Resort",
-      "hotel_type": "5-Star Luxury Resort",
-      "description": "Updated luxury beachfront property description.",
-      "address": "Beachfront Road 101",
-      "city": "Goa",
-      "state": "Goa",
-      "country": "India",
-      "postal_code": "403001",
-      "rating": 5,
-      "reviews_count": 1,
-      "star_category": 5,
-      "status": "active",
-      "cover_image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200",
-      "gallery": [
-        "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&auto=format&fit=crop&q=80"
-      ],
-      "amenities": [
-        "Private Beach",
-        "Infinity Pool",
-        "Fine Dining",
-        "Spa & Wellness"
-      ],
-      "created_at": "2026-08-26T03:47:18.694Z"
-    },
-    {
-      "id": "HTL-MT9KC9EM",
-      "owner_id": "USR-OWNER-1",
-      "owner_name": "Rajesh Singhania",
-      "name": "QA Test Grand Palace Resort",
-      "hotel_type": "5-Star Luxury Resort",
-      "description": "Updated luxury beachfront property description.",
-      "address": "Beachfront Road 101",
-      "city": "Goa",
-      "state": "Goa",
-      "country": "India",
-      "postal_code": "403001",
-      "rating": 5,
-      "reviews_count": 1,
-      "star_category": 5,
-      "status": "active",
-      "cover_image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200",
-      "gallery": [
-        "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&auto=format&fit=crop&q=80"
-      ],
-      "amenities": [
-        "Private Beach",
-        "Infinity Pool",
-        "Fine Dining",
-        "Spa & Wellness"
-      ],
-      "created_at": "2026-08-26T03:57:37.823Z"
+      "created_at": "2026-08-26T04:23:07.492Z"
     }
   ],
   "rooms": [
@@ -658,8 +575,8 @@
       "is_active": true
     },
     {
-      "id": "RM-HTL-MT9JRC0Q-1",
-      "hotel_id": "HTL-MT9JRC0Q",
+      "id": "RM-HTL-MT9L91PF-1",
+      "hotel_id": "HTL-MT9L91PF",
       "room_name": "Sea View Suite",
       "room_type": "Suite",
       "description": "",
@@ -672,92 +589,8 @@
       "is_active": true
     },
     {
-      "id": "RM-MT9JRC3K",
-      "hotel_id": "HTL-MT9JRC0Q",
-      "room_name": "Presidential Ocean Villa",
-      "room_type": "Villa",
-      "description": "Top luxury villa with private plunge pool.",
-      "max_guests": 4,
-      "total_inventory": 4,
-      "price_per_night": 28000,
-      "photos": [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
-      ],
-      "is_active": true
-    },
-    {
-      "id": "RM-HTL-MT9JRMHW-1",
-      "hotel_id": "HTL-MT9JRMHW",
-      "room_name": "Sea View Suite",
-      "room_type": "Suite",
-      "description": "",
-      "max_guests": 3,
-      "total_inventory": 5,
-      "price_per_night": 12000,
-      "photos": [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
-      ],
-      "is_active": true
-    },
-    {
-      "id": "RM-MT9JRMJL",
-      "hotel_id": "HTL-MT9JRMHW",
-      "room_name": "Presidential Ocean Villa",
-      "room_type": "Villa",
-      "description": "Top luxury villa with private plunge pool.",
-      "max_guests": 4,
-      "total_inventory": 4,
-      "price_per_night": 28000,
-      "photos": [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
-      ],
-      "is_active": true
-    },
-    {
-      "id": "RM-HTL-MT9JYZOM-1",
-      "hotel_id": "HTL-MT9JYZOM",
-      "room_name": "Sea View Suite",
-      "room_type": "Suite",
-      "description": "",
-      "max_guests": 3,
-      "total_inventory": 5,
-      "price_per_night": 12000,
-      "photos": [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
-      ],
-      "is_active": true
-    },
-    {
-      "id": "RM-MT9JYZRI",
-      "hotel_id": "HTL-MT9JYZOM",
-      "room_name": "Presidential Ocean Villa",
-      "room_type": "Villa",
-      "description": "Top luxury villa with private plunge pool.",
-      "max_guests": 4,
-      "total_inventory": 4,
-      "price_per_night": 28000,
-      "photos": [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
-      ],
-      "is_active": true
-    },
-    {
-      "id": "RM-HTL-MT9KC9EM-1",
-      "hotel_id": "HTL-MT9KC9EM",
-      "room_name": "Sea View Suite",
-      "room_type": "Suite",
-      "description": "",
-      "max_guests": 3,
-      "total_inventory": 5,
-      "price_per_night": 12000,
-      "photos": [
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
-      ],
-      "is_active": true
-    },
-    {
-      "id": "RM-MT9KC9GR",
-      "hotel_id": "HTL-MT9KC9EM",
+      "id": "RM-MT9L91RJ",
+      "hotel_id": "HTL-MT9L91PF",
       "room_name": "Presidential Ocean Villa",
       "room_type": "Villa",
       "description": "Top luxury villa with private plunge pool.",
@@ -975,19 +808,54 @@
       "date": "2026-09-06",
       "booked_count": 0,
       "blocked_count": 0
+    },
+    {
+      "id": "AVL-MT9L91SU",
+      "room_id": "RM-MT9L91RJ",
+      "date": "2026-08-26",
+      "booked_count": 0,
+      "blocked_count": 1
+    },
+    {
+      "id": "AVL-MT9L91TB-2026-08-27",
+      "room_id": "RM-MT9L91RJ",
+      "date": "2026-08-27",
+      "booked_count": 1,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MT9L91TB-2026-08-28",
+      "room_id": "RM-MT9L91RJ",
+      "date": "2026-08-28",
+      "booked_count": 1,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MT9L91WA-2026-09-05",
+      "room_id": "RM-MT9L91RJ",
+      "date": "2026-09-05",
+      "booked_count": 0,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MT9L91WA-2026-09-06",
+      "room_id": "RM-MT9L91RJ",
+      "date": "2026-09-06",
+      "booked_count": 0,
+      "blocked_count": 0
     }
   ],
   "bookings": [
     {
-      "id": "BKG-MT9KCA2W",
-      "booking_code": "HTL-74267",
+      "id": "BKG-MT9L91WA",
+      "booking_code": "HTL-84295",
       "customer_id": "USR-CUST-1",
       "customer_name": "Aarav Sharma",
       "customer_email": "aarav.sharma@gmail.com",
       "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9KC9EM",
+      "hotel_id": "HTL-MT9L91PF",
       "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9KC9GR",
+      "room_id": "RM-MT9L91RJ",
       "room_name": "Presidential Ocean Villa",
       "check_in_date": "2026-09-05",
       "check_out_date": "2026-09-07",
@@ -1002,18 +870,18 @@
       "payment_status": "refunded",
       "booking_status": "cancelled",
       "cancellation_reason": "Flight cancellation",
-      "created_at": "2026-08-26T03:57:38.696Z"
+      "created_at": "2026-08-26T04:23:07.738Z"
     },
     {
-      "id": "BKG-MT9KC9I2",
-      "booking_code": "HTL-98355",
+      "id": "BKG-MT9L91TB",
+      "booking_code": "HTL-89940",
       "customer_id": "USR-CUST-1",
       "customer_name": "Aarav Sharma",
       "customer_email": "aarav.sharma@gmail.com",
       "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9KC9EM",
+      "hotel_id": "HTL-MT9L91PF",
       "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9KC9GR",
+      "room_id": "RM-MT9L91RJ",
       "room_name": "Presidential Ocean Villa",
       "check_in_date": "2026-08-27",
       "check_out_date": "2026-08-29",
@@ -1028,163 +896,7 @@
       "payment_status": "successful",
       "booking_status": "checked_out",
       "cancellation_reason": null,
-      "created_at": "2026-08-26T03:57:37.946Z"
-    },
-    {
-      "id": "BKG-MT9JYZWF",
-      "booking_code": "HTL-36789",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "aarav.sharma@gmail.com",
-      "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9JYZOM",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9JYZRI",
-      "room_name": "Presidential Ocean Villa",
-      "check_in_date": "2026-09-05",
-      "check_out_date": "2026-09-07",
-      "nights": 2,
-      "guests_count": 2,
-      "base_amount": 56000,
-      "tax_amount": 6720,
-      "total_amount": 62720,
-      "commission_rate": 15,
-      "commission_amount": 9408,
-      "owner_payout": 53312,
-      "payment_status": "refunded",
-      "booking_status": "cancelled",
-      "cancellation_reason": "Flight cancellation",
-      "created_at": "2026-08-26T03:47:18.975Z"
-    },
-    {
-      "id": "BKG-MT9JYZTT",
-      "booking_code": "HTL-17798",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "aarav.sharma@gmail.com",
-      "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9JYZOM",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9JYZRI",
-      "room_name": "Presidential Ocean Villa",
-      "check_in_date": "2026-08-27",
-      "check_out_date": "2026-08-29",
-      "nights": 2,
-      "guests_count": 2,
-      "base_amount": 56000,
-      "tax_amount": 6720,
-      "total_amount": 62720,
-      "commission_rate": 15,
-      "commission_amount": 9408,
-      "owner_payout": 53312,
-      "payment_status": "successful",
-      "booking_status": "checked_out",
-      "cancellation_reason": null,
-      "created_at": "2026-08-26T03:47:18.881Z"
-    },
-    {
-      "id": "BKG-MT9JRMNJ",
-      "booking_code": "HTL-44189",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "aarav.sharma@gmail.com",
-      "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9JRMHW",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9JRMJL",
-      "room_name": "Presidential Ocean Villa",
-      "check_in_date": "2026-09-05",
-      "check_out_date": "2026-09-07",
-      "nights": 2,
-      "guests_count": 2,
-      "base_amount": 56000,
-      "tax_amount": 6720,
-      "total_amount": 62720,
-      "commission_rate": 15,
-      "commission_amount": 9408,
-      "owner_payout": 53312,
-      "payment_status": "refunded",
-      "booking_status": "cancelled",
-      "cancellation_reason": "Flight cancellation",
-      "created_at": "2026-08-26T03:41:35.215Z"
-    },
-    {
-      "id": "BKG-MT9JRMLA",
-      "booking_code": "HTL-63633",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "aarav.sharma@gmail.com",
-      "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9JRMHW",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9JRMJL",
-      "room_name": "Presidential Ocean Villa",
-      "check_in_date": "2026-08-27",
-      "check_out_date": "2026-08-29",
-      "nights": 2,
-      "guests_count": 2,
-      "base_amount": 56000,
-      "tax_amount": 6720,
-      "total_amount": 62720,
-      "commission_rate": 15,
-      "commission_amount": 9408,
-      "owner_payout": 53312,
-      "payment_status": "successful",
-      "booking_status": "checked_out",
-      "cancellation_reason": null,
-      "created_at": "2026-08-26T03:41:35.134Z"
-    },
-    {
-      "id": "BKG-MT9JRCF3",
-      "booking_code": "HTL-58281",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "aarav.sharma@gmail.com",
-      "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9JRC0Q",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9JRC3K",
-      "room_name": "Presidential Ocean Villa",
-      "check_in_date": "2026-09-05",
-      "check_out_date": "2026-09-07",
-      "nights": 2,
-      "guests_count": 2,
-      "base_amount": 56000,
-      "tax_amount": 6720,
-      "total_amount": 62720,
-      "commission_rate": 15,
-      "commission_amount": 9408,
-      "owner_payout": 53312,
-      "payment_status": "refunded",
-      "booking_status": "cancelled",
-      "cancellation_reason": "Flight cancellation",
-      "created_at": "2026-08-26T03:41:21.951Z"
-    },
-    {
-      "id": "BKG-MT9JRC5P",
-      "booking_code": "HTL-77907",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "customer_email": "aarav.sharma@gmail.com",
-      "customer_phone": "+91 98200 11928",
-      "hotel_id": "HTL-MT9JRC0Q",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "room_id": "RM-MT9JRC3K",
-      "room_name": "Presidential Ocean Villa",
-      "check_in_date": "2026-08-27",
-      "check_out_date": "2026-08-29",
-      "nights": 2,
-      "guests_count": 2,
-      "base_amount": 56000,
-      "tax_amount": 6720,
-      "total_amount": 62720,
-      "commission_rate": 15,
-      "commission_amount": 9408,
-      "owner_payout": 53312,
-      "payment_status": "successful",
-      "booking_status": "checked_out",
-      "cancellation_reason": null,
-      "created_at": "2026-08-26T03:41:21.613Z"
+      "created_at": "2026-08-26T04:23:07.631Z"
     },
     {
       "id": "BKG-001",
@@ -1293,116 +1005,32 @@
   ],
   "payments": [
     {
-      "id": "PAY-MT9KCA2W",
-      "transaction_id": "TXN-MT9KCA2W",
-      "booking_id": "BKG-MT9KCA2W",
-      "booking_code": "HTL-74267",
+      "id": "PAY-MT9L91WA",
+      "transaction_id": "TXN-MT9L91WA",
+      "booking_id": "BKG-MT9L91WA",
+      "booking_code": "HTL-84295",
       "customer_id": "USR-CUST-1",
       "customer_name": "Aarav Sharma",
       "hotel_name": "QA Test Grand Palace Resort",
       "amount": 62720,
       "payment_method": "UPI (Google Pay)",
-      "gateway_reference": "rzp_live_txn-mt9kca2w",
+      "gateway_reference": "rzp_live_txn-mt9l91wa",
       "status": "refunded",
-      "created_at": "2026-08-26T03:57:38.696Z"
+      "created_at": "2026-08-26T04:23:07.738Z"
     },
     {
-      "id": "PAY-MT9KC9I2",
-      "transaction_id": "TXN-MT9KC9I2",
-      "booking_id": "BKG-MT9KC9I2",
-      "booking_code": "HTL-98355",
+      "id": "PAY-MT9L91TB",
+      "transaction_id": "TXN-MT9L91TB",
+      "booking_id": "BKG-MT9L91TB",
+      "booking_code": "HTL-89940",
       "customer_id": "USR-CUST-1",
       "customer_name": "Aarav Sharma",
       "hotel_name": "QA Test Grand Palace Resort",
       "amount": 62720,
       "payment_method": "UPI",
-      "gateway_reference": "rzp_live_txn-mt9kc9i2",
+      "gateway_reference": "rzp_live_txn-mt9l91tb",
       "status": "successful",
-      "created_at": "2026-08-26T03:57:37.946Z"
-    },
-    {
-      "id": "PAY-MT9JYZWF",
-      "transaction_id": "TXN-MT9JYZWF",
-      "booking_id": "BKG-MT9JYZWF",
-      "booking_code": "HTL-36789",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "amount": 62720,
-      "payment_method": "UPI (Google Pay)",
-      "gateway_reference": "rzp_live_txn-mt9jyzwf",
-      "status": "refunded",
-      "created_at": "2026-08-26T03:47:18.975Z"
-    },
-    {
-      "id": "PAY-MT9JYZTT",
-      "transaction_id": "TXN-MT9JYZTT",
-      "booking_id": "BKG-MT9JYZTT",
-      "booking_code": "HTL-17798",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "amount": 62720,
-      "payment_method": "UPI",
-      "gateway_reference": "rzp_live_txn-mt9jyztt",
-      "status": "successful",
-      "created_at": "2026-08-26T03:47:18.881Z"
-    },
-    {
-      "id": "PAY-MT9JRMNJ",
-      "transaction_id": "TXN-MT9JRMNJ",
-      "booking_id": "BKG-MT9JRMNJ",
-      "booking_code": "HTL-44189",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "amount": 62720,
-      "payment_method": "UPI (Google Pay)",
-      "gateway_reference": "rzp_live_txn-mt9jrmnj",
-      "status": "refunded",
-      "created_at": "2026-08-26T03:41:35.215Z"
-    },
-    {
-      "id": "PAY-MT9JRMLA",
-      "transaction_id": "TXN-MT9JRMLA",
-      "booking_id": "BKG-MT9JRMLA",
-      "booking_code": "HTL-63633",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "amount": 62720,
-      "payment_method": "UPI",
-      "gateway_reference": "rzp_live_txn-mt9jrmla",
-      "status": "successful",
-      "created_at": "2026-08-26T03:41:35.134Z"
-    },
-    {
-      "id": "PAY-MT9JRCF3",
-      "transaction_id": "TXN-MT9JRCF3",
-      "booking_id": "BKG-MT9JRCF3",
-      "booking_code": "HTL-58281",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "amount": 62720,
-      "payment_method": "UPI (Google Pay)",
-      "gateway_reference": "rzp_live_txn-mt9jrcf3",
-      "status": "refunded",
-      "created_at": "2026-08-26T03:41:21.951Z"
-    },
-    {
-      "id": "PAY-MT9JRC5P",
-      "transaction_id": "TXN-MT9JRC5P",
-      "booking_id": "BKG-MT9JRC5P",
-      "booking_code": "HTL-77907",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "amount": 62720,
-      "payment_method": "UPI",
-      "gateway_reference": "rzp_live_txn-mt9jrc5p",
-      "status": "successful",
-      "created_at": "2026-08-26T03:41:21.613Z"
+      "created_at": "2026-08-26T04:23:07.631Z"
     },
     {
       "id": "PAY-001",
@@ -1463,10 +1091,10 @@
   ],
   "refunds": [
     {
-      "id": "REF-MT9KCA37",
-      "refund_code": "REF-8144",
-      "booking_id": "BKG-MT9KCA2W",
-      "booking_code": "HTL-74267",
+      "id": "REF-MT9L91WQ",
+      "refund_code": "REF-2581",
+      "booking_id": "BKG-MT9L91WA",
+      "booking_code": "HTL-84295",
       "customer_id": "USR-CUST-1",
       "customer_name": "Aarav Sharma",
       "hotel_name": "QA Test Grand Palace Resort",
@@ -1476,59 +1104,8 @@
       "reason": "Flight cancellation",
       "status": "approved",
       "admin_notes": "Approved per standard cancellation policy.",
-      "requested_at": "2026-08-26T03:57:38.707Z",
-      "processed_at": "2026-08-26T03:57:38.753Z"
-    },
-    {
-      "id": "REF-MT9JZ0EW",
-      "refund_code": "REF-1083",
-      "booking_id": "BKG-MT9JYZWF",
-      "booking_code": "HTL-36789",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "booking_amount": 62720,
-      "fee_amount": 6272,
-      "refund_amount": 56448,
-      "reason": "Flight cancellation",
-      "status": "approved",
-      "admin_notes": "Approved per standard cancellation policy.",
-      "requested_at": "2026-08-26T03:47:19.640Z",
-      "processed_at": "2026-08-26T03:47:19.675Z"
-    },
-    {
-      "id": "REF-MT9JRMNU",
-      "refund_code": "REF-2218",
-      "booking_id": "BKG-MT9JRMNJ",
-      "booking_code": "HTL-44189",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "booking_amount": 62720,
-      "fee_amount": 6272,
-      "refund_amount": 56448,
-      "reason": "Flight cancellation",
-      "status": "approved",
-      "admin_notes": "Approved per standard cancellation policy.",
-      "requested_at": "2026-08-26T03:41:35.226Z",
-      "processed_at": "2026-08-26T03:41:35.273Z"
-    },
-    {
-      "id": "REF-MT9JRCFG",
-      "refund_code": "REF-9844",
-      "booking_id": "BKG-MT9JRCF3",
-      "booking_code": "HTL-58281",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_name": "QA Test Grand Palace Resort",
-      "booking_amount": 62720,
-      "fee_amount": 6272,
-      "refund_amount": 56448,
-      "reason": "Flight cancellation",
-      "status": "approved",
-      "admin_notes": "Approved per standard cancellation policy.",
-      "requested_at": "2026-08-26T03:41:21.964Z",
-      "processed_at": "2026-08-26T03:41:22.001Z"
+      "requested_at": "2026-08-26T04:23:07.754Z",
+      "processed_at": "2026-08-26T04:23:07.799Z"
     },
     {
       "id": "REF-001",
@@ -1567,44 +1144,14 @@
   ],
   "reviews": [
     {
-      "id": "REV-MT9KCA2S",
-      "booking_id": "BKG-MT9KC9I2",
+      "id": "REV-MT9L91VV",
+      "booking_id": "BKG-MT9L91TB",
       "customer_id": "USR-CUST-1",
       "customer_name": "Aarav Sharma",
-      "hotel_id": "HTL-MT9KC9EM",
+      "hotel_id": "HTL-MT9L91PF",
       "rating": 5,
       "comment": "Exceptional stay! Beautiful view and flawless service.",
-      "created_at": "2026-08-26T03:57:38.692Z"
-    },
-    {
-      "id": "REV-MT9JYZW0",
-      "booking_id": "BKG-MT9JYZTT",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_id": "HTL-MT9JYZOM",
-      "rating": 5,
-      "comment": "Exceptional stay! Beautiful view and flawless service.",
-      "created_at": "2026-08-26T03:47:18.960Z"
-    },
-    {
-      "id": "REV-MT9JRMNE",
-      "booking_id": "BKG-MT9JRMLA",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_id": "HTL-MT9JRMHW",
-      "rating": 5,
-      "comment": "Exceptional stay! Beautiful view and flawless service.",
-      "created_at": "2026-08-26T03:41:35.210Z"
-    },
-    {
-      "id": "REV-MT9JRC89",
-      "booking_id": "BKG-MT9JRC5P",
-      "customer_id": "USR-CUST-1",
-      "customer_name": "Aarav Sharma",
-      "hotel_id": "HTL-MT9JRC0Q",
-      "rating": 5,
-      "comment": "Exceptional stay! Beautiful view and flawless service.",
-      "created_at": "2026-08-26T03:41:21.705Z"
+      "created_at": "2026-08-26T04:23:07.723Z"
     },
     {
       "id": "REV-001",
@@ -1629,8 +1176,8 @@
   ],
   "support_tickets": [
     {
-      "id": "TCK-MT9KCAL0",
-      "ticket_code": "TCK-201",
+      "id": "TCK-MT9L92F5",
+      "ticket_code": "TCK-976",
       "user_id": "USR-CUST-1",
       "user_name": "Aarav Sharma",
       "user_email": "aarav.sharma@gmail.com",
@@ -1646,14 +1193,14 @@
         {
           "sender": "customer",
           "text": "<script>alert(\"XSS\")</script>",
-          "time": "2026-08-26 09:27 am"
+          "time": "2026-08-26 09:53 am"
         }
       ],
-      "created_at": "2026-08-26T03:57:39.348Z"
+      "created_at": "2026-08-26T04:23:08.417Z"
     },
     {
-      "id": "TCK-MT9KCA7J",
-      "ticket_code": "TCK-362",
+      "id": "TCK-MT9L921G",
+      "ticket_code": "TCK-886",
       "user_id": "USR-CUST-1",
       "user_name": "Aarav Sharma",
       "user_email": "aarav.sharma@gmail.com",
@@ -1669,260 +1216,15 @@
         {
           "sender": "customer",
           "text": "Will be arriving at 11 PM due to flight delay.",
-          "time": "2026-08-26 09:27 am"
+          "time": "2026-08-26 09:53 am"
         },
         {
           "sender": "admin",
           "text": "Noted! The hotel front desk has been notified of your late arrival.",
-          "time": "2026-08-26 09:27 am"
+          "time": "2026-08-26 09:53 am"
         }
       ],
-      "created_at": "2026-08-26T03:57:38.864Z"
-    },
-    {
-      "id": "TCK-MT9JZ0VQ",
-      "ticket_code": "TCK-533",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "XSS Test",
-      "category": "General Inquiry",
-      "priority": "medium",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "<script>alert(\"XSS\")</script>",
-          "time": "2026-08-26 09:17 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:47:20.246Z"
-    },
-    {
-      "id": "TCK-MT9JZ0IO",
-      "ticket_code": "TCK-303",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "Late check-in request",
-      "category": "Reservation Inquiry",
-      "priority": "high",
-      "status": "resolved",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "Will be arriving at 11 PM due to flight delay.",
-          "time": "2026-08-26 09:17 am"
-        },
-        {
-          "sender": "admin",
-          "text": "Noted! The hotel front desk has been notified of your late arrival.",
-          "time": "2026-08-26 09:17 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:47:19.776Z"
-    },
-    {
-      "id": "TCK-MT9JRN2X",
-      "ticket_code": "TCK-654",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "XSS Test",
-      "category": "General Inquiry",
-      "priority": "medium",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "<script>alert(\"XSS\")</script>",
-          "time": "2026-08-26 09:11 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:41:35.769Z"
-    },
-    {
-      "id": "TCK-MT9JRMWB",
-      "ticket_code": "TCK-508",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "Late check-in request",
-      "category": "Reservation Inquiry",
-      "priority": "high",
-      "status": "resolved",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "Will be arriving at 11 PM due to flight delay.",
-          "time": "2026-08-26 09:11 am"
-        },
-        {
-          "sender": "admin",
-          "text": "Noted! The hotel front desk has been notified of your late arrival.",
-          "time": "2026-08-26 09:11 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:41:35.531Z"
-    },
-    {
-      "id": "TCK-MT9JRD44",
-      "ticket_code": "TCK-812",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "XSS Test",
-      "category": "General Inquiry",
-      "priority": "medium",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "<script>alert(\"XSS\")</script>",
-          "time": "2026-08-26 09:11 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:41:22.852Z"
-    },
-    {
-      "id": "TCK-MT9JRCJG",
-      "ticket_code": "TCK-515",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "Late check-in request",
-      "category": "Reservation Inquiry",
-      "priority": "high",
-      "status": "resolved",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "Will be arriving at 11 PM due to flight delay.",
-          "time": "2026-08-26 09:11 am"
-        },
-        {
-          "sender": "admin",
-          "text": "Noted! The hotel front desk has been notified of your late arrival.",
-          "time": "2026-08-26 09:11 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:41:22.109Z"
-    },
-    {
-      "id": "TCK-MT9JQCDQ",
-      "ticket_code": "TCK-837",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "XSS Test",
-      "category": "General Inquiry",
-      "priority": "medium",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "<script>alert(\"XSS\")</script>",
-          "time": "2026-08-26 09:10 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:40:35.246Z"
-    },
-    {
-      "id": "TCK-MT9JQC8Z",
-      "ticket_code": "TCK-193",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "Late check-in request",
-      "category": "Reservation Inquiry",
-      "priority": "high",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "Will be arriving at 11 PM due to flight delay.",
-          "time": "2026-08-26 09:10 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:40:35.075Z"
-    },
-    {
-      "id": "TCK-MT9JQ7TW",
-      "ticket_code": "TCK-870",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "XSS Test",
-      "category": "General Inquiry",
-      "priority": "medium",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "<script>alert(\"XSS\")</script>",
-          "time": "2026-08-26 09:10 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:40:29.348Z"
-    },
-    {
-      "id": "TCK-MT9JQ7OS",
-      "ticket_code": "TCK-515",
-      "user_id": "USR-CUST-1",
-      "user_name": "Aarav Sharma",
-      "user_email": "aarav.sharma@gmail.com",
-      "user_role": "customer",
-      "booking_id": null,
-      "booking_code": null,
-      "hotel_id": null,
-      "subject": "Late check-in request",
-      "category": "Reservation Inquiry",
-      "priority": "high",
-      "status": "open",
-      "messages": [
-        {
-          "sender": "customer",
-          "text": "Will be arriving at 11 PM due to flight delay.",
-          "time": "2026-08-26 09:10 am"
-        }
-      ],
-      "created_at": "2026-08-26T03:40:29.164Z"
+      "created_at": "2026-08-26T04:23:07.924Z"
     },
     {
       "id": "TCK-001",
@@ -1984,9 +1286,162 @@
     "cancel_fee_pct": 10,
     "support_email": "support.enterprise@hotelhub.com",
     "support_phone": "+91 1800 200 8899",
-    "updated_at": "2026-08-26T03:57:38.848Z"
+    "updated_at": "2026-08-26T04:23:07.877Z"
   },
   "audit_logs": [
+    {
+      "id": "LOG-MT9L9207-469",
+      "timestamp": "2026-08-26T04:23:07.879Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "SETTINGS_CHANGED",
+      "resource": "PlatformSettings",
+      "details": "Updated global platform configuration.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91ZR-520",
+      "timestamp": "2026-08-26T04:23:07.863Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "COMMISSION_CHANGED",
+      "resource": "PlatformSettings",
+      "details": "Commission rate changed to 15%.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91YX-555",
+      "timestamp": "2026-08-26T04:23:07.833Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "COMMISSION_CHANGED",
+      "resource": "PlatformSettings",
+      "details": "Commission rate changed to 18%.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91Y2-798",
+      "timestamp": "2026-08-26T04:23:07.802Z",
+      "admin_id": "USR-FINANCE-ADMIN",
+      "admin_name": "Finance Controller",
+      "admin_role": "finance_admin",
+      "action": "REFUND_APPROVED",
+      "resource": "Refund",
+      "resource_id": "REF-MT9L91WQ",
+      "details": "Refund 'REF-2581' for amount ₹56448 was approved.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91QP-163",
+      "timestamp": "2026-08-26T04:23:07.537Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "HOTEL_APPROVED",
+      "resource": "Hotel",
+      "resource_id": "HTL-MT9L91PF",
+      "details": "Hotel 'QA Test Grand Palace Resort' status set to 'active'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91Q9-641",
+      "timestamp": "2026-08-26T04:23:07.521Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "HOTEL_SUSPENDED",
+      "resource": "Hotel",
+      "resource_id": "HTL-MT9L91PF",
+      "details": "Hotel 'QA Test Grand Palace Resort' status set to 'suspended'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91PU-918",
+      "timestamp": "2026-08-26T04:23:07.506Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "HOTEL_APPROVED",
+      "resource": "Hotel",
+      "resource_id": "HTL-MT9L91PF",
+      "details": "Hotel 'QA Test Grand Palace Resort' status set to 'active'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91OZ-648",
+      "timestamp": "2026-08-26T04:23:07.475Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_DELETED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MT9L91KP",
+      "details": "Deleted admin 'QA Support Analyst' (qa.support.adm.1787718187259@hotelhub.com).",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91O5-596",
+      "timestamp": "2026-08-26T04:23:07.445Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_ROLE_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MT9L91KP",
+      "details": "Role of admin 'QA Support Analyst' changed to 'finance_admin'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91NP-749",
+      "timestamp": "2026-08-26T04:23:07.429Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_STATUS_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MT9L91KP",
+      "details": "Status of admin 'QA Support Analyst' (qa.support.adm.1787718187259@hotelhub.com) changed to 'active'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91LJ-806",
+      "timestamp": "2026-08-26T04:23:07.351Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_STATUS_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MT9L91KP",
+      "details": "Status of admin 'QA Support Analyst' (qa.support.adm.1787718187259@hotelhub.com) changed to 'suspended'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91KQ-480",
+      "timestamp": "2026-08-26T04:23:07.322Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_CREATED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MT9L91KP",
+      "details": "Created new admin 'QA Support Analyst' (qa.support.adm.1787718187259@hotelhub.com) with role 'support_admin'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MT9L91I5-603",
+      "timestamp": "2026-08-26T04:23:07.229Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator",
+      "admin_role": "super_admin",
+      "action": "ADMIN_UPDATED",
+      "resource": "User",
+      "resource_id": "USR-SUPER-ADMIN",
+      "details": "Admin profile updated for 'Super Administrator Master'.",
+      "ip_address": "127.0.0.1"
+    },
     {
       "id": "LOG-MT9KG7F0-437",
       "timestamp": "2026-08-26T04:00:41.868Z",

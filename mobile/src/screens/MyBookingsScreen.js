@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { mobileApi } from '../services/api';
@@ -15,38 +16,38 @@ import { RECOMMENDED_HOTELS } from '../data/mockData';
 
 const DEFAULT_BOOKINGS = [
   {
-    id: 'BKG-PLAZA-01',
-    booking_code: 'BK-PLZ-8921',
-    hotel_name: 'The Plaza Hotel',
-    location: '5th Avenue, Manhattan, New York, USA',
-    city: 'New York',
-    country: 'USA',
+    id: 'BKG-DIGH-01',
+    booking_code: 'BK-DGH-8921',
+    hotel_name: 'Hotel Sea Hawk New Digha',
+    location: 'Sea Beach Road, New Digha, West Bengal',
+    city: 'New Digha',
+    country: 'India',
     check_in_date: '12 Aug, Mon',
     check_out_date: '15 Aug, Thu',
     guests_count: 2,
     rooms_count: 1,
-    room_name: 'Deluxe Room',
-    total_amount: 1050,
+    room_name: 'Deluxe Sea Facing Room',
+    total_amount: 3500,
     booking_status: 'confirmed',
     payment_status: 'paid',
     cover_image: RECOMMENDED_HOTELS[0].coverImage,
   },
   {
-    id: 'BKG-BALI-02',
-    booking_code: 'BK-BAL-4412',
-    hotel_name: 'Mandarin Oriental Bali',
-    location: 'Uluwatu Cliffs, Bali, Indonesia',
-    city: 'Bali',
-    country: 'Indonesia',
+    id: 'BKG-DIGH-02',
+    booking_code: 'BK-ODG-4412',
+    hotel_name: 'Old Digha Heritage Beach Hotel',
+    location: 'Barrister Colony, Old Digha, West Bengal',
+    city: 'Old Digha',
+    country: 'India',
     check_in_date: '05 Jul 2026',
-    check_out_date: '10 Jul 2026',
+    check_out_date: '08 Jul 2026',
     guests_count: 2,
     rooms_count: 1,
-    room_name: 'Ocean Villa',
-    total_amount: 2100,
+    room_name: 'Heritage AC Room',
+    total_amount: 2800,
     booking_status: 'checked_out',
     payment_status: 'paid',
-    cover_image: RECOMMENDED_HOTELS[1].coverImage,
+    cover_image: RECOMMENDED_HOTELS[2].coverImage,
   },
 ];
 
@@ -96,7 +97,7 @@ export default function MyBookingsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -205,15 +206,17 @@ export default function MyBookingsScreen({ navigation }) {
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
   },
   header: {
-    backgroundColor: '#072824',
+    backgroundColor: COLORS.primaryDark,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: STATUSBAR_HEIGHT + 12,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
@@ -231,7 +234,7 @@ const styles = StyleSheet.create({
   },
   tabRow: {
     flexDirection: 'row',
-    backgroundColor: '#0E4942',
+    backgroundColor: COLORS.primarySurface,
     borderRadius: 14,
     padding: 4,
   },

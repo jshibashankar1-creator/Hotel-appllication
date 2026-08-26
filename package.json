@@ -8,6 +8,8 @@
     "build:frontend": "npm --prefix frontend run build",
     "dev:server": "npm --prefix server start",
     "dev:mobile": "npm --prefix mobile start",
+    "mobile": "npm --prefix mobile start",
+    "mobile:web": "npm --prefix mobile run web",
     "test:e2e": "node test-e2e.js"
   },
   "workspaces": [

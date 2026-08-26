@@ -1,0 +1,17 @@
+{
+  "name": "hotelhub-enterprise-platform",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "dev:server": "npm --prefix server start",
+    "dev:mobile": "npm --prefix mobile start",
+    "test:e2e": "node test-e2e.js"
+  },
+  "workspaces": [
+    "frontend",
+    "server",
+    "mobile"
+  ]
+}

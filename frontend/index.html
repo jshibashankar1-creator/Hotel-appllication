@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HotelHub Enterprise • Commercial Hotel Platform</title>
+  <meta name="description" content="Commercial Hotel Booking Management Platform featuring dedicated Administrator and Hotel Admin consoles." />
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C5A880'><path d='M7 21h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z'/></svg>">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <div id="app">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand-icon">
+          <i data-lucide="hotel" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="sidebar-brand-text">
+          <span class="sidebar-brand-title">HotelHub</span>
+          <span class="sidebar-brand-badge" id="user-role-badge">ADMIN PORTAL</span>
+        </div>
+        <button class="sidebar-close-btn" id="btn-close-sidebar" aria-label="Close Navigation Menu">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebar-nav-root">
+        <!-- Dynamic Navigation items rendered by main.js -->
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-widget">
+          <div class="user-profile-left">
+            <div class="user-avatar" id="sidebar-user-avatar">AD</div>
+            <div class="user-info-text">
+              <div class="user-name" id="user-name-display">Administrator</div>
+              <div class="user-role" id="user-role-display">Enterprise Access</div>
+            </div>
+          </div>
+          <button class="sidebar-logout-btn" onclick="window.handleSignOut()" title="Sign Out" aria-label="Sign Out">
+            <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Shell -->
+    <main class="main-wrapper">
+      <!-- Top Sticky Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="header-mobile-toggle" id="btn-mobile-sidebar-toggle" aria-label="Open Navigation Menu">
+            <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+          </button>
+          <div class="header-title-box">
+            <h1 id="header-view-title">Executive Control Center</h1>
+            <p id="header-view-subtitle">Live centralized overview of properties, bookings & financial settlements</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Live System Indicator -->
+          <div class="header-status-indicator" title="System Operational">
+            <span class="status-dot"></span>
+            <span class="status-text">Live Platform</span>
+          </div>
+
+          <!-- Notification Icon Button -->
+          <button class="header-icon-btn" title="Platform Notifications" aria-label="Notifications">
+            <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
+            <span class="notification-indicator"></span>
+          </button>
+
+          <!-- Divider -->
+          <div class="header-divider"></div>
+
+          <!-- Header User Profile Pill -->
+          <div class="header-user-pill">
+            <div class="header-avatar" id="header-user-avatar">SA</div>
+            <div class="header-profile-info">
+              <span class="header-user-name" id="header-user-name">Super Administrator</span>
+              <span class="header-user-role" id="header-user-role">SUPER ADMIN</span>
+            </div>
+          </div>
+
+          <!-- Quick Sign Out -->
+          <button class="header-logout-btn" onclick="window.handleSignOut()" title="Sign Out" aria-label="Sign Out">
+            <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+            <span class="logout-label">Sign Out</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic View Container -->
+      <div class="content-body" id="view-content-area">
+        <!-- Injected by router -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-root"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

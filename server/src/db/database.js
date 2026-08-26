@@ -126,6 +126,22 @@ class RelationalDatabase {
 
   getPayments() { return this.data.payments; }
   getRefunds() { return this.data.refunds; }
+  getCommissionLedger() {
+    this.load();
+    const bookings = this.data.bookings || [];
+    return bookings.map(b => ({
+      booking_id: b.id,
+      booking_code: b.booking_code,
+      hotel_name: b.hotel_name,
+      customer_name: b.customer_name,
+      total_amount: b.total_amount,
+      commission_rate: b.commission_rate,
+      commission_amount: b.commission_amount,
+      owner_payout: b.owner_payout,
+      payment_status: b.payment_status,
+      created_at: b.created_at
+    }));
+  }
   getReviews(hotelId) {
     if (hotelId) return this.data.reviews.filter(r => r.hotel_id === hotelId);
     return this.data.reviews;

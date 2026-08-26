@@ -5,38 +5,79 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
-  SafeAreaView
+  SafeAreaView,
+  StatusBar,
+  Image,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { mobileApi } from '../services/api';
+import { RECOMMENDED_HOTELS } from '../data/mockData';
+
+const DEFAULT_BOOKINGS = [
+  {
+    id: 'BKG-PLAZA-01',
+    booking_code: 'BK-PLZ-8921',
+    hotel_name: 'The Plaza Hotel',
+    location: '5th Avenue, Manhattan, New York, USA',
+    city: 'New York',
+    country: 'USA',
+    check_in_date: '12 Aug, Mon',
+    check_out_date: '15 Aug, Thu',
+    guests_count: 2,
+    rooms_count: 1,
+    room_name: 'Deluxe Room',
+    total_amount: 1050,
+    booking_status: 'confirmed',
+    payment_status: 'paid',
+    cover_image: RECOMMENDED_HOTELS[0].coverImage,
+  },
+  {
+    id: 'BKG-BALI-02',
+    booking_code: 'BK-BAL-4412',
+    hotel_name: 'Mandarin Oriental Bali',
+    location: 'Uluwatu Cliffs, Bali, Indonesia',
+    city: 'Bali',
+    country: 'Indonesia',
+    check_in_date: '05 Jul 2026',
+    check_out_date: '10 Jul 2026',
+    guests_count: 2,
+    rooms_count: 1,
+    room_name: 'Ocean Villa',
+    total_amount: 2100,
+    booking_status: 'checked_out',
+    payment_status: 'paid',
+    cover_image: RECOMMENDED_HOTELS[1].coverImage,
+  },
+];
 
 export default function MyBookingsScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'completed', 'cancelled'
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState(DEFAULT_BOOKINGS);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchBookings();
+    fetchLiveBookings();
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchBookings();
+      fetchLiveBookings();
     });
     return unsubscribe;
   }, [navigation]);
 
-  async function fetchBookings() {
+  async function fetchLiveBookings() {
     try {
       setLoading(true);
       const res = await mobileApi.getMyBookings();
-      setBookings(res.bookings || []);
+      if (res && res.bookings && res.bookings.length > 0) {
+        setBookings(res.bookings);
+      }
     } catch (err) {
-      console.warn('Error loading bookings:', err);
+      console.log('Bookings note:', err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  const filtered = bookings.filter((b) => {
+  const filtered = bookings.filter(b => {
     if (activeTab === 'upcoming') {
       return b.booking_status === 'confirmed' || b.booking_status === 'checked_in';
     }
@@ -49,186 +90,304 @@ export default function MyBookingsScreen({ navigation }) {
     return true;
   });
 
+  const handleViewDetails = (booking) => {
+    navigation.navigate('BookingDetails', { booking });
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header Tabs */}
-      <View style={styles.tabBar}>
-        {[
-          { key: 'upcoming', label: 'Upcoming' },
-          { key: 'completed', label: 'Completed' },
-          { key: 'cancelled', label: 'Cancelled' }
-        ].map((t) => (
-          <TouchableOpacity
-            key={t.key}
-            style={[styles.tabItem, activeTab === t.key && styles.tabItemActive]}
-            onPress={() => setActiveTab(t.key)}
-          >
-            <Text style={[styles.tabText, activeTab === t.key && styles.tabTextActive]}>
-              {t.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>My Stays & Bookings</Text>
+        <Text style={styles.headerSubtitle}>Manage your luxury reservations</Text>
+
+        {/* Tabs */}
+        <View style={styles.tabRow}>
+          {[
+            { key: 'upcoming', label: 'Upcoming' },
+            { key: 'completed', label: 'Completed' },
+            { key: 'cancelled', label: 'Cancelled' },
+          ].map(tab => {
+            const isActive = activeTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                activeOpacity={0.8}
+                style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                onPress={() => setActiveTab(tab.key)}
+              >
+                <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
-      ) : filtered.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No {activeTab} bookings</Text>
-          <Text style={styles.emptySubtitle}>When you book a stay, it will appear right here.</Text>
-          {activeTab === 'upcoming' ? (
-            <TouchableOpacity style={styles.exploreBtn} onPress={() => navigation.navigate('Home')}>
-              <Text style={styles.exploreBtnText}>EXPLORE LUXURY HOTELS</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
+      {/* Bookings List */}
+      <View style={styles.content}>
+        {filtered.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>📅</Text>
+            <Text style={styles.emptyTitle}>No {activeTab} stays found</Text>
+            <Text style={styles.emptySub}>
+              Browse our world-class hotels to plan your next vacation.
+            </Text>
             <TouchableOpacity
-              style={styles.bookingCard}
-              onPress={() => navigation.navigate('BookingDetails', { bookingId: item.id })}
-              activeOpacity={0.9}
+              style={styles.exploreButton}
+              onPress={() => navigation.navigate('Search')}
             >
-              <View style={styles.cardHeader}>
-                <Text style={styles.bookingCode}>{item.booking_code}</Text>
-                <View style={[
-                  styles.statusBadge,
-                  item.booking_status === 'confirmed' ? styles.badgeSuccess :
-                  item.booking_status === 'checked_in' ? styles.badgeInfo :
-                  item.booking_status === 'checked_out' ? styles.badgeMuted : styles.badgeDanger
-                ]}>
-                  <Text style={styles.statusText}>{item.booking_status.replace('_', ' ')}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.hotelTitle}>{item.hotel_name}</Text>
-              <Text style={styles.roomSubtitle}>{item.room_name} • {item.guests_count} Guests</Text>
-
-              <View style={styles.datesRow}>
-                <View>
-                  <Text style={styles.dateLabel}>CHECK-IN</Text>
-                  <Text style={styles.dateVal}>{item.check_in_date}</Text>
-                </View>
-                <View>
-                  <Text style={styles.dateLabel}>CHECK-OUT</Text>
-                  <Text style={styles.dateVal}>{item.check_out_date}</Text>
-                </View>
-                <View>
-                  <Text style={styles.dateLabel}>TOTAL PAID</Text>
-                  <Text style={styles.totalVal}>₹{item.total_amount.toLocaleString('en-IN')}</Text>
-                </View>
-              </View>
-
-              <View style={styles.cardFooter}>
-                <Text style={styles.viewDetailsText}>View Digital Itinerary →</Text>
-              </View>
+              <Text style={styles.exploreButtonText}>Explore Destinations</Text>
             </TouchableOpacity>
-          )}
-        />
-      )}
+          </View>
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={styles.bookingCard}
+                onPress={() => handleViewDetails(item)}
+              >
+                <View style={styles.cardHeaderRow}>
+                  <View>
+                    <Text style={styles.hotelTitle}>{item.hotel_name}</Text>
+                    <Text style={styles.hotelLocation}>
+                      📍 {item.location || `${item.city || 'New York'}, ${item.country || 'USA'}`}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      item.booking_status === 'confirmed' ? styles.statusConfirmed :
+                      item.booking_status === 'checked_in' ? styles.statusCheckedIn :
+                      item.booking_status === 'checked_out' ? styles.statusCompleted :
+                      styles.statusCancelled,
+                    ]}
+                  >
+                    <Text style={styles.statusText}>{item.booking_status?.toUpperCase() || 'CONFIRMED'}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.cardDivider} />
+
+                <View style={styles.detailsGrid}>
+                  <View style={styles.gridCol}>
+                    <Text style={styles.gridLabel}>CHECK-IN</Text>
+                    <Text style={styles.gridVal}>{item.check_in_date}</Text>
+                  </View>
+                  <View style={styles.gridCol}>
+                    <Text style={styles.gridLabel}>CHECK-OUT</Text>
+                    <Text style={styles.gridVal}>{item.check_out_date}</Text>
+                  </View>
+                  <View style={styles.gridCol}>
+                    <Text style={styles.gridLabel}>TOTAL PAID</Text>
+                    <Text style={styles.gridPrice}>${(item.total_amount || 1050).toLocaleString()}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.cardFooterRow}>
+                  <Text style={styles.codeText}>Code: {item.booking_code || 'BK-PLZ-8921'}</Text>
+                  <Text style={styles.viewDetailsText}>View Digital Itinerary →</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border
-  },
-  tabItem: {
+  safeArea: {
     flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent'
+    backgroundColor: '#072824',
   },
-  tabItemActive: {
-    borderBottomColor: COLORS.primary
+  header: {
+    backgroundColor: '#072824',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  tabText: {
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.white,
+  },
+  headerSubtitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textMuted
+    color: COLORS.textMuted,
+    marginTop: 2,
+    marginBottom: 16,
   },
-  tabTextActive: {
-    color: COLORS.primary,
-    fontWeight: '700'
+  tabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#0E4942',
+    borderRadius: 14,
+    padding: 4,
   },
-  listContent: { padding: 16 },
-  emptyContainer: {
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-    marginTop: 30
+    borderRadius: 10,
   },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textMain, marginBottom: 4 },
-  emptySubtitle: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', marginBottom: 18 },
-  exploreBtn: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 6
+  tabButtonActive: {
+    backgroundColor: COLORS.gold,
   },
-  exploreBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 11, letterSpacing: 0.5 },
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  tabLabelActive: {
+    color: COLORS.primaryDark,
+  },
+  content: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  listContainer: {
+    padding: 20,
+  },
   bookingCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 14
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  cardHeader: {
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  hotelTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  hotelLocation: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  statusBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  statusConfirmed: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+  },
+  statusCheckedIn: {
+    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+  },
+  statusCompleted: {
+    backgroundColor: COLORS.borderLight,
+  },
+  statusCancelled: {
+    backgroundColor: COLORS.dangerBg,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: COLORS.borderLight,
+    marginVertical: 12,
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  gridCol: {
+    flex: 1,
+  },
+  gridLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+  },
+  gridVal: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginTop: 2,
+  },
+  gridPrice: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginTop: 1,
+  },
+  cardFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
-  },
-  bookingCode: {
-    fontSize: 14,
-    fontFamily: 'monospace',
-    fontWeight: '800',
-    color: COLORS.primary
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4
-  },
-  badgeSuccess: { backgroundColor: COLORS.successBg },
-  badgeInfo: { backgroundColor: COLORS.infoBg },
-  badgeMuted: { backgroundColor: COLORS.surfaceSecondary },
-  badgeDanger: { backgroundColor: COLORS.dangerBg },
-  statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', color: COLORS.textMain },
-  hotelTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textMain },
-  roomSubtitle: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2, marginBottom: 12 },
-  datesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.surfaceSecondary,
-    borderRadius: 6,
-    padding: 10,
-    marginBottom: 10
-  },
-  dateLabel: { fontSize: 8, fontWeight: '700', color: COLORS.textMuted },
-  dateVal: { fontSize: 12, fontWeight: '700', color: COLORS.textMain, marginTop: 2 },
-  totalVal: { fontSize: 13, fontWeight: '800', color: COLORS.primary, marginTop: 2 },
-  cardFooter: {
+    marginTop: 14,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingTop: 8,
-    alignItems: 'flex-end'
+    borderTopColor: COLORS.borderLight,
+  },
+  codeText: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    fontWeight: '600',
   },
   viewDetailsText: {
-    fontSize: 11,
+    fontSize: 12,
+    color: COLORS.gold,
     fontWeight: '700',
-    color: COLORS.accentDark
-  }
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  emptySub: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 20,
+  },
+  exploreButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+  },
+  exploreButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '800',
+  },
 });

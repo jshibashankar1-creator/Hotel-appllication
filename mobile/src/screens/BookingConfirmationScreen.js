@@ -3,152 +3,342 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  Image,
   TouchableOpacity,
-  SafeAreaView
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
+import { RECOMMENDED_HOTELS } from '../data/mockData';
 
 export default function BookingConfirmationScreen({ route, navigation }) {
-  const { hotel, room, booking } = route.params;
+  const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
+  const booking = route.params?.booking || {
+    booking_code: 'BK-PLZ-8921',
+    hotel_name: hotel.name || 'The Plaza Hotel',
+    location: hotel.location || 'New York, USA',
+    check_in_date: '12 Aug, Mon',
+    check_out_date: '15 Aug, Thu',
+    guests_count: 2,
+    rooms_count: 1,
+    total_amount: 1050,
+  };
+
+  const handleViewDetails = () => {
+    navigation.navigate('BookingDetails', { booking, hotel });
+  };
+
+  const handleExploreNearby = () => {
+    navigation.navigate('MainTabs', { screen: 'Search' });
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        
-        {/* Success Header */}
-        <View style={styles.successHeader}>
-          <View style={styles.iconCircle}>
-            <Text style={{ fontSize: 28 }}>✓</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Top Back Navigation */}
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.backIcon}>‹</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Ambient Confetti / Star Particles */}
+        <View style={styles.confettiRow}>
+          <Text style={[styles.confetti, { top: 10, left: 40 }]}>✨</Text>
+          <Text style={[styles.confetti, { top: 30, right: 50 }]}>🎉</Text>
+          <Text style={[styles.confetti, { top: 70, left: 80 }]}>⭐</Text>
+          <Text style={[styles.confetti, { top: 60, right: 90 }]}>✨</Text>
+        </View>
+
+        {/* SUCCESS ICON & HEADLINE */}
+        <View style={styles.headerSection}>
+          <View style={styles.successCircle}>
+            <Text style={styles.checkIcon}>✓</Text>
           </View>
-          <Text style={styles.successTitle}>Booking Confirmed!</Text>
-          <Text style={styles.successSubtitle}>Your reservation has been verified and registered with {hotel.name}.</Text>
+
+          <Text style={styles.title}>Booking Confirmed!</Text>
+          <Text style={styles.subtitle}>
+            Your stay at {hotel.name || 'The Plaza Hotel'} is confirmed.{'\n'}We've sent the details to your email.
+          </Text>
         </View>
 
-        {/* Unique Booking Code Badge */}
-        <View style={styles.bookingCodeCard}>
-          <Text style={styles.codeLabel}>OFFICIAL BOOKING ID</Text>
-          <Text style={styles.codeValue}>{booking.booking_code}</Text>
-          <Text style={styles.codeNote}>Please present this Booking ID during check-in</Text>
-        </View>
-
-        {/* Stay Summary Card */}
+        {/* BOOKING SUMMARY CARD */}
         <View style={styles.summaryCard}>
-          <Text style={styles.sectionHeader}>STAY ITINERARY</Text>
+          <View style={styles.hotelInfoRow}>
+            <Image
+              source={{ uri: hotel.coverImage || hotel.cover_image || RECOMMENDED_HOTELS[0].coverImage }}
+              style={styles.hotelThumb}
+            />
+            <View style={styles.hotelDetails}>
+              <Text style={styles.hotelName} numberOfLines={1}>
+                {hotel.name || 'The Plaza Hotel'}
+              </Text>
+              <Text style={styles.hotelLocation}>
+                {hotel.city || 'New York'}, {hotel.country || 'USA'}
+              </Text>
+              
+              <View style={styles.badgeRow}>
+                <Text style={styles.bookingCodeText}>Booking ID: {booking.booking_code || 'BK-PLZ-8921'}</Text>
+              </View>
+            </View>
+          </View>
 
+          <View style={styles.cardDivider} />
+
+          {/* Dates & Guests */}
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Hotel Property:</Text>
-            <Text style={styles.infoVal}>{hotel.name}</Text>
+            <Text style={styles.infoIcon}>📅</Text>
+            <Text style={styles.infoText}>
+              {booking.check_in_date || '12 Aug, Mon'} — {booking.check_out_date || '15 Aug, Thu'}
+            </Text>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Room Category:</Text>
-            <Text style={styles.infoVal}>{room.room_name}</Text>
+            <Text style={styles.infoIcon}>👥</Text>
+            <Text style={styles.infoText}>
+              {booking.guests_count || 2} Guests, {booking.rooms_count || 1} Room
+            </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Check-In Date:</Text>
-            <Text style={styles.infoVal}>{booking.check_in_date} (02:00 PM)</Text>
-          </View>
+          <View style={styles.cardDivider} />
 
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Check-Out Date:</Text>
-            <Text style={styles.infoVal}>{booking.check_out_date} (11:00 AM)</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Guest Name:</Text>
-            <Text style={styles.infoVal}>{booking.customer_name}</Text>
-          </View>
-
-          <View style={[styles.infoRow, { borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: 8, marginTop: 4 }]}>
-            <Text style={styles.totalLabel}>Total Paid:</Text>
-            <Text style={styles.totalVal}>₹{booking.total_amount.toLocaleString('en-IN')}</Text>
+          {/* Total Price */}
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Total Price</Text>
+            <Text style={styles.priceValue}>${(booking.total_amount || 1050).toLocaleString()}</Text>
           </View>
         </View>
 
-        {/* Action CTAs */}
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={() => navigation.navigate('Bookings')}
-        >
-          <Text style={styles.primaryBtnText}>VIEW MY BOOKINGS</Text>
-        </TouchableOpacity>
+        {/* ACTION BUTTONS */}
+        <View style={styles.actionsSection}>
+          <TouchableOpacity
+            style={styles.primaryGoldButton}
+            activeOpacity={0.88}
+            onPress={handleViewDetails}
+          >
+            <Text style={styles.primaryButtonText}>View Booking Details</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.secondaryBtn}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Text style={styles.secondaryBtnText}>BACK TO HOME</Text>
-        </TouchableOpacity>
-
+          <TouchableOpacity
+            style={styles.secondaryTealButton}
+            activeOpacity={0.88}
+            onPress={handleExploreNearby}
+          >
+            <Text style={styles.secondaryButtonIcon}>📍</Text>
+            <Text style={styles.secondaryButtonText}>Explore Nearby Hotels</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, alignItems: 'center' },
-  successHeader: { alignItems: 'center', marginVertical: 14 },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.successBg,
-    borderWidth: 2,
-    borderColor: COLORS.success,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#072824',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#072824',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  topBar: {
+    paddingTop: 12,
+    marginBottom: 10,
+  },
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#0E4942',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  successTitle: { fontSize: 22, fontWeight: '800', color: COLORS.textMain },
-  successSubtitle: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', marginTop: 4, paddingHorizontal: 20 },
-  bookingCodeCard: {
-    width: '100%',
-    backgroundColor: COLORS.white,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderRadius: 10,
-    padding: 16,
+  backIcon: {
+    color: COLORS.white,
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: -2,
+  },
+  confettiRow: {
+    height: 30,
+    position: 'relative',
+  },
+  confetti: {
+    position: 'absolute',
+    fontSize: 18,
+    opacity: 0.8,
+  },
+  headerSection: {
     alignItems: 'center',
-    marginVertical: 14
+    marginTop: 10,
+    marginBottom: 26,
   },
-  codeLabel: { fontSize: 10, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 1 },
-  codeValue: { fontSize: 24, fontWeight: '900', color: COLORS.primary, letterSpacing: 2, marginVertical: 4 },
-  codeNote: { fontSize: 11, color: COLORS.textSecondary },
+  successCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  checkIcon: {
+    color: COLORS.white,
+    fontSize: 38,
+    fontWeight: '900',
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: COLORS.white,
+    letterSpacing: 0.3,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.75)',
+    textAlign: 'center',
+    lineHeight: 19,
+    paddingHorizontal: 10,
+  },
   summaryCard: {
-    width: '100%',
     backgroundColor: COLORS.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 16,
-    marginBottom: 20
+    borderRadius: 24,
+    padding: 18,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  sectionHeader: { fontSize: 10, fontWeight: '700', color: COLORS.accentDark, letterSpacing: 1, marginBottom: 10 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
-  infoLabel: { fontSize: 12, color: COLORS.textMuted },
-  infoVal: { fontSize: 12, fontWeight: '700', color: COLORS.textMain, maxWidth: '60%', textAlign: 'right' },
-  totalLabel: { fontSize: 13, fontWeight: '700', color: COLORS.textMain },
-  totalVal: { fontSize: 16, fontWeight: '800', color: COLORS.success },
-  primaryBtn: {
-    width: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
+  hotelInfoRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10
   },
-  primaryBtnText: { color: COLORS.white, fontWeight: '800', fontSize: 12, letterSpacing: 0.5 },
-  secondaryBtn: {
-    width: '100%',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center'
+  hotelThumb: {
+    width: 70,
+    height: 70,
+    borderRadius: 14,
+    backgroundColor: COLORS.borderLight,
   },
-  secondaryBtnText: { color: COLORS.textMain, fontWeight: '700', fontSize: 12 }
+  hotelDetails: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  hotelName: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  hotelLocation: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  badgeRow: {
+    marginTop: 6,
+  },
+  bookingCodeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: COLORS.borderLight,
+    marginVertical: 14,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoIcon: {
+    fontSize: 14,
+    marginRight: 8,
+  },
+  infoText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textBody,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+  priceLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.textDark,
+  },
+  priceValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: COLORS.primary,
+  },
+  actionsSection: {
+    marginTop: 28,
+    gap: 14,
+  },
+  primaryGoldButton: {
+    backgroundColor: COLORS.gold,
+    paddingVertical: 16,
+    borderRadius: 18,
+    alignItems: 'center',
+    shadowColor: COLORS.goldDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  primaryButtonText: {
+    color: COLORS.primaryDark,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  secondaryTealButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0E4942',
+    borderWidth: 1.5,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+    paddingVertical: 15,
+    borderRadius: 18,
+  },
+  secondaryButtonIcon: {
+    fontSize: 14,
+    marginRight: 6,
+  },
+  secondaryButtonText: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '700',
+  },
 });

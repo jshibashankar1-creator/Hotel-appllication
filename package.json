@@ -1,6 +1,7 @@
 {
   "name": "hotelhub-enterprise-platform",
   "private": true,
+  "type": "module",
   "version": "1.0.0",
   "scripts": {
     "dev:frontend": "npm --prefix frontend run dev",

@@ -76,7 +76,7 @@ router.get('/owner-kpis', authenticate, requireRole('owner', 'hotel_admin', 'sup
   return res.json({
     success: true,
     kpis: {
-      hotels_count: ownerHotels.length,
+      hotels_count: userHotels.length,
       total_rooms: totalRoomsCount,
       occupied_rooms: occupiedRoomsCount,
       available_rooms: availableRoomsCount,

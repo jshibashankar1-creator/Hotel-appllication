@@ -6,24 +6,33 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  SafeAreaView
+  SafeAreaView,
+  StatusBar,
+  Image,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
+import { RECOMMENDED_HOTELS, ACTIVE_USER_PROFILE } from '../data/mockData';
 
 export default function BookingReviewScreen({ route, navigation }) {
-  const { hotel, room } = route.params;
+  const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
+  const room = route.params?.selectedRoom || route.params?.room || (hotel.rooms && hotel.rooms[0]) || {
+    id: 'rm-deluxe',
+    name: 'Deluxe Room',
+    price: 350,
+  };
 
-  const [checkIn, setCheckIn] = useState('2026-08-25');
-  const [checkOut, setCheckOut] = useState('2026-08-28');
-  const [guestName, setGuestName] = useState('Aarav Sharma');
-  const [guestEmail, setGuestEmail] = useState('aarav.sharma@gmail.com');
-  const [guestPhone, setGuestPhone] = useState('+91 98200 11928');
+  const [checkIn, setCheckIn] = useState(route.params?.checkInDate || '2026-08-28');
+  const [checkOut, setCheckOut] = useState(route.params?.checkOutDate || '2026-08-31');
+  const [guestName, setGuestName] = useState(ACTIVE_USER_PROFILE.name);
+  const [guestEmail, setGuestEmail] = useState(ACTIVE_USER_PROFILE.email);
+  const [guestPhone, setGuestPhone] = useState(ACTIVE_USER_PROFILE.phone);
   const [guestsCount, setGuestsCount] = useState(2);
 
-  const nights = 3;
-  const baseAmount = room.price_per_night * nights;
-  const taxAmount = Math.round(baseAmount * 0.12);
-  const totalAmount = baseAmount + taxAmount;
+  const nights = route.params?.nightsCount || 3;
+  const roomRate = room.price || room.price_per_night || 350;
+  const baseAmount = roomRate * nights;
+  const taxesAndFees = Math.round(baseAmount * 0.12);
+  const totalAmount = baseAmount + taxesAndFees;
 
   const handleProceedToPayment = () => {
     navigation.navigate('Payment', {
@@ -40,203 +49,307 @@ export default function BookingReviewScreen({ route, navigation }) {
         customer_email: guestEmail,
         customer_phone: guestPhone,
         base_amount: baseAmount,
-        tax_amount: taxAmount,
-        total_amount: totalAmount
+        tax_amount: taxesAndFees,
+        total_amount: totalAmount,
       }
     });
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
-        {/* Hotel & Room Summary Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>RESERVATION DETAILS</Text>
-          <Text style={styles.hotelTitle}>{hotel.name}</Text>
-          <Text style={styles.roomSubtitle}>{room.room_name} ({room.room_type})</Text>
-          <Text style={styles.addressText}>📍 {hotel.address}, {hotel.city}</Text>
-
-          <View style={styles.datesGrid}>
-            <View style={styles.dateBox}>
-              <Text style={styles.dateLabel}>CHECK-IN</Text>
-              <Text style={styles.dateVal}>{checkIn}</Text>
-              <Text style={styles.timeVal}>02:00 PM</Text>
-            </View>
-            <View style={styles.dateBox}>
-              <Text style={styles.dateLabel}>CHECK-OUT</Text>
-              <Text style={styles.dateVal}>{checkOut}</Text>
-              <Text style={styles.timeVal}>11:00 AM</Text>
-            </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#072824" />
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* HOTEL SUMMARY BANNER */}
+        <View style={styles.hotelCard}>
+          <Image
+            source={{ uri: hotel.coverImage || hotel.cover_image || RECOMMENDED_HOTELS[0].coverImage }}
+            style={styles.hotelImage}
+          />
+          <View style={styles.hotelInfo}>
+            <Text style={styles.hotelName}>{hotel.name}</Text>
+            <Text style={styles.roomName}>{room.name || room.room_name || 'Deluxe King Suite'}</Text>
+            <Text style={styles.locationText}>📍 {hotel.city || 'New York'}, {hotel.country || 'USA'}</Text>
           </View>
         </View>
 
-        {/* Primary Guest Contact Form */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>PRIMARY GUEST CONTACT</Text>
-          
+        {/* DATES & RESERVATION SPECS */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Reservation Schedule</Text>
+          <View style={styles.gridRow}>
+            <View style={styles.gridCol}>
+              <Text style={styles.gridLabel}>CHECK-IN</Text>
+              <Text style={styles.gridValue}>Fri, 28 Aug 2026</Text>
+              <Text style={styles.gridSub}>From 3:00 PM</Text>
+            </View>
+            <View style={styles.gridCol}>
+              <Text style={styles.gridLabel}>CHECK-OUT</Text>
+              <Text style={styles.gridValue}>Mon, 31 Aug 2026</Text>
+              <Text style={styles.gridSub}>Until 12:00 PM</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.rowLabel}>Total Duration</Text>
+            <Text style={styles.rowValue}>{nights} Nights</Text>
+          </View>
+          <View style={styles.rowBetween}>
+            <Text style={styles.rowLabel}>Guests & Rooms</Text>
+            <Text style={styles.rowValue}>{guestsCount} Adults, 1 Room</Text>
+          </View>
+        </View>
+
+        {/* GUEST CONTACT DETAILS */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Primary Guest Information</Text>
+
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Full Legal Name</Text>
+            <Text style={styles.inputLabel}>FULL NAME</Text>
             <TextInput
-              style={styles.input}
+              style={styles.textInput}
               value={guestName}
               onChangeText={setGuestName}
-              placeholder="Guest full name"
+              placeholder="Full Name"
+              placeholderTextColor={COLORS.textMuted}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Address (For Booking Confirmation)</Text>
+            <Text style={styles.inputLabel}>EMAIL ADDRESS (FOR CONFIRMATION)</Text>
             <TextInput
-              style={styles.input}
+              style={styles.textInput}
               value={guestEmail}
               onChangeText={setGuestEmail}
+              placeholder="Email address"
               keyboardType="email-address"
-              placeholder="guest@example.com"
+              placeholderTextColor={COLORS.textMuted}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contact Phone Number</Text>
+            <Text style={styles.inputLabel}>CONTACT PHONE</Text>
             <TextInput
-              style={styles.input}
+              style={styles.textInput}
               value={guestPhone}
               onChangeText={setGuestPhone}
+              placeholder="Phone number"
               keyboardType="phone-pad"
-              placeholder="+91 98000 00000"
+              placeholderTextColor={COLORS.textMuted}
             />
           </View>
         </View>
 
-        {/* Itemized Price Breakdown */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>PRICE SUMMARY</Text>
+        {/* PRICE BREAKDOWN */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Price Summary</Text>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceItem}>Room Tariff (₹{room.price_per_night.toLocaleString('en-IN')} × {nights} nights)</Text>
-            <Text style={styles.priceVal}>₹{baseAmount.toLocaleString('en-IN')}</Text>
+          <View style={styles.rowBetween}>
+            <Text style={styles.rowLabel}>${roomRate} x {nights} nights</Text>
+            <Text style={styles.rowValue}>${baseAmount.toLocaleString()}</Text>
           </View>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceItem}>Government GST Taxes (12%)</Text>
-            <Text style={styles.priceVal}>₹{taxAmount.toLocaleString('en-IN')}</Text>
+          <View style={styles.rowBetween}>
+            <Text style={styles.rowLabel}>Taxes & Luxury Resort Fees (12%)</Text>
+            <Text style={styles.rowValue}>${taxesAndFees.toLocaleString()}</Text>
           </View>
 
-          <View style={[styles.priceRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total Payable Amount</Text>
-            <Text style={styles.totalVal}>₹{totalAmount.toLocaleString('en-IN')}</Text>
-          </View>
+          <View style={styles.divider} />
 
-          <View style={styles.policyNotice}>
-            <Text style={styles.policyText}>
-              🛡️ Free cancellation up to 24 hours before check-in. Standard 10% fee applies for late cancellations under platform policy.
-            </Text>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total Price</Text>
+            <Text style={styles.totalValue}>${totalAmount.toLocaleString()}</Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.proceedBtn} onPress={handleProceedToPayment}>
-          <Text style={styles.proceedBtnText}>PROCEED TO ONLINE PAYMENT →</Text>
+        {/* PROCEED BUTTON */}
+        <TouchableOpacity
+          style={styles.proceedButton}
+          activeOpacity={0.88}
+          onPress={handleProceedToPayment}
+        >
+          <Text style={styles.proceedButtonText}>Proceed to Secure Payment →</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  scrollContent: { padding: 16, paddingBottom: 40 },
-  card: {
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#072824',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  hotelCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 10,
+    borderRadius: 20,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    padding: 12,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 16,
-    marginBottom: 16
+    borderColor: COLORS.borderLight,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  cardHeader: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.accentDark,
-    letterSpacing: 1,
-    marginBottom: 8
+  hotelImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+    backgroundColor: COLORS.borderLight,
   },
-  hotelTitle: {
-    fontSize: 17,
+  hotelInfo: {
+    flex: 1,
+    marginLeft: 14,
+    justifyContent: 'center',
+  },
+  hotelName: {
+    fontSize: 16,
     fontWeight: '800',
-    color: COLORS.textMain
+    color: COLORS.textDark,
   },
-  roomSubtitle: {
+  roomName: {
     fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2
+    color: COLORS.gold,
+    fontWeight: '700',
+    marginTop: 2,
   },
-  addressText: {
+  locationText: {
     fontSize: 12,
     color: COLORS.textMuted,
-    marginTop: 4,
-    marginBottom: 12
+    marginTop: 2,
   },
-  datesGrid: {
-    flexDirection: 'row',
-    gap: 10,
-    backgroundColor: COLORS.surfaceSecondary,
-    borderRadius: 8,
-    padding: 10
-  },
-  dateBox: { flex: 1 },
-  dateLabel: { fontSize: 9, fontWeight: '700', color: COLORS.textMuted },
-  dateVal: { fontSize: 13, fontWeight: '700', color: COLORS.primary, marginTop: 2 },
-  timeVal: { fontSize: 10, color: COLORS.textMuted },
-  inputGroup: { marginBottom: 12 },
-  label: { fontSize: 11, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 4 },
-  input: {
-    backgroundColor: COLORS.surfaceSecondary,
+  sectionCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 13,
-    color: COLORS.textMain
+    borderColor: COLORS.borderLight,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  priceRow: {
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginBottom: 14,
+  },
+  gridRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6
   },
-  priceItem: { fontSize: 13, color: COLORS.textSecondary },
-  priceVal: { fontSize: 13, fontWeight: '600', color: COLORS.textMain },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    marginTop: 6,
-    paddingTop: 10
+  gridCol: {
+    flex: 1,
   },
-  totalLabel: { fontSize: 14, fontWeight: '700', color: COLORS.textMain },
-  totalVal: { fontSize: 17, fontWeight: '800', color: COLORS.primary },
-  policyNotice: {
-    backgroundColor: COLORS.surfaceSecondary,
-    borderRadius: 6,
-    padding: 10,
-    marginTop: 12
+  gridLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
   },
-  policyText: {
+  gridValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginTop: 2,
+  },
+  gridSub: {
     fontSize: 11,
     color: COLORS.textMuted,
-    lineHeight: 15
+    marginTop: 1,
   },
-  proceedBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.borderLight,
+    marginVertical: 12,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8
+    marginBottom: 8,
   },
-  proceedBtnText: {
-    color: COLORS.white,
-    fontWeight: '800',
+  rowLabel: {
     fontSize: 13,
-    letterSpacing: 0.5
-  }
+    color: COLORS.textBody,
+  },
+  rowValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textDark,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.primary,
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  textInput: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  proceedButton: {
+    backgroundColor: COLORS.gold,
+    paddingVertical: 16,
+    borderRadius: 18,
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: COLORS.goldDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  proceedButtonText: {
+    color: COLORS.primaryDark,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
 });

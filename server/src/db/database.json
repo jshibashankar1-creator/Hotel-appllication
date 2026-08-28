@@ -40,7 +40,7 @@
       ],
       "createdBy": "system",
       "phone": "+91 98000 99999",
-      "lastLoginAt": "2026-08-28T07:02:01.612Z",
+      "lastLoginAt": "2026-08-28T07:25:45.890Z",
       "created_at": "2026-01-01T00:00:00Z"
     },
     {
@@ -189,7 +189,7 @@
       "role": "owner",
       "phone": "+91 98201 44521",
       "created_at": "2026-02-10T10:00:00Z",
-      "lastLoginAt": "2026-08-28T06:24:28.850Z"
+      "lastLoginAt": "2026-08-28T07:25:45.981Z"
     },
     {
       "id": "USR-OWNER-2",
@@ -199,7 +199,7 @@
       "role": "owner",
       "phone": "+91 94140 88219",
       "created_at": "2026-03-15T11:00:00Z",
-      "lastLoginAt": "2026-08-28T07:02:01.790Z"
+      "lastLoginAt": "2026-08-28T07:25:46.048Z"
     },
     {
       "id": "USR-OWNER-3",
@@ -1408,21 +1408,21 @@
       "id": "AVL-MTCL59CH-2026-08-28",
       "room_id": "rm-heritage-ac",
       "date": "2026-08-28",
-      "booked_count": 2,
+      "booked_count": 3,
       "blocked_count": 0
     },
     {
       "id": "AVL-MTCL59CH-2026-08-29",
       "room_id": "rm-heritage-ac",
       "date": "2026-08-29",
-      "booked_count": 2,
+      "booked_count": 3,
       "blocked_count": 0
     },
     {
       "id": "AVL-MTCL59CH-2026-08-30",
       "room_id": "rm-heritage-ac",
       "date": "2026-08-30",
-      "booked_count": 2,
+      "booked_count": 3,
       "blocked_count": 0
     },
     {
@@ -1438,9 +1438,104 @@
       "date": "2026-09-07",
       "booked_count": 4,
       "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCMEJG6-2026-08-28",
+      "room_id": "rm-heritage-suite",
+      "date": "2026-08-28",
+      "booked_count": 1,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCMEJG6-2026-08-29",
+      "room_id": "rm-heritage-suite",
+      "date": "2026-08-29",
+      "booked_count": 1,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCMEJG6-2026-08-30",
+      "room_id": "rm-heritage-suite",
+      "date": "2026-08-30",
+      "booked_count": 1,
+      "blocked_count": 0
     }
   ],
   "bookings": [
+    {
+      "id": "BKG-MTCMEJG6",
+      "booking_code": "HTL-70619",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Shibashankar Jana",
+      "customer_email": "client.demo@hotelhub.com",
+      "customer_phone": "+91 98300 12345",
+      "hotel_id": "HTL-004",
+      "hotel_name": "Hotel Sea Sand & Suites Old Digha",
+      "room_id": "rm-heritage-suite",
+      "room_name": "Heritage AC Room",
+      "check_in_date": "2026-08-28",
+      "check_out_date": "2026-08-31",
+      "nights": 3,
+      "guests_count": 2,
+      "base_amount": 8400,
+      "tax_amount": 1008,
+      "total_amount": 9408,
+      "commission_rate": 20,
+      "commission_amount": 1882,
+      "owner_payout": 7526,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "razorpay_order_id": "order_TV6XgU97YDD9CJ",
+      "razorpay_payment_id": "pay_TV6Xp05TQ8RPBY",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": false,
+        "pickup_required": false,
+        "pickup_charge": 0,
+        "service": "NOT_REQUIRED"
+      },
+      "created_at": "2026-08-28T07:18:41.910Z"
+    },
+    {
+      "id": "BKG-MTCMDLPS",
+      "booking_code": "HTL-48064",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Shibashankar Jana",
+      "customer_email": "client.demo@hotelhub.com",
+      "customer_phone": "+91 98300 12345",
+      "hotel_id": "HTL-004",
+      "hotel_name": "Hotel Sea Sand & Suites Old Digha",
+      "room_id": "rm-heritage-ac",
+      "room_name": "Heritage AC Room",
+      "check_in_date": "2026-08-28",
+      "check_out_date": "2026-08-31",
+      "nights": 3,
+      "guests_count": 2,
+      "base_amount": 8400,
+      "tax_amount": 1008,
+      "total_amount": 9408,
+      "commission_rate": 20,
+      "commission_amount": 1882,
+      "owner_payout": 7526,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "razorpay_order_id": "order_TV6Wum9xUFol5t",
+      "razorpay_payment_id": "pay_TV6X37m6yyUjdf",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "pickup_required": true,
+        "pickup_charge": 0,
+        "pickup_service": "FREE",
+        "service": "FREE",
+        "status": "confirmed",
+        "location_name": "Station to Hotel",
+        "pickup_date": "2026-08-28",
+        "pickup_time": "10:30 AM",
+        "special_instructions": ""
+      },
+      "created_at": "2026-08-28T07:17:58.192Z"
+    },
     {
       "id": "BKG-MTCLZ27Z",
       "booking_code": "HTL-71720",
@@ -3580,6 +3675,40 @@
     }
   ],
   "payments": [
+    {
+      "id": "PAY-MTCMEJG6",
+      "transaction_id": "pay_TV6Xp05TQ8RPBY",
+      "razorpay_order_id": "order_TV6XgU97YDD9CJ",
+      "razorpay_payment_id": "pay_TV6Xp05TQ8RPBY",
+      "booking_id": "BKG-MTCMEJG6",
+      "booking_code": "HTL-70619",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Shibashankar Jana",
+      "hotel_name": "Hotel Sea Sand & Suites Old Digha",
+      "amount": 9408,
+      "currency": "INR",
+      "payment_method": "Razorpay Official Checkout",
+      "gateway_reference": "pay_TV6Xp05TQ8RPBY",
+      "status": "successful",
+      "created_at": "2026-08-28T07:18:41.910Z"
+    },
+    {
+      "id": "PAY-MTCMDLPS",
+      "transaction_id": "pay_TV6X37m6yyUjdf",
+      "razorpay_order_id": "order_TV6Wum9xUFol5t",
+      "razorpay_payment_id": "pay_TV6X37m6yyUjdf",
+      "booking_id": "BKG-MTCMDLPS",
+      "booking_code": "HTL-48064",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Shibashankar Jana",
+      "hotel_name": "Hotel Sea Sand & Suites Old Digha",
+      "amount": 9408,
+      "currency": "INR",
+      "payment_method": "Razorpay Official Checkout",
+      "gateway_reference": "pay_TV6X37m6yyUjdf",
+      "status": "successful",
+      "created_at": "2026-08-28T07:17:58.192Z"
+    },
     {
       "id": "PAY-MTCLZ27Z",
       "transaction_id": "pay_TV6L5TJKKdWuI3",

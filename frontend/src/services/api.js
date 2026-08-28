@@ -682,6 +682,33 @@ class ApiService {
       body: JSON.stringify(driverData)
     });
   }
+
+  // --- SUPPORT TICKETS ---
+  async getSupportTickets(userId = null) {
+    const endpoint = userId ? `/support/tickets?user_id=${userId}` : '/support/tickets';
+    return this.request(endpoint);
+  }
+
+  async createSupportTicket(ticketData) {
+    return this.request('/support/tickets', {
+      method: 'POST',
+      body: JSON.stringify(ticketData)
+    });
+  }
+
+  async replySupportTicket(id, text, newStatus = null) {
+    return this.request(`/support/tickets/${id}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ text, new_status: newStatus })
+    });
+  }
+
+  async updateTicketStatus(id, status) {
+    return this.request(`/support/tickets/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+  }
 }
 
 export const api = new ApiService();

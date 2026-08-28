@@ -125,124 +125,39 @@ export default function BookingDetailsScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* PICKUP SERVICE DETAILS & TRACKER (If requested) */}
+        {/* PICKUP SERVICE DETAILS (If requested) */}
         {currentBooking.pickup && currentBooking.pickup.required ? (
           <View style={styles.sectionCard}>
             <View style={styles.pickupHeaderFlex}>
               <View>
                 <Text style={styles.sectionTitle}>🚗 PICKUP SERVICE</Text>
-                <Text style={styles.pickupSubHeader}>
-                  {currentBooking.pickup.type === 'airport' ? 'Airport Transfer' : currentBooking.pickup.type === 'railway' ? 'Railway Station Transfer' : currentBooking.pickup.type === 'bus' ? 'Bus Depot Transfer' : 'Direct Custom Transfer'}
-                </Text>
+                <Text style={styles.pickupSubHeader}>Hotel-Provided Station Transfer</Text>
               </View>
-              <View style={styles.pickupStatusPill}>
-                <Text style={styles.pickupStatusPillText}>
-                  {(currentBooking.pickup.status || 'CONFIRMED').replace('_', ' ').toUpperCase()}
-                </Text>
+              <View style={[styles.pickupStatusPill, { backgroundColor: '#5B1230' }]}>
+                <Text style={styles.pickupStatusPillText}>FREE</Text>
               </View>
-            </View>
-
-            {/* STATUS PROGRESSION STEPPER */}
-            <View style={styles.statusStepper}>
-              {[
-                { key: 'requested', label: 'Requested' },
-                { key: 'confirmed', label: 'Confirmed' },
-                { key: 'assigned', label: 'Assigned' },
-                { key: 'driver_on_way', label: 'On Way' },
-                { key: 'arrived', label: 'Arrived' },
-                { key: 'completed', label: 'Completed' },
-              ].map((step, idx) => {
-                const statusOrder = ['requested', 'confirmed', 'assigned', 'driver_on_way', 'arrived', 'completed'];
-                const currentIdx = statusOrder.indexOf(currentBooking.pickup.status || 'confirmed');
-                const isPassed = currentIdx >= idx;
-                const isCurrent = currentBooking.pickup.status === step.key;
-
-                return (
-                  <View key={step.key} style={styles.stepItem}>
-                    <View style={[styles.stepCircle, isPassed && styles.stepCirclePassed, isCurrent && styles.stepCircleCurrent]}>
-                      <Text style={[styles.stepCircleNum, isPassed && styles.stepCircleNumPassed]}>
-                        {isPassed ? '✓' : idx + 1}
-                      </Text>
-                    </View>
-                    <Text style={[styles.stepItemLabel, isPassed && styles.stepItemLabelPassed]}>
-                      {step.label}
-                    </Text>
-                  </View>
-                );
-              })}
             </View>
 
             <View style={styles.divider} />
 
-            {/* LOCATION & TIME */}
             <View style={styles.infoRow}>
               <Text style={styles.infoIcon}>📍</Text>
               <Text style={styles.infoText}>
-                {currentBooking.pickup.location_name || 'Designated Pickup Location'}
+                Route: {currentBooking.pickup.location_name || 'Station to Hotel'}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
               <Text style={styles.infoIcon}>🕐</Text>
               <Text style={styles.infoText}>
-                {currentBooking.pickup.pickup_time || '10:30 AM'} • {currentBooking.pickup.pickup_date || currentBooking.check_in_date}
+                Schedule: {currentBooking.pickup.pickup_time || '10:30 AM'} • {currentBooking.pickup.pickup_date || currentBooking.check_in_date}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>🚘</Text>
-              <Text style={styles.infoText}>
-                {currentBooking.pickup.vehicle_name || 'Executive Sedan'} ({currentBooking.pickup.passengers || 2} Passengers)
-              </Text>
-            </View>
-
-            {currentBooking.pickup.flight_number ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoIcon}>✈️</Text>
-                <Text style={styles.infoText}>Flight: {currentBooking.pickup.flight_number}</Text>
-              </View>
-            ) : null}
-
-            {currentBooking.pickup.train_number ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoIcon}>🚆</Text>
-                <Text style={styles.infoText}>Train: {currentBooking.pickup.train_number}</Text>
-              </View>
-            ) : null}
-
-            {currentBooking.pickup.bus_number ? (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoIcon}>🚌</Text>
-                <Text style={styles.infoText}>Bus: {currentBooking.pickup.bus_number}</Text>
-              </View>
-            ) : null}
-
-            {/* ASSIGNED DRIVER DETAILS (If assigned) */}
-            {currentBooking.pickup.driver && currentBooking.pickup.driver.name ? (
-              <View style={styles.driverCard}>
-                <View style={styles.driverHeader}>
-                  <Text style={styles.driverAvatar}>👤</Text>
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={styles.driverName}>{currentBooking.pickup.driver.name}</Text>
-                    <Text style={styles.driverVehicle}>
-                      {currentBooking.pickup.driver.vehicle} {currentBooking.pickup.driver.vehicle_number ? `(${currentBooking.pickup.driver.vehicle_number})` : ''}
-                    </Text>
-                  </View>
-                  {currentBooking.pickup.driver.phone ? (
-                    <View style={styles.driverPhoneBox}>
-                      <Text style={styles.driverPhoneText}>📞 {currentBooking.pickup.driver.phone}</Text>
-                    </View>
-                  ) : null}
-                </View>
-              </View>
-            ) : null}
-
-            <View style={styles.divider} />
-
-            <View style={styles.rowBetween}>
-              <Text style={styles.rowLabel}>Pickup Fare</Text>
-              <Text style={[styles.rowVal, { color: COLORS.goldDark, fontWeight: '800' }]}>
-                ₹{(currentBooking.pickup.pickup_charge || 800).toLocaleString()}
+              <Text style={styles.infoIcon}>✨</Text>
+              <Text style={[styles.infoText, { color: '#2E7D32', fontWeight: '800' }]}>
+                Complimentary Hotel Transfer Included (₹0)
               </Text>
             </View>
           </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,23 +8,10 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
 } from 'react-native';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { COLORS } from '../theme/colors';
 import { RECOMMENDED_HOTELS, ACTIVE_USER_PROFILE } from '../data/mockData';
-import { mobileApi } from '../services/api';
-
-const DEFAULT_LOCATIONS = [
-  { id: 'loc-ccu', name: 'Netaji Subhash Chandra Bose Int\'l Airport (CCU)', type: 'airport', address: 'Jessore Rd, Kolkata' },
-  { id: 'loc-dgh-stn', name: 'New Digha Railway Station', type: 'railway', address: 'Station Rd, New Digha' },
-  { id: 'loc-dgh-bus', name: 'Digha Central Bus Stand', type: 'bus', address: 'State Highway 57, Digha' },
-];
-
-const DEFAULT_VEHICLES = [
-  { id: 'veh-sedan', name: 'Executive Sedan', type: 'Sedan', capacity: 4, price: 800 },
-  { id: 'veh-suv', name: 'Premium Luxury SUV', type: 'SUV', capacity: 6, price: 1200 },
-  { id: 'veh-tempo', name: 'Group Tempo Traveller', type: 'Tempo Traveller', capacity: 12, price: 2000 },
-];
 
 export default function BookingReviewScreen({ route, navigation }) {
   const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
@@ -41,97 +28,42 @@ export default function BookingReviewScreen({ route, navigation }) {
   const [guestPhone, setGuestPhone] = useState(ACTIVE_USER_PROFILE.phone);
   const [guestsCount, setGuestsCount] = useState(2);
 
-  // Pickup Service State
-  const [pickupType, setPickupType] = useState('none'); // 'none', 'airport', 'railway', 'bus', 'other'
-  const [pickupLocations, setPickupLocations] = useState(DEFAULT_LOCATIONS);
-  const [pickupVehicles, setPickupVehicles] = useState(DEFAULT_VEHICLES);
-  const [selectedLocationId, setSelectedLocationId] = useState(DEFAULT_LOCATIONS[1].id);
-  const [customLocationName, setCustomLocationName] = useState('');
-  const [selectedVehicleId, setSelectedVehicleId] = useState(DEFAULT_VEHICLES[0].id);
-  const [pickupDate, setPickupDate] = useState(route.params?.checkInDate || '2026-08-28');
-  const [pickupTime, setPickupTime] = useState('10:30 AM');
-  const [passengersCount, setPassengersCount] = useState(2);
-  const [flightNumber, setFlightNumber] = useState('');
-  const [trainNumber, setTrainNumber] = useState('');
-  const [busNumber, setBusNumber] = useState('');
-  const [specialInstructions, setSpecialInstructions] = useState('');
-  const [pickupEnabled, setPickupEnabled] = useState(true);
+  // 2-Option FREE Pickup Preference State ('pickup' | 'none')
+  const [pickupPreference, setPickupPreference] = useState('pickup');
 
   const nights = route.params?.nightsCount || 3;
   const roomRate = room.price || room.price_per_night || 350;
   const baseAmount = roomRate * nights;
   const taxesAndFees = Math.round(baseAmount * 0.12);
-
-  // Load Hotel Pickup Configuration dynamically
-  useEffect(() => {
-    async function loadHotelPickupConfig() {
-      try {
-        if (hotel.id) {
-          const res = await mobileApi.getHotelPickupSettings(hotel.id);
-          if (res && res.success) {
-            if (res.pickup_service_enabled !== undefined) {
-              setPickupEnabled(res.pickup_service_enabled);
-            }
-            if (Array.isArray(res.locations) && res.locations.length > 0) {
-              setPickupLocations(res.locations);
-              setSelectedLocationId(res.locations[0].id);
-            }
-            if (Array.isArray(res.vehicles) && res.vehicles.length > 0) {
-              setPickupVehicles(res.vehicles);
-              setSelectedVehicleId(res.vehicles[0].id);
-            }
-          }
-        }
-      } catch (err) {
-        console.log('Using default hotel pickup config:', err.message);
-      }
-    }
-    loadHotelPickupConfig();
-  }, [hotel.id]);
-
-  const selectedVehicle = pickupVehicles.find(v => v.id === selectedVehicleId) || pickupVehicles[0] || DEFAULT_VEHICLES[0];
-  const selectedLocation = pickupLocations.find(l => l.id === selectedLocationId) || pickupLocations[0];
-
-  const pickupCharge = pickupType !== 'none' ? (selectedVehicle?.price || 800) : 0;
-  const totalAmount = baseAmount + taxesAndFees + pickupCharge;
-
-  // Filter locations by selected pickup type
-  const filteredLocations = pickupLocations.filter(loc => {
-    if (pickupType === 'airport') return loc.type === 'airport';
-    if (pickupType === 'railway') return loc.type === 'railway';
-    if (pickupType === 'bus') return loc.type === 'bus';
-    return true;
-  });
+  const pickupCharge = 0; // Pickup is 100% FREE
+  const totalAmount = baseAmount + taxesAndFees; // Pickup adds ₹0
 
   const handleProceedToPayment = () => {
-    const isPickupRequired = pickupType !== 'none';
-    const locationDisplayName = pickupType === 'other'
-      ? (customLocationName.trim() || 'Custom Pickup Address')
-      : (selectedLocation?.name || 'Hotel Designated Point');
+    const isPickupRequired = pickupPreference === 'pickup';
 
     const pickupPayload = isPickupRequired ? {
       required: true,
-      type: pickupType,
-      location_id: selectedLocation?.id || null,
-      location_name: locationDisplayName,
-      pickup_date: pickupDate,
-      pickup_time: pickupTime,
-      passengers: passengersCount,
-      vehicle_id: selectedVehicle?.id,
-      vehicle_name: selectedVehicle?.name,
-      pickup_charge: pickupCharge,
-      flight_number: flightNumber.trim(),
-      train_number: trainNumber.trim(),
-      bus_number: busNumber.trim(),
-      special_instructions: specialInstructions.trim()
-    } : { required: false, pickup_charge: 0 };
+      pickup_required: true,
+      pickup_charge: 0,
+      pickup_service: 'FREE',
+      service: 'FREE',
+      location_name: 'Station to Hotel',
+      pickup_date: checkIn,
+      pickup_time: '10:30 AM',
+      status: 'confirmed'
+    } : {
+      required: false,
+      pickup_required: false,
+      pickup_charge: 0,
+      service: 'NOT_REQUIRED'
+    };
 
     navigation.navigate('Payment', {
       hotel,
       room,
       bookingData: {
-        hotel_id: hotel.id,
-        room_id: room.id,
+        hotel_id: hotel.id || 'HTL-001',
+        room_id: room.id || 'RM-101',
         check_in_date: checkIn,
         check_out_date: checkOut,
         nights,
@@ -149,354 +81,223 @@ export default function BookingReviewScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
+      <StatusBar barStyle="light-content" backgroundColor="#4A0E20" />
+      
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* HOTEL SUMMARY BANNER */}
-        <View style={styles.hotelCard}>
-          <Image
-            source={{ uri: hotel.coverImage || hotel.cover_image || RECOMMENDED_HOTELS[0].coverImage }}
-            style={styles.hotelImage}
-          />
-          <View style={styles.hotelInfo}>
-            <Text style={styles.hotelName}>{hotel.name}</Text>
-            <Text style={styles.roomName}>{room.name || room.room_name || 'Deluxe King Suite'}</Text>
-            <Text style={styles.locationText}>📍 {hotel.city || 'New Digha'}, {hotel.country || 'India'}</Text>
-          </View>
-        </View>
-
-        {/* DATES & RESERVATION SPECS */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Reservation Schedule</Text>
-          <View style={styles.gridRow}>
-            <View style={styles.gridCol}>
-              <Text style={styles.gridLabel}>CHECK-IN</Text>
-              <Text style={styles.gridValue}>{checkIn}</Text>
-              <Text style={styles.gridSub}>From 12:00 PM</Text>
-            </View>
-            <View style={styles.gridCol}>
-              <Text style={styles.gridLabel}>CHECK-OUT</Text>
-              <Text style={styles.gridValue}>{checkOut}</Text>
-              <Text style={styles.gridSub}>Until 11:00 AM</Text>
-            </View>
-          </View>
-
+        {/* HOTEL & ROOM SUMMARY CARD */}
+        <View style={styles.card}>
+          <Text style={styles.hotelTitle}>{hotel.name}</Text>
+          <Text style={styles.hotelLoc}>📍 {hotel.location || hotel.city || 'New Digha, India'}</Text>
+          
           <View style={styles.divider} />
-
-          <View style={styles.rowBetween}>
-            <Text style={styles.rowLabel}>Total Duration</Text>
-            <Text style={styles.rowValue}>{nights} Nights</Text>
-          </View>
-          <View style={styles.rowBetween}>
-            <Text style={styles.rowLabel}>Guests & Rooms</Text>
-            <Text style={styles.rowValue}>{guestsCount} Adults, 1 Room</Text>
+          
+          <View style={styles.roomRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.roomName}>{room.name || room.room_name || 'Executive Room'}</Text>
+              <Text style={styles.roomDates}>
+                📅 {checkIn} → {checkOut} ({nights} Nights)
+              </Text>
+            </View>
+            <Text style={styles.roomPrice}>₹{baseAmount.toLocaleString('en-IN')}</Text>
           </View>
         </View>
 
-        {/* GUEST CONTACT DETAILS */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Primary Guest Information</Text>
-
+        {/* GUEST DETAILS CARD */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeading}>PRIMARY GUEST DETAILS</Text>
+          
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>FULL NAME</Text>
             <TextInput
               style={styles.textInput}
               value={guestName}
               onChangeText={setGuestName}
-              placeholder="Full Name"
-              placeholderTextColor={COLORS.textMuted}
+              placeholder="Guest full name"
             />
           </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>EMAIL ADDRESS (FOR CONFIRMATION)</Text>
-            <TextInput
-              style={styles.textInput}
-              value={guestEmail}
-              onChangeText={setGuestEmail}
-              placeholder="Email address"
-              keyboardType="email-address"
-              placeholderTextColor={COLORS.textMuted}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>CONTACT PHONE</Text>
-            <TextInput
-              style={styles.textInput}
-              value={guestPhone}
-              onChangeText={setGuestPhone}
-              placeholder="Phone number"
-              keyboardType="phone-pad"
-              placeholderTextColor={COLORS.textMuted}
-            />
+          
+          <View style={styles.gridRow}>
+            <View style={[styles.gridCol, { marginRight: 8 }]}>
+              <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+              <TextInput
+                style={styles.textInput}
+                value={guestEmail}
+                onChangeText={setGuestEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={[styles.gridCol, { marginLeft: 8 }]}>
+              <Text style={styles.inputLabel}>PHONE NUMBER</Text>
+              <TextInput
+                style={styles.textInput}
+                value={guestPhone}
+                onChangeText={setGuestPhone}
+                keyboardType="phone-pad"
+              />
+            </View>
           </View>
         </View>
 
-        {/* ============================================================ */}
-        {/* OPTIONAL PICKUP SERVICE SECTION */}
-        {/* ============================================================ */}
-        {pickupEnabled && (
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <View>
-                <Text style={styles.sectionTitle}>🚗 PICKUP SERVICE (OPTIONAL)</Text>
-                <Text style={styles.sectionSubtitle}>Seamless transfers direct to the hotel lobby</Text>
-              </View>
+        {/* ================================================================ */}
+        {/* FREE PICKUP SERVICE SECTION — PIXEL MATCH TO REFERENCE IMAGE     */}
+        {/* ================================================================ */}
+        
+        {/* 1. Need Pickup Banner Card */}
+        <View style={styles.pickupBannerCard}>
+          <View style={styles.bannerIconCircle}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M5 11L6.5 6.5C6.8 5.6 7.6 5 8.6 5H15.4C16.4 5 17.2 5.6 17.5 6.5L19 11M5 11H19M5 11V17C5 17.6 5.4 18 6 18H7C7.6 18 8 17.6 8 17V16H16V17C16 17.6 16.4 18 17 18H18C18.6 18 19 17.6 19 17V11M7.5 13.5H7.51M16.5 13.5H16.51"
+                stroke="#7A1235"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Circle cx="7.5" cy="13.5" r="1.2" fill="#7A1235" />
+              <Circle cx="16.5" cy="13.5" r="1.2" fill="#7A1235" />
+            </Svg>
+          </View>
+          <View style={styles.bannerTextContainer}>
+            <Text style={styles.bannerTitle}>Need Pickup?</Text>
+            <Text style={styles.bannerSubtitle}>
+              We’ll arrange your pickup from the station to the hotel. It’s completely{' '}
+              <Text style={styles.bannerFreeHighlight}>free!</Text>
+            </Text>
+          </View>
+        </View>
+
+        {/* 2. Select an option Section */}
+        <View style={styles.pickupOptionSection}>
+          <Text style={styles.optionSectionTitle}>Select an option</Text>
+
+          {/* Option 1: Pickup (FREE) */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              pickupPreference === 'pickup' && styles.optionCardSelected,
+            ]}
+            onPress={() => setPickupPreference('pickup')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.radioOuter}>
+              {pickupPreference === 'pickup' ? (
+                <View style={styles.radioInner} />
+              ) : null}
             </View>
 
-            {/* PICKUP TYPE SELECTOR */}
-            <View style={styles.pickupTypeGrid}>
-              {[
-                { id: 'none', label: 'No Pickup', icon: '🚫' },
-                { id: 'airport', label: 'Airport', icon: '✈️' },
-                { id: 'railway', label: 'Railway Stn', icon: '🚆' },
-                { id: 'bus', label: 'Bus Stand', icon: '🚌' },
-                { id: 'other', label: 'Other Loc', icon: '📍' },
-              ].map(opt => {
-                const isSelected = pickupType === opt.id;
-                return (
-                  <TouchableOpacity
-                    key={opt.id}
-                    activeOpacity={0.8}
-                    style={[styles.typePill, isSelected && styles.typePillActive]}
-                    onPress={() => setPickupType(opt.id)}
-                  >
-                    <Text style={styles.typeIcon}>{opt.icon}</Text>
-                    <Text style={[styles.typeText, isSelected && styles.typeTextActive]}>
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={[styles.optionIconCircle, { backgroundColor: '#F9EBEF' }]}>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M5 11L6.5 6.5C6.8 5.6 7.6 5 8.6 5H15.4C16.4 5 17.2 5.6 17.5 6.5L19 11M5 11H19M5 11V17C5 17.6 5.4 18 6 18H7C7.6 18 8 17.6 8 17V16H16V17C16 17.6 16.4 18 17 18H18C18.6 18 19 17.6 19 17V11"
+                  stroke="#7A1235"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <Circle cx="7.5" cy="13.5" r="1.1" fill="#7A1235" />
+                <Circle cx="16.5" cy="13.5" r="1.1" fill="#7A1235" />
+              </Svg>
             </View>
 
-            {/* EXPANDED PICKUP FORM (When active) */}
-            {pickupType !== 'none' && (
-              <View style={styles.pickupExpandedBox}>
-                {/* LOCATION SELECTOR */}
-                {pickupType === 'other' ? (
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>CUSTOM PICKUP ADDRESS</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={customLocationName}
-                      onChangeText={setCustomLocationName}
-                      placeholder="Enter pickup address or landmark"
-                      placeholderTextColor={COLORS.textMuted}
-                    />
-                  </View>
-                ) : (
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>SELECT PICKUP POINT</Text>
-                    <View style={styles.locationList}>
-                      {(filteredLocations.length > 0 ? filteredLocations : pickupLocations).map(loc => {
-                        const isSelected = selectedLocationId === loc.id;
-                        return (
-                          <TouchableOpacity
-                            key={loc.id}
-                            style={[styles.locationOption, isSelected && styles.locationOptionActive]}
-                            onPress={() => setSelectedLocationId(loc.id)}
-                            activeOpacity={0.8}
-                          >
-                            <Text style={styles.locationIcon}>📍</Text>
-                            <View style={{ flex: 1 }}>
-                              <Text style={[styles.locationName, isSelected && styles.locationNameActive]}>
-                                {loc.name}
-                              </Text>
-                              {loc.address ? (
-                                <Text style={styles.locationAddr}>{loc.address}</Text>
-                              ) : null}
-                            </View>
-                            <View style={[styles.radioDot, isSelected && styles.radioDotActive]} />
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-                )}
-
-                {/* DATE & TIME */}
-                <View style={styles.gridRow}>
-                  <View style={[styles.gridCol, { marginRight: 8 }]}>
-                    <Text style={styles.inputLabel}>PICKUP DATE</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={pickupDate}
-                      onChangeText={setPickupDate}
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor={COLORS.textMuted}
-                    />
-                  </View>
-                  <View style={[styles.gridCol, { marginLeft: 8 }]}>
-                    <Text style={styles.inputLabel}>PICKUP TIME</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={pickupTime}
-                      onChangeText={setPickupTime}
-                      placeholder="e.g. 10:30 AM"
-                      placeholderTextColor={COLORS.textMuted}
-                    />
-                  </View>
-                </View>
-
-                {/* VEHICLE SELECTION */}
-                <View style={{ marginTop: 12 }}>
-                  <Text style={styles.inputLabel}>SELECT VEHICLE TYPE</Text>
-                  <View style={styles.vehicleList}>
-                    {pickupVehicles.map(veh => {
-                      const isSelected = selectedVehicleId === veh.id;
-                      return (
-                        <TouchableOpacity
-                          key={veh.id}
-                          style={[styles.vehicleCard, isSelected && styles.vehicleCardActive]}
-                          onPress={() => setSelectedVehicleId(veh.id)}
-                          activeOpacity={0.8}
-                        >
-                          <View style={styles.vehicleHeader}>
-                            <Text style={styles.vehicleIcon}>
-                              {veh.type?.toLowerCase().includes('suv') ? '🚙' : veh.type?.toLowerCase().includes('tempo') ? '🚐' : '🚘'}
-                            </Text>
-                            <View style={{ flex: 1, marginLeft: 10 }}>
-                              <Text style={[styles.vehicleName, isSelected && styles.vehicleNameActive]}>
-                                {veh.name}
-                              </Text>
-                              <Text style={styles.vehicleCapacity}>
-                                Max {veh.capacity} Passengers
-                              </Text>
-                            </View>
-                            <View style={styles.vehiclePriceBox}>
-                              <Text style={styles.vehiclePrice}>₹{veh.price}</Text>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* PASSENGERS COUNT STEPPER */}
-                <View style={[styles.rowBetween, { marginTop: 14 }]}>
-                  <View>
-                    <Text style={styles.rowLabel}>Number of Passengers</Text>
-                    <Text style={styles.gridSub}>Max capacity: {selectedVehicle.capacity} pax</Text>
-                  </View>
-                  <View style={styles.stepperBox}>
-                    <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => setPassengersCount(Math.max(1, passengersCount - 1))}
-                    >
-                      <Text style={styles.stepBtnText}>-</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.stepVal}>{passengersCount}</Text>
-                    <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => setPassengersCount(Math.min(selectedVehicle.capacity, passengersCount + 1))}
-                    >
-                      <Text style={styles.stepBtnText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {/* OPTIONAL FLIGHT / TRAIN / BUS / INSTRUCTIONS */}
-                {pickupType === 'airport' && (
-                  <View style={[styles.inputGroup, { marginTop: 12 }]}>
-                    <Text style={styles.inputLabel}>FLIGHT NUMBER (OPTIONAL)</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={flightNumber}
-                      onChangeText={setFlightNumber}
-                      placeholder="e.g. 6E-204"
-                      placeholderTextColor={COLORS.textMuted}
-                    />
-                  </View>
-                )}
-
-                {pickupType === 'railway' && (
-                  <View style={[styles.inputGroup, { marginTop: 12 }]}>
-                    <Text style={styles.inputLabel}>TRAIN NUMBER / NAME (OPTIONAL)</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={trainNumber}
-                      onChangeText={setTrainNumber}
-                      placeholder="e.g. 12857 Tamralipta Express"
-                      placeholderTextColor={COLORS.textMuted}
-                    />
-                  </View>
-                )}
-
-                {pickupType === 'bus' && (
-                  <View style={[styles.inputGroup, { marginTop: 12 }]}>
-                    <Text style={styles.inputLabel}>BUS OPERATOR / TICKET (OPTIONAL)</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={busNumber}
-                      onChangeText={setBusNumber}
-                      placeholder="e.g. SBSTC AC Volvo"
-                      placeholderTextColor={COLORS.textMuted}
-                    />
-                  </View>
-                )}
-
-                <View style={[styles.inputGroup, { marginTop: 12 }]}>
-                  <Text style={styles.inputLabel}>SPECIAL INSTRUCTIONS (OPTIONAL)</Text>
-                  <TextInput
-                    style={[styles.textInput, { height: 60 }]}
-                    value={specialInstructions}
-                    onChangeText={setSpecialInstructions}
-                    placeholder="e.g. Need baby seat, extra luggage assistance"
-                    placeholderTextColor={COLORS.textMuted}
-                    multiline
-                  />
-                </View>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* PRICE BREAKDOWN */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Price Summary</Text>
-
-          <View style={styles.rowBetween}>
-            <Text style={styles.rowLabel}>Room Tariff ({nights} nights)</Text>
-            <Text style={styles.rowValue}>₹{baseAmount.toLocaleString()}</Text>
-          </View>
-
-          <View style={styles.rowBetween}>
-            <Text style={styles.rowLabel}>Taxes & GST (12%)</Text>
-            <Text style={styles.rowValue}>₹{taxesAndFees.toLocaleString()}</Text>
-          </View>
-
-          {pickupType !== 'none' && (
-            <View style={styles.rowBetween}>
-              <Text style={[styles.rowLabel, { color: COLORS.goldDark, fontWeight: '700' }]}>
-                🚗 Pickup Service ({selectedVehicle.name})
-              </Text>
-              <Text style={[styles.rowValue, { color: COLORS.goldDark }]}>
-                + ₹{pickupCharge.toLocaleString()}
-              </Text>
+            <View style={styles.optionTextContainer}>
+              <Text style={styles.optionTitle}>Pickup</Text>
+              <Text style={styles.optionSubtitle}>We’ll pick you up from the station</Text>
             </View>
-          )}
+
+            <View style={styles.freeBadgePill}>
+              <Text style={styles.freeBadgeText}>FREE</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option 2: No Pickup (FREE) */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              pickupPreference === 'none' && styles.optionCardSelected,
+            ]}
+            onPress={() => setPickupPreference('none')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.radioOuter}>
+              {pickupPreference === 'none' ? (
+                <View style={styles.radioInner} />
+              ) : null}
+            </View>
+
+            <View style={[styles.optionIconCircle, { backgroundColor: '#F0F0F2' }]}>
+              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z"
+                  stroke="#555555"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Circle cx="12" cy="9" r="2.5" fill="#555555" />
+              </Svg>
+            </View>
+
+            <View style={styles.optionTextContainer}>
+              <Text style={styles.optionTitle}>No Pickup</Text>
+              <Text style={styles.optionSubtitle}>I don’t need pickup service</Text>
+            </View>
+
+            <View style={styles.freeBadgePill}>
+              <Text style={styles.freeBadgeText}>FREE</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 3. Info Note */}
+          <View style={styles.infoNoteRow}>
+            <Text style={styles.infoIcon}>ⓘ</Text>
+            <Text style={styles.infoText}>You can change this later in your booking.</Text>
+          </View>
+        </View>
+
+        {/* PRICE SUMMARY CARD */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeading}>PRICE SUMMARY</Text>
+
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Room Tariff ({nights} nights)</Text>
+            <Text style={styles.priceVal}>₹{baseAmount.toLocaleString('en-IN')}</Text>
+          </View>
+
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Taxes & GST (12%)</Text>
+            <Text style={styles.priceVal}>₹{taxesAndFees.toLocaleString('en-IN')}</Text>
+          </View>
+
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>
+              🚗 Pickup Service ({pickupPreference === 'pickup' ? 'Station Transfer' : 'Not Required'})
+            </Text>
+            <Text style={[styles.priceVal, { color: '#2E7D32', fontWeight: '800' }]}>
+              {pickupPreference === 'pickup' ? 'FREE (₹0)' : '₹0'}
+            </Text>
+          </View>
 
           <View style={styles.divider} />
 
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total Price</Text>
-            <Text style={styles.totalValue}>₹{totalAmount.toLocaleString()}</Text>
+            <Text style={styles.totalPrice}>₹{totalAmount.toLocaleString('en-IN')}</Text>
           </View>
         </View>
 
-        {/* PROCEED BUTTON */}
+        {/* PROCEED TO PAYMENT BUTTON */}
         <TouchableOpacity
-          style={styles.proceedButton}
+          style={styles.payBtn}
           activeOpacity={0.88}
           onPress={handleProceedToPayment}
         >
-          <Text style={styles.proceedButtonText}>Proceed to Secure Payment →</Text>
+          <Text style={styles.payBtnText}>
+            Proceed to Secure Payment →
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -506,341 +307,290 @@ export default function BookingReviewScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.primaryDark,
+    backgroundColor: '#4A0E20',
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: 16,
+    paddingBottom: 110,
   },
-  hotelCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    padding: 12,
-    marginBottom: 16,
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  hotelImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 14,
-    backgroundColor: COLORS.borderLight,
-  },
-  hotelInfo: {
-    flex: 1,
-    marginLeft: 14,
-    justifyContent: 'center',
-  },
-  hotelName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  roomName: {
-    fontSize: 13,
-    color: COLORS.gold,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 2,
-  },
-  sectionCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
+    borderColor: '#ECECEC',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
-  sectionHeaderRow: {
+  cardHeading: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#7A1235',
+    letterSpacing: 0.8,
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 15,
+  hotelTitle: {
+    fontSize: 18,
     fontWeight: '800',
-    color: COLORS.textDark,
-    marginBottom: 2,
+    color: '#1A1A1A',
   },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  gridCol: {
-    flex: 1,
-  },
-  gridLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-  },
-  gridValue: {
+  hotelLoc: {
     fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textDark,
-    marginTop: 2,
-  },
-  gridSub: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 1,
+    color: '#666666',
+    marginTop: 4,
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.borderLight,
+    backgroundColor: '#EEEEEE',
     marginVertical: 12,
   },
-  rowBetween: {
+  roomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
-  rowLabel: {
-    fontSize: 13,
-    color: COLORS.textBody,
-  },
-  rowValue: {
-    fontSize: 13,
+  roomName: {
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: '#222222',
   },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 4,
+  roomDates: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
   },
-  totalLabel: {
-    fontSize: 16,
+  roomPrice: {
+    fontSize: 17,
     fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  totalValue: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: COLORS.primary,
+    color: '#7A1235',
   },
   inputGroup: {
     marginBottom: 12,
   },
   inputLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#666666',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   textInput: {
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F9F9F9',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    fontSize: 14,
+    color: '#1A1A1A',
   },
-  proceedButton: {
-    backgroundColor: COLORS.gold,
-    paddingVertical: 16,
+  gridRow: {
+    flexDirection: 'row',
+  },
+  gridCol: {
+    flex: 1,
+  },
+
+  // ==========================================================================
+  // FREE PICKUP SERVICE STYLES (MATCHING REFERENCE IMAGE)
+  // ==========================================================================
+  pickupBannerCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    shadowColor: COLORS.goldDark,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  bannerIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F9EBEF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  bannerTextContainer: {
+    flex: 1,
+  },
+  bannerTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#7A1235',
+    marginBottom: 3,
+  },
+  bannerSubtitle: {
+    fontSize: 13,
+    color: '#555555',
+    lineHeight: 18,
+  },
+  bannerFreeHighlight: {
+    fontWeight: '800',
+    color: '#7A1235',
+  },
+
+  // Select an option Section
+  pickupOptionSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  optionSectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    marginBottom: 14,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: '#ECECEC',
+  },
+  optionCardSelected: {
+    borderColor: '#7A1235',
+    backgroundColor: '#FDFAFA',
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#7A1235',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#7A1235',
+  },
+  optionIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1A1A1A',
+  },
+  optionSubtitle: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
+  },
+  freeBadgePill: {
+    backgroundColor: '#5B1230',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  freeBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  infoNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  infoIcon: {
+    fontSize: 14,
+    color: '#777777',
+    marginRight: 6,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#777777',
+  },
+
+  // Price Summary
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  priceLabel: {
+    fontSize: 13,
+    color: '#666666',
+  },
+  priceVal: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1A1A1A',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1A1A1A',
+  },
+  totalPrice: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#7A1235',
+  },
+  payBtn: {
+    backgroundColor: '#D4A72C',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: 6,
+    shadowColor: '#B08820',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
-  proceedButtonText: {
-    color: COLORS.primaryDark,
+  payBtnText: {
     fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  // Pickup Type Pills
-  pickupTypeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  typePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1.5,
-    borderColor: COLORS.borderLight,
-  },
-  typePillActive: {
-    borderColor: COLORS.gold,
-    backgroundColor: '#FAF7EE',
-  },
-  typeIcon: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-  typeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textBody,
-  },
-  typeTextActive: {
-    color: COLORS.primaryDark,
-    fontWeight: '800',
-  },
-  pickupExpandedBox: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    marginTop: 6,
-  },
-  locationList: {
-    gap: 8,
-  },
-  locationOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-  },
-  locationOptionActive: {
-    borderColor: COLORS.gold,
-    backgroundColor: '#FFFDF9',
-  },
-  locationIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  locationName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textDark,
-  },
-  locationNameActive: {
-    color: COLORS.primaryDark,
-  },
-  locationAddr: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 1,
-  },
-  radioDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: COLORS.borderDark,
-  },
-  radioDotActive: {
-    borderColor: COLORS.gold,
-    backgroundColor: COLORS.gold,
-  },
-  vehicleList: {
-    gap: 8,
-  },
-  vehicleCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1.5,
-    borderColor: COLORS.borderLight,
-  },
-  vehicleCardActive: {
-    borderColor: COLORS.gold,
-    backgroundColor: '#FAF7EE',
-  },
-  vehicleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  vehicleIcon: {
-    fontSize: 22,
-  },
-  vehicleName: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  vehicleNameActive: {
-    color: COLORS.primaryDark,
-  },
-  vehicleCapacity: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 1,
-  },
-  vehiclePriceBox: {
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-  },
-  vehiclePrice: {
-    fontSize: 14,
     fontWeight: '900',
-    color: COLORS.goldDark,
-  },
-  stepperBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    padding: 2,
-  },
-  stepBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-  },
-  stepBtnText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  stepVal: {
-    paddingHorizontal: 14,
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.textDark,
+    color: '#3D0E1C',
+    letterSpacing: 0.4,
   },
 });

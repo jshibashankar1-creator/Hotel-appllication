@@ -53,70 +53,20 @@ router.post('/create', authenticate, requireRole(['customer', 'admin']), (req, r
 
     const nights = dateList.length;
 
-    // Validate Pickup configuration if requested
-    let validatedPickup = { required: false, pickup_charge: 0 };
-    if (pickup && (pickup.required === true || pickup.required === 'true')) {
-      if (hotel.pickup_service_enabled === false) {
-        return res.status(400).json({ success: false, message: 'Pickup service is currently disabled for this hotel.' });
-      }
-
-      const vehicleId = pickup.vehicle_id || pickup.vehicleId;
-      const hotelVehicles = hotel.pickup_vehicles || [];
-      const vehicle = hotelVehicles.find(v => (v.id === vehicleId || v.name === pickup.vehicle_name || v.name === pickup.vehicleName) && v.active !== false);
-
-      if (!vehicle) {
-        return res.status(400).json({ success: false, message: 'Selected pickup vehicle is invalid or inactive for this property.' });
-      }
-
-      const passengers = Number(pickup.passengers) || 1;
-      if (passengers < 1) {
-        return res.status(400).json({ success: false, message: 'Passenger count must be at least 1.' });
-      }
-      if (passengers > vehicle.capacity) {
-        return res.status(400).json({
-          success: false,
-          message: `Passenger count (${passengers}) exceeds selected vehicle capacity (${vehicle.capacity} passengers).`
-        });
-      }
-
-      // Location validation
-      const locationId = pickup.location_id || pickup.locationId;
-      const hotelLocations = hotel.pickup_locations || [];
-      let loc = null;
-      if (locationId) {
-        loc = hotelLocations.find(l => l.id === locationId && l.active !== false);
-        if (!loc && pickup.type !== 'other' && pickup.type !== 'custom') {
-          return res.status(400).json({ success: false, message: 'Selected pickup location does not belong to this hotel.' });
-        }
-      }
-
-      const pickupCharge = Number(vehicle.price) || 0;
-      if (pickupCharge < 0) {
-        return res.status(400).json({ success: false, message: 'Invalid pickup fare.' });
-      }
-
+    // Validate Pickup configuration (Pickup is 100% FREE - ₹0)
+    let validatedPickup = { required: false, pickup_required: false, pickup_charge: 0, service: 'NOT_REQUIRED' };
+    if (pickup && (pickup.required === true || pickup.required === 'true' || pickup.pickup_required === true)) {
       validatedPickup = {
         required: true,
-        type: pickup.type || 'railway',
-        location_id: loc ? loc.id : (locationId || null),
-        location_name: loc ? loc.name : (pickup.location_name || pickup.locationName || pickup.location || 'Selected Pickup Point'),
-        pickup_date: pickup.pickup_date || pickup.pickupDate || check_in_date,
-        pickup_time: pickup.pickup_time || pickup.pickupTime || '10:00 AM',
-        passengers,
-        vehicle_id: vehicle.id,
-        vehicle_name: vehicle.name,
-        pickup_charge: pickupCharge,
-        flight_number: pickup.flight_number || pickup.flightNumber || '',
-        train_number: pickup.train_number || pickup.trainNumber || '',
-        bus_number: pickup.bus_number || pickup.busNumber || '',
-        special_instructions: pickup.special_instructions || pickup.specialInstructions || '',
+        pickup_required: true,
+        pickup_charge: 0,
+        pickup_service: 'FREE',
+        service: 'FREE',
         status: 'confirmed',
-        driver: {
-          name: '',
-          phone: '',
-          vehicle: vehicle.name,
-          vehicle_number: vehicle.vehicle_number || ''
-        }
+        location_name: pickup.location_name || pickup.location || 'Station to Hotel',
+        pickup_date: pickup.pickup_date || check_in_date,
+        pickup_time: pickup.pickup_time || '10:30 AM',
+        special_instructions: pickup.special_instructions || ''
       };
     }
 

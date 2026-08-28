@@ -111,61 +111,17 @@ export default function BookingConfirmationScreen({ route, navigation }) {
             </Text>
           </View>
 
-          {/* Optional Pickup Service Summary */}
-          {booking.pickup && booking.pickup.required ? (
-            <>
-              <View style={styles.cardDivider} />
-              <View style={styles.pickupVoucherBox}>
-                <View style={styles.pickupHeaderRow}>
-                  <Text style={styles.pickupBadgeTitle}>
-                    🚗 {booking.pickup.type === 'airport' ? 'Airport Pickup' : booking.pickup.type === 'railway' ? 'Railway Station Pickup' : booking.pickup.type === 'bus' ? 'Bus Stand Pickup' : 'Custom Location Pickup'}
-                  </Text>
-                  <View style={styles.pickupStatusBadge}>
-                    <Text style={styles.pickupStatusText}>
-                      {(booking.pickup.status || 'CONFIRMED').toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.pickupInfoRow}>
-                  <Text style={styles.pickupInfoIcon}>📍</Text>
-                  <Text style={styles.pickupInfoText} numberOfLines={2}>
-                    {booking.pickup.location_name || 'Designated Pickup Station'}
-                  </Text>
-                </View>
-
-                <View style={styles.pickupGridRow}>
-                  <View style={styles.pickupGridCol}>
-                    <Text style={styles.pickupMiniLabel}>SCHEDULE</Text>
-                    <Text style={styles.pickupMiniVal}>
-                      🕐 {booking.pickup.pickup_time || '10:30 AM'} ({booking.pickup.pickup_date || 'Arrival Day'})
-                    </Text>
-                  </View>
-                  <View style={styles.pickupGridCol}>
-                    <Text style={styles.pickupMiniLabel}>VEHICLE & PASSENGERS</Text>
-                    <Text style={styles.pickupMiniVal}>
-                      🚘 {booking.pickup.vehicle_name || 'Executive Sedan'} ({booking.pickup.passengers || 2} Pax)
-                    </Text>
-                  </View>
-                </View>
-
-                {booking.pickup.flight_number ? (
-                  <Text style={styles.pickupFlightText}>✈️ Flight: {booking.pickup.flight_number}</Text>
-                ) : null}
-                {booking.pickup.train_number ? (
-                  <Text style={styles.pickupFlightText}>🚆 Train: {booking.pickup.train_number}</Text>
-                ) : null}
-                {booking.pickup.bus_number ? (
-                  <Text style={styles.pickupFlightText}>🚌 Bus: {booking.pickup.bus_number}</Text>
-                ) : null}
-
-                <View style={styles.pickupChargeRow}>
-                  <Text style={styles.pickupChargeLabel}>Pickup Charge (Paid)</Text>
-                  <Text style={styles.pickupChargeVal}>₹{(booking.pickup.pickup_charge || 800).toLocaleString()}</Text>
-                </View>
-              </View>
-            </>
-          ) : null}
+          {/* Pickup Service Status */}
+          <View style={styles.cardDivider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>🚗</Text>
+            <Text style={styles.infoText}>
+              Pickup Service:{' '}
+              <Text style={{ fontWeight: '800', color: booking.pickup?.required ? '#2E7D32' : '#666666' }}>
+                {booking.pickup?.required ? 'Required — FREE' : 'Not Required'}
+              </Text>
+            </Text>
+          </View>
 
           <View style={styles.cardDivider} />
 

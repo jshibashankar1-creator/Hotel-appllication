@@ -196,7 +196,7 @@ export default function MyBookingsScreen({ navigation }) {
                 {item.pickup && item.pickup.required ? (
                   <View style={styles.cardPickupBadge}>
                     <Text style={styles.cardPickupText}>
-                      🚗 {item.pickup.type === 'airport' ? 'Airport' : item.pickup.type === 'railway' ? 'Railway' : item.pickup.type === 'bus' ? 'Bus Stand' : 'Custom'} Transfer: {(item.pickup.status || 'Confirmed').toUpperCase()}
+                      🚗 Station Pickup: FREE (Confirmed)
                     </Text>
                   </View>
                 ) : null}

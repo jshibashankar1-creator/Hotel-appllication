@@ -127,7 +127,28 @@ class MobileApiService {
     return this.request(`/hotels/${hotelId}/pickup-settings`);
   }
 
-  // --- BOOKING & PAYMENTS ---
+  // --- BOOKING & RAZORPAY PAYMENTS ---
+  async createPaymentOrder(payload) {
+    return this.request('/payments/create-order', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async verifyPayment(payload) {
+    return this.request('/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async getTestSignature(payload) {
+    return this.request('/payments/test-sign', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
   async createBooking(payload) {
     return this.request('/bookings/create', {
       method: 'POST',

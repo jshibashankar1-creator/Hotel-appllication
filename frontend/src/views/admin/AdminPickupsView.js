@@ -158,8 +158,8 @@ export async function renderAdminPickupsView(container) {
                       <div style="font-size: 0.72rem; color: var(--text-muted);">${pk.pickup_date || p.check_in_date}</div>
                     </td>
                     <td>
-                      <div style="font-weight: 700;">₹${(pk.pickup_charge || 800).toLocaleString('en-IN')}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${pk.vehicle_name || 'Sedan'} (${pk.passengers || 2} Pax)</div>
+                      <div style="font-weight: 700; color: #2E7D32;">${(pk.pickup_charge === 0 || pk.pickup_service === 'FREE' || pk.service === 'FREE') ? 'FREE (₹0)' : `₹${(pk.pickup_charge || 0).toLocaleString('en-IN')}`}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${pk.location_name || 'Station Transfer'}</div>
                     </td>
                     <td>
                       ${drv.name ? `

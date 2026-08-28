@@ -151,11 +151,11 @@ export async function renderOwnerPickupsView(container) {
                         <div style="font-size: 0.72rem; color: var(--text-muted);">${pk.pickup_date || p.check_in_date}</div>
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${pk.vehicle_name || 'Sedan'}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${pk.passengers || 2} Passengers</div>
+                        <div style="font-weight: 600;">${pk.location_name || 'Station Transfer'}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${pk.pickup_time || '10:30 AM'}</div>
                       </td>
                       <td>
-                        <strong style="color: var(--status-success); font-size: 0.95rem;">₹${(pk.pickup_charge || 800).toLocaleString('en-IN')}</strong>
+                        <strong style="color: #2E7D32; font-size: 0.95rem;">${(pk.pickup_charge === 0 || pk.pickup_service === 'FREE' || pk.service === 'FREE') ? 'FREE (₹0)' : `₹${(pk.pickup_charge || 0).toLocaleString('en-IN')}`}</strong>
                       </td>
                       <td>
                         ${isAssigned ? `

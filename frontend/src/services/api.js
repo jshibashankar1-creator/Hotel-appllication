@@ -379,6 +379,10 @@ class ApiService {
     });
   }
 
+  async updateTicketStatus(id, status) {
+    return this.updateSupportTicketStatus(id, status);
+  }
+
   // --- HOTEL ADMIN API ---
   async getMe() {
     return this.request('/auth/me');

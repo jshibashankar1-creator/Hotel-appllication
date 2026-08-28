@@ -126,22 +126,23 @@ class RelationalDatabase {
   getHotelById(id) { this.load(); return this.data.hotels.find(h => h.id === id); }
   getHotelsByOwner(ownerId) { this.load(); return this.data.hotels.filter(h => h.owner_id === ownerId); }
 
-  getRooms() { return this.data.rooms; }
-  getRoomById(id) { return this.data.rooms.find(r => r.id === id); }
-  getRoomsByHotel(hotelId) { return this.data.rooms.filter(r => r.hotel_id === hotelId && (r.is_active !== false)); }
-  getRoomsByHotelId(hotelId) { return this.data.rooms.filter(r => r.hotel_id === hotelId); }
+  getRooms() { this.load(); return this.data.rooms; }
+  getRoomById(id) { this.load(); return this.data.rooms.find(r => r.id === id); }
+  getRoomsByHotel(hotelId) { this.load(); return this.data.rooms.filter(r => r.hotel_id === hotelId && (r.is_active !== false)); }
+  getRoomsByHotelId(hotelId) { this.load(); return this.data.rooms.filter(r => r.hotel_id === hotelId); }
 
   getAvailability(roomId, date) {
+    this.load();
     if (roomId && date) {
       return this.data.room_availability.find(a => a.room_id === roomId && a.date === date);
     }
     return this.data.room_availability;
   }
 
-  getBookings() { return this.data.bookings; }
-  getBookingById(id) { return this.data.bookings.find(b => b.id === id || b.booking_code === id); }
-  getBookingsByCustomer(customerId) { return this.data.bookings.filter(b => b.customer_id === customerId); }
-  getBookingsByHotel(hotelId) { return this.data.bookings.filter(b => b.hotel_id === hotelId); }
+  getBookings() { this.load(); return this.data.bookings; }
+  getBookingById(id) { this.load(); return this.data.bookings.find(b => b.id === id || b.booking_code === id); }
+  getBookingsByCustomer(customerId) { this.load(); return this.data.bookings.filter(b => b.customer_id === customerId); }
+  getBookingsByHotel(hotelId) { this.load(); return this.data.bookings.filter(b => b.hotel_id === hotelId); }
 
   getPickups(hotelId = null) {
     this.load();
@@ -152,8 +153,8 @@ class RelationalDatabase {
     return bookingsWithPickup;
   }
 
-  getPayments() { return this.data.payments; }
-  getRefunds() { return this.data.refunds; }
+  getPayments() { this.load(); return this.data.payments; }
+  getRefunds() { this.load(); return this.data.refunds; }
   getCommissionLedger() {
     this.load();
     const bookings = this.data.bookings || [];
@@ -171,11 +172,13 @@ class RelationalDatabase {
     }));
   }
   getReviews(hotelId) {
+    this.load();
     if (hotelId) return this.data.reviews.filter(r => r.hotel_id === hotelId);
     return this.data.reviews;
   }
 
   getSupportTickets(userId = null) {
+    this.load();
     if (userId) return this.data.support_tickets.filter(t => t.user_id === userId);
     return this.data.support_tickets;
   }

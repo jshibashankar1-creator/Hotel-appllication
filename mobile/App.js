@@ -25,7 +25,7 @@ import BookingDetailsScreen from './src/screens/BookingDetailsScreen';
 import CancellationScreen from './src/screens/CancellationScreen';
 import ReviewModalScreen from './src/screens/ReviewModalScreen';
 
-import { TabIcon } from './src/components/TabIcons';
+import CustomBottomTabBar from './src/components/CustomBottomTabBar';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -33,43 +33,10 @@ const Tab = createBottomTabNavigator();
 function MainTabNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      tabBar={(props) => <CustomBottomTabBar {...props} />}
+      screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4A1738',
-        tabBarInactiveTintColor: '#777777',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E8E1DA',
-          borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 84 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 8,
-          paddingTop: 6,
-          elevation: 4,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.3,
-          shadowRadius: 6,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '700',
-          letterSpacing: 0.1,
-          marginTop: 2,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 2,
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          return (
-            <TabIcon
-              name={route.name}
-              focused={focused}
-              color={color}
-              size={size}
-            />
-          );
-        },
-      })}
+      }}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
       <Tab.Screen name="Explore" component={SearchScreen} options={{ title: 'Explore' }} />

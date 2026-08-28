@@ -40,7 +40,7 @@
       ],
       "createdBy": "system",
       "phone": "+91 98000 99999",
-      "lastLoginAt": "2026-08-28T07:25:45.890Z",
+      "lastLoginAt": "2026-08-28T08:06:26.105Z",
       "created_at": "2026-01-01T00:00:00Z"
     },
     {
@@ -362,7 +362,7 @@
       "kyc_status": "verified",
       "rejection_reason": null,
       "submitted_at": "2026-02-10T10:30:00Z",
-      "verified_at": "2026-02-12T14:20:00Z"
+      "verified_at": "2026-08-28T08:06:26.186Z"
     },
     {
       "user_id": "USR-OWNER-2",
@@ -4812,6 +4812,42 @@
     "updated_at": "2026-08-28T06:31:41.095Z"
   },
   "audit_logs": [
+    {
+      "id": "LOG-MTCO3XJH-803",
+      "timestamp": "2026-08-28T08:06:26.189Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executiv",
+      "admin_role": "super_admin",
+      "action": "OWNER_KYC_VERIFIED",
+      "resource": "OwnerProfile",
+      "resource_id": "USR-OWNER-1",
+      "details": "Owner KYC status set to 'verified'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCO3XIU-136",
+      "timestamp": "2026-08-28T08:06:26.166Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executiv",
+      "admin_role": "super_admin",
+      "action": "OWNER_KYC_REJECTED",
+      "resource": "OwnerProfile",
+      "resource_id": "USR-OWNER-1",
+      "details": "Owner KYC status set to 'rejected'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCO3XHL-791",
+      "timestamp": "2026-08-28T08:06:26.121Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executiv",
+      "admin_role": "super_admin",
+      "action": "OWNER_KYC_VERIFIED",
+      "resource": "OwnerProfile",
+      "resource_id": "USR-OWNER-1",
+      "details": "Owner KYC status set to 'verified'.",
+      "ip_address": "127.0.0.1"
+    },
     {
       "id": "LOG-MTCLT4HL-952",
       "timestamp": "2026-08-28T07:02:02.745Z",

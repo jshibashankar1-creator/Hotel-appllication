@@ -144,23 +144,37 @@ export async function renderAdminOwnersView(container) {
     modalRoot.querySelector('#modal-close-action')?.addEventListener('click', closeModal);
 
     modalRoot.querySelector('#modal-approve-btn')?.addEventListener('click', async () => {
-      await api.updateOwnerKyc(userId, 'verified');
-      window.showToast(`Owner ${owner.name} verified successfully! Associated hotel is now active.`, 'success');
-      closeModal();
-      loadData();
+      const approveBtn = modalRoot.querySelector('#modal-approve-btn');
+      if (approveBtn) approveBtn.disabled = true;
+      try {
+        await api.updateOwnerKyc(userId, 'verified');
+        window.showToast(`Owner ${owner.name} verified successfully! Associated hotel is now active.`, 'success');
+        closeModal();
+        loadData();
+      } catch (err) {
+        if (approveBtn) approveBtn.disabled = false;
+        window.showToast(err.message || 'Failed to approve owner KYC.', 'error');
+      }
     });
 
     modalRoot.querySelector('#modal-reject-btn')?.addEventListener('click', async () => {
       const rejectBox = modalRoot.querySelector('#reject-box');
+      const rejectBtn = modalRoot.querySelector('#modal-reject-btn');
       if (rejectBox.style.display === 'none') {
         rejectBox.style.display = 'block';
-        modalRoot.querySelector('#modal-reject-btn').textContent = 'Confirm Rejection';
+        if (rejectBtn) rejectBtn.textContent = 'Confirm Rejection';
       } else {
         const reason = modalRoot.querySelector('#reject-reason').value || 'Documentation incomplete.';
-        await api.updateOwnerKyc(userId, 'rejected', reason);
-        window.showToast(`KYC application for ${owner.name} rejected.`, 'error');
-        closeModal();
-        loadData();
+        if (rejectBtn) rejectBtn.disabled = true;
+        try {
+          await api.updateOwnerKyc(userId, 'rejected', reason);
+          window.showToast(`KYC application for ${owner.name} rejected.`, 'error');
+          closeModal();
+          loadData();
+        } catch (err) {
+          if (rejectBtn) rejectBtn.disabled = false;
+          window.showToast(err.message || 'Failed to reject owner KYC.', 'error');
+        }
       }
     });
   }

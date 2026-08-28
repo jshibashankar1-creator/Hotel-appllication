@@ -510,6 +510,14 @@ class ApiService {
     });
   }
 
+  async updateOwnerKyc(userId, status, reason = null) {
+    return this.updateOwnerKYCStatus(userId, status, reason);
+  }
+
+  async updateOwnerKYC(userId, status, reason = null) {
+    return this.updateOwnerKYCStatus(userId, status, reason);
+  }
+
   // --- REPORTS & KPIS ---
   async getAdminKpis() {
     let res;

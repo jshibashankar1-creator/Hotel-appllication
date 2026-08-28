@@ -33,9 +33,10 @@ router.get('/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admi
   return res.json({ success: true, count: owners.length, owners });
 });
 
-// PUT /api/owners/:userId/kyc (Hotel / Super Admin: Approve or Reject owner KYC)
-router.put('/:userId/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), (req, res) => {
-  const { status, reason } = req.body;
+// PUT & PATCH /api/owners/:userId/kyc (Hotel / Super Admin: Approve or Reject owner KYC)
+const handleOwnerKycUpdate = (req, res) => {
+  let { status, reason } = req.body;
+  if (status === 'approved') status = 'verified';
   if (!['verified', 'rejected', 'pending'].includes(status)) {
     return res.status(400).json({ success: false, message: 'Status must be verified, rejected, or pending.' });
   }
@@ -93,6 +94,9 @@ router.put('/:userId/kyc', authenticate, requireRole('super_admin', 'admin', 'ho
     message: `Owner KYC status updated to ${status.toUpperCase()}.`,
     profile: updatedProfile
   });
-});
+};
+
+router.put('/:userId/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), handleOwnerKycUpdate);
+router.patch('/:userId/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), handleOwnerKycUpdate);
 
 export default router;

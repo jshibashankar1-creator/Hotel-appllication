@@ -91,9 +91,13 @@ window.navigateTo = function(path) {
   }
 };
 
-// Canonical Hash Normalizer: Strips stray query markers (? or &) from hash
+// Canonical Route Normalizer: Supports both direct HTML5 pathnames (e.g. /admin/support) and hash routes (#/admin/support)
 function getNormalizedRoute() {
-  let raw = window.location.hash || '#/login';
+  let raw = window.location.hash;
+  if (!raw && window.location.pathname && window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+    raw = '#' + window.location.pathname;
+  }
+  if (!raw) raw = '#/login';
   if (raw.includes('?')) raw = raw.split('?')[0];
   if (raw.includes('&')) raw = raw.split('&')[0];
   

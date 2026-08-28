@@ -19,6 +19,23 @@ const HotelSchema = new mongoose.Schema({
   cover_image: { type: String, default: '' },
   gallery: [{ type: String }],
   amenities: [{ type: String }],
+  pickup_service_enabled: { type: Boolean, default: true },
+  pickup_locations: [{
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    type: { type: String, enum: ['airport', 'railway', 'bus', 'custom'], default: 'railway' },
+    address: { type: String, default: '' },
+    active: { type: Boolean, default: true }
+  }],
+  pickup_vehicles: [{
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    type: { type: String, default: 'Sedan' },
+    capacity: { type: Number, default: 4 },
+    price: { type: Number, default: 800 },
+    vehicle_number: { type: String, default: '' },
+    active: { type: Boolean, default: true }
+  }],
   created_at: { type: Date, default: Date.now }
 }, { timestamps: true });
 

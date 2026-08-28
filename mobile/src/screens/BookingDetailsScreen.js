@@ -125,6 +125,129 @@ export default function BookingDetailsScreen({ route, navigation }) {
           </View>
         </View>
 
+        {/* PICKUP SERVICE DETAILS & TRACKER (If requested) */}
+        {currentBooking.pickup && currentBooking.pickup.required ? (
+          <View style={styles.sectionCard}>
+            <View style={styles.pickupHeaderFlex}>
+              <View>
+                <Text style={styles.sectionTitle}>🚗 PICKUP SERVICE</Text>
+                <Text style={styles.pickupSubHeader}>
+                  {currentBooking.pickup.type === 'airport' ? 'Airport Transfer' : currentBooking.pickup.type === 'railway' ? 'Railway Station Transfer' : currentBooking.pickup.type === 'bus' ? 'Bus Depot Transfer' : 'Direct Custom Transfer'}
+                </Text>
+              </View>
+              <View style={styles.pickupStatusPill}>
+                <Text style={styles.pickupStatusPillText}>
+                  {(currentBooking.pickup.status || 'CONFIRMED').replace('_', ' ').toUpperCase()}
+                </Text>
+              </View>
+            </View>
+
+            {/* STATUS PROGRESSION STEPPER */}
+            <View style={styles.statusStepper}>
+              {[
+                { key: 'requested', label: 'Requested' },
+                { key: 'confirmed', label: 'Confirmed' },
+                { key: 'assigned', label: 'Assigned' },
+                { key: 'driver_on_way', label: 'On Way' },
+                { key: 'arrived', label: 'Arrived' },
+                { key: 'completed', label: 'Completed' },
+              ].map((step, idx) => {
+                const statusOrder = ['requested', 'confirmed', 'assigned', 'driver_on_way', 'arrived', 'completed'];
+                const currentIdx = statusOrder.indexOf(currentBooking.pickup.status || 'confirmed');
+                const isPassed = currentIdx >= idx;
+                const isCurrent = currentBooking.pickup.status === step.key;
+
+                return (
+                  <View key={step.key} style={styles.stepItem}>
+                    <View style={[styles.stepCircle, isPassed && styles.stepCirclePassed, isCurrent && styles.stepCircleCurrent]}>
+                      <Text style={[styles.stepCircleNum, isPassed && styles.stepCircleNumPassed]}>
+                        {isPassed ? '✓' : idx + 1}
+                      </Text>
+                    </View>
+                    <Text style={[styles.stepItemLabel, isPassed && styles.stepItemLabelPassed]}>
+                      {step.label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* LOCATION & TIME */}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>📍</Text>
+              <Text style={styles.infoText}>
+                {currentBooking.pickup.location_name || 'Designated Pickup Location'}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>🕐</Text>
+              <Text style={styles.infoText}>
+                {currentBooking.pickup.pickup_time || '10:30 AM'} • {currentBooking.pickup.pickup_date || currentBooking.check_in_date}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>🚘</Text>
+              <Text style={styles.infoText}>
+                {currentBooking.pickup.vehicle_name || 'Executive Sedan'} ({currentBooking.pickup.passengers || 2} Passengers)
+              </Text>
+            </View>
+
+            {currentBooking.pickup.flight_number ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>✈️</Text>
+                <Text style={styles.infoText}>Flight: {currentBooking.pickup.flight_number}</Text>
+              </View>
+            ) : null}
+
+            {currentBooking.pickup.train_number ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>🚆</Text>
+                <Text style={styles.infoText}>Train: {currentBooking.pickup.train_number}</Text>
+              </View>
+            ) : null}
+
+            {currentBooking.pickup.bus_number ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>🚌</Text>
+                <Text style={styles.infoText}>Bus: {currentBooking.pickup.bus_number}</Text>
+              </View>
+            ) : null}
+
+            {/* ASSIGNED DRIVER DETAILS (If assigned) */}
+            {currentBooking.pickup.driver && currentBooking.pickup.driver.name ? (
+              <View style={styles.driverCard}>
+                <View style={styles.driverHeader}>
+                  <Text style={styles.driverAvatar}>👤</Text>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={styles.driverName}>{currentBooking.pickup.driver.name}</Text>
+                    <Text style={styles.driverVehicle}>
+                      {currentBooking.pickup.driver.vehicle} {currentBooking.pickup.driver.vehicle_number ? `(${currentBooking.pickup.driver.vehicle_number})` : ''}
+                    </Text>
+                  </View>
+                  {currentBooking.pickup.driver.phone ? (
+                    <View style={styles.driverPhoneBox}>
+                      <Text style={styles.driverPhoneText}>📞 {currentBooking.pickup.driver.phone}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+            ) : null}
+
+            <View style={styles.divider} />
+
+            <View style={styles.rowBetween}>
+              <Text style={styles.rowLabel}>Pickup Fare</Text>
+              <Text style={[styles.rowVal, { color: COLORS.goldDark, fontWeight: '800' }]}>
+                ₹{(currentBooking.pickup.pickup_charge || 800).toLocaleString()}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
         {/* ACTIONS */}
         <View style={styles.actionsGroup}>
           {isCompleted && (
@@ -343,5 +466,126 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
     fontSize: 13,
     fontWeight: '700',
+  },
+  pickupHeaderFlex: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  pickupSubHeader: {
+    fontSize: 12,
+    color: COLORS.goldDark,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  pickupStatusPill: {
+    backgroundColor: '#FAF7EE',
+    borderWidth: 1,
+    borderColor: COLORS.gold,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  pickupStatusPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.goldDark,
+  },
+  statusStepper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+    backgroundColor: '#FAFAFA',
+    padding: 10,
+    borderRadius: 14,
+  },
+  stepItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: COLORS.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  stepCirclePassed: {
+    backgroundColor: COLORS.gold,
+  },
+  stepCircleCurrent: {
+    backgroundColor: COLORS.primary,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
+  },
+  stepCircleNum: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+  },
+  stepCircleNumPassed: {
+    color: COLORS.white,
+  },
+  stepItemLabel: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    textAlign: 'center',
+  },
+  stepItemLabelPassed: {
+    color: COLORS.textDark,
+    fontWeight: '800',
+  },
+  infoIcon: {
+    fontSize: 13,
+    marginRight: 8,
+  },
+  infoText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    flex: 1,
+  },
+  driverCard: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  driverHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  driverAvatar: {
+    fontSize: 22,
+  },
+  driverName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  driverVehicle: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginTop: 1,
+  },
+  driverPhoneBox: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  driverPhoneText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primaryDark,
   },
 });

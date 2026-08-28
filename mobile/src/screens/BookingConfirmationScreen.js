@@ -111,12 +111,68 @@ export default function BookingConfirmationScreen({ route, navigation }) {
             </Text>
           </View>
 
+          {/* Optional Pickup Service Summary */}
+          {booking.pickup && booking.pickup.required ? (
+            <>
+              <View style={styles.cardDivider} />
+              <View style={styles.pickupVoucherBox}>
+                <View style={styles.pickupHeaderRow}>
+                  <Text style={styles.pickupBadgeTitle}>
+                    🚗 {booking.pickup.type === 'airport' ? 'Airport Pickup' : booking.pickup.type === 'railway' ? 'Railway Station Pickup' : booking.pickup.type === 'bus' ? 'Bus Stand Pickup' : 'Custom Location Pickup'}
+                  </Text>
+                  <View style={styles.pickupStatusBadge}>
+                    <Text style={styles.pickupStatusText}>
+                      {(booking.pickup.status || 'CONFIRMED').toUpperCase()}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.pickupInfoRow}>
+                  <Text style={styles.pickupInfoIcon}>📍</Text>
+                  <Text style={styles.pickupInfoText} numberOfLines={2}>
+                    {booking.pickup.location_name || 'Designated Pickup Station'}
+                  </Text>
+                </View>
+
+                <View style={styles.pickupGridRow}>
+                  <View style={styles.pickupGridCol}>
+                    <Text style={styles.pickupMiniLabel}>SCHEDULE</Text>
+                    <Text style={styles.pickupMiniVal}>
+                      🕐 {booking.pickup.pickup_time || '10:30 AM'} ({booking.pickup.pickup_date || 'Arrival Day'})
+                    </Text>
+                  </View>
+                  <View style={styles.pickupGridCol}>
+                    <Text style={styles.pickupMiniLabel}>VEHICLE & PASSENGERS</Text>
+                    <Text style={styles.pickupMiniVal}>
+                      🚘 {booking.pickup.vehicle_name || 'Executive Sedan'} ({booking.pickup.passengers || 2} Pax)
+                    </Text>
+                  </View>
+                </View>
+
+                {booking.pickup.flight_number ? (
+                  <Text style={styles.pickupFlightText}>✈️ Flight: {booking.pickup.flight_number}</Text>
+                ) : null}
+                {booking.pickup.train_number ? (
+                  <Text style={styles.pickupFlightText}>🚆 Train: {booking.pickup.train_number}</Text>
+                ) : null}
+                {booking.pickup.bus_number ? (
+                  <Text style={styles.pickupFlightText}>🚌 Bus: {booking.pickup.bus_number}</Text>
+                ) : null}
+
+                <View style={styles.pickupChargeRow}>
+                  <Text style={styles.pickupChargeLabel}>Pickup Charge (Paid)</Text>
+                  <Text style={styles.pickupChargeVal}>₹{(booking.pickup.pickup_charge || 800).toLocaleString()}</Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+
           <View style={styles.cardDivider} />
 
           {/* Total Price */}
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Total Price</Text>
-            <Text style={styles.priceValue}>${(booking.total_amount || 1050).toLocaleString()}</Text>
+            <Text style={styles.priceValue}>₹{(booking.total_amount || 1050).toLocaleString()}</Text>
           </View>
         </View>
 
@@ -346,5 +402,96 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 13,
     fontWeight: '800',
+  },
+  pickupVoucherBox: {
+    backgroundColor: '#FAF7EE',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    marginVertical: 4,
+  },
+  pickupHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  pickupBadgeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
+  },
+  pickupStatusBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 1,
+    borderColor: '#10B981',
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  pickupStatusText: {
+    color: '#10B981',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  pickupInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  pickupInfoIcon: {
+    fontSize: 13,
+    marginRight: 6,
+  },
+  pickupInfoText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    flex: 1,
+  },
+  pickupGridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  pickupGridCol: {
+    flex: 1,
+  },
+  pickupMiniLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+  },
+  pickupMiniVal: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginTop: 1,
+  },
+  pickupFlightText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginBottom: 6,
+  },
+  pickupChargeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(212, 175, 55, 0.2)',
+  },
+  pickupChargeLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+  },
+  pickupChargeVal: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.goldDark,
   },
 });

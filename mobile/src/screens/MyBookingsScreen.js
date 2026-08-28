@@ -189,9 +189,17 @@ export default function MyBookingsScreen({ navigation }) {
                   </View>
                   <View style={styles.gridCol}>
                     <Text style={styles.gridLabel}>TOTAL PAID</Text>
-                    <Text style={styles.gridPrice}>${(item.total_amount || 1050).toLocaleString()}</Text>
+                    <Text style={styles.gridPrice}>₹{(item.total_amount || 1050).toLocaleString()}</Text>
                   </View>
                 </View>
+
+                {item.pickup && item.pickup.required ? (
+                  <View style={styles.cardPickupBadge}>
+                    <Text style={styles.cardPickupText}>
+                      🚗 {item.pickup.type === 'airport' ? 'Airport' : item.pickup.type === 'railway' ? 'Railway' : item.pickup.type === 'bus' ? 'Bus Stand' : 'Custom'} Transfer: {(item.pickup.status || 'Confirmed').toUpperCase()}
+                    </Text>
+                  </View>
+                ) : null}
 
                 <View style={styles.cardFooterRow}>
                   <Text style={styles.codeText}>Code: {item.booking_code || 'BK-PLZ-8921'}</Text>
@@ -392,5 +400,19 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 14,
     fontWeight: '800',
+  },
+  cardPickupBadge: {
+    backgroundColor: '#FAF7EE',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginTop: 8,
+  },
+  cardPickupText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
   },
 });

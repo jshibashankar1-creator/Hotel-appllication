@@ -45,6 +45,25 @@ class RelationalDatabase {
           const raw = fs.readFileSync(DB_FILE, 'utf-8');
           this.data = JSON.parse(raw);
           if (!this.data.audit_logs) this.data.audit_logs = [];
+          if (Array.isArray(this.data.hotels)) {
+            this.data.hotels.forEach(h => {
+              if (h.pickup_service_enabled === undefined) h.pickup_service_enabled = true;
+              if (!Array.isArray(h.pickup_locations) || h.pickup_locations.length === 0) {
+                h.pickup_locations = [
+                  { id: `LOC-${h.id}-1`, name: 'Netaji Subhash Chandra Bose Int\'l Airport (CCU)', type: 'airport', address: 'Jessore Rd, Dum Dum, Kolkata', active: true },
+                  { id: `LOC-${h.id}-2`, name: 'New Digha Railway Station', type: 'railway', address: 'Station Road, New Digha', active: true },
+                  { id: `LOC-${h.id}-3`, name: 'Digha Central Bus Stand', type: 'bus', address: 'State Highway 57, Digha', active: true }
+                ];
+              }
+              if (!Array.isArray(h.pickup_vehicles) || h.pickup_vehicles.length === 0) {
+                h.pickup_vehicles = [
+                  { id: `VEH-${h.id}-1`, name: 'Executive Sedan', type: 'Sedan', capacity: 4, price: 800, vehicle_number: 'WB-30-AB-1290', active: true },
+                  { id: `VEH-${h.id}-2`, name: 'Premium Luxury SUV', type: 'SUV', capacity: 6, price: 1200, vehicle_number: 'WB-30-CD-4421', active: true },
+                  { id: `VEH-${h.id}-3`, name: 'Group Tempo Traveller', type: 'Tempo Traveller', capacity: 12, price: 2000, vehicle_number: 'WB-30-EF-8812', active: true }
+                ];
+              }
+            });
+          }
           this.lastMtime = stats.mtimeMs;
         }
       } else {
@@ -123,6 +142,15 @@ class RelationalDatabase {
   getBookingById(id) { return this.data.bookings.find(b => b.id === id || b.booking_code === id); }
   getBookingsByCustomer(customerId) { return this.data.bookings.filter(b => b.customer_id === customerId); }
   getBookingsByHotel(hotelId) { return this.data.bookings.filter(b => b.hotel_id === hotelId); }
+
+  getPickups(hotelId = null) {
+    this.load();
+    const bookingsWithPickup = (this.data.bookings || []).filter(b => b.pickup && b.pickup.required);
+    if (hotelId) {
+      return bookingsWithPickup.filter(b => b.hotel_id === hotelId);
+    }
+    return bookingsWithPickup;
+  }
 
   getPayments() { return this.data.payments; }
   getRefunds() { return this.data.refunds; }

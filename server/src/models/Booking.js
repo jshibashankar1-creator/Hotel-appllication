@@ -29,6 +29,33 @@ const BookingSchema = new mongoose.Schema({
     index: true
   },
   cancellation_reason: { type: String, default: null },
+  pickup: {
+    required: { type: Boolean, default: false },
+    type: { type: String, enum: ['airport', 'railway', 'bus', 'other', null], default: null },
+    location_id: { type: String, default: null },
+    location_name: { type: String, default: null },
+    pickup_date: { type: String, default: null },
+    pickup_time: { type: String, default: null },
+    passengers: { type: Number, default: 1 },
+    vehicle_id: { type: String, default: null },
+    vehicle_name: { type: String, default: null },
+    pickup_charge: { type: Number, default: 0 },
+    flight_number: { type: String, default: '' },
+    train_number: { type: String, default: '' },
+    bus_number: { type: String, default: '' },
+    special_instructions: { type: String, default: '' },
+    status: {
+      type: String,
+      enum: ['requested', 'confirmed', 'rejected', 'assigned', 'driver_on_way', 'arrived', 'completed', 'cancelled'],
+      default: 'requested'
+    },
+    driver: {
+      name: { type: String, default: '' },
+      phone: { type: String, default: '' },
+      vehicle: { type: String, default: '' },
+      vehicle_number: { type: String, default: '' }
+    }
+  },
   created_at: { type: Date, default: Date.now }
 }, { timestamps: true });
 

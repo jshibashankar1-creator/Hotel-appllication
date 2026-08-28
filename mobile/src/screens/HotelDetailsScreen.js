@@ -168,6 +168,21 @@ export default function HotelDetailsScreen({ route, navigation }) {
             </ScrollView>
           </View>
 
+          {/* LUXURY PICKUP SERVICE HIGHLIGHT */}
+          {hotel.pickup_service_enabled !== false ? (
+            <View style={styles.pickupHighlightCard}>
+              <View style={styles.pickupHighlightIconBox}>
+                <Text style={{ fontSize: 18 }}>🚗</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.pickupHighlightTitle}>Hotel Pickup Service Available</Text>
+                <Text style={styles.pickupHighlightSubtitle}>
+                  Direct airport & station pickup in premium AC vehicles with real-time driver tracking
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
           <View style={styles.sectionDivider} />
 
           {/* ABOUT HOTEL */}
@@ -452,5 +467,34 @@ const styles = StyleSheet.create({
   roomsList: {
     paddingTop: 12,
     paddingBottom: 4,
+  },
+  pickupHighlightCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF7EE',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 16,
+  },
+  pickupHighlightIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickupHighlightTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
+  },
+  pickupHighlightSubtitle: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginTop: 2,
+    lineHeight: 15,
   },
 });

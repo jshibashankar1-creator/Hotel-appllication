@@ -33,6 +33,7 @@ import { renderAdminSettingsView } from './views/admin/AdminSettingsView.js';
 import { renderAdminUsersView } from './views/admin/AdminUsersView.js';
 import { renderAdminCreateUserView } from './views/admin/AdminCreateUserView.js';
 import { renderAdminProfileView } from './views/admin/AdminProfileView.js';
+import { renderAdminPickupsView } from './views/admin/AdminPickupsView.js';
 
 // Hotel Admin / Owner Views
 import { renderOwnerDashboardView } from './views/owner/OwnerDashboardView.js';
@@ -43,6 +44,7 @@ import { renderOwnerBookingsView } from './views/owner/OwnerBookingsView.js';
 import { renderOwnerCheckInView } from './views/owner/OwnerCheckInView.js';
 import { renderOwnerCheckOutView } from './views/owner/OwnerCheckOutView.js';
 import { renderOwnerEarningsView } from './views/owner/OwnerEarningsView.js';
+import { renderOwnerPickupsView } from './views/owner/OwnerPickupsView.js';
 import { renderOwnerSupportView } from './views/owner/OwnerSupportView.js';
 import { renderOwnerOnboardView } from './views/owner/OwnerOnboardView.js';
 import { renderOwnerProfileView } from './views/owner/OwnerProfileView.js';
@@ -259,6 +261,9 @@ function handleRoute() {
       <a href="#/admin/bookings" class="nav-item ${hash === '#/admin/bookings' ? 'active' : ''}">
         <div class="nav-item-left"><i data-lucide="calendar-check"></i><span>Bookings</span></div>
       </a>
+      <a href="#/admin/pickups" class="nav-item ${hash === '#/admin/pickups' ? 'active' : ''}">
+        <div class="nav-item-left"><i data-lucide="car"></i><span>Pickups Activity</span></div>
+      </a>
     `;
 
     // Financials (Super Admin, Admin, Finance Admin)
@@ -346,6 +351,9 @@ function handleRoute() {
       <a href="#/hotel-admin/bookings" class="nav-item ${hash === '#/hotel-admin/bookings' || hash === '#/owner/bookings' ? 'active' : ''}">
         <div class="nav-item-left"><i data-lucide="calendar-check"></i><span>Bookings</span></div>
       </a>
+      <a href="#/hotel-admin/pickups" class="nav-item ${hash === '#/hotel-admin/pickups' || hash === '#/owner/pickups' ? 'active' : ''}">
+        <div class="nav-item-left"><i data-lucide="car"></i><span>Pickup Service</span></div>
+      </a>
       <a href="#/hotel-admin/check-in" class="nav-item ${hash === '#/hotel-admin/check-in' || hash === '#/owner/check-in' ? 'active' : ''}">
         <div class="nav-item-left"><i data-lucide="log-in"></i><span>Check-In</span></div>
       </a>
@@ -396,6 +404,12 @@ function handleRoute() {
       viewTitle.textContent = 'Centralized Booking Ledger';
       viewSubtitle.textContent = 'Audit all guest reservations, stay dates, and digital invoice breakdowns';
       renderAdminBookingsView(contentArea);
+      break;
+
+    case '#/admin/pickups':
+      viewTitle.textContent = 'Centralized Transfer Logistics';
+      viewSubtitle.textContent = 'Platform-wide pickup requests, hotel vehicle fleets, and transfer logs';
+      renderAdminPickupsView(contentArea);
       break;
 
     case '#/admin/payments':
@@ -537,6 +551,13 @@ function handleRoute() {
       viewTitle.textContent = 'Reservations Management';
       viewSubtitle.textContent = 'Full list of guest bookings with stay dates, guest contact, and payout details';
       renderOwnerBookingsView(contentArea);
+      break;
+
+    case '#/hotel-admin/pickups':
+    case '#/owner/pickups':
+      viewTitle.textContent = 'Pickup Service & Fleet Logistics';
+      viewSubtitle.textContent = 'Manage guest transfer requests, driver allocations, and vehicle fleets';
+      renderOwnerPickupsView(contentArea);
       break;
 
     case '#/hotel-admin/check-in':

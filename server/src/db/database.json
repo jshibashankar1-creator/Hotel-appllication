@@ -2,7 +2,7 @@
   "users": [
     {
       "id": "USR-SUPER-ADMIN",
-      "name": "Super Administrator Master",
+      "name": "Super Administrator Executive",
       "email": "admin@hotelhub.com",
       "password": "$2a$10$QhWvYlCtLotcjocwM.zLm.EgTO.eosSp372C56Dz.jVRUbXuv13Re",
       "role": "super_admin",
@@ -39,8 +39,8 @@
         "settings.manage"
       ],
       "createdBy": "system",
-      "phone": "+91 98000 00001",
-      "lastLoginAt": "2026-08-26T04:23:06.447Z",
+      "phone": "+91 98000 99999",
+      "lastLoginAt": "2026-08-28T04:03:52.489Z",
       "created_at": "2026-01-01T00:00:00Z"
     },
     {
@@ -89,7 +89,7 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00003",
-      "lastLoginAt": "2026-08-26T04:23:06.674Z",
+      "lastLoginAt": "2026-08-28T04:03:52.552Z",
       "created_at": "2026-01-10T00:00:00Z"
     },
     {
@@ -134,7 +134,7 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00005",
-      "lastLoginAt": "2026-08-26T04:23:06.753Z",
+      "lastLoginAt": "2026-08-28T04:03:52.360Z",
       "created_at": "2026-01-20T00:00:00Z"
     },
     {
@@ -211,7 +211,7 @@
       "role": "owner",
       "phone": "+91 98201 44521",
       "created_at": "2026-02-10T10:00:00Z",
-      "lastLoginAt": "2026-08-26T04:23:06.853Z"
+      "lastLoginAt": "2026-08-28T04:03:52.425Z"
     },
     {
       "id": "USR-OWNER-2",
@@ -248,7 +248,7 @@
       "role": "customer",
       "phone": "+91 98200 11928",
       "created_at": "2026-05-10T08:00:00Z",
-      "lastLoginAt": "2026-08-26T04:23:06.927Z"
+      "lastLoginAt": "2026-08-28T04:03:52.230Z"
     },
     {
       "id": "USR-CUST-2",
@@ -257,7 +257,8 @@
       "password": "$2a$10$DU0FnAr7.6KTufqB1/ZvFunleZTgZRttxoxqilsIMO/k7.U8x.lk.",
       "role": "customer",
       "phone": "+91 99401 88372",
-      "created_at": "2026-05-12T10:30:00Z"
+      "created_at": "2026-05-12T10:30:00Z",
+      "lastLoginAt": "2026-08-28T04:03:52.298Z"
     },
     {
       "id": "USR-CUST-3",
@@ -276,6 +277,55 @@
       "role": "customer",
       "phone": "+91 97110 44821",
       "created_at": "2026-06-01T14:00:00Z"
+    },
+    {
+      "id": "USR-ADM-MTCF6IHK",
+      "name": "Suspended Test User",
+      "email": "suspended.test@hotelhub.com",
+      "password": "$2a$10$hFse6mTmjxF5HdyXPRgX..fHI7nCVeQIre8MPC9j0Xc7ywhEDi.WW",
+      "phone": "",
+      "role": "admin",
+      "status": "suspended",
+      "permissions": [
+        "dashboard.view",
+        "hotels.view",
+        "hotels.verify",
+        "owners.view",
+        "owners.verify",
+        "rooms.view",
+        "rooms.manage",
+        "availability.view",
+        "bookings.view",
+        "bookings.manage",
+        "customers.view",
+        "support.view",
+        "support.manage",
+        "reports.view",
+        "reports.export"
+      ],
+      "createdBy": "USR-SUPER-ADMIN",
+      "lastLoginAt": null,
+      "created_at": "2026-08-28T03:56:30.104Z"
+    },
+    {
+      "id": "USR-ADM-MTCF6ILY",
+      "name": "Inactive Test User",
+      "email": "inactive.test@hotelhub.com",
+      "password": "$2a$10$OLc1korCVZcsdidu3cgH7.3DABVSbBhmMC/Ul2r42OW0/Wzjw/ICu",
+      "phone": "",
+      "role": "support_admin",
+      "status": "inactive",
+      "permissions": [
+        "dashboard.view",
+        "support.view",
+        "support.manage",
+        "bookings.view",
+        "customers.view",
+        "hotels.view"
+      ],
+      "createdBy": "USR-SUPER-ADMIN",
+      "lastLoginAt": null,
+      "created_at": "2026-08-28T03:56:30.262Z"
     }
   ],
   "owner_profiles": [
@@ -346,8 +396,8 @@
       "state": "West Bengal",
       "country": "India",
       "postal_code": "721463",
-      "rating": 4.8,
-      "reviews_count": 142,
+      "rating": 5,
+      "reviews_count": 1,
       "star_category": 5,
       "status": "active",
       "cover_image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
@@ -365,7 +415,108 @@
         "Valet Parking",
         "Free High-speed Wi-Fi"
       ],
-      "created_at": "2026-02-15T10:00:00Z"
+      "created_at": "2026-02-15T10:00:00Z",
+      "pickup_service_enabled": true,
+      "pickup_locations": [
+        {
+          "id": "LOC-HTL-001-1",
+          "name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+          "type": "airport",
+          "address": "Jessore Rd, Dum Dum, Kolkata",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-001-2",
+          "name": "New Digha Railway Station",
+          "type": "railway",
+          "address": "Station Road, New Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-001-3",
+          "name": "Digha Central Bus Stand",
+          "type": "bus",
+          "address": "State Highway 57, Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-001-MTCF5GGL",
+          "name": "Digha Heliport VIP Gate Premium",
+          "type": "custom",
+          "address": "Helipad Area, Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-001-MTCF6F4M",
+          "name": "Digha Heliport VIP Gate Premium",
+          "type": "custom",
+          "address": "Helipad Area, Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-001-MTCFFZVZ",
+          "name": "Digha Heliport VIP Gate Premium",
+          "type": "custom",
+          "address": "Helipad Area, Digha",
+          "active": true
+        }
+      ],
+      "pickup_vehicles": [
+        {
+          "id": "VEH-HTL-001-1",
+          "name": "Executive Sedan",
+          "type": "Sedan",
+          "capacity": 4,
+          "price": 800,
+          "vehicle_number": "WB-30-AB-1290",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-001-2",
+          "name": "Premium Luxury SUV",
+          "type": "SUV",
+          "capacity": 6,
+          "price": 1200,
+          "vehicle_number": "WB-30-CD-4421",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-001-3",
+          "name": "Group Tempo Traveller",
+          "type": "Tempo Traveller",
+          "capacity": 12,
+          "price": 2000,
+          "vehicle_number": "WB-30-EF-8812",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-001-MTCF5GGS",
+          "name": "Luxury EV Van",
+          "type": "SUV",
+          "capacity": 5,
+          "price": 950,
+          "vehicle_number": "WB-30-EV-1001",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-001-MTCF6F4S",
+          "name": "Luxury EV Van",
+          "type": "SUV",
+          "capacity": 5,
+          "price": 950,
+          "vehicle_number": "WB-30-EV-1001",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-001-MTCFFZW5",
+          "name": "Luxury EV Van",
+          "type": "SUV",
+          "capacity": 5,
+          "price": 950,
+          "vehicle_number": "WB-30-EV-1001",
+          "active": true
+        }
+      ]
     },
     {
       "id": "HTL-002",
@@ -397,7 +548,60 @@
         "Complimentary Buffet Breakfast",
         "Concierge Desk"
       ],
-      "created_at": "2026-03-20T11:00:00Z"
+      "created_at": "2026-03-20T11:00:00Z",
+      "pickup_service_enabled": true,
+      "pickup_locations": [
+        {
+          "id": "LOC-HTL-002-1",
+          "name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+          "type": "airport",
+          "address": "Jessore Rd, Dum Dum, Kolkata",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-002-2",
+          "name": "New Digha Railway Station",
+          "type": "railway",
+          "address": "Station Road, New Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-002-3",
+          "name": "Digha Central Bus Stand",
+          "type": "bus",
+          "address": "State Highway 57, Digha",
+          "active": true
+        }
+      ],
+      "pickup_vehicles": [
+        {
+          "id": "VEH-HTL-002-1",
+          "name": "Executive Sedan",
+          "type": "Sedan",
+          "capacity": 4,
+          "price": 800,
+          "vehicle_number": "WB-30-AB-1290",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-002-2",
+          "name": "Premium Luxury SUV",
+          "type": "SUV",
+          "capacity": 6,
+          "price": 1200,
+          "vehicle_number": "WB-30-CD-4421",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-002-3",
+          "name": "Group Tempo Traveller",
+          "type": "Tempo Traveller",
+          "capacity": 12,
+          "price": 2000,
+          "vehicle_number": "WB-30-EF-8812",
+          "active": true
+        }
+      ]
     },
     {
       "id": "HTL-003",
@@ -428,7 +632,60 @@
         "Free Wi-Fi",
         "Complimentary Breakfast"
       ],
-      "created_at": "2026-04-10T09:00:00Z"
+      "created_at": "2026-04-10T09:00:00Z",
+      "pickup_service_enabled": true,
+      "pickup_locations": [
+        {
+          "id": "LOC-HTL-003-1",
+          "name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+          "type": "airport",
+          "address": "Jessore Rd, Dum Dum, Kolkata",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-003-2",
+          "name": "New Digha Railway Station",
+          "type": "railway",
+          "address": "Station Road, New Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-003-3",
+          "name": "Digha Central Bus Stand",
+          "type": "bus",
+          "address": "State Highway 57, Digha",
+          "active": true
+        }
+      ],
+      "pickup_vehicles": [
+        {
+          "id": "VEH-HTL-003-1",
+          "name": "Executive Sedan",
+          "type": "Sedan",
+          "capacity": 4,
+          "price": 800,
+          "vehicle_number": "WB-30-AB-1290",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-003-2",
+          "name": "Premium Luxury SUV",
+          "type": "SUV",
+          "capacity": 6,
+          "price": 1200,
+          "vehicle_number": "WB-30-CD-4421",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-003-3",
+          "name": "Group Tempo Traveller",
+          "type": "Tempo Traveller",
+          "capacity": 12,
+          "price": 2000,
+          "vehicle_number": "WB-30-EF-8812",
+          "active": true
+        }
+      ]
     },
     {
       "id": "HTL-004",
@@ -458,7 +715,60 @@
         "Travel Desk",
         "Room Service"
       ],
-      "created_at": "2026-08-20T14:45:00Z"
+      "created_at": "2026-08-20T14:45:00Z",
+      "pickup_service_enabled": true,
+      "pickup_locations": [
+        {
+          "id": "LOC-HTL-004-1",
+          "name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+          "type": "airport",
+          "address": "Jessore Rd, Dum Dum, Kolkata",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-004-2",
+          "name": "New Digha Railway Station",
+          "type": "railway",
+          "address": "Station Road, New Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-004-3",
+          "name": "Digha Central Bus Stand",
+          "type": "bus",
+          "address": "State Highway 57, Digha",
+          "active": true
+        }
+      ],
+      "pickup_vehicles": [
+        {
+          "id": "VEH-HTL-004-1",
+          "name": "Executive Sedan",
+          "type": "Sedan",
+          "capacity": 4,
+          "price": 800,
+          "vehicle_number": "WB-30-AB-1290",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-004-2",
+          "name": "Premium Luxury SUV",
+          "type": "SUV",
+          "capacity": 6,
+          "price": 1200,
+          "vehicle_number": "WB-30-CD-4421",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-004-3",
+          "name": "Group Tempo Traveller",
+          "type": "Tempo Traveller",
+          "capacity": 12,
+          "price": 2000,
+          "vehicle_number": "WB-30-EF-8812",
+          "active": true
+        }
+      ]
     },
     {
       "id": "HTL-MT9L91PF",
@@ -486,7 +796,60 @@
         "Fine Dining",
         "Spa & Wellness"
       ],
-      "created_at": "2026-08-26T04:23:07.492Z"
+      "created_at": "2026-08-26T04:23:07.492Z",
+      "pickup_service_enabled": true,
+      "pickup_locations": [
+        {
+          "id": "LOC-HTL-MT9L91PF-1",
+          "name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+          "type": "airport",
+          "address": "Jessore Rd, Dum Dum, Kolkata",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-MT9L91PF-2",
+          "name": "New Digha Railway Station",
+          "type": "railway",
+          "address": "Station Road, New Digha",
+          "active": true
+        },
+        {
+          "id": "LOC-HTL-MT9L91PF-3",
+          "name": "Digha Central Bus Stand",
+          "type": "bus",
+          "address": "State Highway 57, Digha",
+          "active": true
+        }
+      ],
+      "pickup_vehicles": [
+        {
+          "id": "VEH-HTL-MT9L91PF-1",
+          "name": "Executive Sedan",
+          "type": "Sedan",
+          "capacity": 4,
+          "price": 800,
+          "vehicle_number": "WB-30-AB-1290",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-MT9L91PF-2",
+          "name": "Premium Luxury SUV",
+          "type": "SUV",
+          "capacity": 6,
+          "price": 1200,
+          "vehicle_number": "WB-30-CD-4421",
+          "active": true
+        },
+        {
+          "id": "VEH-HTL-MT9L91PF-3",
+          "name": "Group Tempo Traveller",
+          "type": "Tempo Traveller",
+          "capacity": 12,
+          "price": 2000,
+          "vehicle_number": "WB-30-EF-8812",
+          "active": true
+        }
+      ]
     }
   ],
   "rooms": [
@@ -622,21 +985,21 @@
       "id": "AVL-MT5V0HM7-2026-10-01",
       "room_id": "RM-101",
       "date": "2026-10-01",
-      "booked_count": 7,
+      "booked_count": 8,
       "blocked_count": 0
     },
     {
       "id": "AVL-MT5V0HM7-2026-10-02",
       "room_id": "RM-101",
       "date": "2026-10-02",
-      "booked_count": 7,
+      "booked_count": 8,
       "blocked_count": 0
     },
     {
       "id": "AVL-MT5W59CN-2026-10-03",
       "room_id": "RM-101",
       "date": "2026-10-03",
-      "booked_count": 7,
+      "booked_count": 8,
       "blocked_count": 0
     },
     {
@@ -667,7 +1030,8 @@
       "date": "2026-09-15",
       "status": "maintenance",
       "is_available": false,
-      "reason": "Front desk management"
+      "reason": "Front desk management",
+      "booked_count": null
     },
     {
       "id": "AVL-MT9JRC58",
@@ -843,9 +1207,675 @@
       "date": "2026-09-06",
       "booked_count": 0,
       "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F4W-2026-09-01",
+      "room_id": "RM-101",
+      "date": "2026-09-01",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F4W-2026-09-02",
+      "room_id": "RM-101",
+      "date": "2026-09-02",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F50-2026-09-05",
+      "room_id": "RM-101",
+      "date": "2026-09-05",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F50-2026-09-06",
+      "room_id": "RM-101",
+      "date": "2026-09-06",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F58-2026-09-16",
+      "room_id": "RM-101",
+      "date": "2026-09-16",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F5D-2026-09-20",
+      "room_id": "RM-101",
+      "date": "2026-09-20",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F5D-2026-09-21",
+      "room_id": "RM-101",
+      "date": "2026-09-21",
+      "booked_count": 2,
+      "blocked_count": 0
+    },
+    {
+      "id": "AVL-MTCF6F5J-2026-09-24",
+      "room_id": "RM-101",
+      "date": "2026-09-24",
+      "booked_count": 2,
+      "blocked_count": 0
     }
   ],
   "bookings": [
+    {
+      "id": "BKG-MTCFFZWS",
+      "booking_code": "HTL-23930",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-24",
+      "check_out_date": "2026-09-25",
+      "nights": 1,
+      "guests_count": 2,
+      "base_amount": 8500,
+      "tax_amount": 1020,
+      "total_amount": 10320,
+      "commission_rate": 15,
+      "commission_amount": 1548,
+      "owner_payout": 8772,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "airport",
+        "location_id": null,
+        "location_name": "Selected Pickup Point",
+        "pickup_date": "2026-09-24",
+        "pickup_time": "10:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "",
+        "train_number": "",
+        "bus_number": "",
+        "special_instructions": "",
+        "status": "confirmed",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Executive Sedan",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T04:03:52.588Z"
+    },
+    {
+      "id": "BKG-MTCFFZWO",
+      "booking_code": "HTL-70746",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-20",
+      "check_out_date": "2026-09-22",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19840,
+      "commission_rate": 15,
+      "commission_amount": 2976,
+      "owner_payout": 16864,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "other",
+        "location_id": null,
+        "location_name": "Near Old Digha Sea Beach Park",
+        "pickup_date": "2026-09-20",
+        "pickup_time": "10:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "",
+        "train_number": "",
+        "bus_number": "",
+        "special_instructions": "Need extra boot space for 3 bags",
+        "status": "confirmed",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Executive Sedan",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T04:03:52.584Z"
+    },
+    {
+      "id": "BKG-MTCFFZWK",
+      "booking_code": "HTL-33112",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-15",
+      "check_out_date": "2026-09-17",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19840,
+      "commission_rate": 15,
+      "commission_amount": 2976,
+      "owner_payout": 16864,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "bus",
+        "location_id": "LOC-HTL-001-3",
+        "location_name": "Digha Central Bus Stand",
+        "pickup_date": "2026-09-15",
+        "pickup_time": "09:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "",
+        "train_number": "",
+        "bus_number": "SBSTC AC Volvo",
+        "special_instructions": "",
+        "status": "confirmed",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Executive Sedan",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T04:03:52.580Z"
+    },
+    {
+      "id": "BKG-MTCFFZWG",
+      "booking_code": "HTL-26669",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-10",
+      "check_out_date": "2026-09-12",
+      "nights": 2,
+      "guests_count": 4,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 20240,
+      "commission_rate": 15,
+      "commission_amount": 3036,
+      "owner_payout": 17204,
+      "payment_status": "successful",
+      "booking_status": "cancelled",
+      "cancellation_reason": "Trip rescheduled by customer.",
+      "pickup": {
+        "required": true,
+        "type": "railway",
+        "location_id": "LOC-HTL-001-2",
+        "location_name": "New Digha Railway Station",
+        "pickup_date": "2026-09-10",
+        "pickup_time": "10:30 AM",
+        "passengers": 4,
+        "vehicle_id": "VEH-HTL-001-2",
+        "vehicle_name": "Premium Luxury SUV",
+        "pickup_charge": 1200,
+        "flight_number": "",
+        "train_number": "12857 Tamralipta Express",
+        "bus_number": "",
+        "special_instructions": "",
+        "status": "cancelled",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Premium Luxury SUV",
+          "vehicle_number": "WB-30-CD-4421"
+        }
+      },
+      "created_at": "2026-08-28T04:03:52.576Z"
+    },
+    {
+      "id": "BKG-MTCFFZWC",
+      "booking_code": "HTL-68730",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-05",
+      "check_out_date": "2026-09-07",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19840,
+      "commission_rate": 15,
+      "commission_amount": 2976,
+      "owner_payout": 16864,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "airport",
+        "location_id": "LOC-HTL-001-1",
+        "location_name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+        "pickup_date": "2026-09-05",
+        "pickup_time": "11:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "6E-441",
+        "train_number": "",
+        "bus_number": "",
+        "special_instructions": "",
+        "status": "completed",
+        "driver": {
+          "name": "Subhash Roy",
+          "phone": "+91 98300 44129",
+          "vehicle": "Executive Sedan (Swift Dzire)",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T04:03:52.572Z"
+    },
+    {
+      "id": "BKG-MTCFFZW7",
+      "booking_code": "HTL-16109",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-01",
+      "check_out_date": "2026-09-03",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19040,
+      "commission_rate": 15,
+      "commission_amount": 2856,
+      "owner_payout": 16184,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": false,
+        "pickup_charge": 0
+      },
+      "created_at": "2026-08-28T04:03:52.568Z"
+    },
+    {
+      "id": "BKG-MTCF6I8F",
+      "booking_code": "HTL-92526",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-102",
+      "room_name": "Presidential Skyline Suite",
+      "check_in_date": "2026-11-10",
+      "check_out_date": "2026-11-12",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 36000,
+      "tax_amount": 4320,
+      "total_amount": 40320,
+      "commission_rate": 15,
+      "commission_amount": 6048,
+      "owner_payout": 34272,
+      "payment_status": "successful",
+      "booking_status": "cancelled",
+      "cancellation_reason": "Trip schedule changed",
+      "pickup": {
+        "required": false,
+        "pickup_charge": 0
+      },
+      "created_at": "2026-08-28T03:56:29.775Z"
+    },
+    {
+      "id": "BKG-MTCF6I6P",
+      "booking_code": "HTL-44107",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-10-01",
+      "check_out_date": "2026-10-04",
+      "nights": 3,
+      "guests_count": 2,
+      "base_amount": 25500,
+      "tax_amount": 3060,
+      "total_amount": 28560,
+      "commission_rate": 15,
+      "commission_amount": 4284,
+      "owner_payout": 24276,
+      "payment_status": "successful",
+      "booking_status": "checked_out",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": false,
+        "pickup_charge": 0
+      },
+      "created_at": "2026-08-28T03:56:29.713Z"
+    },
+    {
+      "id": "BKG-MTCF6F5J",
+      "booking_code": "HTL-76538",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-24",
+      "check_out_date": "2026-09-25",
+      "nights": 1,
+      "guests_count": 2,
+      "base_amount": 8500,
+      "tax_amount": 1020,
+      "total_amount": 10320,
+      "commission_rate": 15,
+      "commission_amount": 1548,
+      "owner_payout": 8772,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "airport",
+        "location_id": null,
+        "location_name": "Selected Pickup Point",
+        "pickup_date": "2026-09-24",
+        "pickup_time": "10:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "",
+        "train_number": "",
+        "bus_number": "",
+        "special_instructions": "",
+        "status": "confirmed",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Executive Sedan",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T03:56:25.783Z"
+    },
+    {
+      "id": "BKG-MTCF6F5D",
+      "booking_code": "HTL-21335",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-20",
+      "check_out_date": "2026-09-22",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19840,
+      "commission_rate": 15,
+      "commission_amount": 2976,
+      "owner_payout": 16864,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "other",
+        "location_id": null,
+        "location_name": "Near Old Digha Sea Beach Park",
+        "pickup_date": "2026-09-20",
+        "pickup_time": "10:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "",
+        "train_number": "",
+        "bus_number": "",
+        "special_instructions": "Need extra boot space for 3 bags",
+        "status": "confirmed",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Executive Sedan",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T03:56:25.777Z"
+    },
+    {
+      "id": "BKG-MTCF6F58",
+      "booking_code": "HTL-10544",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-15",
+      "check_out_date": "2026-09-17",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19840,
+      "commission_rate": 15,
+      "commission_amount": 2976,
+      "owner_payout": 16864,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "bus",
+        "location_id": "LOC-HTL-001-3",
+        "location_name": "Digha Central Bus Stand",
+        "pickup_date": "2026-09-15",
+        "pickup_time": "09:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "",
+        "train_number": "",
+        "bus_number": "SBSTC AC Volvo",
+        "special_instructions": "",
+        "status": "confirmed",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Executive Sedan",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T03:56:25.773Z"
+    },
+    {
+      "id": "BKG-MTCF6F54",
+      "booking_code": "HTL-89133",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-10",
+      "check_out_date": "2026-09-12",
+      "nights": 2,
+      "guests_count": 4,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 20240,
+      "commission_rate": 15,
+      "commission_amount": 3036,
+      "owner_payout": 17204,
+      "payment_status": "successful",
+      "booking_status": "cancelled",
+      "cancellation_reason": "Trip rescheduled by customer.",
+      "pickup": {
+        "required": true,
+        "type": "railway",
+        "location_id": "LOC-HTL-001-2",
+        "location_name": "New Digha Railway Station",
+        "pickup_date": "2026-09-10",
+        "pickup_time": "10:30 AM",
+        "passengers": 4,
+        "vehicle_id": "VEH-HTL-001-2",
+        "vehicle_name": "Premium Luxury SUV",
+        "pickup_charge": 1200,
+        "flight_number": "",
+        "train_number": "12857 Tamralipta Express",
+        "bus_number": "",
+        "special_instructions": "",
+        "status": "cancelled",
+        "driver": {
+          "name": "",
+          "phone": "",
+          "vehicle": "Premium Luxury SUV",
+          "vehicle_number": "WB-30-CD-4421"
+        }
+      },
+      "created_at": "2026-08-28T03:56:25.768Z"
+    },
+    {
+      "id": "BKG-MTCF6F50",
+      "booking_code": "HTL-39890",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-05",
+      "check_out_date": "2026-09-07",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19840,
+      "commission_rate": 15,
+      "commission_amount": 2976,
+      "owner_payout": 16864,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": true,
+        "type": "airport",
+        "location_id": "LOC-HTL-001-1",
+        "location_name": "Netaji Subhash Chandra Bose Int'l Airport (CCU)",
+        "pickup_date": "2026-09-05",
+        "pickup_time": "11:00 AM",
+        "passengers": 2,
+        "vehicle_id": "VEH-HTL-001-1",
+        "vehicle_name": "Executive Sedan",
+        "pickup_charge": 800,
+        "flight_number": "6E-441",
+        "train_number": "",
+        "bus_number": "",
+        "special_instructions": "",
+        "status": "completed",
+        "driver": {
+          "name": "Subhash Roy",
+          "phone": "+91 98300 44129",
+          "vehicle": "Executive Sedan (Swift Dzire)",
+          "vehicle_number": "WB-30-AB-1290"
+        }
+      },
+      "created_at": "2026-08-28T03:56:25.764Z"
+    },
+    {
+      "id": "BKG-MTCF6F4W",
+      "booking_code": "HTL-26743",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-09-01",
+      "check_out_date": "2026-09-03",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 17000,
+      "tax_amount": 2040,
+      "total_amount": 19040,
+      "commission_rate": 15,
+      "commission_amount": 2856,
+      "owner_payout": 16184,
+      "payment_status": "successful",
+      "booking_status": "confirmed",
+      "cancellation_reason": null,
+      "pickup": {
+        "required": false,
+        "pickup_charge": 0
+      },
+      "created_at": "2026-08-28T03:56:25.760Z"
+    },
     {
       "id": "BKG-MT9L91WA",
       "booking_code": "HTL-84295",
@@ -1005,6 +2035,202 @@
   ],
   "payments": [
     {
+      "id": "PAY-MTCFFZWS",
+      "transaction_id": "TXN-MTCFFZWS",
+      "booking_id": "BKG-MTCFFZWS",
+      "booking_code": "HTL-23930",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 10320,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcffzws",
+      "status": "successful",
+      "created_at": "2026-08-28T04:03:52.588Z"
+    },
+    {
+      "id": "PAY-MTCFFZWO",
+      "transaction_id": "TXN-MTCFFZWO",
+      "booking_id": "BKG-MTCFFZWO",
+      "booking_code": "HTL-70746",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19840,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcffzwo",
+      "status": "successful",
+      "created_at": "2026-08-28T04:03:52.584Z"
+    },
+    {
+      "id": "PAY-MTCFFZWK",
+      "transaction_id": "TXN-MTCFFZWK",
+      "booking_id": "BKG-MTCFFZWK",
+      "booking_code": "HTL-33112",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19840,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcffzwk",
+      "status": "successful",
+      "created_at": "2026-08-28T04:03:52.580Z"
+    },
+    {
+      "id": "PAY-MTCFFZWG",
+      "transaction_id": "TXN-MTCFFZWG",
+      "booking_id": "BKG-MTCFFZWG",
+      "booking_code": "HTL-26669",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 20240,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcffzwg",
+      "status": "successful",
+      "created_at": "2026-08-28T04:03:52.576Z"
+    },
+    {
+      "id": "PAY-MTCFFZWC",
+      "transaction_id": "TXN-MTCFFZWC",
+      "booking_id": "BKG-MTCFFZWC",
+      "booking_code": "HTL-68730",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19840,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcffzwc",
+      "status": "successful",
+      "created_at": "2026-08-28T04:03:52.572Z"
+    },
+    {
+      "id": "PAY-MTCFFZW8",
+      "transaction_id": "TXN-MTCFFZW8",
+      "booking_id": "BKG-MTCFFZW7",
+      "booking_code": "HTL-16109",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19040,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcffzw8",
+      "status": "successful",
+      "created_at": "2026-08-28T04:03:52.568Z"
+    },
+    {
+      "id": "PAY-MTCF6I8F",
+      "transaction_id": "TXN-MTCF6I8F",
+      "booking_id": "BKG-MTCF6I8F",
+      "booking_code": "HTL-92526",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 40320,
+      "payment_method": "Credit Card",
+      "gateway_reference": "rzp_live_txn-mtcf6i8f",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:29.775Z"
+    },
+    {
+      "id": "PAY-MTCF6I6P",
+      "transaction_id": "TXN-MTCF6I6P",
+      "booking_id": "BKG-MTCF6I6P",
+      "booking_code": "HTL-44107",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 28560,
+      "payment_method": "UPI (PhonePe)",
+      "gateway_reference": "rzp_live_txn-mtcf6i6p",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:29.713Z"
+    },
+    {
+      "id": "PAY-MTCF6F5J",
+      "transaction_id": "TXN-MTCF6F5J",
+      "booking_id": "BKG-MTCF6F5J",
+      "booking_code": "HTL-76538",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 10320,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcf6f5j",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:25.783Z"
+    },
+    {
+      "id": "PAY-MTCF6F5D",
+      "transaction_id": "TXN-MTCF6F5D",
+      "booking_id": "BKG-MTCF6F5D",
+      "booking_code": "HTL-21335",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19840,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcf6f5d",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:25.777Z"
+    },
+    {
+      "id": "PAY-MTCF6F59",
+      "transaction_id": "TXN-MTCF6F59",
+      "booking_id": "BKG-MTCF6F58",
+      "booking_code": "HTL-10544",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19840,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcf6f59",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:25.773Z"
+    },
+    {
+      "id": "PAY-MTCF6F54",
+      "transaction_id": "TXN-MTCF6F54",
+      "booking_id": "BKG-MTCF6F54",
+      "booking_code": "HTL-89133",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 20240,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcf6f54",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:25.768Z"
+    },
+    {
+      "id": "PAY-MTCF6F50",
+      "transaction_id": "TXN-MTCF6F50",
+      "booking_id": "BKG-MTCF6F50",
+      "booking_code": "HTL-39890",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19840,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcf6f50",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:25.764Z"
+    },
+    {
+      "id": "PAY-MTCF6F4W",
+      "transaction_id": "TXN-MTCF6F4W",
+      "booking_id": "BKG-MTCF6F4W",
+      "booking_code": "HTL-26743",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 19040,
+      "payment_method": "UPI",
+      "gateway_reference": "rzp_live_txn-mtcf6f4w",
+      "status": "successful",
+      "created_at": "2026-08-28T03:56:25.760Z"
+    },
+    {
       "id": "PAY-MT9L91WA",
       "transaction_id": "TXN-MT9L91WA",
       "booking_id": "BKG-MT9L91WA",
@@ -1091,6 +2317,57 @@
   ],
   "refunds": [
     {
+      "id": "REF-MTCFFZXM",
+      "refund_code": "REF-6298",
+      "booking_id": "BKG-MTCFFZWG",
+      "booking_code": "HTL-26669",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "booking_amount": 20240,
+      "fee_amount": 2024,
+      "refund_amount": 18216,
+      "reason": "Trip rescheduled by customer.",
+      "status": "pending",
+      "admin_notes": null,
+      "requested_at": "2026-08-28T04:03:52.618Z",
+      "processed_at": null
+    },
+    {
+      "id": "REF-MTCF6I8V",
+      "refund_code": "REF-3710",
+      "booking_id": "BKG-MTCF6I8F",
+      "booking_code": "HTL-92526",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "booking_amount": 40320,
+      "fee_amount": 4032,
+      "refund_amount": 36288,
+      "reason": "Trip schedule changed",
+      "status": "pending",
+      "admin_notes": null,
+      "requested_at": "2026-08-28T03:56:29.791Z",
+      "processed_at": null
+    },
+    {
+      "id": "REF-MTCF6F6L",
+      "refund_code": "REF-4686",
+      "booking_id": "BKG-MTCF6F54",
+      "booking_code": "HTL-89133",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "booking_amount": 20240,
+      "fee_amount": 2024,
+      "refund_amount": 18216,
+      "reason": "Trip rescheduled by customer.",
+      "status": "pending",
+      "admin_notes": null,
+      "requested_at": "2026-08-28T03:56:25.821Z",
+      "processed_at": null
+    },
+    {
       "id": "REF-MT9L91WQ",
       "refund_code": "REF-2581",
       "booking_id": "BKG-MT9L91WA",
@@ -1144,6 +2421,16 @@
   ],
   "reviews": [
     {
+      "id": "REV-MTCF6I7Z",
+      "booking_id": "BKG-MTCF6I6P",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_id": "HTL-001",
+      "rating": 5,
+      "comment": "Exceptional luxury stay with splendid city views and warm hospitality!",
+      "created_at": "2026-08-28T03:56:29.759Z"
+    },
+    {
       "id": "REV-MT9L91VV",
       "booking_id": "BKG-MT9L91TB",
       "customer_id": "USR-CUST-1",
@@ -1175,6 +2462,34 @@
     }
   ],
   "support_tickets": [
+    {
+      "id": "TCK-MTCF6IAR",
+      "ticket_code": "TCK-470",
+      "user_id": "USR-CUST-1",
+      "user_name": "Aarav Sharma",
+      "user_email": "aarav.sharma@gmail.com",
+      "user_role": "customer",
+      "booking_id": null,
+      "booking_code": null,
+      "hotel_id": null,
+      "subject": "Airport Shuttle Request",
+      "category": "Concierge Services",
+      "priority": "medium",
+      "status": "in_progress",
+      "messages": [
+        {
+          "sender": "customer",
+          "text": "Could you arrange an airport pickup on arrival day?",
+          "time": "2026-08-28 09:26 am"
+        },
+        {
+          "sender": "admin",
+          "text": "Our chauffeur will meet you at the arrivals gate with your name placard.",
+          "time": "2026-08-28 09:26 am"
+        }
+      ],
+      "created_at": "2026-08-28T03:56:29.859Z"
+    },
     {
       "id": "TCK-MT9L92F5",
       "ticket_code": "TCK-976",
@@ -1289,6 +2604,78 @@
     "updated_at": "2026-08-26T04:23:07.877Z"
   },
   "audit_logs": [
+    {
+      "id": "LOG-MTCF6J2L-949",
+      "timestamp": "2026-08-28T03:56:30.861Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_UPDATED",
+      "resource": "User",
+      "resource_id": "USR-SUPER-ADMIN",
+      "details": "Admin profile updated for 'Super Administrator Executive'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCF6J1R-404",
+      "timestamp": "2026-08-28T03:56:30.831Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_DELETED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MTCF6IQC",
+      "details": "Deleted admin 'Pooja Agarwal' (pooja.finance@hotelhub.com).",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCF6J1C-381",
+      "timestamp": "2026-08-28T03:56:30.816Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_STATUS_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MTCF6IQC",
+      "details": "Status of admin 'Pooja Agarwal' (pooja.finance@hotelhub.com) changed to 'suspended'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCF6IQD-657",
+      "timestamp": "2026-08-28T03:56:30.421Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_CREATED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MTCF6IQC",
+      "details": "Created new admin 'Pooja Agarwal' (pooja.finance@hotelhub.com) with role 'finance_admin'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCF6ILZ-763",
+      "timestamp": "2026-08-28T03:56:30.263Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_CREATED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MTCF6ILY",
+      "details": "Created new admin 'Inactive Test User' (inactive.test@hotelhub.com) with role 'support_admin'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MTCF6IHM-457",
+      "timestamp": "2026-08-28T03:56:30.106Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Master",
+      "admin_role": "super_admin",
+      "action": "ADMIN_CREATED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MTCF6IHK",
+      "details": "Created new admin 'Suspended Test User' (suspended.test@hotelhub.com) with role 'admin'.",
+      "ip_address": "127.0.0.1"
+    },
     {
       "id": "LOG-MT9L9207-469",
       "timestamp": "2026-08-26T04:23:07.879Z",

@@ -58,6 +58,7 @@ export default function PaymentScreen({ route, navigation }) {
           total_amount: bookingData.total_amount || 1050,
           booking_status: 'confirmed',
           payment_status: 'paid',
+          pickup: bookingData.pickup || { required: false }
         };
       }
 

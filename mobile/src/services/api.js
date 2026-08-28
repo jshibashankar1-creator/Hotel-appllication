@@ -83,12 +83,20 @@ class MobileApiService {
     return this.request(`/hotels/${id}`);
   }
 
+  async getHotelPickupSettings(hotelId) {
+    return this.request(`/hotels/${hotelId}/pickup-settings`);
+  }
+
   // --- BOOKING & PAYMENTS ---
   async createBooking(payload) {
     return this.request('/bookings/create', {
       method: 'POST',
       body: JSON.stringify(payload)
     });
+  }
+
+  async getBookingPickup(bookingId) {
+    return this.request(`/pickups/${bookingId}`);
   }
 
   async getMyBookings() {

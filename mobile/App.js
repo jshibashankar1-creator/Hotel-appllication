@@ -103,6 +103,11 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="Search"
+          component={SearchScreen}
+          options={{ title: 'Explore Hotels' }}
+        />
+        <Stack.Screen
           name="HotelDetails"
           component={HotelDetailsScreen}
           options={{ headerShown: false }}

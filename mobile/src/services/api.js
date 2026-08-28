@@ -1,30 +1,58 @@
 import { Platform } from 'react-native';
 
-// Priority: EXPO_PUBLIC_API_URL -> LAN IP (for physical devices) -> localhost / emulator
-const LAN_API_URL = 'http://192.168.1.2:5000/api';
-const EMULATOR_API_URL = 'http://10.0.2.2:5000/api';
-const LOCAL_API_URL = 'http://localhost:5000/api';
+const CANDIDATE_URLS = [
+  process.env.EXPO_PUBLIC_API_URL,
+  'http://localhost:5000/api',
+  'http://10.0.2.2:5000/api',
+  'http://192.168.1.2:5000/api',
+].filter(Boolean);
 
-const DEFAULT_URL = Platform.OS === 'android'
-  ? (process.env.EXPO_PUBLIC_API_URL || LAN_API_URL)
-  : (process.env.EXPO_PUBLIC_API_URL || LOCAL_API_URL);
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_URL;
+let activeBaseUrl = CANDIDATE_URLS[0] || 'http://10.0.2.2:5000/api';
 
 class MobileApiService {
   constructor() {
     this.token = null;
     this.currentUser = null;
+    this.authListeners = [];
+  }
+
+  onAuthChange(callback) {
+    this.authListeners.push(callback);
+    return () => {
+      this.authListeners = this.authListeners.filter(cb => cb !== callback);
+    };
+  }
+
+  notifyAuthChange() {
+    this.authListeners.forEach(cb => {
+      try { cb(this.currentUser, this.token); } catch (_) {}
+    });
   }
 
   setToken(token, user) {
     this.token = token;
     this.currentUser = user;
+    this.notifyAuthChange();
+  }
+
+  logout() {
+    this.token = null;
+    this.currentUser = null;
+    this.notifyAuthChange();
+  }
+
+  getCurrentUser() {
+    return this.currentUser;
+  }
+
+  getToken() {
+    return this.token;
   }
 
   async request(endpoint, options = {}) {
     const headers = {
       'Content-Type': 'application/json',
+      'Bypass-Tunnel-Reminder': 'true',
       ...options.headers
     };
 
@@ -32,26 +60,38 @@ class MobileApiService {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+    // Try active base url first, then fallback through candidate URLs if needed
+    const urlsToTry = [activeBaseUrl, ...CANDIDATE_URLS.filter(u => u !== activeBaseUrl)];
+    let lastError = null;
 
-      const res = await fetch(`${BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+    for (const baseUrl of urlsToTry) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Mobile API error');
+        const res = await fetch(`${baseUrl}${endpoint}`, {
+          ...options,
+          headers,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || 'API request failed');
+        }
+
+        // Remember working URL
+        activeBaseUrl = baseUrl;
+        return data;
+      } catch (err) {
+        lastError = err;
+        // Continue loop to try next candidate
       }
-      return data;
-    } catch (err) {
-      console.warn(`[Mobile API] Error on ${endpoint}:`, err.message);
-      throw err;
     }
+
+    console.warn(`[Mobile API] Error on ${endpoint}:`, lastError?.message);
+    throw lastError || new Error('Network error: Backend unreachable');
   }
 
   // --- AUTH ---

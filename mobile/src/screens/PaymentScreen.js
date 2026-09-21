@@ -8,21 +8,22 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { mobileApi } from '../services/api';
 
 export default function PaymentScreen({ route, navigation }) {
   const { hotel, room, bookingData } = route.params;
-  const [selectedMethod, setSelectedMethod] = useState('Apple Pay');
+  const [selectedMethod, setSelectedMethod] = useState('UPI Instant Transfer');
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const paymentOptions = [
-    { id: 'apple', name: 'Apple Pay / Google Pay', icon: '📱', desc: 'Fast, secure 1-touch checkout' },
-    { id: 'card', name: 'Credit / Debit Card', icon: '💳', desc: 'Visa, MasterCard, Amex' },
     { id: 'upi', name: 'UPI Instant Transfer', icon: '⚡', desc: 'GPay, PhonePe, Paytm' },
-    { id: 'concierge', name: 'Pay at Hotel (VIP Hold)', icon: '🏨', desc: 'Card verified on check-in' },
+    { id: 'card', name: 'Credit / Debit Card', icon: '💳', desc: 'Visa, MasterCard, RuPay' },
+    { id: 'netbanking', name: 'Net Banking', icon: '🏦', desc: 'All Major Indian Banks' },
+    { id: 'concierge', name: 'Pay at Hotel (Check-in)', icon: '🏨', desc: 'Card/Cash verified on arrival' },
   ];
 
   const handlePayNow = async () => {
@@ -44,18 +45,17 @@ export default function PaymentScreen({ route, navigation }) {
         console.log('Backend API booking note:', e.message);
       }
 
-      // If backend was not logged in or in test mode, generate fallback valid luxury booking record
       if (!createdBooking) {
         createdBooking = {
           id: `BKG-${Date.now().toString(36).toUpperCase()}`,
-          booking_code: `BK-PLZ-${Math.floor(1000 + Math.random() * 9000)}`,
+          booking_code: `BK-DGH-${Math.floor(1000 + Math.random() * 9000)}`,
           hotel_name: hotel.name,
-          location: hotel.location || `${hotel.city}, ${hotel.country}`,
+          location: hotel.location || `${hotel.city}, ${hotel.state || 'WB'}`,
           check_in_date: bookingData.check_in_date || '12 Aug, Mon',
           check_out_date: bookingData.check_out_date || '15 Aug, Thu',
           guests_count: bookingData.guests_count || 2,
           rooms_count: 1,
-          total_amount: bookingData.total_amount || 1050,
+          total_amount: bookingData.total_amount || 62160,
           booking_status: 'confirmed',
           payment_status: 'paid',
         };
@@ -75,120 +75,128 @@ export default function PaymentScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* TOTAL PAYABLE HERO CARD */}
-        <View style={styles.payableCard}>
-          <Text style={styles.payableLabel}>TOTAL AMOUNT DUE</Text>
-          <Text style={styles.payableAmount}>${bookingData.total_amount.toLocaleString()}</Text>
-          <Text style={styles.payableSub}>
-            {hotel.name} • {bookingData.nights} Nights
-          </Text>
-        </View>
-
-        {errorMessage ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
-          </View>
-        ) : null}
-
-        {/* PAYMENT METHODS */}
-        <Text style={styles.sectionHeading}>Select Payment Method</Text>
-
-        <View style={styles.methodsList}>
-          {paymentOptions.map(option => {
-            const isSelected = selectedMethod === option.name;
-            return (
-              <TouchableOpacity
-                key={option.id}
-                activeOpacity={0.88}
-                style={[styles.methodCard, isSelected && styles.methodCardActive]}
-                onPress={() => setSelectedMethod(option.name)}
-              >
-                <View style={styles.methodIconBox}>
-                  <Text style={styles.methodEmoji}>{option.icon}</Text>
-                </View>
-                <View style={styles.methodInfo}>
-                  <Text style={styles.methodName}>{option.name}</Text>
-                  <Text style={styles.methodDesc}>{option.desc}</Text>
-                </View>
-                <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]}>
-                  {isSelected && <View style={styles.radioInner} />}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* SECURITY BADGE */}
-        <View style={styles.securityBadge}>
-          <Text style={styles.securityIcon}>🔒</Text>
-          <Text style={styles.securityText}>
-            256-Bit SSL Encrypted & PCI-DSS Compliant VIP Gateway
-          </Text>
-        </View>
-
-        {/* PAY NOW BUTTON */}
-        <TouchableOpacity
-          style={styles.payButton}
-          activeOpacity={0.88}
-          onPress={handlePayNow}
-          disabled={processing}
+      <StatusBar barStyle="light-content" backgroundColor="#160824" />
+      
+      <View style={styles.responsiveWrapper}>
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
-          {processing ? (
-            <ActivityIndicator color={COLORS.primaryDark} />
-          ) : (
-            <Text style={styles.payButtonText}>
-              Authorize & Pay ${bookingData.total_amount.toLocaleString()}
+          {/* TOTAL PAYABLE HERO CARD */}
+          <View style={styles.payableCard}>
+            <Text style={styles.payableLabel}>TOTAL AMOUNT DUE</Text>
+            <Text style={styles.payableAmount}>₹{bookingData.total_amount.toLocaleString()}</Text>
+            <Text style={styles.payableSub}>
+              {hotel.name} • {bookingData.nights} Nights
             </Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          </View>
+
+          {errorMessage ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
+            </View>
+          ) : null}
+
+          {/* PAYMENT METHODS */}
+          <Text style={styles.sectionHeading}>Select Payment Method</Text>
+
+          <View style={styles.methodsList}>
+            {paymentOptions.map(option => {
+              const isSelected = selectedMethod === option.name;
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  activeOpacity={0.88}
+                  style={[styles.methodCard, isSelected && styles.methodCardActive]}
+                  onPress={() => setSelectedMethod(option.name)}
+                >
+                  <View style={styles.methodIconBox}>
+                    <Text style={styles.methodEmoji}>{option.icon}</Text>
+                  </View>
+                  <View style={styles.methodInfo}>
+                    <Text style={styles.methodName}>{option.name}</Text>
+                    <Text style={styles.methodDesc}>{option.desc}</Text>
+                  </View>
+                  <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]}>
+                    {isSelected && <View style={styles.radioInner} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* SECURITY BADGE */}
+          <View style={styles.securityBadge}>
+            <Text style={styles.securityIcon}>🔒</Text>
+            <Text style={styles.securityText}>
+              256-Bit SSL Encrypted PCI-DSS VIP Payment Gateway
+            </Text>
+          </View>
+
+          {/* PAY NOW BUTTON */}
+          <TouchableOpacity
+            style={styles.payButton}
+            activeOpacity={0.88}
+            onPress={handlePayNow}
+            disabled={processing}
+          >
+            {processing ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.payButtonText}>
+                Authorize & Pay ₹{bookingData.total_amount.toLocaleString()}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.primaryDark,
+    backgroundColor: '#160824',
+  },
+  responsiveWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
+    backgroundColor: '#160824',
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#160824',
   },
   scrollContent: {
-    padding: 20,
+    padding: 16,
+    paddingTop: STATUSBAR_HEIGHT + 10,
     paddingBottom: 40,
   },
   payableCard: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: 'rgba(37, 12, 35, 0.85)',
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 18,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 4,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   payableLabel: {
     fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.gold,
-    letterSpacing: 0.8,
+    fontWeight: '800',
+    color: COLORS.goldLight,
+    letterSpacing: 1.2,
   },
   payableAmount: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '900',
-    color: COLORS.white,
+    color: '#FFFFFF',
     marginTop: 4,
   },
   payableSub: {
@@ -210,37 +218,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sectionHeading: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   methodsList: {
     gap: 10,
   },
   methodCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(37, 12, 35, 0.85)',
     borderRadius: 18,
-    padding: 16,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.borderLight,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   methodCardActive: {
-    borderColor: COLORS.gold,
-    backgroundColor: '#FAF7EE',
+    borderColor: COLORS.goldLight,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   methodIconBox: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.background,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -249,35 +252,35 @@ const styles = StyleSheet.create({
   },
   methodInfo: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 12,
   },
   methodName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   methodDesc: {
     fontSize: 12,
-    color: COLORS.textMuted,
+    color: 'rgba(255, 255, 255, 0.65)',
     marginTop: 2,
   },
   radioCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: COLORS.borderDark,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioCircleActive: {
-    borderColor: COLORS.gold,
+    borderColor: COLORS.goldLight,
   },
   radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: COLORS.gold,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.goldLight,
   },
   securityBadge: {
     flexDirection: 'row',
@@ -287,28 +290,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   securityIcon: {
-    fontSize: 14,
+    fontSize: 13,
     marginRight: 6,
   },
   securityText: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '600',
   },
   payButton: {
-    backgroundColor: COLORS.gold,
-    paddingVertical: 16,
-    borderRadius: 18,
+    backgroundColor: COLORS.burgundyPill,
+    paddingVertical: 15,
+    borderRadius: 28,
     alignItems: 'center',
-    shadowColor: COLORS.goldDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   payButtonText: {
-    color: COLORS.primaryDark,
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.3,
   },

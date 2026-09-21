@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const ADMIN_ROLES = ['super_admin', 'admin', 'support_admin', 'finance_admin'];
+export const ADMIN_ROLES = ['super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'];
 export const PLATFORM_ADMIN_ROLES = ['super_admin', 'admin', 'support_admin', 'finance_admin'];
 export const HOTEL_ROLES = ['hotel_admin', 'owner'];
 export const ALL_ROLES = ['customer', 'owner', 'hotel_admin', ...ADMIN_ROLES];

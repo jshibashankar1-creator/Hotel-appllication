@@ -9,7 +9,6 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
-  FlatList,
   Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
@@ -21,23 +20,12 @@ const { width } = Dimensions.get('window');
 
 export default function HotelDetailsScreen({ route, navigation }) {
   const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(hotel.isFavorite || false);
   const [selectedRoom, setSelectedRoom] = useState(
     hotel.rooms && hotel.rooms.length > 0 ? hotel.rooms[0] : RECOMMENDED_HOTELS[0].rooms[0]
   );
-  const [expandedAbout, setExpandedAbout] = useState(false);
 
-  const imagesList = hotel.images && hotel.images.length > 0
-    ? hotel.images
-    : [hotel.coverImage || hotel.cover_image || RECOMMENDED_HOTELS[0].coverImage];
-
-  const handleScroll = (event) => {
-    const slide = Math.ceil(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
-    if (slide !== activeImageIndex && slide >= 0 && slide < imagesList.length) {
-      setActiveImageIndex(slide);
-    }
-  };
+  const heroImage = hotel.coverImage || hotel.cover_image || (hotel.images && hotel.images[0]) || RECOMMENDED_HOTELS[0].coverImage;
 
   const handleProceedToBooking = () => {
     navigation.navigate('BookingReview', {
@@ -52,150 +40,87 @@ export default function HotelDetailsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
+      <StatusBar barStyle="light-content" backgroundColor="#160824" />
       
-      {/* Scrollable Content */}
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* TOP IMAGE CAROUSEL WITH OVERLAYS */}
-        <View style={styles.carouselWrapper}>
-          <FlatList
-            data={imagesList}
-            keyExtractor={(_, index) => index.toString()}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.carouselImage} />
-            )}
-          />
+      <View style={styles.responsiveWrapper}>
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* HERO IMAGE CONTAINER */}
+          <View style={styles.heroImageWrapper}>
+            <Image source={{ uri: heroImage }} style={styles.heroImage} />
 
-          {/* Top Bar Floating Buttons */}
-          <View style={styles.carouselTopBar}>
-            <TouchableOpacity
-              style={styles.iconCircle}
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.iconText}>‹</Text>
-            </TouchableOpacity>
-
-            <View style={styles.rightIconsRow}>
+            <View style={styles.topHeaderBar}>
               <TouchableOpacity
-                style={styles.iconCircle}
+                style={styles.backCircle}
+                onPress={() => navigation.goBack()}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.backIcon}>‹</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.backCircle}
                 onPress={() => setIsFavorite(!isFavorite)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.iconText}>{isFavorite ? '❤️' : '🤍'}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.iconCircle, { marginLeft: 10 }]}
-                onPress={() => {}}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.iconText}>↗</Text>
+                <Text style={styles.favIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Image Counter Badge */}
-          <View style={styles.counterBadge}>
-            <Text style={styles.counterText}>
-              📷 {activeImageIndex + 1}/{imagesList.length}
+          {/* HOTEL HEADLINE & SUBTEXT */}
+          <View style={styles.titleSection}>
+            <Text style={styles.hotelTitle}>
+              {hotel.name || 'Digha Beach Luxury Resort'}
             </Text>
-          </View>
-        </View>
 
-        {/* LUXURY DEEP EMERALD DETAIL CARD */}
-        <View style={styles.detailsPanel}>
-          {/* Header Title & Luxury Collection Badge */}
-          <View style={styles.headerRow}>
-            <View style={styles.titleCol}>
-              <Text style={styles.hotelTitle}>{hotel.name}</Text>
-              
-              <View style={styles.ratingRow}>
-                <Text style={styles.starIcon}>★</Text>
-                <Text style={styles.ratingScore}>{hotel.rating || '4.8'}</Text>
-                <Text style={styles.reviewsText}>
-                  ({(hotel.reviewsCount || hotel.reviews_count || 1248).toLocaleString()} reviews)
-                </Text>
-              </View>
-
-              <View style={styles.locationRow}>
-                <Text style={styles.locationPin}>📍</Text>
-                <Text style={styles.locationText} numberOfLines={2}>
-                  {hotel.location || `${hotel.address || 'Sea Beach Road'}, ${hotel.city || 'New Digha'}, West Bengal`}
-                </Text>
-              </View>
-              
-              <Text style={styles.distanceText}>
-                {hotel.distance || 'Near Sea Beach Promenade'}
+            <View style={styles.ratingRow}>
+              <Text style={styles.locationText}>
+                {hotel.city || 'New Digha'}, {hotel.state || 'WB'}
               </Text>
-            </View>
-
-            {/* Gold Luxury Emblem Badge */}
-            <View style={styles.luxuryEmblemBadge}>
-              <Text style={styles.emblemCrown}>👑</Text>
-              <Text style={styles.emblemTextTop}>LUXURY</Text>
-              <Text style={styles.emblemTextSub}>COLLECTION</Text>
+              <Text style={styles.ratingDot}>•</Text>
+              <Text style={styles.starIcon}>⭐</Text>
+              <Text style={styles.ratingScore}>{hotel.rating || '4.8'}</Text>
+              <Text style={styles.reviewsCount}>({(hotel.reviewsCount || hotel.reviews_count || 215)} Reviews)</Text>
             </View>
           </View>
 
-          {/* AMENITIES ROW */}
-          <View style={styles.amenitiesSection}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {[
-                { name: 'Free WiFi', icon: '📶' },
-                { name: 'Swimming Pool', icon: '🏊‍♂️' },
-                { name: 'Spa & Wellness', icon: '💆‍♀️' },
-                { name: 'Restaurant', icon: '🍽️' },
-                { name: 'Fitness Gym', icon: '🏋️‍♂️' },
-                { name: 'Valet Parking', icon: '🚗' },
-              ].map((amenity, idx) => (
-                <View key={idx} style={styles.amenityItem}>
-                  <View style={styles.amenityIconCircle}>
-                    <Text style={styles.amenityEmoji}>{amenity.icon}</Text>
-                  </View>
-                  <Text style={styles.amenityName} numberOfLines={1}>{amenity.name}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+          {/* KEY AMENITIES CARD */}
+          <View style={styles.amenitiesCardContainer}>
+            <Text style={styles.cardHeaderTitle}>KEY AMENITIES</Text>
 
-          <View style={styles.sectionDivider} />
+            <View style={styles.amenitiesGrid}>
+              <View style={styles.amenityBox}>
+                <Text style={styles.amenityIcon}>📶</Text>
+                <Text style={styles.amenityLabel}>Free WiFi</Text>
+              </View>
 
-          {/* ABOUT HOTEL */}
-          <View style={styles.aboutSection}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeading}>About Hotel</Text>
-              <TouchableOpacity onPress={() => setExpandedAbout(!expandedAbout)}>
-                <Text style={styles.viewMoreText}>{expandedAbout ? 'Show less' : 'View more >'}</Text>
-              </TouchableOpacity>
+              <View style={styles.amenityBox}>
+                <Text style={styles.amenityIcon}>🏊</Text>
+                <Text style={styles.amenityLabel}>Pool</Text>
+              </View>
+
+              <View style={styles.amenityBox}>
+                <Text style={styles.amenityIcon}>🏖️</Text>
+                <Text style={styles.amenityLabel}>Beach Access</Text>
+              </View>
+
+              <View style={styles.amenityBox}>
+                <Text style={styles.amenityIcon}>💆</Text>
+                <Text style={styles.amenityLabel}>Spa</Text>
+              </View>
             </View>
-            <Text
-              style={styles.aboutDescription}
-              numberOfLines={expandedAbout ? undefined : 3}
-            >
-              {hotel.description || 'Experience timeless elegance and world-class hospitality at The Plaza Hotel. Overlooking Central Park, this iconic landmark offers unparalleled luxury in the heart of Manhattan with Michelin-starred dining and dedicated personal concierge service.'}
-            </Text>
           </View>
 
-          <View style={styles.sectionDivider} />
+          {/* ROOM TYPE SELECTION CARD */}
+          <View style={styles.roomCardContainer}>
+            <Text style={styles.cardHeaderTitle}>ROOM TYPE SELECTION</Text>
+            <Text style={styles.selectRoomSub}>Select a Room:</Text>
 
-          {/* SELECT ROOM */}
-          <View style={styles.roomSelectSection}>
-            <Text style={styles.sectionHeading}>Select Room</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.roomsList}
-            >
+            <View style={styles.roomsList}>
               {(hotel.rooms || RECOMMENDED_HOTELS[0].rooms).map(room => (
                 <RoomCard
                   key={room.id}
@@ -204,18 +129,18 @@ export default function HotelDetailsScreen({ route, navigation }) {
                   onSelect={r => setSelectedRoom(r)}
                 />
               ))}
-            </ScrollView>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      {/* STICKY RESERVATION FOOTER BAR */}
-      <StickyBookingBar
-        price={selectedRoom?.price || hotel.pricePerNight || 350}
-        currency={hotel.currency || '$'}
-        buttonLabel="Select Room →"
-        onBookPress={handleProceedToBooking}
-      />
+        {/* STICKY BOTTOM BAR */}
+        <StickyBookingBar
+          price={selectedRoom?.price || 18500}
+          currency={hotel.currency || '₹'}
+          buttonLabel="Select Room & Book"
+          onBookPress={handleProceedToBooking}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -225,98 +150,73 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight ||
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: '#160824',
+  },
+  responsiveWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
+    backgroundColor: '#160824',
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: '#160824',
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 30,
   },
-  carouselWrapper: {
+  heroImageWrapper: {
+    height: 240,
+    borderRadius: 24,
+    marginHorizontal: 16,
+    marginTop: STATUSBAR_HEIGHT + 10,
+    overflow: 'hidden',
     position: 'relative',
-    height: 330,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#160824',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
-  carouselImage: {
-    width: width,
-    height: 330,
+  heroImage: {
+    width: '100%',
+    height: '100%',
     resizeMode: 'cover',
   },
-  carouselTopBar: {
+  topHeaderBar: {
     position: 'absolute',
-    top: STATUSBAR_HEIGHT + 12,
-    left: 20,
-    right: 20,
+    top: 12,
+    left: 14,
+    right: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    zIndex: 10,
   },
-  rightIconsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
+  backCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  iconText: {
-    color: COLORS.primary,
-    fontSize: 20,
+  backIcon: {
+    color: '#FFFFFF',
+    fontSize: 22,
     fontWeight: '700',
+    marginTop: -2,
   },
-  counterBadge: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+  favIcon: {
+    fontSize: 14,
   },
-  counterText: {
-    color: COLORS.textDark,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  detailsPanel: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -20,
-    paddingTop: 24,
+  titleSection: {
     paddingHorizontal: 20,
-    paddingBottom: 30,
-    minHeight: 500,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  titleCol: {
-    flex: 1,
-    paddingRight: 10,
+    marginTop: 16,
+    alignItems: 'center',
   },
   hotelTitle: {
     fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.primary,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textAlign: 'center',
     letterSpacing: 0.2,
   },
   ratingRow: {
@@ -324,133 +224,81 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 6,
   },
+  locationText: {
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  ratingDot: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginHorizontal: 6,
+  },
   starIcon: {
-    color: COLORS.gold,
-    fontSize: 16,
+    fontSize: 12,
     marginRight: 4,
   },
   ratingScore: {
-    color: COLORS.textDark,
-    fontSize: 14,
-    fontWeight: '850',
-    marginRight: 4,
-  },
-  reviewsText: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  locationPin: {
-    fontSize: 12,
-    marginRight: 4,
-  },
-  locationText: {
-    color: COLORS.textBody,
+    color: COLORS.goldLight,
     fontSize: 13,
-    fontWeight: '500',
-    opacity: 0.9,
-    flex: 1,
-  },
-  distanceText: {
-    color: COLORS.gold,
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  luxuryEmblemBadge: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gold,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 90,
-  },
-  emblemCrown: {
-    fontSize: 18,
-    marginBottom: 2,
-  },
-  emblemTextTop: {
-    color: COLORS.gold,
-    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8,
+    marginRight: 4,
   },
-  emblemTextSub: {
-    color: COLORS.gold,
-    fontSize: 8,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+  reviewsCount: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
   },
-  amenitiesSection: {
-    marginTop: 20,
-  },
-  amenityItem: {
-    alignItems: 'center',
-    marginRight: 18,
-    width: 68,
-  },
-  amenityIconCircle: {
-    width: 48,
-    height: 48,
+  amenitiesCardContainer: {
+    backgroundColor: 'rgba(37, 12, 35, 0.85)',
     borderRadius: 24,
-    backgroundColor: COLORS.background,
+    marginHorizontal: 16,
+    marginTop: 18,
+    padding: 18,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  cardHeaderTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.6)',
+    letterSpacing: 1.2,
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  amenityBox: {
+    alignItems: 'center',
+    width: 70,
+  },
+  amenityIcon: {
+    fontSize: 26,
     marginBottom: 6,
   },
-  amenityEmoji: {
-    fontSize: 20,
-  },
-  amenityName: {
-    color: COLORS.textBody,
-    fontSize: 10,
+  amenityLabel: {
+    color: '#FFFFFF',
+    fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
-    opacity: 0.9,
   },
-  sectionDivider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 18,
+  roomCardContainer: {
+    backgroundColor: 'rgba(37, 12, 35, 0.85)',
+    borderRadius: 24,
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
-  aboutSection: {},
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sectionHeading: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: 0.2,
-  },
-  viewMoreText: {
-    color: COLORS.gold,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  aboutDescription: {
-    color: COLORS.textBody,
+  selectRoomSub: {
     fontSize: 13,
-    lineHeight: 20,
-    fontWeight: '400',
-  },
-  roomSelectSection: {
-    marginTop: 4,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 12,
   },
   roomsList: {
-    paddingTop: 12,
-    paddingBottom: 4,
+    gap: 10,
   },
 });

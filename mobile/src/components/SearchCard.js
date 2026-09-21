@@ -23,7 +23,7 @@ export default function SearchCard({ onSearch }) {
 
   return (
     <View style={styles.cardContainer}>
-      {/* Top Tabs */}
+      {/* Service Selector Tabs */}
       <View style={styles.tabsRow}>
         {[
           { id: 'Stays', label: 'Stays', icon: '🏨' },
@@ -49,7 +49,7 @@ export default function SearchCard({ onSearch }) {
 
       <View style={styles.divider} />
 
-      {/* WHERE TO? Field with New Digha / Old Digha Quick Selector */}
+      {/* WHERE TO? Field with Location Quick Selector */}
       <View style={styles.fieldSection}>
         <View style={styles.fieldHeader}>
           <Text style={styles.fieldPinIcon}>📍</Text>
@@ -60,7 +60,7 @@ export default function SearchCard({ onSearch }) {
           value={location}
           onChangeText={setLocation}
           placeholder="New Digha or Old Digha"
-          placeholderTextColor={COLORS.textMuted}
+          placeholderTextColor="rgba(255, 255, 255, 0.4)"
         />
         <View style={styles.quickLocationsRow}>
           <TouchableOpacity
@@ -103,53 +103,217 @@ export default function SearchCard({ onSearch }) {
 
       <View style={styles.divider} />
 
-      {/* 3 Columns: Check in, Check out, Guests & Rooms */}
+      {/* 3 Columns: Check in, Check out, Guests */}
       <View style={styles.metaRow}>
         <View style={styles.metaCol}>
-          <Text style={styles.metaLabel}>Check in</Text>
+          <Text style={styles.metaLabel}>Check-in</Text>
           <Text style={styles.metaValue}>{checkIn}</Text>
         </View>
 
         <View style={styles.verticalDivider} />
 
         <View style={styles.metaCol}>
-          <Text style={styles.metaLabel}>Check out</Text>
+          <Text style={styles.metaLabel}>Check-out</Text>
           <Text style={styles.metaValue}>{checkOut}</Text>
         </View>
 
         <View style={styles.verticalDivider} />
 
         <View style={[styles.metaCol, { flex: 1.2 }]}>
-          <Text style={styles.metaLabel}>Guests & Rooms</Text>
+          <Text style={styles.metaLabel}>Guests</Text>
           <View style={styles.guestsRow}>
             <Text style={styles.metaValue} numberOfLines={1}>
-              {guestsRooms}
+              {guestsRooms.split(',')[0]}
             </Text>
             <Text style={styles.chevronIcon}> ⌵</Text>
           </View>
         </View>
       </View>
 
-      {/* Search Button & Gold Icon Row */}
+      {/* SEARCH HOTELS Burgundy Button */}
       <View style={styles.buttonRow}>
         <TouchableOpacity
           activeOpacity={0.88}
           style={styles.searchButton}
           onPress={handleSearchPress}
         >
-          <Text style={styles.searchButtonText}>Search Hotels</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.88}
-          style={styles.goldSearchIconBtn}
-          onPress={handleSearchPress}
-        >
-          <Text style={styles.goldSearchIcon}>🔍</Text>
+          <Text style={styles.searchButtonText}>SEARCH HOTELS</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
+}
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    backgroundColor: 'rgba(37, 12, 35, 0.85)',
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 4,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  tabButtonActive: {
+    backgroundColor: COLORS.burgundyPill,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  tabButtonInactive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  tabIcon: {
+    fontSize: 13,
+    marginRight: 5,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
+  },
+  tabTextInactive: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 12,
+  },
+  fieldSection: {
+    paddingVertical: 2,
+  },
+  fieldHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  fieldPinIcon: {
+    fontSize: 12,
+    marginRight: 6,
+  },
+  fieldLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.5)',
+    letterSpacing: 0.8,
+  },
+  locationInput: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    paddingVertical: 2,
+    paddingHorizontal: 0,
+    letterSpacing: 0.1,
+  },
+  quickLocationsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  quickLocPill: {
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  quickLocPillActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  quickLocPillInactive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  quickLocText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  quickLocTextActive: {
+    color: COLORS.goldLight,
+  },
+  quickLocTextInactive: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  metaCol: {
+    flex: 1,
+  },
+  metaLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 4,
+  },
+  metaValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  guestsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chevronIcon: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '800',
+  },
+  verticalDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginHorizontal: 8,
+  },
+  buttonRow: {
+    marginTop: 16,
+  },
+  searchButton: {
+    backgroundColor: COLORS.burgundyPill,
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: COLORS.burgundyPill,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  searchButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+});
 }
 
 const styles = StyleSheet.create({

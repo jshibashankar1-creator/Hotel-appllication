@@ -35,20 +35,23 @@ function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#4A1738',
-        tabBarInactiveTintColor: '#777777',
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.55)',
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E8E1DA',
+          backgroundColor: '#160824',
+          borderTopColor: 'rgba(255, 255, 255, 0.12)',
           borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 84 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+          height: Platform.OS === 'ios' ? 84 : 62,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 6,
           paddingTop: 6,
-          elevation: 4,
+          elevation: 10,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
+          shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.3,
-          shadowRadius: 6,
+          shadowRadius: 8,
+          maxWidth: 720,
+          alignSelf: 'center',
+          width: '100%',
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -75,7 +78,6 @@ function MainTabNavigator() {
       <Tab.Screen name="Explore" component={SearchScreen} options={{ title: 'Explore' }} />
       <Tab.Screen name="Bookings" component={MyBookingsScreen} options={{ title: 'Bookings' }} />
       <Tab.Screen name="Deals" component={OffersScreen} options={{ title: 'Deals' }} />
-      <Tab.Screen name="Wishlist" component={WishlistScreen} options={{ title: 'Wishlist' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     </Tab.Navigator>
   );

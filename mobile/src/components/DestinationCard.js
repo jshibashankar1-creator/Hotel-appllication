@@ -11,9 +11,9 @@ export default function DestinationCard({ item, onPress }) {
     >
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.gradientOverlay}>
-        <Text style={styles.city}>{item.city}</Text>
-        <Text style={styles.country}>{item.country}</Text>
-        <Text style={styles.hotelsCount}>{item.hotelsCount}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title || item.city}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -21,16 +21,18 @@ export default function DestinationCard({ item, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 135,
-    height: 175,
-    borderRadius: 18,
+    width: 145,
+    height: 190,
+    borderRadius: 20,
     overflow: 'hidden',
-    marginRight: 12,
-    backgroundColor: COLORS.primary,
+    marginRight: 14,
+    backgroundColor: '#160824',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 4,
   },
   image: {
@@ -44,27 +46,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 12,
-    paddingBottom: 10,
-    paddingTop: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingBottom: 14,
+    paddingTop: 36,
+    backgroundColor: 'rgba(22, 8, 36, 0.75)',
   },
-  city: {
+  title: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: 0.2,
-  },
-  country: {
-    color: '#E2E8F0',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  hotelsCount: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
-    opacity: 0.95,
   },
 });

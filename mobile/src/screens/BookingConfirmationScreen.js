@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
@@ -17,131 +16,343 @@ export default function BookingConfirmationScreen({ route, navigation }) {
   const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
   const booking = route.params?.booking || {
     booking_code: 'BK-DGH-8921',
-    hotel_name: hotel.name || 'Hotel Sea Hawk New Digha',
-    location: hotel.location || 'New Digha, West Bengal',
-    check_in_date: '12 Aug, Mon',
-    check_out_date: '15 Aug, Thu',
+    hotel_name: hotel.name || 'Digha Beach Luxury Resort',
+    location: hotel.location || 'New Digha, WB',
+    check_in_date: '12 Aug, 2026',
+    check_out_date: '15 Aug, 2026',
     guests_count: 2,
     rooms_count: 1,
-    total_amount: 3500,
+    total_amount: 62160,
   };
 
-  const handleViewDetails = () => {
+  const handleDownloadTicket = () => {
     navigation.navigate('BookingDetails', { booking, hotel });
-  };
-
-  const handleExploreNearby = () => {
-    navigation.navigate('MainTabs', { screen: 'Search' });
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#072824" />
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Top Back Navigation */}
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.backIcon}>‹</Text>
-          </TouchableOpacity>
-        </View>
+      <StatusBar barStyle="light-content" backgroundColor="#160824" />
+      
+      <View style={styles.responsiveWrapper}>
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* GLOWING GREEN CHECKMARK & CONFIRMED TITLE */}
+          <View style={styles.headerSection}>
+            <View style={styles.outerGlowRing}>
+              <View style={styles.successCircle}>
+                <Text style={styles.checkIcon}>✓</Text>
+              </View>
+            </View>
 
-        {/* Ambient Confetti / Star Particles */}
-        <View style={styles.confettiRow}>
-          <Text style={[styles.confetti, { top: 10, left: 40 }]}>✨</Text>
-          <Text style={[styles.confetti, { top: 30, right: 50 }]}>🎉</Text>
-          <Text style={[styles.confetti, { top: 70, left: 80 }]}>⭐</Text>
-          <Text style={[styles.confetti, { top: 60, right: 90 }]}>✨</Text>
-        </View>
-
-        {/* SUCCESS ICON & HEADLINE */}
-        <View style={styles.headerSection}>
-          <View style={styles.successCircle}>
-            <Text style={styles.checkIcon}>✓</Text>
+            <Text style={styles.confirmedTitle}>Booking Confirmed!</Text>
           </View>
 
-          <Text style={styles.title}>Booking Confirmed!</Text>
-          <Text style={styles.subtitle}>
-            Your stay at {hotel.name || 'The Plaza Hotel'} is confirmed.{'\n'}We've sent the details to your email.
-          </Text>
-        </View>
+          {/* DIGITAL PASS TICKET CARD WITH CUTOUT NOTCHES */}
+          <View style={styles.passCardWrapper}>
+            {/* Cutout Notches */}
+            <View style={styles.leftCutout} />
+            <View style={styles.rightCutout} />
 
-        {/* BOOKING SUMMARY CARD */}
-        <View style={styles.summaryCard}>
-          <View style={styles.hotelInfoRow}>
-            <Image
-              source={{ uri: hotel.coverImage || hotel.cover_image || RECOMMENDED_HOTELS[0].coverImage }}
-              style={styles.hotelThumb}
-            />
-            <View style={styles.hotelDetails}>
-              <Text style={styles.hotelName} numberOfLines={1}>
-                {hotel.name || 'The Plaza Hotel'}
+            {/* Pass Header */}
+            <View style={styles.passHeader}>
+              <Text style={styles.passTitle}>Digital Pass</Text>
+              <TouchableOpacity onPress={handleDownloadTicket}>
+                <Text style={styles.detailLink}>Detail</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Dashed Line */}
+            <View style={styles.dashedDivider} />
+
+            {/* Crisp QR Code Vector Mock */}
+            <View style={styles.qrSection}>
+              <View style={styles.qrCodeBox}>
+                <View style={styles.qrRow}>
+                  <View style={styles.qrSquareLarge} />
+                  <View style={styles.qrPatternCols} />
+                  <View style={styles.qrSquareLarge} />
+                </View>
+                <View style={styles.qrRowMid}>
+                  <View style={styles.qrPatternLines} />
+                </View>
+                <View style={styles.qrRow}>
+                  <View style={styles.qrSquareLarge} />
+                  <View style={styles.qrPatternCols} />
+                  <View style={styles.qrSquareSmall} />
+                </View>
+              </View>
+            </View>
+
+            {/* Booking Details Section */}
+            <View style={styles.passMetaSection}>
+              <Text style={styles.metaLabel}>Booking Details</Text>
+              <Text style={styles.hotelNameText}>
+                {booking.hotel_name || hotel.name || 'Digha Beach Luxury Resort'}
               </Text>
-              <Text style={styles.hotelLocation}>
-                {hotel.city || 'New York'}, {hotel.country || 'USA'}
-              </Text>
-              
-              <View style={styles.badgeRow}>
-                <Text style={styles.bookingCodeText}>Booking ID: {booking.booking_code || 'BK-PLZ-8921'}</Text>
+
+              <View style={styles.datesRow}>
+                <View style={styles.dateCol}>
+                  <Text style={styles.dateTitle}>Check-in 📅</Text>
+                  <Text style={styles.dateVal}>{booking.check_in_date || '12 Aug, 2026'}</Text>
+                </View>
+
+                <View style={styles.dateColRight}>
+                  <Text style={styles.dateTitle}>Check-out 👤</Text>
+                  <Text style={styles.dateVal}>{booking.check_out_date || '15 Aug, 2026'}</Text>
+                </View>
               </View>
             </View>
           </View>
 
-          <View style={styles.cardDivider} />
-
-          {/* Dates & Guests */}
-          <View style={styles.infoRow}>
-            <Text style={styles.infoIcon}>📅</Text>
-            <Text style={styles.infoText}>
-              {booking.check_in_date || '12 Aug, Mon'} — {booking.check_out_date || '15 Aug, Thu'}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoIcon}>👥</Text>
-            <Text style={styles.infoText}>
-              {booking.guests_count || 2} Guests, {booking.rooms_count || 1} Room
-            </Text>
-          </View>
-
-          <View style={styles.cardDivider} />
-
-          {/* Total Price */}
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Total Price</Text>
-            <Text style={styles.priceValue}>${(booking.total_amount || 1050).toLocaleString()}</Text>
-          </View>
-        </View>
-
-        {/* ACTION BUTTONS */}
-        <View style={styles.actionsSection}>
+          {/* DOWNLOAD E-TICKET BURGUNDY BUTTON */}
           <TouchableOpacity
-            style={styles.primaryGoldButton}
+            style={styles.downloadButton}
             activeOpacity={0.88}
-            onPress={handleViewDetails}
+            onPress={handleDownloadTicket}
           >
-            <Text style={styles.primaryButtonText}>View Booking Details</Text>
+            <Text style={styles.downloadButtonText}>Download E-Ticket</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.secondaryTealButton}
-            activeOpacity={0.88}
-            onPress={handleExploreNearby}
-          >
-            <Text style={styles.secondaryButtonIcon}>📍</Text>
-            <Text style={styles.secondaryButtonText}>Explore Nearby Hotels</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
+}
+
+const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#160824',
+  },
+  responsiveWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
+    backgroundColor: '#160824',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#160824',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: STATUSBAR_HEIGHT + 20,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  outerGlowRing: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.4)',
+    marginBottom: 16,
+  },
+  successCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#22C55E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#22C55E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  checkIcon: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '900',
+  },
+  confirmedTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#22C55E',
+    letterSpacing: 0.3,
+  },
+  passCardWrapper: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  leftCutout: {
+    position: 'absolute',
+    left: -14,
+    top: 50,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#160824',
+    zIndex: 10,
+  },
+  rightCutout: {
+    position: 'absolute',
+    right: -14,
+    top: 50,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#160824',
+    zIndex: 10,
+  },
+  passHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 10,
+  },
+  passTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  detailLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  dashedDivider: {
+    height: 1,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    marginVertical: 10,
+  },
+  qrSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+  },
+  qrCodeBox: {
+    width: 140,
+    height: 140,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'space-between',
+  },
+  qrRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  qrSquareLarge: {
+    width: 32,
+    height: 32,
+    borderRadius: 4,
+    backgroundColor: '#111827',
+  },
+  qrSquareSmall: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    backgroundColor: '#111827',
+  },
+  qrPatternCols: {
+    width: 40,
+    height: 12,
+    backgroundColor: '#111827',
+    borderRadius: 2,
+  },
+  qrRowMid: {
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  qrPatternLines: {
+    width: 110,
+    height: 24,
+    backgroundColor: '#111827',
+    borderRadius: 4,
+  },
+  passMetaSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  metaLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    marginBottom: 4,
+  },
+  hotelNameText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 10,
+  },
+  datesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dateCol: {
+    flex: 1,
+  },
+  dateColRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  dateTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  dateVal: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#111827',
+    marginTop: 2,
+  },
+  downloadButton: {
+    backgroundColor: COLORS.burgundyPill,
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 28,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: COLORS.burgundyPill,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  downloadButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+});
 }
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;

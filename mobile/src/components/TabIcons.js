@@ -6,8 +6,8 @@ export function TabIcon({ name, focused, color, size = 22 }) {
   let fontSize = 18;
 
   if (name === 'Home') {
-    glyph = focused ? '🏠' : '⌂';
-    fontSize = 20;
+    glyph = '🏠';
+    fontSize = 18;
   } else if (name === 'Explore') {
     glyph = '🔍';
     fontSize = 18;
@@ -17,9 +17,6 @@ export function TabIcon({ name, focused, color, size = 22 }) {
   } else if (name === 'Deals') {
     glyph = '🏷️';
     fontSize = 18;
-  } else if (name === 'Wishlist') {
-    glyph = '♡';
-    fontSize = 19;
   } else if (name === 'Profile') {
     glyph = '👤';
     fontSize = 18;
@@ -27,10 +24,10 @@ export function TabIcon({ name, focused, color, size = 22 }) {
 
   return (
     <View style={styles.iconBox}>
-      <Text style={[styles.iconGlyph, { color: color, fontSize }]}>
+      <Text style={[styles.iconGlyph, { opacity: focused ? 1 : 0.6, fontSize }]}>
         {glyph}
       </Text>
-      {focused && <View style={styles.activeUnderline} />}
+      {focused && <View style={styles.activeDot} />}
     </View>
   );
 }
@@ -38,7 +35,7 @@ export function TabIcon({ name, focused, color, size = 22 }) {
 const styles = StyleSheet.create({
   iconBox: {
     width: 28,
-    height: 32,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -48,12 +45,12 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
-  activeUnderline: {
+  activeDot: {
     position: 'absolute',
     bottom: -2,
-    width: 12,
-    height: 2.5,
-    backgroundColor: '#D6A72C', // Champagne Gold
-    borderRadius: 1.25,
+    width: 5,
+    height: 5,
+    backgroundColor: '#D6A72C',
+    borderRadius: 2.5,
   },
 });

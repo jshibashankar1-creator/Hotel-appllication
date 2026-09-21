@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TextInput,
+  ScrollView,
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
@@ -14,18 +14,18 @@ import {
 import { COLORS } from '../theme/colors';
 import HotelCard from '../components/HotelCard';
 import FilterModal from '../components/FilterModal';
-import { RECOMMENDED_HOTELS, FLASH_DEALS } from '../data/mockData';
+import { RECOMMENDED_HOTELS } from '../data/mockData';
 import { mobileApi } from '../services/api';
 
 export default function SearchScreen({ route, navigation }) {
   const initialCity = route.params?.city || '';
   const [searchQuery, setSearchQuery] = useState(initialCity);
   const [hotels, setHotels] = useState(RECOMMENDED_HOTELS);
-  const [favorites, setFavorites] = useState(['htl-plaza-ny']);
+  const [favorites, setFavorites] = useState(['htl-digha-luxury-resort']);
   const [loading, setLoading] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
-  const [activeSort, setActiveSort] = useState('popular'); // 'popular' | 'price_low' | 'rating'
+  const [activeSort, setActiveSort] = useState('price_low'); // 'price_low' | 'rating' | 'pool'
 
   useEffect(() => {
     fetchHotels();
@@ -48,17 +48,16 @@ export default function SearchScreen({ route, navigation }) {
             ...h,
             coverImage: h.cover_image || (matched ? matched.coverImage : RECOMMENDED_HOTELS[0].coverImage),
             images: h.gallery && h.gallery.length > 0 ? h.gallery : (matched ? matched.images : RECOMMENDED_HOTELS[0].images),
-            pricePerNight: h.starting_price || (matched ? matched.pricePerNight : 350),
-            currency: '$',
+            pricePerNight: h.starting_price || (matched ? matched.pricePerNight : 6499),
+            currency: '₹',
             rating: h.rating || 4.8,
-            reviewsCount: h.reviews_count || 120,
+            reviewsCount: h.reviews_count || 215,
             isTopRated: true,
             rooms: h.rooms || (matched ? matched.rooms : RECOMMENDED_HOTELS[0].rooms),
           };
         });
       }
 
-      // Filter by city / search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         combined = combined.filter(h =>
@@ -68,18 +67,6 @@ export default function SearchScreen({ route, navigation }) {
         );
       }
 
-      // Filter by price tier
-      if (activeFilters.priceTier && activeFilters.priceTier !== 'All') {
-        if (activeFilters.priceTier === 'Under $300') {
-          combined = combined.filter(h => (h.pricePerNight || 350) < 300);
-        } else if (activeFilters.priceTier === '$300 - $600') {
-          combined = combined.filter(h => (h.pricePerNight || 350) >= 300 && (h.pricePerNight || 350) <= 600);
-        } else if (activeFilters.priceTier === '$600+') {
-          combined = combined.filter(h => (h.pricePerNight || 350) > 600);
-        }
-      }
-
-      // Sort
       if (activeSort === 'price_low') {
         combined.sort((a, b) => (a.pricePerNight || 0) - (b.pricePerNight || 0));
       } else if (activeSort === 'rating') {
@@ -109,126 +96,96 @@ export default function SearchScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
+      <StatusBar barStyle="light-content" backgroundColor="#160824" />
       
-      {/* TOP SEARCH BAR */}
-      <View style={styles.header}>
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>📍</Text>
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search destination, hotel or city..."
-            placeholderTextColor={COLORS.textMuted}
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Text style={styles.clearIcon}>✕</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
+      <View style={styles.responsiveWrapper}>
+        {/* TOP SEARCH SUMMARY BAR */}
+        <View style={styles.header}>
+          <View style={styles.searchSummaryPill}>
+            <View style={styles.searchPillLeft}>
+              <Text style={styles.calendarIcon}>📅</Text>
+              <Text style={styles.searchPillText}>12 Aug - 15 Aug, 2 Guests</Text>
+            </View>
+            <View style={styles.staysTag}>
+              <Text style={styles.staysTagIcon}>🏨</Text>
+              <Text style={styles.staysTagText}>Stays</Text>
+            </View>
+          </View>
 
-        {/* Quick Area Filter Pills: All Digha, New Digha, Old Digha */}
-        <View style={styles.dighaAreaRow}>
-          {[
-            { label: 'All Digha', query: '' },
-            { label: '🏖️ New Digha', query: 'New Digha' },
-            { label: '🌊 Old Digha', query: 'Old Digha' },
-          ].map(area => {
-            const isSelected = area.query === ''
-              ? (searchQuery === '' || searchQuery.toLowerCase() === 'digha')
-              : searchQuery.toLowerCase().includes(area.query.toLowerCase());
-            return (
-              <TouchableOpacity
-                key={area.label}
-                activeOpacity={0.8}
-                style={[styles.dighaPill, isSelected && styles.dighaPillActive]}
-                onPress={() => setSearchQuery(area.query)}
-              >
-                <Text style={[styles.dighaPillText, isSelected && styles.dighaPillTextActive]}>
-                  {area.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Filter & Sort Bar */}
-        <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={[styles.filterButton, Object.keys(activeFilters).length > 0 && styles.filterButtonActive]}
-            onPress={() => setFilterModalVisible(true)}
+          {/* HORIZONTAL FILTER CHIPS */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterChipsRow}
           >
-            <Text style={styles.filterBtnIcon}>⚙️</Text>
-            <Text style={[styles.filterBtnText, Object.keys(activeFilters).length > 0 && styles.filterBtnTextActive]}>
-              Filters {Object.keys(activeFilters).length > 0 ? `(${Object.keys(activeFilters).length})` : ''}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.sortPills}>
             <TouchableOpacity
-              style={[styles.sortPill, activeSort === 'popular' && styles.sortPillActive]}
-              onPress={() => setActiveSort('popular')}
-            >
-              <Text style={[styles.sortPillText, activeSort === 'popular' && styles.sortPillTextActive]}>
-                Popular
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.sortPill, activeSort === 'rating' && styles.sortPillActive]}
-              onPress={() => setActiveSort('rating')}
-            >
-              <Text style={[styles.sortPillText, activeSort === 'rating' && styles.sortPillTextActive]}>
-                Top Rated
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.sortPill, activeSort === 'price_low' && styles.sortPillActive]}
+              activeOpacity={0.8}
+              style={[styles.filterChip, activeSort === 'price_low' && styles.filterChipActive]}
               onPress={() => setActiveSort('price_low')}
             >
-              <Text style={[styles.sortPillText, activeSort === 'price_low' && styles.sortPillTextActive]}>
-                Best Price
+              <Text style={styles.chipIcon}>🏷️</Text>
+              <Text style={[styles.chipText, activeSort === 'price_low' && styles.chipTextActive]}>
+                Price: Low to High
               </Text>
             </TouchableOpacity>
-          </View>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.filterChip, activeSort === 'rating' && styles.filterChipActive]}
+              onPress={() => setActiveSort('rating')}
+            >
+              <Text style={styles.chipIcon}>⭐</Text>
+              <Text style={[styles.chipText, activeSort === 'rating' && styles.chipTextActive]}>
+                5 Star Rating
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.filterChip}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <Text style={styles.chipIcon}>🏊</Text>
+              <Text style={styles.chipText}>With Pool</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.filterChip}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <Text style={styles.chipIcon}>🌐</Text>
+              <Text style={styles.chipText}>Free WiFi</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        {/* HOTEL LISTINGS */}
+        <View style={styles.content}>
+          {loading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color={COLORS.goldLight} />
+              <Text style={styles.loaderText}>Searching luxury stays...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={hotels}
+              keyExtractor={item => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContainer}
+              renderItem={({ item }) => (
+                <HotelCard
+                  hotel={item}
+                  isFavorite={favorites.includes(item.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onPress={handleSelectHotel}
+                />
+              )}
+            />
+          )}
         </View>
       </View>
 
-      {/* RESULTS LIST */}
-      <View style={styles.content}>
-        <View style={styles.resultsCountRow}>
-          <Text style={styles.resultsCountText}>
-            Showing <Text style={{ fontWeight: '800', color: COLORS.primary }}>{hotels.length}</Text> Luxury Properties
-          </Text>
-        </View>
-
-        {loading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={COLORS.gold} />
-            <Text style={styles.loaderText}>Finding perfect luxury stays...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={hotels}
-            keyExtractor={item => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContainer}
-            renderItem={({ item }) => (
-              <HotelCard
-                hotel={item}
-                isFavorite={favorites.includes(item.id)}
-                onToggleFavorite={toggleFavorite}
-                onPress={handleSelectHotel}
-              />
-            )}
-          />
-        )}
-      </View>
-
-      {/* Filter Sheet Modal */}
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
@@ -244,135 +201,104 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight ||
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.primaryDark,
+    backgroundColor: '#160824',
+  },
+  responsiveWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 720,
+    alignSelf: 'center',
+    backgroundColor: '#160824',
   },
   header: {
-    backgroundColor: COLORS.primaryDark,
-    paddingHorizontal: 20,
+    backgroundColor: '#160824',
+    paddingHorizontal: 16,
     paddingTop: STATUSBAR_HEIGHT + 10,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    paddingBottom: 12,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    paddingVertical: 0,
-  },
-  clearIcon: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-    padding: 4,
-  },
-  dighaAreaRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-  },
-  dighaPill: {
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: COLORS.primarySurface,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  dighaPillActive: {
-    backgroundColor: COLORS.gold,
-    borderColor: COLORS.gold,
-  },
-  dighaPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  dighaPillTextActive: {
-    color: COLORS.primaryDark,
-  },
-  filterRow: {
+  searchSummaryPill: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 10,
+    backgroundColor: 'rgba(37, 12, 35, 0.85)',
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
-  filterButton: {
+  searchPillLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primarySurface,
+  },
+  calendarIcon: {
+    fontSize: 13,
+    marginRight: 8,
+  },
+  searchPillText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  staysTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.burgundyPill,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(214, 167, 44, 0.35)',
-    paddingVertical: 7,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  staysTagIcon: {
+    fontSize: 11,
+    marginRight: 4,
+  },
+  staysTagText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  filterChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+    paddingRight: 10,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 12,
+    borderRadius: 20,
   },
-  filterButtonActive: {
-    borderColor: COLORS.gold,
-    backgroundColor: COLORS.goldBg,
+  filterChipActive: {
+    backgroundColor: COLORS.burgundyPill,
+    borderColor: COLORS.goldLight,
   },
-  filterBtnIcon: {
+  chipIcon: {
     fontSize: 12,
-    marginRight: 5,
+    marginRight: 6,
   },
-  filterBtnText: {
-    color: COLORS.white,
+  chipText: {
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontWeight: '700',
   },
-  filterBtnTextActive: {
-    color: COLORS.gold,
-  },
-  sortPills: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  sortPill: {
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  sortPillActive: {
-    backgroundColor: COLORS.gold,
-  },
-  sortPillText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  sortPillTextActive: {
-    color: COLORS.primaryDark,
-    fontWeight: '800',
+  chipTextActive: {
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  resultsCountRow: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  resultsCountText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    fontWeight: '500',
+    backgroundColor: '#160824',
   },
   listContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
   loaderContainer: {
     flex: 1,
@@ -382,8 +308,8 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     marginTop: 12,
-    fontSize: 14,
-    color: COLORS.textMuted,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '600',
   },
 });

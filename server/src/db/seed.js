@@ -5,8 +5,8 @@ export async function seedDatabase() {
   console.log('Seeding database with realistic commercial hospitality data...');
 
   const passwordHash = await bcrypt.hash('Password@123', 10);
-  const adminPasswordHash = await bcrypt.hash('Admin@123456', 10);
-  const hotelAdminPasswordHash = await bcrypt.hash('HotelAdmin@123456', 10);
+  const adminPasswordHash = await bcrypt.hash('Admin@123', 10);
+  const hotelAdminPasswordHash = await bcrypt.hash('Admin@123', 10);
 
   db.transaction((data) => {
     // 1. Users with Admin Hierarchy

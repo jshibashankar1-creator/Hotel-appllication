@@ -22,14 +22,18 @@ export default function BookingReviewScreen({ route, navigation }) {
     price: 18500,
   };
 
-  const [checkIn, setCheckIn] = useState(route.params?.checkInDate || '2026-08-12');
-  const [checkOut, setCheckOut] = useState(route.params?.checkOutDate || '2026-08-15');
+  const checkIn = route.params?.checkInDate || route.params?.formattedCheckIn || '2026-09-22';
+  const checkOut = route.params?.checkOutDate || route.params?.formattedCheckOut || '2026-09-25';
+  const isoCheckIn = route.params?.isoCheckIn || '2026-09-22';
+  const isoCheckOut = route.params?.isoCheckOut || '2026-09-25';
+  const guestsCount = route.params?.guestsCount || 2;
+  const roomsCount = route.params?.roomsCount || 1;
+  const nights = route.params?.nightsCount || 3;
+
   const [guestName, setGuestName] = useState(ACTIVE_USER_PROFILE.name);
   const [guestEmail, setGuestEmail] = useState(ACTIVE_USER_PROFILE.email);
   const [guestPhone, setGuestPhone] = useState(ACTIVE_USER_PROFILE.phone);
-  const [guestsCount, setGuestsCount] = useState(2);
 
-  const nights = route.params?.nightsCount || 3;
   const roomRate = room.price || room.price_per_night || 18500;
   const baseAmount = roomRate * nights;
   const taxesAndFees = Math.round(baseAmount * 0.12);
@@ -42,10 +46,13 @@ export default function BookingReviewScreen({ route, navigation }) {
       bookingData: {
         hotel_id: hotel.id,
         room_id: room.id,
-        check_in_date: checkIn,
-        check_out_date: checkOut,
+        check_in_date: isoCheckIn,
+        check_out_date: isoCheckOut,
+        formattedCheckIn: checkIn,
+        formattedCheckOut: checkOut,
         nights,
         guests_count: guestsCount,
+        rooms_count: roomsCount,
         customer_name: guestName,
         customer_email: guestEmail,
         customer_phone: guestPhone,
@@ -85,12 +92,12 @@ export default function BookingReviewScreen({ route, navigation }) {
             <View style={styles.gridRow}>
               <View style={styles.gridCol}>
                 <Text style={styles.gridLabel}>CHECK-IN</Text>
-                <Text style={styles.gridValue}>12 Aug, Mon</Text>
+                <Text style={styles.gridValue}>{checkIn}</Text>
                 <Text style={styles.gridSub}>From 2:00 PM</Text>
               </View>
               <View style={styles.gridCol}>
                 <Text style={styles.gridLabel}>CHECK-OUT</Text>
-                <Text style={styles.gridValue}>15 Aug, Thu</Text>
+                <Text style={styles.gridValue}>{checkOut}</Text>
                 <Text style={styles.gridSub}>Until 11:00 AM</Text>
               </View>
             </View>
@@ -99,11 +106,11 @@ export default function BookingReviewScreen({ route, navigation }) {
 
             <View style={styles.rowBetween}>
               <Text style={styles.rowLabel}>Total Duration</Text>
-              <Text style={styles.rowValue}>{nights} Nights</Text>
+              <Text style={styles.rowValue}>{nights} Night{nights > 1 ? 's' : ''}</Text>
             </View>
             <View style={styles.rowBetween}>
               <Text style={styles.rowLabel}>Guests & Rooms</Text>
-              <Text style={styles.rowValue}>{guestsCount} Guests, 1 Room</Text>
+              <Text style={styles.rowValue}>{guestsCount} Guest{guestsCount > 1 ? 's' : ''}, {roomsCount} Room{roomsCount > 1 ? 's' : ''}</Text>
             </View>
           </View>
 

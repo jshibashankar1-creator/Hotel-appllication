@@ -1,22 +1,54 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { COLORS } from '../theme/colors';
+import DatePickerModal from './DatePickerModal';
 
-export default function SearchCard({ onSearch }) {
+export default function SearchCard({ onSearch, initialSearchState }) {
   const [activeTab, setActiveTab] = useState('Stays');
   const [location, setLocation] = useState('New Digha, West Bengal');
-  const [checkIn, setCheckIn] = useState('12 Aug, Mon');
-  const [checkOut, setCheckOut] = useState('15 Aug, Thu');
-  const [guestsRooms, setGuestsRooms] = useState('2 Guests, 1 Room');
+
+  const today = new Date();
+  const defaultIn = new Date(today.getTime() + 86400000);
+  const defaultOut = new Date(today.getTime() + 86400000 * 4);
+
+  const [checkInObj, setCheckInObj] = useState(defaultIn);
+  const [checkOutObj, setCheckOutObj] = useState(defaultOut);
+  const [formattedCheckIn, setFormattedCheckIn] = useState(
+    `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}`
+  );
+  const [formattedCheckOut, setFormattedCheckOut] = useState(
+    `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}`
+  );
+  const [guestsCount, setGuestsCount] = useState(2);
+  const [roomsCount, setRoomsCount] = useState(1);
+  const [nightsCount, setNightsCount] = useState(3);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateConfirm = (data) => {
+    setCheckInObj(data.checkInDate);
+    setCheckOutObj(data.checkOutDate);
+    setFormattedCheckIn(data.formattedCheckIn);
+    setFormattedCheckOut(data.formattedCheckOut);
+    setGuestsCount(data.guestsCount);
+    setRoomsCount(data.roomsCount);
+    setNightsCount(data.nightsCount);
+  };
 
   const handleSearchPress = () => {
     if (onSearch) {
       onSearch({
         tab: activeTab,
         location,
-        checkIn,
-        checkOut,
-        guestsRooms,
+        checkIn: formattedCheckIn,
+        checkOut: formattedCheckOut,
+        isoCheckIn: checkInObj.toISOString().split('T')[0],
+        isoCheckOut: checkOutObj.toISOString().split('T')[0],
+        checkInDateObj: checkInObj,
+        checkOutDateObj: checkOutObj,
+        guestsCount,
+        roomsCount,
+        nightsCount,
+        guestsRooms: `${guestsCount} Guest${guestsCount > 1 ? 's' : ''}, ${roomsCount} Room${roomsCount > 1 ? 's' : ''}`,
       });
     }
   };
@@ -104,31 +136,35 @@ export default function SearchCard({ onSearch }) {
       <View style={styles.divider} />
 
       {/* 3 Columns: Check in, Check out, Guests */}
-      <View style={styles.metaRow}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={styles.metaRow}
+        onPress={() => setShowDatePicker(true)}
+      >
         <View style={styles.metaCol}>
           <Text style={styles.metaLabel}>Check-in</Text>
-          <Text style={styles.metaValue}>{checkIn}</Text>
+          <Text style={styles.metaValue}>{formattedCheckIn}</Text>
         </View>
 
         <View style={styles.verticalDivider} />
 
         <View style={styles.metaCol}>
           <Text style={styles.metaLabel}>Check-out</Text>
-          <Text style={styles.metaValue}>{checkOut}</Text>
+          <Text style={styles.metaValue}>{formattedCheckOut}</Text>
         </View>
 
         <View style={styles.verticalDivider} />
 
         <View style={[styles.metaCol, { flex: 1.2 }]}>
-          <Text style={styles.metaLabel}>Guests</Text>
+          <Text style={styles.metaLabel}>Guests ({nightsCount}N)</Text>
           <View style={styles.guestsRow}>
             <Text style={styles.metaValue} numberOfLines={1}>
-              {guestsRooms.split(',')[0]}
+              {guestsCount} Guest{guestsCount > 1 ? 's' : ''}
             </Text>
-            <Text style={styles.chevronIcon}> ⌵</Text>
+            <Text style={styles.chevronIcon}> 📅</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* SEARCH HOTELS Burgundy Button */}
       <View style={styles.buttonRow}>
@@ -140,6 +176,17 @@ export default function SearchCard({ onSearch }) {
           <Text style={styles.searchButtonText}>SEARCH HOTELS</Text>
         </TouchableOpacity>
       </View>
+
+      {/* DATE PICKER MODAL */}
+      <DatePickerModal
+        visible={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        initialCheckIn={checkInObj}
+        initialCheckOut={checkOutObj}
+        initialGuests={guestsCount}
+        initialRooms={roomsCount}
+        onConfirm={handleDateConfirm}
+      />
     </View>
   );
 }
@@ -312,192 +359,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
     letterSpacing: 1.2,
-  },
-});
-}
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 26,
-    paddingHorizontal: 18,
-    paddingVertical: 18,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    elevation: 7,
-  },
-  tabsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: 4,
-  },
-  tabButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 24,
-  },
-  tabButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  tabButtonInactive: {
-    backgroundColor: '#F1F3F6',
-  },
-  tabIcon: {
-    fontSize: 13,
-    marginRight: 5,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  tabTextActive: {
-    color: '#FFFFFF',
-  },
-  tabTextInactive: {
-    color: '#334155',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#EEF2F6',
-    marginVertical: 12,
-  },
-  fieldSection: {
-    paddingVertical: 2,
-  },
-  fieldHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  fieldPinIcon: {
-    fontSize: 13,
-    marginRight: 6,
-  },
-  fieldLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#8E9AAF',
-    letterSpacing: 0.6,
-  },
-  locationInput: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#111827',
-    paddingVertical: 2,
-    paddingHorizontal: 0,
-    letterSpacing: 0.1,
-  },
-  quickLocationsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 8,
-  },
-  quickLocPill: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  quickLocPillActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  quickLocPillInactive: {
-    backgroundColor: '#F0F4F8',
-    borderColor: 'transparent',
-  },
-  quickLocText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  quickLocTextActive: {
-    color: COLORS.goldLight,
-  },
-  quickLocTextInactive: {
-    color: '#2D3748',
-  },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  metaCol: {
-    flex: 1,
-  },
-  metaLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#8E9AAF',
-    marginBottom: 4,
-  },
-  metaValue: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#111827',
-  },
-  guestsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  chevronIcon: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '800',
-  },
-  verticalDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: '#E2E8F0',
-    marginHorizontal: 8,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    gap: 10,
-  },
-  searchButton: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  goldSearchIconBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.gold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  goldSearchIcon: {
-    fontSize: 19,
   },
 });

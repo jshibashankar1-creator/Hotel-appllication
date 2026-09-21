@@ -14,18 +14,42 @@ import {
 import { COLORS } from '../theme/colors';
 import HotelCard from '../components/HotelCard';
 import FilterModal from '../components/FilterModal';
+import DatePickerModal from '../components/DatePickerModal';
 import { RECOMMENDED_HOTELS } from '../data/mockData';
 import { mobileApi } from '../services/api';
 
 export default function SearchScreen({ route, navigation }) {
-  const initialCity = route.params?.city || '';
+  const searchState = route.params?.searchState || {};
+  const initialCity = route.params?.city || searchState.location || '';
   const [searchQuery, setSearchQuery] = useState(initialCity);
   const [hotels, setHotels] = useState(RECOMMENDED_HOTELS);
   const [favorites, setFavorites] = useState(['htl-digha-luxury-resort']);
   const [loading, setLoading] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [dateModalVisible, setDateModalVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
   const [activeSort, setActiveSort] = useState('price_low'); // 'price_low' | 'rating' | 'pool'
+
+  // Booking Date State
+  const today = new Date();
+  const defaultIn = searchState.checkInDateObj || new Date(today.getTime() + 86400000);
+  const defaultOut = searchState.checkOutDateObj || new Date(today.getTime() + 86400000 * 4);
+
+  const [bookingDates, setBookingDates] = useState({
+    checkInDate: defaultIn,
+    checkOutDate: defaultOut,
+    formattedCheckIn: searchState.checkIn || `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}`,
+    formattedCheckOut: searchState.checkOut || `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}`,
+    isoCheckIn: defaultIn.toISOString().split('T')[0],
+    isoCheckOut: defaultOut.toISOString().split('T')[0],
+    guestsCount: searchState.guestsCount || 2,
+    roomsCount: searchState.roomsCount || 1,
+    nightsCount: searchState.nightsCount || 3,
+  });
+
+  const handleDateConfirm = (data) => {
+    setBookingDates(data);
+  };
 
   useEffect(() => {
     fetchHotels();
@@ -91,7 +115,10 @@ export default function SearchScreen({ route, navigation }) {
   };
 
   const handleSelectHotel = (hotel) => {
-    navigation.navigate('HotelDetails', { hotel });
+    navigation.navigate('HotelDetails', {
+      hotel,
+      bookingDates,
+    });
   };
 
   return (
@@ -101,16 +128,22 @@ export default function SearchScreen({ route, navigation }) {
       <View style={styles.responsiveWrapper}>
         {/* TOP SEARCH SUMMARY BAR */}
         <View style={styles.header}>
-          <View style={styles.searchSummaryPill}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.searchSummaryPill}
+            onPress={() => setDateModalVisible(true)}
+          >
             <View style={styles.searchPillLeft}>
               <Text style={styles.calendarIcon}>📅</Text>
-              <Text style={styles.searchPillText}>12 Aug - 15 Aug, 2 Guests</Text>
+              <Text style={styles.searchPillText}>
+                {bookingDates.formattedCheckIn} - {bookingDates.formattedCheckOut} ({bookingDates.nightsCount}N), {bookingDates.guestsCount} Guest{bookingDates.guestsCount > 1 ? 's' : ''}
+              </Text>
             </View>
             <View style={styles.staysTag}>
-              <Text style={styles.staysTagIcon}>🏨</Text>
-              <Text style={styles.staysTagText}>Stays</Text>
+              <Text style={styles.staysTagIcon}>✏️</Text>
+              <Text style={styles.staysTagText}>Edit</Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* HORIZONTAL FILTER CHIPS */}
           <ScrollView
@@ -191,6 +224,16 @@ export default function SearchScreen({ route, navigation }) {
         onClose={() => setFilterModalVisible(false)}
         currentFilters={activeFilters}
         onApply={filters => setActiveFilters(filters)}
+      />
+
+      <DatePickerModal
+        visible={dateModalVisible}
+        onClose={() => setDateModalVisible(false)}
+        initialCheckIn={bookingDates.checkInDate}
+        initialCheckOut={bookingDates.checkOutDate}
+        initialGuests={bookingDates.guestsCount}
+        initialRooms={bookingDates.roomsCount}
+        onConfirm={handleDateConfirm}
       />
     </SafeAreaView>
   );

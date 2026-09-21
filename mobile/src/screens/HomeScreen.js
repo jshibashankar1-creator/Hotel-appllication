@@ -72,6 +72,7 @@ export default function HomeScreen({ navigation }) {
       checkIn: searchParams.checkIn,
       checkOut: searchParams.checkOut,
       guestsRooms: searchParams.guestsRooms,
+      searchState: searchParams,
     });
   };
 

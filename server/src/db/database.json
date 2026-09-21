@@ -4,7 +4,7 @@
       "id": "USR-SUPER-ADMIN",
       "name": "Super Administrator Executive",
       "email": "admin@hotelhub.com",
-      "password": "$2a$10$zcD7uuTAUGyg1L3/a3qv4OO5chguCkCerdIvvdkHqf2SL3evqONg2",
+      "password": "$2a$10$WOqiF6eZC2NL0D85/125DOFa5trIxKJ4qP2YwT3P.6GgaYEnPduBS",
       "role": "super_admin",
       "status": "active",
       "permissions": [
@@ -40,7 +40,7 @@
       ],
       "createdBy": "system",
       "phone": "+91 98000 99999",
-      "lastLoginAt": "2026-09-21T15:55:17.852Z",
+      "lastLoginAt": "2026-09-21T16:12:47.288Z",
       "created_at": "2026-01-01T00:00:00Z"
     },
     {
@@ -89,7 +89,7 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00003",
-      "lastLoginAt": "2026-09-21T15:55:17.353Z",
+      "lastLoginAt": "2026-09-21T16:12:46.919Z",
       "created_at": "2026-01-10T00:00:00Z"
     },
     {
@@ -112,7 +112,7 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00004",
-      "lastLoginAt": "2026-09-21T15:55:17.432Z",
+      "lastLoginAt": "2026-09-21T16:12:46.985Z",
       "created_at": "2026-01-15T00:00:00Z"
     },
     {
@@ -200,7 +200,7 @@
       ],
       "createdBy": "USR-SUPER-ADMIN",
       "phone": "+91 98000 00008",
-      "lastLoginAt": "2026-09-21T15:55:17.510Z",
+      "lastLoginAt": "2026-09-21T16:12:47.051Z",
       "created_at": "2026-01-20T00:00:00Z"
     },
     {
@@ -211,7 +211,7 @@
       "role": "owner",
       "phone": "+91 98201 44521",
       "created_at": "2026-02-10T10:00:00Z",
-      "lastLoginAt": "2026-09-21T15:55:16.556Z"
+      "lastLoginAt": "2026-09-21T16:12:46.326Z"
     },
     {
       "id": "USR-OWNER-2",
@@ -248,7 +248,7 @@
       "role": "customer",
       "phone": "+91 98200 11928",
       "created_at": "2026-05-10T08:00:00Z",
-      "lastLoginAt": "2026-09-21T15:55:16.635Z"
+      "lastLoginAt": "2026-09-21T16:12:46.392Z"
     },
     {
       "id": "USR-CUST-2",
@@ -396,7 +396,7 @@
       "country": "India",
       "postal_code": "721463",
       "rating": 5,
-      "reviews_count": 2,
+      "reviews_count": 3,
       "star_category": 5,
       "status": "active",
       "cover_image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
@@ -615,21 +615,21 @@
       "id": "AVL-MT5V0HM7-2026-10-01",
       "room_id": "RM-101",
       "date": "2026-10-01",
-      "booked_count": 12,
+      "booked_count": 13,
       "blocked_count": 0
     },
     {
       "id": "AVL-MT5V0HM7-2026-10-02",
       "room_id": "RM-101",
       "date": "2026-10-02",
-      "booked_count": 12,
+      "booked_count": 13,
       "blocked_count": 0
     },
     {
       "id": "AVL-MT5W59CN-2026-10-03",
       "room_id": "RM-101",
       "date": "2026-10-03",
-      "booked_count": 12,
+      "booked_count": 13,
       "blocked_count": 0
     },
     {
@@ -839,6 +839,58 @@
     }
   ],
   "bookings": [
+    {
+      "id": "BKG-MUBG1T5I",
+      "booking_code": "HTL-45472",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-102",
+      "room_name": "Presidential Skyline Suite",
+      "check_in_date": "2026-11-10",
+      "check_out_date": "2026-11-12",
+      "nights": 2,
+      "guests_count": 2,
+      "base_amount": 36000,
+      "tax_amount": 4320,
+      "total_amount": 40320,
+      "commission_rate": 15,
+      "commission_amount": 6048,
+      "owner_payout": 34272,
+      "payment_status": "successful",
+      "booking_status": "cancelled",
+      "cancellation_reason": "Trip schedule changed",
+      "created_at": "2026-09-21T16:12:46.422Z"
+    },
+    {
+      "id": "BKG-MUBG1T4Y",
+      "booking_code": "HTL-78849",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "customer_email": "aarav.sharma@gmail.com",
+      "customer_phone": "+91 98200 11928",
+      "hotel_id": "HTL-001",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "room_id": "RM-101",
+      "room_name": "Executive Deluxe Suite",
+      "check_in_date": "2026-10-01",
+      "check_out_date": "2026-10-04",
+      "nights": 3,
+      "guests_count": 2,
+      "base_amount": 25500,
+      "tax_amount": 3060,
+      "total_amount": 28560,
+      "commission_rate": 15,
+      "commission_amount": 4284,
+      "owner_payout": 24276,
+      "payment_status": "successful",
+      "booking_status": "checked_out",
+      "cancellation_reason": null,
+      "created_at": "2026-09-21T16:12:46.402Z"
+    },
     {
       "id": "BKG-MUBFFB6Y",
       "booking_code": "HTL-10473",
@@ -1050,6 +1102,34 @@
   ],
   "payments": [
     {
+      "id": "PAY-MUBG1T5I",
+      "transaction_id": "TXN-MUBG1T5I",
+      "booking_id": "BKG-MUBG1T5I",
+      "booking_code": "HTL-45472",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 40320,
+      "payment_method": "Credit Card",
+      "gateway_reference": "rzp_live_txn-mubg1t5i",
+      "status": "successful",
+      "created_at": "2026-09-21T16:12:46.422Z"
+    },
+    {
+      "id": "PAY-MUBG1T4Y",
+      "transaction_id": "TXN-MUBG1T4Y",
+      "booking_id": "BKG-MUBG1T4Y",
+      "booking_code": "HTL-78849",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "amount": 28560,
+      "payment_method": "UPI (PhonePe)",
+      "gateway_reference": "rzp_live_txn-mubg1t4y",
+      "status": "successful",
+      "created_at": "2026-09-21T16:12:46.402Z"
+    },
+    {
       "id": "PAY-MUBFFB6Y",
       "transaction_id": "TXN-MUBFFB6Y",
       "booking_id": "BKG-MUBFFB6Y",
@@ -1164,6 +1244,23 @@
   ],
   "refunds": [
     {
+      "id": "REF-MUBG1T5L",
+      "refund_code": "REF-3092",
+      "booking_id": "BKG-MUBG1T5I",
+      "booking_code": "HTL-45472",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_name": "Hotel Sea Hawk New Digha",
+      "booking_amount": 40320,
+      "fee_amount": 4032,
+      "refund_amount": 36288,
+      "reason": "Trip schedule changed",
+      "status": "pending",
+      "admin_notes": null,
+      "requested_at": "2026-09-21T16:12:46.425Z",
+      "processed_at": null
+    },
+    {
       "id": "REF-MUBFFB7F",
       "refund_code": "REF-4530",
       "booking_id": "BKG-MUBFFB6Y",
@@ -1234,6 +1331,16 @@
   ],
   "reviews": [
     {
+      "id": "REV-MUBG1T5B",
+      "booking_id": "BKG-MUBG1T4Y",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_id": "HTL-001",
+      "rating": 5,
+      "comment": "Exceptional luxury stay with splendid city views and warm hospitality!",
+      "created_at": "2026-09-21T16:12:46.415Z"
+    },
+    {
       "id": "REV-MUBFFB6N",
       "booking_id": "BKG-MUBFFB5P",
       "customer_id": "USR-CUST-1",
@@ -1275,6 +1382,34 @@
     }
   ],
   "support_tickets": [
+    {
+      "id": "TCK-MUBG1T62",
+      "ticket_code": "TCK-243",
+      "user_id": "USR-CUST-1",
+      "user_name": "Aarav Sharma",
+      "user_email": "aarav.sharma@gmail.com",
+      "user_role": "customer",
+      "booking_id": null,
+      "booking_code": null,
+      "hotel_id": null,
+      "subject": "Airport Shuttle Request",
+      "category": "Concierge Services",
+      "priority": "medium",
+      "status": "in_progress",
+      "messages": [
+        {
+          "sender": "customer",
+          "text": "Could you arrange an airport pickup on arrival day?",
+          "time": "2026-09-21 09:42 pm"
+        },
+        {
+          "sender": "admin",
+          "text": "Our chauffeur will meet you at the arrivals gate with your name placard.",
+          "time": "2026-09-21 09:42 pm"
+        }
+      ],
+      "created_at": "2026-09-21T16:12:46.442Z"
+    },
     {
       "id": "TCK-MUBFFB9B",
       "ticket_code": "TCK-683",
@@ -1394,6 +1529,90 @@
     "updated_at": "2026-09-21T15:52:34.733Z"
   },
   "audit_logs": [
+    {
+      "id": "LOG-MUBG1TX5-895",
+      "timestamp": "2026-09-21T16:12:47.417Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_PASSWORD_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-SUPER-ADMIN",
+      "details": "Password was updated successfully.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MUBG1TRS-806",
+      "timestamp": "2026-09-21T16:12:47.224Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_PASSWORD_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-SUPER-ADMIN",
+      "details": "Password was updated successfully.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MUBG1TO3-130",
+      "timestamp": "2026-09-21T16:12:47.091Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_UPDATED",
+      "resource": "User",
+      "resource_id": "USR-SUPER-ADMIN",
+      "details": "Admin profile updated for 'Super Administrator Executive'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MUBG1TNW-311",
+      "timestamp": "2026-09-21T16:12:47.084Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_DELETED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MUBG1TFM",
+      "details": "Deleted admin 'Pooja Agarwal' (pooja.finance@hotelhub.com).",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MUBG1TNR-483",
+      "timestamp": "2026-09-21T16:12:47.079Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_STATUS_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MUBG1TFM",
+      "details": "Status of admin 'Pooja Agarwal' (pooja.finance@hotelhub.com) changed to 'suspended'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MUBG1TNL-376",
+      "timestamp": "2026-09-21T16:12:47.073Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_ROLE_CHANGED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MUBG1TFM",
+      "details": "Role of admin 'Pooja Agarwal' changed to 'hotel_admin'.",
+      "ip_address": "127.0.0.1"
+    },
+    {
+      "id": "LOG-MUBG1TFN-475",
+      "timestamp": "2026-09-21T16:12:46.787Z",
+      "admin_id": "USR-SUPER-ADMIN",
+      "admin_name": "Super Administrator Executive",
+      "admin_role": "super_admin",
+      "action": "ADMIN_CREATED",
+      "resource": "User",
+      "resource_id": "USR-ADM-MUBG1TFM",
+      "details": "Created new admin 'Pooja Agarwal' (pooja.finance@hotelhub.com) with role 'finance_admin'.",
+      "ip_address": "127.0.0.1"
+    },
     {
       "id": "LOG-MUBFFC6G-358",
       "timestamp": "2026-09-21T15:55:17.992Z",

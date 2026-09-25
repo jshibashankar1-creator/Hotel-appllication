@@ -20,15 +20,16 @@ import { mobileApi } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
-const POPULAR_DESTINATIONS = [
-  { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: 'https://images.unsplash.com/photo-1596436889106-be35e843f6a6?w=600&auto=format&fit=crop&q=80' },
-  { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: 'https://images.unsplash.com/photo-1582719478250-c89402bb1a0b?w=600&auto=format&fit=crop&q=80' },
+const DEFAULT_DESTINATIONS = [
+  { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: null },
+  { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: null },
 ];
 
 import DatePickerModal from '../components/DatePickerModal';
 
 export default function HomeScreen({ navigation }) {
   const [hotels, setHotels] = useState([]);
+  const [destinations, setDestinations] = useState(DEFAULT_DESTINATIONS);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -56,9 +57,19 @@ export default function HomeScreen({ navigation }) {
             rooms: h.rooms || [],
           };
         });
+        
+        const newDighaHotel = combined.find(h => h.city === 'New Digha' && h.coverImage);
+        const oldDighaHotel = combined.find(h => h.city === 'Old Digha' && h.coverImage);
+
+        setDestinations([
+          { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: newDighaHotel ? newDighaHotel.coverImage : null },
+          { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: oldDighaHotel ? oldDighaHotel.coverImage : null },
+        ]);
+        
         setHotels(combined);
       } else {
         setHotels([]);
+        setDestinations(DEFAULT_DESTINATIONS);
       }
     } catch (err) {
       console.log('API Error:', err.message);
@@ -213,7 +224,7 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <FlatList
-            data={POPULAR_DESTINATIONS}
+            data={destinations}
             keyExtractor={item => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}

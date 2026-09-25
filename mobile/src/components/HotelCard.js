@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { COLORS } from '../theme/colors';
 
 export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite = false }) {
+  const [imageError, setImageError] = useState(false);
   const currency = hotel.currency || '₹';
   const price = hotel.pricePerNight || hotel.starting_price || (hotel.rooms && hotel.rooms[0]?.price_per_night) || 0;
+  
+  const coverUri = hotel.coverImage || hotel.cover_image || (hotel.images && hotel.images[0]) || (hotel.gallery && hotel.gallery[0]);
 
   return (
     <TouchableOpacity
@@ -13,10 +16,15 @@ export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite
       onPress={() => onPress && onPress(hotel)}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: hotel.coverImage || hotel.cover_image || (hotel.images && hotel.images[0]) }}
-          style={styles.image}
-        />
+        {coverUri && !imageError ? (
+          <Image
+            source={{ uri: coverUri }}
+            style={styles.image}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <View style={[styles.image, { backgroundColor: 'rgba(255,255,255,0.05)' }]} />
+        )}
         {onToggleFavorite && (
           <TouchableOpacity
             activeOpacity={0.8}

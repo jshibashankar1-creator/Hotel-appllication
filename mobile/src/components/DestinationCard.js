@@ -1,15 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { COLORS } from '../theme/colors';
 
 export default function DestinationCard({ item, onPress }) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <TouchableOpacity
       activeOpacity={0.88}
       style={styles.card}
       onPress={() => onPress && onPress(item)}
     >
-      <Image source={{ uri: item.image }} style={styles.image} />
+      {item.image && !imageError ? (
+        <Image 
+          source={{ uri: item.image }} 
+          style={styles.image} 
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <View style={[styles.image, { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
+      )}
       <View style={styles.gradientOverlay}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title || item.city}

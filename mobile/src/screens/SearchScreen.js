@@ -83,14 +83,6 @@ export default function SearchScreen({ route, navigation }) {
         });
       }
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        combined = combined.filter(h =>
-          (h.name || '').toLowerCase().includes(q) ||
-          (h.city || '').toLowerCase().includes(q) ||
-          (h.location || '').toLowerCase().includes(q)
-        );
-      }
 
       if (activeSort === 'price_low') {
         combined.sort((a, b) => (a.pricePerNight || 0) - (b.pricePerNight || 0));

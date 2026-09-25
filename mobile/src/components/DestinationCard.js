@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { COLORS } from '../theme/colors';
 
 export default function DestinationCard({ item, onPress }) {
   const [imageError, setImageError] = useState(false);
@@ -11,18 +10,23 @@ export default function DestinationCard({ item, onPress }) {
       style={styles.card}
       onPress={() => onPress && onPress(item)}
     >
-      {item.image && !imageError ? (
-        <Image 
-          source={{ uri: item.image }} 
-          style={styles.image} 
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <View style={[styles.image, { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
-      )}
-      <View style={styles.gradientOverlay}>
+      <View style={styles.imageContainer}>
+        {item.image && !imageError ? (
+          <Image 
+            source={{ uri: item.image }} 
+            style={styles.image} 
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <View style={[styles.image, { backgroundColor: '#e2e8f0' }]} />
+        )}
+      </View>
+      <View style={styles.textContainer}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title || item.city}
+        </Text>
+        <Text style={styles.subtitle} numberOfLines={1}>
+          {item.label || 'Beautiful Destination'}
         </Text>
       </View>
     </TouchableOpacity>
@@ -31,39 +35,43 @@ export default function DestinationCard({ item, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 145,
-    height: 190,
-    borderRadius: 20,
+    width: 155,
+    borderRadius: 16,
     overflow: 'hidden',
-    marginRight: 14,
-    backgroundColor: '#160824',
+    marginRight: 16,
+    backgroundColor: 'rgba(255,255,255,0.7)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 3,
+    marginBottom: 8,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 110,
   },
   image: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  gradientOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  textContainer: {
     paddingHorizontal: 12,
-    paddingBottom: 14,
-    paddingTop: 36,
-    backgroundColor: 'rgba(22, 8, 36, 0.75)',
+    paddingVertical: 12,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#0B1733',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.2,
+    marginBottom: 4,
   },
+  subtitle: {
+    color: '#4B5563',
+    fontSize: 11,
+    fontWeight: '400',
+  }
 });

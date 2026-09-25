@@ -10,29 +10,25 @@ import {
   FlatList,
   Dimensions,
   Platform,
+  ImageBackground,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
-import SearchCard from '../components/SearchCard';
 import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
-
 import { mobileApi } from '../services/api';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const DEFAULT_DESTINATIONS = [
   { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: null },
   { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: null },
 ];
 
-import DatePickerModal from '../components/DatePickerModal';
-
 export default function HomeScreen({ navigation }) {
   const [hotels, setHotels] = useState([]);
   const [destinations, setDestinations] = useState(DEFAULT_DESTINATIONS);
-  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchLiveHotels();
@@ -41,39 +37,28 @@ export default function HomeScreen({ navigation }) {
   async function fetchLiveHotels() {
     try {
       setLoading(true);
-      setError(null);
       const res = await mobileApi.searchHotels();
       if (res && res.hotels && res.hotels.length > 0) {
-        const combined = res.hotels.map(h => {
-          return {
-            ...h,
-            coverImage: h.cover_image,
-            images: h.gallery && h.gallery.length > 0 ? h.gallery : [h.cover_image],
-            pricePerNight: h.starting_price || h.price_per_night || 0,
-            currency: '₹',
-            isTopRated: true,
-            reviewsCount: h.reviews_count || 0,
-            rating: h.rating || 0,
-            rooms: h.rooms || [],
-          };
-        });
+        const combined = res.hotels.map(h => ({
+          ...h,
+          coverImage: h.cover_image,
+          pricePerNight: h.starting_price || h.price_per_night || 0,
+          currency: '₹',
+          rating: h.rating || 0,
+          reviewsCount: h.reviews_count || 0,
+        }));
         
         const newDighaHotel = combined.find(h => h.city === 'New Digha' && h.coverImage);
         const oldDighaHotel = combined.find(h => h.city === 'Old Digha' && h.coverImage);
 
         setDestinations([
-          { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: newDighaHotel ? newDighaHotel.coverImage : null },
-          { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: oldDighaHotel ? oldDighaHotel.coverImage : null },
+          { id: '1', city: 'New Digha', label: 'Beautiful Coastal View', image: newDighaHotel ? newDighaHotel.coverImage : null },
+          { id: '2', city: 'Old Digha', label: 'Sunset & Serenity', image: oldDighaHotel ? oldDighaHotel.coverImage : null },
         ]);
-        
         setHotels(combined);
-      } else {
-        setHotels([]);
-        setDestinations(DEFAULT_DESTINATIONS);
       }
     } catch (err) {
       console.log('API Error:', err.message);
-      setError('Unable to connect to server. Please check your internet connection or try again.');
     } finally {
       setLoading(false);
     }
@@ -82,394 +67,276 @@ export default function HomeScreen({ navigation }) {
   const today = new Date();
   const defaultIn = new Date(today.getTime() + 86400000);
   const defaultOut = new Date(today.getTime() + 86400000 * 4);
-  const [checkInObj, setCheckInObj] = useState(defaultIn);
-  const [checkOutObj, setCheckOutObj] = useState(defaultOut);
-  const [formattedCheckIn, setFormattedCheckIn] = useState(`${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}`);
-  const [formattedCheckOut, setFormattedCheckOut] = useState(`${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}`);
-  const [guestsCount, setGuestsCount] = useState(2);
-  const [roomsCount, setRoomsCount] = useState(1);
-  const [nightsCount, setNightsCount] = useState(3);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const handleDateConfirm = (data) => {
-    setCheckInObj(data.checkInDate);
-    setCheckOutObj(data.checkOutDate);
-    setFormattedCheckIn(data.formattedCheckIn);
-    setFormattedCheckOut(data.formattedCheckOut);
-    setGuestsCount(data.guestsCount);
-    setRoomsCount(data.roomsCount);
-    setNightsCount(data.nightsCount);
-  };
-
-  const toggleFavorite = (hotelId) => {
-    if (favorites.includes(hotelId)) {
-      setFavorites(favorites.filter(id => id !== hotelId));
-    } else {
-      setFavorites([...favorites, hotelId]);
-    }
-  };
-
-  const handleSearchSubmit = (searchParams) => {
-    navigation.navigate('Search', {
-      city: searchParams.location,
-      checkIn: searchParams.checkIn,
-      checkOut: searchParams.checkOut,
-      guestsRooms: searchParams.guestsRooms,
-      searchState: searchParams,
-    });
-  };
-
-  const handleSelectHotel = (hotel) => {
-    navigation.navigate('HotelDetails', { hotel });
-  };
+  const formattedCheckIn = `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}, Mon`;
+  const formattedCheckOut = `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}, Thu`;
 
   const handleSelectDestination = (destination) => {
     navigation.navigate('Search', { city: destination.city });
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#160824" />
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
+      {/* Background Hero Image */}
+      <ImageBackground
+        source={{ uri: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80' }}
+        style={styles.heroBackground}
       >
-        <View style={styles.responsiveWrapper}>
-          {/* REDESIGNED DARK HERO HEADER */}
-          <View style={styles.heroSection}>
-            <Text style={styles.heroTitle}>Find Your Perfect Stay</Text>
-            <Text style={styles.heroSubtitle}>Explore luxury collections & premium experiences.</Text>
+        <View style={styles.heroOverlay} />
+      </ImageBackground>
 
-            {/* TABS */}
-            <View style={styles.heroTabs}>
-              <View style={styles.heroTabActive}>
-                <Text style={styles.heroTabTextActive}>🏨 Stays</Text>
-              </View>
-              <View style={styles.heroTab}>
-                <Text style={styles.heroTabText}>✈️ Flights</Text>
-              </View>
-              <View style={styles.heroTab}>
-                <Text style={styles.heroTabText}>🚗 Cars</Text>
-              </View>
-            </View>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Header */}
+          <View style={styles.headerRow}>
+            <Text style={styles.greetingText}>Good Evening 👋</Text>
+            <TouchableOpacity style={styles.bellIcon}>
+              <Text style={{color: '#fff', fontSize: 18}}>🔔</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.heroTitle}>Find Your{'\n'}Perfect Stay</Text>
+          <Text style={styles.locationPin}>📍 New Digha & Old Digha, WB</Text>
 
-            {/* SEARCH FORM BOX */}
-            <View style={styles.searchFormBox}>
-              <Text style={styles.searchFormLabel}>WHERE TO?</Text>
-              <TouchableOpacity style={styles.searchFormInputBox} onPress={() => navigation.navigate('Search', { city: '' })}>
-                <Text style={styles.searchFormInputText}>📍 New Digha, West Bengal</Text>
+          {/* Search Glass Box */}
+          <View style={styles.glassBoxContainer}>
+            <BlurView intensity={50} tint="light" style={styles.glassBox}>
+              
+              {/* TABS */}
+              <View style={styles.tabsRow}>
+                <TouchableOpacity style={styles.tabActive}>
+                  <Text style={styles.tabTextActive}>🏨 Stays</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.tabInactive}>
+                  <Text style={styles.tabTextInactive}>✈️ Flights</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.tabInactive}>
+                  <Text style={styles.tabTextInactive}>🚗 Cars</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity style={styles.inputBox} onPress={() => navigation.navigate('Search', { city: '' })}>
+                <Text style={styles.inputLabel}>WHERE TO?</Text>
+                <Text style={styles.inputValue}>📍 New Digha, West Bengal</Text>
               </TouchableOpacity>
 
-              <View style={styles.searchFormRow}>
-                <TouchableOpacity style={styles.searchFormHalfBox} onPress={() => setShowDatePicker(true)}>
-                  <Text style={styles.searchFormLabel}>CHECK-IN</Text>
-                  <Text style={styles.searchFormValue}>{formattedCheckIn}</Text>
+              <View style={styles.row}>
+                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginRight: 8 }]} onPress={() => {}}>
+                  <Text style={styles.inputLabel}>Check-in</Text>
+                  <Text style={styles.inputValue}>📅 {formattedCheckIn}</Text>
                 </TouchableOpacity>
-                <View style={styles.searchFormDivider} />
-                <TouchableOpacity style={styles.searchFormHalfBox} onPress={() => setShowDatePicker(true)}>
-                  <Text style={styles.searchFormLabel}>CHECK-OUT</Text>
-                  <Text style={styles.searchFormValue}>{formattedCheckOut}</Text>
+                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginLeft: 8 }]} onPress={() => {}}>
+                  <Text style={styles.inputLabel}>Check-out</Text>
+                  <Text style={styles.inputValue}>📅 {formattedCheckOut}</Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={[styles.searchFormRow, { borderBottomWidth: 0 }]}>
-                <TouchableOpacity style={styles.searchFormFullBox} onPress={() => setShowDatePicker(true)}>
-                  <Text style={styles.searchFormLabel}>GUESTS</Text>
-                  <Text style={styles.searchFormValue}>👤 {guestsCount} Guests, {roomsCount} Room</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity style={styles.inputBox} onPress={() => {}}>
+                <Text style={styles.inputLabel}>Guests & Rooms</Text>
+                <Text style={styles.inputValue}>👤 2 Guests, 1 Room</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity 
                 style={styles.searchButton}
                 activeOpacity={0.88}
-                onPress={() => handleSearchSubmit({
-                  location: '',
-                  checkIn: formattedCheckIn,
-                  checkOut: formattedCheckOut,
-                  guestsRooms: `${guestsCount} Guests, ${roomsCount} Room`
-                })}
+                onPress={() => navigation.navigate('Search', { city: '' })}
               >
-                <Text style={styles.searchButtonText}>SEARCH HOTELS</Text>
+                <Text style={styles.searchButtonText}>🔍 SEARCH HOTELS</Text>
+              </TouchableOpacity>
+            </BlurView>
+          </View>
+
+          {/* White Content Area */}
+          <View style={styles.whiteContentArea}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Popular Destinations</Text>
+              <TouchableOpacity>
+                <Text style={styles.viewAllText}>See All</Text>
               </TouchableOpacity>
             </View>
+
+            <FlatList
+              data={destinations}
+              keyExtractor={item => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+              renderItem={({ item }) => (
+                <DestinationCard item={item} onPress={handleSelectDestination} />
+              )}
+            />
           </View>
-
-          {/* FILTER CHIPS */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterChipsRow}
-          >
-            <TouchableOpacity style={styles.filterChip}>
-              <Text style={styles.filterChipText}>Price: Low to High</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterChip}>
-              <Text style={styles.filterChipText}>⭐ 5 Star Rating</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterChip}>
-              <Text style={styles.filterChipText}>🏊 With Pool</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterChip}>
-              <Text style={styles.filterChipText}>📍 Nearby</Text>
-            </TouchableOpacity>
-          </ScrollView>
-
-          {/* POPULAR DESTINATIONS */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Destinations</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Search', { city: '' })}>
-              <Text style={styles.viewAllText}>View all</Text>
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={destinations}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.destinationsList}
-            renderItem={({ item }) => (
-              <DestinationCard item={item} onPress={handleSelectDestination} />
-            )}
-          />
-
-          {/* RECOMMENDED LUXURY STAYS */}
-          <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-            <Text style={styles.sectionTitle}>Featured Stays</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Search', { city: '' })}>
-              <Text style={styles.viewAllText}>View all</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.hotelsList}>
-            {loading ? (
-              <Text style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>Loading hotels...</Text>
-            ) : error ? (
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
-                <Text style={{ color: 'red', textAlign: 'center', marginBottom: 10 }}>{error}</Text>
-                <TouchableOpacity onPress={fetchLiveHotels} style={{ backgroundColor: COLORS.goldLight, padding: 10, borderRadius: 5 }}>
-                  <Text style={{ color: '#000' }}>Retry</Text>
-                </TouchableOpacity>
-              </View>
-            ) : hotels.length === 0 ? (
-              <Text style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>No hotels available</Text>
-            ) : (
-              hotels.map(hotel => (
-                <HotelCard
-                  key={hotel.id}
-                  hotel={hotel}
-                  isFavorite={favorites.includes(hotel.id)}
-                  onToggleFavorite={toggleFavorite}
-                  onPress={(h) => {
-                    // Update the hotel to include the selected dates for dynamic pricing downstream
-                    const hotelWithDates = {
-                      ...h,
-                      searchDates: {
-                        checkIn: formattedCheckIn,
-                        checkOut: formattedCheckOut,
-                        guestsCount,
-                        roomsCount,
-                        nightsCount,
-                        checkInDateObj: checkInObj,
-                        checkOutDateObj: checkOutObj
-                      }
-                    };
-                    handleSelectHotel(hotelWithDates);
-                  }}
-                />
-              ))
-            )}
-          </View>
-
-          <DatePickerModal
-            visible={showDatePicker}
-            onClose={() => setShowDatePicker(false)}
-            initialCheckIn={checkInObj}
-            initialCheckOut={checkOutObj}
-            initialGuests={guestsCount}
-            initialRooms={roomsCount}
-            onConfirm={handleDateConfirm}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#160824',
-  },
   container: {
     flex: 1,
-    backgroundColor: '#160824',
+    backgroundColor: '#ebf0f7', // light background behind popular destinations
+  },
+  heroBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.55,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7, 27, 58, 0.5)',
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: 120,
   },
-  responsiveWrapper: {
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  heroSection: {
-    paddingTop: STATUSBAR_HEIGHT + 24,
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 30,
-    backgroundColor: '#160824',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 20,
+    marginBottom: 16,
   },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    marginBottom: 6,
-  },
-  heroSubtitle: {
+  greetingText: {
+    color: '#fff',
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 24,
+    fontWeight: '500',
   },
-  heroTabs: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    gap: 12,
-  },
-  heroTab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  heroTabActive: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: '#7D143D',
-  },
-  heroTabText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  heroTabTextActive: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  searchFormBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  searchFormLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#888888',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  searchFormInputBox: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-    marginBottom: 12,
-  },
-  searchFormInputText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#160824',
-  },
-  searchFormRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-    paddingBottom: 12,
-    marginBottom: 12,
-  },
-  searchFormHalfBox: {
-    flex: 1,
+  bellIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  searchFormFullBox: {
-    flex: 1,
-  },
-  searchFormDivider: {
-    width: 1,
-    backgroundColor: '#EEEEEE',
-    marginHorizontal: 16,
-  },
-  searchFormValue: {
-    fontSize: 15,
+  heroTitle: {
+    fontSize: 36,
     fontWeight: '700',
-    color: '#160824',
+    color: '#fff',
+    paddingHorizontal: 20,
+    lineHeight: 44,
+  },
+  locationPin: {
+    fontSize: 14,
+    color: '#f8fafc',
+    paddingHorizontal: 20,
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  glassBoxContainer: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 20,
+  },
+  glassBox: {
+    borderRadius: 24,
+    padding: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  tabActive: {
+    flex: 1,
+    backgroundColor: '#8F1239',
+    borderRadius: 20,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginRight: 8,
+    shadowColor: '#8F1239',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  tabInactive: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderRadius: 20,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  tabTextActive: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  tabTextInactive: {
+    color: '#0B1733',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  inputBox: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  inputLabel: {
+    fontSize: 10,
+    color: '#64748b',
+    fontWeight: '700',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inputValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0B1733',
   },
   searchButton: {
-    backgroundColor: '#7D143D',
+    backgroundColor: '#8F1239',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#8F1239',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   searchButtonText: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
-          filterChipsRow: {
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            gap: 10,
-          },
-          filterChip: {
-            backgroundColor: 'rgba(37, 12, 35, 0.8)',
-            paddingVertical: 8,
-            paddingHorizontal: 14,
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: 'rgba(255, 255, 255, 0.15)',
-          },
-          filterChipText: {
-            color: '#FFFFFF',
-            fontSize: 12,
-            fontWeight: '600',
-          },
+  whiteContentArea: {
+    paddingTop: 10,
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginTop: 22,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.2,
+    color: '#0B1733',
   },
   viewAllText: {
-    fontSize: 13,
+    color: '#8F1239',
+    fontSize: 14,
     fontWeight: '700',
-    color: COLORS.goldLight,
-  },
-  destinationsList: {
-    paddingLeft: 20,
-    paddingRight: 6,
-  },
-  hotelsList: {
-    paddingHorizontal: 20,
-    marginTop: 4,
   },
 });

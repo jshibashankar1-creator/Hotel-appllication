@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { COLORS } from '../theme/colors';
 
 export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite = false }) {
   const [imageError, setImageError] = useState(false);
@@ -23,48 +22,60 @@ export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite
             onError={() => setImageError(true)}
           />
         ) : (
-          <View style={[styles.image, { backgroundColor: 'rgba(255,255,255,0.05)' }]} />
+          <View style={[styles.image, { backgroundColor: '#e2e8f0' }]} />
         )}
-        {onToggleFavorite && (
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.favoriteButton}
-            onPress={() => onToggleFavorite(hotel.id)}
-          >
-            <Text style={styles.favoriteIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.ratingBadge}>
+          <Text style={styles.ratingText}>⭐ {hotel.rating || '4.8'}</Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.favoriteButton}
+          onPress={() => onToggleFavorite && onToggleFavorite(hotel.id)}
+        >
+          <Text style={styles.favoriteIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.detailsContainer}>
-        <Text style={styles.hotelName} numberOfLines={1}>
-          {hotel.name}
-        </Text>
-
-        <View style={styles.ratingRow}>
-          <Text style={styles.starIcon}>⭐</Text>
-          <Text style={styles.ratingScore}>{hotel.rating || '4.8'}</Text>
-          <Text style={styles.reviewsCount}>
-            ({(hotel.reviewsCount || hotel.reviews_count || 215)} Reviews)
-          </Text>
+        <View style={styles.rowBetween}>
+          <View style={{flex: 1}}>
+            <Text style={styles.hotelName} numberOfLines={1}>{hotel.name}</Text>
+            <Text style={styles.locationText}>📍 {hotel.city}, WB</Text>
+          </View>
+          <View style={{alignItems: 'flex-end'}}>
+            <Text style={styles.priceAmount}>{currency}{price.toLocaleString()}</Text>
+            <Text style={styles.priceUnit}>/ night</Text>
+          </View>
         </View>
 
-        <View style={styles.priceRow}>
-          <Text style={styles.priceAmount}>{currency}{price.toLocaleString()}</Text>
-          <Text style={styles.priceUnit}> / night</Text>
+        <View style={styles.rowBetween}>
+          <View style={styles.amenitiesRow}>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🏊</Text>
+              <Text style={styles.amenityText}>Pool</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>📶</Text>
+              <Text style={styles.amenityText}>WiFi</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🏖️</Text>
+              <Text style={styles.amenityText}>Beach</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🍽️</Text>
+              <Text style={styles.amenityText}>Rest</Text>
+            </View>
+          </View>
+          
+          <TouchableOpacity
+            activeOpacity={0.88}
+            style={styles.bookButton}
+            onPress={() => onPress && onPress(hotel)}
+          >
+            <Text style={styles.bookButtonText}>Book Now</Text>
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.amenitiesText} numberOfLines={1}>
-          📶 Free WiFi | Pool | Spa
-        </Text>
-
-        <TouchableOpacity
-          activeOpacity={0.88}
-          style={styles.bookButton}
-          onPress={() => onPress && onPress(hotel)}
-        >
-          <Text style={styles.bookButtonText}>Book Now</Text>
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -72,109 +83,115 @@ export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 20,
-    padding: 12,
-    marginBottom: 14,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 3,
   },
   imageContainer: {
-    width: 125,
-    height: 115,
-    borderRadius: 16,
-    overflow: 'hidden',
+    width: '100%',
+    height: 180,
     position: 'relative',
-    backgroundColor: '#F0F0F0',
   },
   image: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
+  ratingBadge: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  ratingText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   favoriteButton: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   favoriteIcon: {
-    fontSize: 12,
+    fontSize: 14,
   },
   detailsContainer: {
-    flex: 1,
-    marginLeft: 14,
+    padding: 16,
+  },
+  rowBetween: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   hotelName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#160824',
-    letterSpacing: 0.1,
+    color: '#0B1733',
+    marginBottom: 4,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  starIcon: {
+  locationText: {
     fontSize: 12,
-    marginRight: 4,
-  },
-  ratingScore: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#160824',
-    marginRight: 4,
-  },
-  reviewsCount: {
-    fontSize: 11,
-    color: '#666666',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginTop: 4,
+    color: '#4B5563',
+    fontWeight: '500',
   },
   priceAmount: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '900',
-    color: '#160824',
+    color: '#8F1239',
   },
   priceUnit: {
     fontSize: 11,
-    color: '#666666',
+    color: '#64748b',
     fontWeight: '500',
   },
-  amenitiesText: {
-    fontSize: 11,
-    color: '#666666',
-    marginTop: 3,
+  amenitiesRow: {
+    flexDirection: 'row',
+  },
+  amenityItem: {
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  amenityIcon: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  amenityText: {
+    fontSize: 10,
+    color: '#4B5563',
+    fontWeight: '500',
   },
   bookButton: {
-    backgroundColor: '#7D143D', // Burgundy
-    paddingVertical: 7,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-    alignSelf: 'flex-start',
-    marginTop: 8,
+    backgroundColor: '#8F1239',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    shadowColor: '#8F1239',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   bookButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.2,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

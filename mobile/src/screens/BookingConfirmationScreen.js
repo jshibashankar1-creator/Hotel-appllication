@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,9 @@ import {
   StatusBar,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
-import { COLORS } from '../theme/colors';
-
+import { BlurView } from 'expo-blur';
 
 export default function BookingConfirmationScreen({ route, navigation }) {
   const hotel = route.params?.hotel || {};
@@ -21,481 +21,295 @@ export default function BookingConfirmationScreen({ route, navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#160824" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
-      <View style={styles.responsiveWrapper}>
-        {/* Background Split */}
-        <View style={styles.topBackground} />
-        <View style={styles.bottomBackground} />
-        <ScrollView
-          style={styles.container}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* GLOWING GREEN CHECKMARK & CONFIRMED TITLE */}
+      {/* Background with subtle gradient effect */}
+      <View style={styles.bgGradient} />
+
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          
+          {/* HEADER SECTION */}
           <View style={styles.headerSection}>
-            <View style={styles.outerGlowRing}>
-              <View style={styles.successCircle}>
+            <View style={styles.checkRing}>
+              <View style={styles.checkCircle}>
                 <Text style={styles.checkIcon}>✓</Text>
               </View>
             </View>
-
             <Text style={styles.confirmedTitle}>Booking Confirmed!</Text>
+            <Text style={styles.confirmedSub}>
+              Your stay has been successfully booked.{'\n'}We've sent the details to your email.
+            </Text>
           </View>
 
-          {/* DIGITAL PASS TICKET CARD WITH CUTOUT NOTCHES */}
-          <View style={styles.passCardWrapper}>
-            {/* Cutout Notches */}
-            <View style={styles.leftCutout} />
-            <View style={styles.rightCutout} />
+          {/* DIGITAL PASS CARD */}
+          <View style={styles.passContainer}>
+            <BlurView intensity={40} tint="light" style={styles.passGlass}>
+              <View style={styles.passHeader}>
+                <Text style={styles.passTitle}>Digital Pass</Text>
+                <TouchableOpacity onPress={handleDownloadTicket}>
+                  <Text style={styles.detailLink}>Detail</Text>
+                </TouchableOpacity>
+              </View>
 
-            {/* Pass Header */}
-            <View style={styles.passHeader}>
-              <Text style={styles.passTitle}>Digital Pass</Text>
-              <TouchableOpacity onPress={handleDownloadTicket}>
-                <Text style={styles.detailLink}>Detail</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Dashed Line */}
-            <View style={styles.dashedDivider} />
-
-            {/* Crisp QR Code Vector Mock */}
-            <View style={styles.qrSection}>
-              <View style={styles.qrCodeBox}>
-                <View style={styles.qrRow}>
-                  <View style={styles.qrSquareLarge} />
-                  <View style={styles.qrPatternCols} />
-                  <View style={styles.qrSquareLarge} />
+              <View style={styles.passTopRow}>
+                {/* Simulated QR Code */}
+                <View style={styles.qrCodeBox}>
+                  <View style={styles.qrRow}><View style={styles.qrSq}/><View style={styles.qrDot}/><View style={styles.qrSq}/></View>
+                  <View style={styles.qrRow}><View style={styles.qrDot}/><View style={styles.qrDot}/><View style={styles.qrDot}/></View>
+                  <View style={styles.qrRow}><View style={styles.qrSq}/><View style={styles.qrDot}/><View style={styles.qrSq}/></View>
                 </View>
-                <View style={styles.qrRowMid}>
-                  <View style={styles.qrPatternLines} />
-                </View>
-                <View style={styles.qrRow}>
-                  <View style={styles.qrSquareLarge} />
-                  <View style={styles.qrPatternCols} />
-                  <View style={styles.qrSquareSmall} />
+
+                {/* Hotel Image */}
+                <View style={styles.passImageContainer}>
+                  <Image 
+                    source={{uri: hotel?.coverImage || hotel?.cover_image || 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80'}} 
+                    style={styles.passImage} 
+                  />
                 </View>
               </View>
-            </View>
 
-            {/* Booking Details Section */}
-            <View style={styles.passMetaSection}>
-              <Text style={styles.metaLabel}>Booking Details</Text>
-              <Text style={styles.hotelNameText}>
-                {booking?.hotel_name || hotel?.name || ''}
-              </Text>
-
-              <View style={styles.datesRow}>
-                <View style={styles.dateCol}>
-                  <Text style={styles.dateTitle}>Check-in 📅</Text>
-                  <Text style={styles.dateVal}>{booking?.check_in_date || booking?.formattedCheckIn || ''}</Text>
+              {/* Booking Details Grid */}
+              <View style={styles.detailsGrid}>
+                <View style={styles.gridRow}>
+                  <Text style={styles.gridLabel}>Hotel</Text>
+                  <Text style={styles.gridValue}>{hotel?.name || 'Digha Beach Luxury Resort'}</Text>
                 </View>
-
-                <View style={styles.dateColRight}>
-                  <Text style={styles.dateTitle}>Check-out 👤</Text>
-                  <Text style={styles.dateVal}>{booking?.check_out_date || booking?.formattedCheckOut || ''}</Text>
+                <View style={styles.gridRow}>
+                  <Text style={styles.gridLabel}>Booking ID</Text>
+                  <Text style={styles.gridValue}>#{booking?.booking_id || 'DG89231'}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                  <Text style={styles.gridLabel}>Check-in</Text>
+                  <Text style={styles.gridValue}>{booking?.formattedCheckIn || '12 Aug 2024, Mon'}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                  <Text style={styles.gridLabel}>Check-out</Text>
+                  <Text style={styles.gridValue}>{booking?.formattedCheckOut || '15 Aug 2024, Thu'}</Text>
+                </View>
+                <View style={styles.gridRow}>
+                  <Text style={styles.gridLabel}>Guests</Text>
+                  <Text style={styles.gridValue}>{booking?.guestsCount || 2} Adults, {booking?.roomsCount || 1} Room</Text>
                 </View>
               </View>
-            </View>
+
+              {/* Divider */}
+              <View style={styles.divider} />
+
+              {/* Amenities */}
+              <View style={styles.amenitiesRow}>
+                <View style={styles.amenityItem}><Text style={styles.amenityIcon}>📶</Text><Text style={styles.amenityText}>Free WiFi</Text></View>
+                <View style={styles.amenityItem}><Text style={styles.amenityIcon}>🏊</Text><Text style={styles.amenityText}>Pool</Text></View>
+                <View style={styles.amenityItem}><Text style={styles.amenityIcon}>🏖️</Text><Text style={styles.amenityText}>Beach Access</Text></View>
+                <View style={styles.amenityItem}><Text style={styles.amenityIcon}>🍽️</Text><Text style={styles.amenityText}>Restaurant</Text></View>
+              </View>
+            </BlurView>
           </View>
 
-          {/* DOWNLOAD E-TICKET BURGUNDY BUTTON */}
-          <TouchableOpacity
-            style={styles.downloadButton}
-            activeOpacity={0.88}
-            onPress={handleDownloadTicket}
-          >
-            <Text style={styles.downloadButtonText}>Download E-Ticket</Text>
+          {/* ACTION BUTTONS */}
+          <TouchableOpacity style={styles.downloadButton} activeOpacity={0.88} onPress={handleDownloadTicket}>
+            <Text style={styles.downloadButtonText}>↓ Download E-Ticket</Text>
           </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.viewBookingsButton} activeOpacity={0.88} onPress={() => navigation.navigate('MyBookings')}>
+            <Text style={styles.viewBookingsText}>View My Bookings</Text>
+          </TouchableOpacity>
+
         </ScrollView>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#160824',
-  },
-  responsiveWrapper: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-    position: 'relative',
-    backgroundColor: '#FFFFFF',
-  },
-  topBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 380,
-    backgroundColor: '#160824',
-  },
-  bottomBackground: {
-    position: 'absolute',
-    top: 380,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#F5F6F8',
-  },
   container: {
     flex: 1,
-    zIndex: 1,
+    backgroundColor: '#071B3A',
+  },
+  bgGradient: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0a1432',
+    opacity: 0.8,
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollContent: {
+    paddingBottom: 140,
     paddingHorizontal: 20,
-    paddingTop: STATUSBAR_HEIGHT + 20,
-    paddingBottom: 40,
-    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 20,
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 30,
   },
-  outerGlowRing: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+  checkRing: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(39, 245, 138, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(34, 197, 94, 0.4)',
     marginBottom: 16,
   },
-  successCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#22C55E',
+  checkCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#27F58A',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: '#27F58A',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
   },
   checkIcon: {
-    color: '#FFFFFF',
-    fontSize: 32,
+    color: '#071B3A',
+    fontSize: 28,
     fontWeight: '900',
   },
   confirmedTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#22C55E',
-    letterSpacing: 0.3,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#27F58A',
+    marginBottom: 8,
   },
-  passCardWrapper: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    position: 'relative',
-    overflow: 'hidden',
+  confirmedSub: {
+    fontSize: 14,
+    color: '#e2e8f0',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  passContainer: {
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 10,
   },
-  leftCutout: {
-    position: 'absolute',
-    left: -14,
-    top: 50,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#160824',
-    zIndex: 10,
-  },
-  rightCutout: {
-    position: 'absolute',
-    right: -14,
-    top: 50,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#160824',
-    zIndex: 10,
+  passGlass: {
+    borderRadius: 24,
+    padding: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   passHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 10,
+    marginBottom: 20,
   },
   passTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
   },
   detailLink: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#6B7280',
+    color: '#e2e8f0',
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
-  dashedDivider: {
-    height: 1,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
-    marginVertical: 10,
-  },
-  qrSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
+  passTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
   },
   qrCodeBox: {
-    width: 140,
-    height: 140,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    width: 80,
+    height: 80,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 6,
     justifyContent: 'space-between',
   },
-  qrRow: {
+  qrRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  qrSq: { width: 18, height: 18, borderWidth: 3, borderColor: '#000' },
+  qrDot: { width: 18, height: 18, backgroundColor: '#000' },
+  passImageContainer: {
+    flex: 1,
+    marginLeft: 16,
+    height: 80,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  passImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  detailsGrid: {
+    marginBottom: 16,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  gridLabel: {
+    width: 90,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  gridValue: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginBottom: 16,
+  },
+  amenitiesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  amenityItem: {
     alignItems: 'center',
   },
-  qrSquareLarge: {
-    width: 32,
-    height: 32,
-    borderRadius: 4,
-    backgroundColor: '#111827',
-  },
-  qrSquareSmall: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    backgroundColor: '#111827',
-  },
-  qrPatternCols: {
-    width: 40,
-    height: 12,
-    backgroundColor: '#111827',
-    borderRadius: 2,
-  },
-  qrRowMid: {
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  qrPatternLines: {
-    width: 110,
-    height: 24,
-    backgroundColor: '#111827',
-    borderRadius: 4,
-  },
-  passMetaSection: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  metaLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#9CA3AF',
+  amenityIcon: {
+    fontSize: 16,
     marginBottom: 4,
   },
-  hotelNameText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 10,
-  },
-  datesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  dateCol: {
-    flex: 1,
-  },
-  dateColRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  dateTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  dateVal: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#111827',
-    marginTop: 2,
+  amenityText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '500',
   },
   downloadButton: {
-    backgroundColor: COLORS.burgundyPill,
-    paddingVertical: 14,
-    paddingHorizontal: 36,
-    borderRadius: 28,
-    width: '100%',
+    backgroundColor: '#8F1239',
+    borderRadius: 24,
+    paddingVertical: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: COLORS.burgundyPill,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 4,
+    marginBottom: 16,
+    shadowColor: '#8F1239',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   downloadButtonText: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    fontWeight: '700',
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.textDark,
-    letterSpacing: 0.3,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    lineHeight: 19,
-    paddingHorizontal: 10,
-  },
-  summaryCard: {
-    backgroundColor: COLORS.white,
+  viewBookingsButton: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 24,
-    padding: 18,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  hotelInfoRow: {
-    flexDirection: 'row',
+    paddingVertical: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  hotelThumb: {
-    width: 70,
-    height: 70,
-    borderRadius: 14,
-    backgroundColor: COLORS.borderLight,
-  },
-  hotelDetails: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  hotelName: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  hotelLocation: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    marginTop: 2,
-  },
-  badgeRow: {
-    marginTop: 6,
-  },
-  bookingCodeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: COLORS.borderLight,
-    marginVertical: 14,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoIcon: {
-    fontSize: 14,
-    marginRight: 8,
-  },
-  infoText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textBody,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 4,
-  },
-  priceLabel: {
+  viewBookingsText: {
+    color: '#fff',
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.textDark,
-  },
-  priceValue: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: COLORS.primary,
-  },
-  actionsSection: {
-    marginTop: 28,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  primaryGoldButton: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    color: COLORS.primary,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  secondaryTealButton: {
-    flex: 1.2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.gold,
-    paddingVertical: 14,
-    borderRadius: 18,
-    shadowColor: COLORS.goldDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  secondaryButtonIcon: {
-    fontSize: 13,
-    marginRight: 4,
-  },
-  secondaryButtonText: {
-    color: COLORS.white,
-    fontSize: 13,
-    fontWeight: '800',
   },
 });

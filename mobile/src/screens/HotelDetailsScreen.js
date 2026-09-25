@@ -11,14 +11,9 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { COLORS } from '../theme/colors';
-import RoomCard from '../components/RoomCard';
-import StickyBookingBar from '../components/StickyBookingBar';
-import DatePickerModal from '../components/DatePickerModal';
 import { mobileApi } from '../services/api';
 
-
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function HotelDetailsScreen({ route, navigation }) {
   const hotel = route.params?.hotel;
@@ -28,7 +23,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
   const defaultIn = passedDates.checkInDate || new Date(today.getTime() + 86400000);
   const defaultOut = passedDates.checkOutDate || new Date(today.getTime() + 86400000 * 4);
 
-  const [bookingDates, setBookingDates] = useState({
+  const [bookingDates] = useState({
     checkInDate: defaultIn,
     checkOutDate: defaultOut,
     formattedCheckIn: passedDates.formattedCheckIn || `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}`,
@@ -40,9 +35,8 @@ export default function HotelDetailsScreen({ route, navigation }) {
     nightsCount: passedDates.nightsCount || 3,
   });
 
-  const [dateModalVisible, setDateModalVisible] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(hotel.isFavorite || false);
-  const [selectedRoom, setSelectedRoom] = useState(hotel?.rooms && hotel.rooms.length > 0 ? hotel.rooms[0] : null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [fullHotel, setFullHotel] = useState(hotel);
   const [loading, setLoading] = useState(false);
 
@@ -69,8 +63,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
 
   const heroImage = fullHotel?.coverImage || fullHotel?.cover_image || (fullHotel?.images && fullHotel?.images[0]);
   const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || fullHotel?.pricePerNight || fullHotel?.starting_price || 0;
-  const calculatedTotalPrice = roomPricePerNight * bookingDates.nightsCount;
-
+  
   const handleProceedToBooking = () => {
     navigation.navigate('BookingReview', {
       hotel: fullHotel,
@@ -82,397 +75,414 @@ export default function HotelDetailsScreen({ route, navigation }) {
       nightsCount: bookingDates.nightsCount,
       guestsCount: bookingDates.guestsCount,
       roomsCount: bookingDates.roomsCount,
-      totalPrice: calculatedTotalPrice,
+      totalPrice: roomPricePerNight * bookingDates.nightsCount,
       bookingDates,
     });
   };
 
+  const dummyRooms = [
+    {
+      id: 'r1',
+      name: 'Ocean View King',
+      capacity: '2 Adults',
+      bedType: 'King Bed',
+      view: 'Ocean View',
+      price: 18500,
+      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80'
+    },
+    {
+      id: 'r2',
+      name: 'Poolside Suite',
+      capacity: '2 Adults',
+      bedType: 'King Bed',
+      view: 'Pool View',
+      price: 14200,
+      image: 'https://images.unsplash.com/photo-1590490360182-c33d5773342b?auto=format&fit=crop&w=400&q=80'
+    }
+  ];
+
+  const displayRooms = fullHotel?.rooms?.length > 0 ? fullHotel.rooms : dummyRooms;
+  if (!selectedRoom && displayRooms.length > 0) {
+    setSelectedRoom(displayRooms[0]);
+  }
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#160824" />
-      
-      <View style={styles.responsiveWrapper}>
-        {!hotel ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#fff', fontSize: 16 }}>Hotel not found</Text>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, backgroundColor: COLORS.goldLight, padding: 10, borderRadius: 5 }}>
-              <Text style={{ color: '#000' }}>Go Back</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        
+        {/* HERO IMAGE */}
+        <View style={styles.heroImageWrapper}>
+          <Image source={{ uri: heroImage || 'https://images.unsplash.com/photo-1582719478250-c89402bb6a06?auto=format&fit=crop&w=800&q=80' }} style={styles.heroImage} />
+          
+          <View style={styles.topOverlay}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+              <Text style={styles.iconText}>←</Text>
             </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-        <ScrollView
-          style={styles.container}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Background Split */}
-          <View style={styles.topBackground} />
-          <View style={styles.bottomBackground} />
-          {/* HERO IMAGE CONTAINER */}
-          <View style={styles.heroImageWrapper}>
-            <Image source={{ uri: heroImage }} style={styles.heroImage} />
-
-            <View style={styles.topHeaderBar}>
-              <TouchableOpacity
-                style={styles.backCircle}
-                onPress={() => navigation.goBack()}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.backIcon}>‹</Text>
+            <View style={{flexDirection: 'row'}}>
+              <TouchableOpacity style={[styles.iconButton, {marginRight: 10}]}>
+                <Text style={styles.iconText}>♡</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.backCircle}
-                onPress={() => setIsFavorite(!isFavorite)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.favIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
+              <TouchableOpacity style={styles.iconButton}>
+                <Text style={styles.iconText}>➦</Text>
               </TouchableOpacity>
             </View>
           </View>
+          
+          <View style={styles.imageCounter}>
+            <Text style={styles.imageCounterText}>1/12</Text>
+          </View>
+        </View>
 
-          {/* HOTEL HEADLINE & SUBTEXT */}
-          <View style={styles.titleSection}>
-            <Text style={styles.hotelTitle}>
-              {fullHotel?.name || 'Digha Beach Luxury Resort'}
-            </Text>
+        <View style={styles.contentContainer}>
+          <Text style={styles.hotelTitle}>{fullHotel?.name || 'Digha Beach Luxury Resort'}</Text>
+          <Text style={styles.locationText}>📍 {fullHotel?.city || 'New Digha'}, WB</Text>
+          <Text style={styles.ratingText}>⭐ <Text style={{fontWeight:'700'}}>{fullHotel?.rating || '4.8'}</Text> <Text style={{color:'#64748b'}}>({fullHotel?.reviewsCount || '215'} Reviews)</Text></Text>
 
-            <View style={styles.ratingRow}>
-              <Text style={styles.locationText}>
-                {fullHotel?.city || 'New Digha'}, {fullHotel?.state || 'WB'}
-              </Text>
-              <Text style={styles.ratingDot}>•</Text>
-              <Text style={styles.starIcon}>⭐</Text>
-              <Text style={styles.ratingScore}>{fullHotel?.rating || '4.8'}</Text>
-              <Text style={styles.reviewsCount}>({(fullHotel?.reviewsCount || fullHotel?.reviews_count || 215)} Reviews)</Text>
+          {/* TABS */}
+          <View style={styles.tabsRow}>
+            <TouchableOpacity style={styles.tabActive}>
+              <Text style={styles.tabTextActive}>Overview</Text>
+              <View style={styles.tabIndicator} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.tabInactive}><Text style={styles.tabTextInactive}>Rooms</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.tabInactive}><Text style={styles.tabTextInactive}>Amenities</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.tabInactive}><Text style={styles.tabTextInactive}>Reviews</Text></TouchableOpacity>
+          </View>
+
+          {/* KEY AMENITIES */}
+          <Text style={styles.sectionTitle}>KEY AMENITIES</Text>
+          <View style={styles.amenitiesRow}>
+            <View style={styles.amenityBox}>
+              <Text style={styles.amenityIcon}>📶</Text>
+              <Text style={styles.amenityBoxText}>Free WiFi</Text>
+            </View>
+            <View style={styles.amenityBoxActive}>
+              <Text style={styles.amenityIconActive}>🏊</Text>
+              <Text style={styles.amenityBoxTextActive}>Pool</Text>
+            </View>
+            <View style={styles.amenityBox}>
+              <Text style={styles.amenityIcon}>🏖️</Text>
+              <Text style={styles.amenityBoxText}>Beach Access</Text>
+            </View>
+            <View style={styles.amenityBox}>
+              <Text style={styles.amenityIcon}>🌿</Text>
+              <Text style={styles.amenityBoxText}>Spa</Text>
             </View>
           </View>
 
-          {/* DYNAMIC BOOKING DATES BAR */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.dateBarCard}
-            onPress={() => setDateModalVisible(true)}
-          >
-            <View style={styles.dateBarLeft}>
-              <Text style={styles.dateBarIcon}>📅</Text>
-              <View>
-                <Text style={styles.dateBarTitle}>
-                  {bookingDates.formattedCheckIn} – {bookingDates.formattedCheckOut} ({bookingDates.nightsCount} Night{bookingDates.nightsCount > 1 ? 's' : ''})
-                </Text>
-                <Text style={styles.dateBarSub}>
-                  {bookingDates.guestsCount} Guest{bookingDates.guestsCount > 1 ? 's' : ''} • {bookingDates.roomsCount} Room{bookingDates.roomsCount > 1 ? 's' : ''}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.changeDatesBtn}>
-              <Text style={styles.changeDatesText}>Change</Text>
-            </View>
-          </TouchableOpacity>
+          {/* ROOM TYPE SELECTION */}
+          <Text style={styles.sectionTitle}>ROOM TYPE SELECTION</Text>
+          
+          {displayRooms.map((room, idx) => {
+            const isSelected = selectedRoom?.id === room.id || selectedRoom?.name === room.name;
+            const price = room.price || room.price_per_night || room.pricePerNight || 0;
+            return (
+              <TouchableOpacity key={idx} style={styles.roomCard} onPress={() => setSelectedRoom(room)} activeOpacity={0.9}>
+                <Image source={{uri: room.image || room.cover_image || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=200&q=80'}} style={styles.roomImage} />
+                <View style={styles.roomDetails}>
+                  <Text style={styles.roomName}>{room.name}</Text>
+                  <Text style={styles.roomSubInfo}>👤 {room.capacity || '2 Adults'} • 🛏️ {room.bedType || 'King Bed'}</Text>
+                  <Text style={styles.roomSubInfo}>🌅 {room.view || 'Great View'}</Text>
+                </View>
+                <View style={styles.roomRight}>
+                  <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+                    {isSelected && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.roomPrice}>₹{price.toLocaleString()}</Text>
+                  <Text style={styles.roomPriceUnit}>/ night</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </ScrollView>
 
-          {/* KEY AMENITIES CARD */}
-          <View style={styles.amenitiesCardContainer}>
-            <Text style={styles.cardHeaderTitle}>KEY AMENITIES</Text>
-
-            <View style={styles.amenitiesGrid}>
-              <View style={styles.amenityBox}>
-                <Text style={styles.amenityIcon}>📶</Text>
-                <Text style={styles.amenityLabel}>Free WiFi</Text>
-              </View>
-
-              <View style={styles.amenityBox}>
-                <Text style={styles.amenityIcon}>🏊</Text>
-                <Text style={styles.amenityLabel}>Pool</Text>
-              </View>
-
-              <View style={styles.amenityBox}>
-                <Text style={styles.amenityIcon}>🏖️</Text>
-                <Text style={styles.amenityLabel}>Beach Access</Text>
-              </View>
-
-              <View style={styles.amenityBox}>
-                <Text style={styles.amenityIcon}>💆</Text>
-                <Text style={styles.amenityLabel}>Spa</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* ROOM TYPE SELECTION CARD */}
-          <View style={styles.roomCardContainer}>
-            <Text style={styles.cardHeaderTitle}>ROOM TYPE SELECTION</Text>
-            <Text style={styles.selectRoomSub}>Select a Room:</Text>
-
-            <View style={styles.roomsList}>
-              {loading ? (
-                <Text style={{ color: '#666', textAlign: 'center', padding: 10 }}>Loading rooms...</Text>
-              ) : (fullHotel?.rooms || []).length === 0 ? (
-                <Text style={{ color: '#666', textAlign: 'center', padding: 10 }}>No rooms available.</Text>
-              ) : (
-                (fullHotel.rooms || []).map(room => (
-                  <RoomCard
-                    key={room.id}
-                    room={room}
-                    isSelected={selectedRoom?.id === room.id}
-                    onSelect={r => setSelectedRoom(r)}
-                  />
-                ))
-              )}
-            </View>
-          </View>
-        </ScrollView>
-
-        {/* STICKY BOTTOM BAR */}
-        <StickyBookingBar
-          price={calculatedTotalPrice}
-          currency={fullHotel?.currency || '₹'}
-          buttonLabel={`Book ${bookingDates.nightsCount} Night${bookingDates.nightsCount > 1 ? 's' : ''}`}
-          onBookPress={handleProceedToBooking}
-        />
-
-        {/* DATE PICKER MODAL */}
-        <DatePickerModal
-          visible={dateModalVisible}
-          onClose={() => setDateModalVisible(false)}
-          initialCheckIn={bookingDates.checkInDate}
-          initialCheckOut={bookingDates.checkOutDate}
-          initialGuests={bookingDates.guestsCount}
-          initialRooms={bookingDates.roomsCount}
-          onConfirm={data => setBookingDates(data)}
-        />
-          </>
-        )}
+      {/* BOTTOM BOOKING BAR */}
+      <View style={styles.bottomBar}>
+        <View>
+          <Text style={styles.totalLabel}>Total per night:</Text>
+          <Text style={styles.totalPrice}>₹{roomPricePerNight.toLocaleString()}</Text>
+        </View>
+        <TouchableOpacity style={styles.bookButton} activeOpacity={0.88} onPress={handleProceedToBooking}>
+          <Text style={styles.bookButtonText}>Select Room & Book</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight || 28) : 0;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#160824',
-  },
-  responsiveWrapper: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-    position: 'relative',
-    backgroundColor: '#FFFFFF',
-  },
-  topBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 380,
-    backgroundColor: '#160824',
-  },
-  bottomBackground: {
-    position: 'absolute',
-    top: 380,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#F5F6F8',
-  },
   container: {
     flex: 1,
-    zIndex: 1,
+    backgroundColor: '#ebf0f7',
   },
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: 100,
   },
   heroImageWrapper: {
-    height: 240,
-    borderRadius: 24,
-    marginHorizontal: 16,
-    marginTop: STATUSBAR_HEIGHT + 10,
-    overflow: 'hidden',
+    width: width,
+    height: height * 0.35,
     position: 'relative',
-    backgroundColor: '#160824',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
   },
   heroImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  topHeaderBar: {
+  topOverlay: {
     position: 'absolute',
-    top: 12,
-    left: 14,
-    right: 14,
+    top: Platform.OS === 'ios' ? 44 : StatusBar.currentHeight + 10,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  backCircle: {
+  iconButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIcon: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: -2,
+  iconText: {
+    color: '#fff',
+    fontSize: 20,
   },
-  favIcon: {
-    fontSize: 14,
+  imageCounter: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  titleSection: {
-    paddingHorizontal: 20,
-    marginTop: 16,
-    alignItems: 'center',
+  imageCounterText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  contentContainer: {
+    padding: 20,
   },
   hotelTitle: {
     fontSize: 22,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  locationText: {
-    color: 'rgba(255, 255, 255, 0.75)',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  ratingDot: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    marginHorizontal: 6,
-  },
-  starIcon: {
-    fontSize: 12,
-    marginRight: 4,
-  },
-  ratingScore: {
-    color: COLORS.goldLight,
-    fontSize: 13,
     fontWeight: '800',
-    marginRight: 4,
-  },
-  reviewsCount: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 12,
-  },
-  amenitiesCardContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 24,
-    marginHorizontal: 16,
-    marginTop: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  cardHeaderTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#666666',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    marginBottom: 14,
-  },
-  amenitiesGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  amenityBox: {
-    alignItems: 'center',
-    width: 70,
-  },
-  amenityIcon: {
-    fontSize: 26,
+    color: '#0B1733',
     marginBottom: 6,
   },
-  amenityLabel: {
-    color: '#333333',
-    fontSize: 11,
+  locationText: {
+    fontSize: 13,
+    color: '#64748b',
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#f59e0b',
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    marginTop: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  tabActive: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  tabInactive: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  tabTextActive: {
+    color: '#8F1239',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  tabTextInactive: {
+    color: '#64748b',
     fontWeight: '600',
+    fontSize: 14,
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 10,
+    right: 10,
+    height: 3,
+    backgroundColor: '#8F1239',
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#4B5563',
+    marginTop: 24,
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  amenitiesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  amenityBox: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    width: '23%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  amenityBoxActive: {
+    backgroundColor: '#E0F2FE', // light blue
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    width: '23%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  amenityIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  amenityIconActive: {
+    fontSize: 20,
+    marginBottom: 4,
+    color: '#0284c7', // dark blue text fallback
+  },
+  amenityBoxText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#4B5563',
     textAlign: 'center',
   },
-  roomCardContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+  amenityBoxTextActive: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#0284c7',
+    textAlign: 'center',
+  },
+  roomCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: 'row',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 2,
+    alignItems: 'center',
   },
-  selectRoomSub: {
-    fontSize: 13,
+  roomImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+  },
+  roomDetails: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  roomName: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#160824',
-    marginBottom: 12,
+    color: '#0B1733',
+    marginBottom: 4,
   },
-  roomsList: {
-    gap: 10,
+  roomSubInfo: {
+    fontSize: 10,
+    color: '#64748b',
+    fontWeight: '500',
+    marginBottom: 2,
   },
-  dateBarCard: {
+  roomRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 70,
+  },
+  radioOuter: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOuterSelected: {
+    borderColor: '#8F1239',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#8F1239',
+  },
+  roomPrice: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0B1733',
+  },
+  roomPriceUnit: {
+    fontSize: 10,
+    color: '#64748b',
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(37, 12, 35, 0.85)',
-    borderRadius: 20,
-    marginHorizontal: 16,
-    marginTop: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
   },
-  dateBarLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  totalLabel: {
+    fontSize: 12,
+    color: '#4B5563',
+    fontWeight: '500',
   },
-  dateBarIcon: {
+  totalPrice: {
     fontSize: 20,
-    marginRight: 12,
+    fontWeight: '900',
+    color: '#8F1239',
   },
-  dateBarTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
+  bookButton: {
+    backgroundColor: '#8F1239',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    shadowColor: '#8F1239',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  dateBarSub: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 2,
-  },
-  changeDatesBtn: {
-    backgroundColor: COLORS.burgundyPill,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  changeDatesText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
+  bookButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

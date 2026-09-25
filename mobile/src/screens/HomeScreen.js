@@ -125,21 +125,61 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.responsiveWrapper}>
-          {/* REDESIGNED TOP HERO HEADER */}
+          {/* REDESIGNED DARK HERO HEADER */}
           <View style={styles.heroSection}>
-            <View style={styles.topHeaderBar}>
-              <TouchableOpacity
-                style={styles.searchDateBox}
-                onPress={() => setShowDatePicker(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.calendarIcon}>📅</Text>
-                <Text style={styles.searchDateText}>
-                  {formattedCheckIn} - {formattedCheckOut}, {guestsCount} Guests
-                </Text>
+            <Text style={styles.heroTitle}>Find Your Perfect Stay</Text>
+            <Text style={styles.heroSubtitle}>Explore luxury collections & premium experiences.</Text>
+
+            {/* TABS */}
+            <View style={styles.heroTabs}>
+              <View style={styles.heroTabActive}>
+                <Text style={styles.heroTabTextActive}>🏨 Stays</Text>
+              </View>
+              <View style={styles.heroTab}>
+                <Text style={styles.heroTabText}>✈️ Flights</Text>
+              </View>
+              <View style={styles.heroTab}>
+                <Text style={styles.heroTabText}>🚗 Cars</Text>
+              </View>
+            </View>
+
+            {/* SEARCH FORM BOX */}
+            <View style={styles.searchFormBox}>
+              <Text style={styles.searchFormLabel}>WHERE TO?</Text>
+              <TouchableOpacity style={styles.searchFormInputBox} onPress={() => navigation.navigate('Search', { city: '' })}>
+                <Text style={styles.searchFormInputText}>📍 New Digha, West Bengal</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.staysSelector} activeOpacity={0.8}>
-                <Text style={styles.staysText}>Stays ▼</Text>
+
+              <View style={styles.searchFormRow}>
+                <TouchableOpacity style={styles.searchFormHalfBox} onPress={() => setShowDatePicker(true)}>
+                  <Text style={styles.searchFormLabel}>CHECK-IN</Text>
+                  <Text style={styles.searchFormValue}>{formattedCheckIn}</Text>
+                </TouchableOpacity>
+                <View style={styles.searchFormDivider} />
+                <TouchableOpacity style={styles.searchFormHalfBox} onPress={() => setShowDatePicker(true)}>
+                  <Text style={styles.searchFormLabel}>CHECK-OUT</Text>
+                  <Text style={styles.searchFormValue}>{formattedCheckOut}</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={[styles.searchFormRow, { borderBottomWidth: 0 }]}>
+                <TouchableOpacity style={styles.searchFormFullBox} onPress={() => setShowDatePicker(true)}>
+                  <Text style={styles.searchFormLabel}>GUESTS</Text>
+                  <Text style={styles.searchFormValue}>👤 {guestsCount} Guests, {roomsCount} Room</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity 
+                style={styles.searchButton}
+                activeOpacity={0.88}
+                onPress={() => handleSearchSubmit({
+                  location: '',
+                  checkIn: formattedCheckIn,
+                  checkOut: formattedCheckOut,
+                  guestsRooms: `${guestsCount} Guests, ${roomsCount} Room`
+                })}
+              >
+                <Text style={styles.searchButtonText}>SEARCH HOTELS</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -266,55 +306,116 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   heroSection: {
-            paddingTop: STATUSBAR_HEIGHT + 14,
-            paddingHorizontal: 16,
-            paddingBottom: 20,
-            backgroundColor: '#160824',
-            borderBottomLeftRadius: 24,
-            borderBottomRightRadius: 24,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 5,
-          },
-          topHeaderBar: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          },
-          searchDateBox: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            borderRadius: 24,
-            marginRight: 10,
-            borderWidth: 1,
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-          },
-          calendarIcon: {
-            fontSize: 16,
-            marginRight: 8,
-          },
-          searchDateText: {
-            color: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: '600',
-          },
-          staysSelector: {
-            backgroundColor: COLORS.burgundyPill,
-            paddingVertical: 10,
-            paddingHorizontal: 16,
-            borderRadius: 24,
-          },
-          staysText: {
-            color: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: '700',
-          },
+    paddingTop: STATUSBAR_HEIGHT + 24,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    backgroundColor: '#160824',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 24,
+  },
+  heroTabs: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 12,
+  },
+  heroTab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  heroTabActive: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#7D143D',
+  },
+  heroTabText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  heroTabTextActive: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  searchFormBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  searchFormLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#888888',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  searchFormInputBox: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+    marginBottom: 12,
+  },
+  searchFormInputText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#160824',
+  },
+  searchFormRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+    paddingBottom: 12,
+    marginBottom: 12,
+  },
+  searchFormHalfBox: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  searchFormFullBox: {
+    flex: 1,
+  },
+  searchFormDivider: {
+    width: 1,
+    backgroundColor: '#EEEEEE',
+    marginHorizontal: 16,
+  },
+  searchFormValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#160824',
+  },
+  searchButton: {
+    backgroundColor: '#7D143D',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  searchButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
           filterChipsRow: {
             paddingHorizontal: 16,
             paddingVertical: 14,

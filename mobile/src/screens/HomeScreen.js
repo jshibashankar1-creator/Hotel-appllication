@@ -25,6 +25,8 @@ const POPULAR_DESTINATIONS = [
   { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: 'https://images.unsplash.com/photo-1582719478250-c89402bb1a0b?w=600&auto=format&fit=crop&q=80' },
 ];
 
+import DatePickerModal from '../components/DatePickerModal';
+
 export default function HomeScreen({ navigation }) {
   const [hotels, setHotels] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -66,6 +68,28 @@ export default function HomeScreen({ navigation }) {
     }
   }
 
+  const today = new Date();
+  const defaultIn = new Date(today.getTime() + 86400000);
+  const defaultOut = new Date(today.getTime() + 86400000 * 4);
+  const [checkInObj, setCheckInObj] = useState(defaultIn);
+  const [checkOutObj, setCheckOutObj] = useState(defaultOut);
+  const [formattedCheckIn, setFormattedCheckIn] = useState(`${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}`);
+  const [formattedCheckOut, setFormattedCheckOut] = useState(`${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}`);
+  const [guestsCount, setGuestsCount] = useState(2);
+  const [roomsCount, setRoomsCount] = useState(1);
+  const [nightsCount, setNightsCount] = useState(3);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateConfirm = (data) => {
+    setCheckInObj(data.checkInDate);
+    setCheckOutObj(data.checkOutDate);
+    setFormattedCheckIn(data.formattedCheckIn);
+    setFormattedCheckOut(data.formattedCheckOut);
+    setGuestsCount(data.guestsCount);
+    setRoomsCount(data.roomsCount);
+    setNightsCount(data.nightsCount);
+  };
+
   const toggleFavorite = (hotelId) => {
     if (favorites.includes(hotelId)) {
       setFavorites(favorites.filter(id => id !== hotelId));
@@ -101,37 +125,44 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.responsiveWrapper}>
-          {/* TOP HERO HEADER */}
+          {/* REDESIGNED TOP HERO HEADER */}
           <View style={styles.heroSection}>
-            <View style={styles.topBar}>
+            <View style={styles.topHeaderBar}>
               <TouchableOpacity
-                style={styles.iconCircle}
-                onPress={() => navigation.navigate('Profile')}
+                style={styles.searchDateBox}
+                onPress={() => setShowDatePicker(true)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.topIconText}>👤</Text>
+                <Text style={styles.calendarIcon}>📅</Text>
+                <Text style={styles.searchDateText}>
+                  {formattedCheckIn} - {formattedCheckOut}, {guestsCount} Guests
+                </Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.iconCircle}
-                onPress={() => navigation.navigate('Support')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.topIconText}>🔔</Text>
-                <View style={styles.notificationDot} />
+              <TouchableOpacity style={styles.staysSelector} activeOpacity={0.8}>
+                <Text style={styles.staysText}>Stays ▼</Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.heroTextContainer}>
-              <Text style={styles.heroTitle}>Find Your Perfect Stay</Text>
-              <Text style={styles.heroSubtitle}>New Digha & Old Digha, WB</Text>
-            </View>
-
-            {/* SEARCH CARD */}
-            <View style={styles.searchCardWrapper}>
-              <SearchCard onSearch={handleSearchSubmit} />
             </View>
           </View>
+
+          {/* FILTER CHIPS */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterChipsRow}
+          >
+            <TouchableOpacity style={styles.filterChip}>
+              <Text style={styles.filterChipText}>Price: Low to High</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterChip}>
+              <Text style={styles.filterChipText}>⭐ 5 Star Rating</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterChip}>
+              <Text style={styles.filterChipText}>🏊 With Pool</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.filterChip}>
+              <Text style={styles.filterChipText}>📍 Nearby</Text>
+            </TouchableOpacity>
+          </ScrollView>
 
           {/* POPULAR DESTINATIONS */}
           <View style={styles.sectionHeader}>
@@ -179,11 +210,36 @@ export default function HomeScreen({ navigation }) {
                   hotel={hotel}
                   isFavorite={favorites.includes(hotel.id)}
                   onToggleFavorite={toggleFavorite}
-                  onPress={handleSelectHotel}
+                  onPress={(h) => {
+                    // Update the hotel to include the selected dates for dynamic pricing downstream
+                    const hotelWithDates = {
+                      ...h,
+                      searchDates: {
+                        checkIn: formattedCheckIn,
+                        checkOut: formattedCheckOut,
+                        guestsCount,
+                        roomsCount,
+                        nightsCount,
+                        checkInDateObj: checkInObj,
+                        checkOutDateObj: checkOutObj
+                      }
+                    };
+                    handleSelectHotel(hotelWithDates);
+                  }}
                 />
               ))
             )}
           </View>
+
+          <DatePickerModal
+            visible={showDatePicker}
+            onClose={() => setShowDatePicker(false)}
+            initialCheckIn={checkInObj}
+            initialCheckOut={checkOutObj}
+            initialGuests={guestsCount}
+            initialRooms={roomsCount}
+            onConfirm={handleDateConfirm}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -210,63 +266,73 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   heroSection: {
-    paddingTop: STATUSBAR_HEIGHT + 14,
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    backgroundColor: '#160824',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  topIconText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 9,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: COLORS.gold,
-  },
-  heroTextContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-    textAlign: 'center',
-  },
-  heroSubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginTop: 4,
-    letterSpacing: 0.4,
-    textAlign: 'center',
-  },
-  searchCardWrapper: {
-    marginTop: 6,
-    marginBottom: 10,
-  },
+            paddingTop: STATUSBAR_HEIGHT + 14,
+            paddingHorizontal: 16,
+            paddingBottom: 20,
+            backgroundColor: '#160824',
+            borderBottomLeftRadius: 24,
+            borderBottomRightRadius: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 5,
+          },
+          topHeaderBar: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          },
+          searchDateBox: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            borderRadius: 24,
+            marginRight: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+          },
+          calendarIcon: {
+            fontSize: 16,
+            marginRight: 8,
+          },
+          searchDateText: {
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: '600',
+          },
+          staysSelector: {
+            backgroundColor: COLORS.burgundyPill,
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            borderRadius: 24,
+          },
+          staysText: {
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: '700',
+          },
+          filterChipsRow: {
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            gap: 10,
+          },
+          filterChip: {
+            backgroundColor: 'rgba(37, 12, 35, 0.8)',
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.15)',
+          },
+          filterChipText: {
+            color: '#FFFFFF',
+            fontSize: 12,
+            fontWeight: '600',
+          },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -9,6 +9,7 @@ import { COLORS } from './src/theme/colors';
 
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import OffersScreen from './src/screens/OffersScreen';
@@ -94,7 +95,7 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="MainTabs"
         screenOptions={{
           headerStyle: {
             backgroundColor: '#4A0E20',
@@ -109,6 +110,11 @@ export default function App() {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

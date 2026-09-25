@@ -3,31 +3,34 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { COLORS } from '../theme/colors';
 import { mobileApi } from '../services/api';
 
-export default function LoginScreen({ route, navigation }) {
+export default function RegisterScreen({ route, navigation }) {
   const returnTo = route.params?.returnTo;
   const bookingState = route.params?.bookingState;
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+  const handleRegister = async () => {
+    if (!name || !email || !password || !phone) {
+      Alert.alert('Error', 'Please fill all fields');
       return;
     }
     
     try {
       setLoading(true);
-      await mobileApi.login(email, password);
-      // Navigate back to where we came from, or Home
+      await mobileApi.register(name, email, password, phone);
+      // Backend automatically authenticates upon registration (or we can assume they do based on standard JWT approach, wait let's check. Actually, looking at seed.js we see auth.routes.js probably logs them in, but we can call login just to be safe if token is missing).
+      // Assuming register returns token and user:
       if (returnTo) {
         navigation.replace(returnTo, bookingState);
       } else {
         navigation.replace('MainTabs');
       }
     } catch (err) {
-      Alert.alert('Login Failed', err.message || 'Invalid credentials');
+      Alert.alert('Registration Failed', err.message || 'Error occurred');
     } finally {
       setLoading(false);
     }
@@ -41,10 +44,19 @@ export default function LoginScreen({ route, navigation }) {
         <View style={styles.bottomBackground} />
         
         <View style={styles.content}>
-          <Text style={styles.title}>Welcome to HotelHub</Text>
-          <Text style={styles.subtitle}>Sign in to access VIP luxury stays.</Text>
+          <Text style={styles.title}>Join HotelHub</Text>
+          <Text style={styles.subtitle}>Sign up to access VIP luxury stays.</Text>
 
           <View style={styles.card}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Aarav Sharma"
+              placeholderTextColor="#999"
+              value={name}
+              onChangeText={setName}
+            />
+
             <Text style={styles.label}>Email Address</Text>
             <TextInput
               style={styles.input}
@@ -54,6 +66,16 @@ export default function LoginScreen({ route, navigation }) {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+            
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="+91 98000 00000"
+              placeholderTextColor="#999"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
             />
             
             <Text style={styles.label}>Password</Text>
@@ -68,21 +90,21 @@ export default function LoginScreen({ route, navigation }) {
 
             <TouchableOpacity 
               style={styles.loginButton} 
-              onPress={handleLogin} 
+              onPress={handleRegister} 
               disabled={loading}
               activeOpacity={0.88}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.loginButtonText}>Sign In</Text>
+                <Text style={styles.loginButtonText}>Sign Up</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register', { returnTo, bookingState })}>
-                <Text style={styles.registerLink}>Sign Up</Text>
+              <Text style={styles.registerText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login', { returnTo, bookingState })}>
+                <Text style={styles.registerLink}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -156,10 +178,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 15,
     color: '#160824',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   loginButton: {
-    backgroundColor: '#7D143D', // Burgundy
+    backgroundColor: '#7D143D',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',

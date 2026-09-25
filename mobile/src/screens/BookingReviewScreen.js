@@ -37,7 +37,7 @@ export default function BookingReviewScreen({ route, navigation }) {
   const totalAmount = baseAmount + taxesAndFees;
 
   const handleProceedToPayment = () => {
-    navigation.navigate('Payment', {
+    const paymentState = {
       hotel,
       room,
       bookingData: {
@@ -57,7 +57,16 @@ export default function BookingReviewScreen({ route, navigation }) {
         tax_amount: taxesAndFees,
         total_amount: totalAmount,
       }
-    });
+    };
+
+    if (!mobileApi.token) {
+      navigation.navigate('Login', { 
+        returnTo: 'Payment', 
+        bookingState: paymentState 
+      });
+    } else {
+      navigation.navigate('Payment', paymentState);
+    }
   };
 
   return (

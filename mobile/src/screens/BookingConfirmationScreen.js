@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -64,7 +64,7 @@ export default function BookingConfirmationScreen({ route, navigation }) {
                 {/* Hotel Image */}
                 <View style={styles.passImageContainer}>
                   <Image 
-                    source={{uri: hotel?.coverImage || hotel?.cover_image || 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=80'}} 
+                    source={{uri: hotel?.coverImage || hotel?.cover_image }} 
                     style={styles.passImage} 
                   />
                 </View>

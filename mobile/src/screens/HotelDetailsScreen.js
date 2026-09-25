@@ -80,28 +80,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
     });
   };
 
-  const dummyRooms = [
-    {
-      id: 'r1',
-      name: 'Ocean View King',
-      capacity: '2 Adults',
-      bedType: 'King Bed',
-      view: 'Ocean View',
-      price: 18500,
-      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80'
-    },
-    {
-      id: 'r2',
-      name: 'Poolside Suite',
-      capacity: '2 Adults',
-      bedType: 'King Bed',
-      view: 'Pool View',
-      price: 14200,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d5773342b?auto=format&fit=crop&w=400&q=80'
-    }
-  ];
-
-  const displayRooms = fullHotel?.rooms?.length > 0 ? fullHotel.rooms : dummyRooms;
+  const displayRooms = fullHotel?.rooms || [];
   if (!selectedRoom && displayRooms.length > 0) {
     setSelectedRoom(displayRooms[0]);
   }
@@ -113,7 +92,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
         
         {/* HERO IMAGE */}
         <View style={styles.heroImageWrapper}>
-          <Image source={{ uri: heroImage || 'https://images.unsplash.com/photo-1582719478250-c89402bb6a06?auto=format&fit=crop&w=800&q=80' }} style={styles.heroImage} />
+          <Image source={{ uri: heroImage }} style={styles.heroImage} />
           
           <View style={styles.topOverlay}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
@@ -179,10 +158,10 @@ export default function HotelDetailsScreen({ route, navigation }) {
             const price = room.price || room.price_per_night || room.pricePerNight || 0;
             return (
               <TouchableOpacity key={idx} style={styles.roomCard} onPress={() => setSelectedRoom(room)} activeOpacity={0.9}>
-                <Image source={{uri: room.image || room.cover_image || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=200&q=80'}} style={styles.roomImage} />
+                <Image source={{uri: (room.photos && room.photos[0]) || room.image || room.cover_image }} style={styles.roomImage} />
                 <View style={styles.roomDetails}>
-                  <Text style={styles.roomName}>{room.name}</Text>
-                  <Text style={styles.roomSubInfo}>👤 {room.capacity || '2 Adults'} • 🛏️ {room.bedType || 'King Bed'}</Text>
+                  <Text style={styles.roomName}>{room.room_name || room.name}</Text>
+                  <Text style={styles.roomSubInfo}>👤 {room.max_guests || '2'} Adults • 🛏️ {room.bedType || 'King Bed'}</Text>
                   <Text style={styles.roomSubInfo}>🌅 {room.view || 'Great View'}</Text>
                 </View>
                 <View style={styles.roomRight}>

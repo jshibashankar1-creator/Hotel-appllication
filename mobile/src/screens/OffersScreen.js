@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import DealCard from '../components/DealCard';
-import { FLASH_DEALS } from '../data/mockData';
+
 
 export default function OffersScreen({ navigation }) {
   const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 45, seconds: 30 });
@@ -125,11 +125,8 @@ export default function OffersScreen({ navigation }) {
           </View>
         </View>
 
-        {/* DEALS LIST */}
         <View style={styles.dealsList}>
-          {FLASH_DEALS.map(deal => (
-            <DealCard key={deal.id} deal={deal} onPress={handleSelectDeal} />
-          ))}
+          {[]}
         </View>
       </ScrollView>
     </SafeAreaView>

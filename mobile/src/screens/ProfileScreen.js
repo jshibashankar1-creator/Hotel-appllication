@@ -11,10 +11,19 @@ import {
   Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
-import { ACTIVE_USER_PROFILE } from '../data/mockData';
+
+import { mobileApi } from '../services/api';
 
 export default function ProfileScreen({ navigation }) {
-  const [profile, setProfile] = useState(ACTIVE_USER_PROFILE);
+  const currentUser = mobileApi.currentUser || {};
+  const [profile, setProfile] = useState({
+    name: currentUser.name || '',
+    email: currentUser.email || '',
+    avatar: currentUser.avatar || null,
+    membershipTier: 'Gold',
+    rewardPoints: 12500,
+    memberSince: currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : '2026',
+  });
 
   const menuOptions = [
     { id: '1', title: 'Personal Information', icon: '👤', subtitle: 'Manage names, contact & security' },

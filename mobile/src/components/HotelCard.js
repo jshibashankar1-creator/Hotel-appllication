@@ -4,7 +4,7 @@ import { COLORS } from '../theme/colors';
 
 export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite = false }) {
   const currency = hotel.currency || '₹';
-  const price = hotel.pricePerNight || hotel.starting_price || (hotel.rooms && hotel.rooms[0]?.price_per_night) || 6499;
+  const price = hotel.pricePerNight || hotel.starting_price || (hotel.rooms && hotel.rooms[0]?.price_per_night) || 0;
 
   return (
     <TouchableOpacity

@@ -15,10 +15,15 @@ import { COLORS } from '../theme/colors';
 import SearchCard from '../components/SearchCard';
 import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
-import { POPULAR_DESTINATIONS } from '../data/mockData';
+
 import { mobileApi } from '../services/api';
 
 const { width } = Dimensions.get('window');
+
+const POPULAR_DESTINATIONS = [
+  { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: 'https://images.unsplash.com/photo-1596436889106-be35e843f6a6?w=600&auto=format&fit=crop&q=80' },
+  { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: 'https://images.unsplash.com/photo-1582719478250-c89402bb1a0b?w=600&auto=format&fit=crop&q=80' },
+];
 
 export default function HomeScreen({ navigation }) {
   const [hotels, setHotels] = useState([]);

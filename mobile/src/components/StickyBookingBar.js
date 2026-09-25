@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../theme/colors';
 
-export default function StickyBookingBar({ price = 18500, currency = '₹', buttonLabel = 'Select Room & Book', onBookPress }) {
+export default function StickyBookingBar({ price = 0, currency = '₹', buttonLabel = 'Select Room & Book', onBookPress }) {
   return (
     <View style={styles.container}>
       <View style={styles.priceSection}>

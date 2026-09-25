@@ -46,7 +46,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
   );
 
   const heroImage = hotel?.coverImage || hotel?.cover_image || (hotel?.images && hotel?.images[0]);
-  const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || hotel.pricePerNight || 6499;
+  const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || hotel.pricePerNight || 0;
   const calculatedTotalPrice = roomPricePerNight * bookingDates.nightsCount;
 
   const handleProceedToBooking = () => {

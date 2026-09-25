@@ -39,24 +39,35 @@ function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: COLORS.burgundyPill || '#7D143D',
-        tabBarInactiveTintColor: '#A0B0C0', // slightly lighter for dark/glass background
+        tabBarInactiveTintColor: '#8C9BB0',
+        // Premium Frosted Glass Background using expo-blur
         tabBarBackground: () => (
-          <BlurView 
-            tint="light" 
-            intensity={60} 
-            style={StyleSheet.absoluteFill} 
+          <BlurView
+            tint="light"
+            intensity={85}
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                overflow: 'hidden',
+              }
+            ]}
           />
         ),
         tabBarStyle: {
-          backgroundColor: 'rgba(255, 255, 255, 0.45)', // more transparent for glass
+          // Semi-transparent frosted glass surface
+          backgroundColor: 'rgba(245, 247, 250, 0.55)',
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,
+          // Crisp white glass border
           borderTopWidth: 1,
-          borderTopColor: 'rgba(255, 255, 255, 0.65)',
+          borderTopColor: 'rgba(255, 255, 255, 0.80)',
           borderLeftWidth: 1,
-          borderLeftColor: 'rgba(255, 255, 255, 0.50)',
+          borderLeftColor: 'rgba(255, 255, 255, 0.70)',
           borderRightWidth: 1,
-          borderRightColor: 'rgba(255, 255, 255, 0.50)',
+          borderRightColor: 'rgba(255, 255, 255, 0.70)',
+          borderBottomWidth: 0,
           position: 'absolute',
           bottom: Platform.OS === 'ios' ? 16 : 8,
           left: 10,
@@ -64,14 +75,15 @@ function MainTabNavigator() {
           height: Platform.OS === 'ios' ? 74 : 64,
           paddingBottom: Platform.OS === 'ios' ? 14 : 4,
           paddingTop: 6,
-          elevation: 0,
-          shadowColor: '#0a1432',
-          shadowOffset: { width: 0, height: -5 },
-          shadowOpacity: 0.12,
-          shadowRadius: 25,
+          // Soft shadow beneath the glass
+          elevation: 24,
+          shadowColor: '#0B1733',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.14,
+          shadowRadius: 32,
           maxWidth: 720,
           alignSelf: 'center',
-          overflow: 'hidden', // to contain the blur within rounded corners
+          overflow: 'hidden',
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -82,16 +94,14 @@ function MainTabNavigator() {
         tabBarItemStyle: {
           paddingVertical: 2,
         },
-        tabBarIcon: ({ focused, color, size }) => {
-          return (
-            <TabIcon
-              name={route.name}
-              focused={focused}
-              color={color}
-              size={size}
-            />
-          );
-        },
+        tabBarIcon: ({ focused, color, size }) => (
+          <TabIcon
+            name={route.name}
+            focused={focused}
+            color={color}
+            size={size}
+          />
+        ),
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />

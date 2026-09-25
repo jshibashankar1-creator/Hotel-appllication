@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   FlatList,
+  ActivityIndicator,
   Dimensions,
   Platform,
   ImageBackground,
@@ -20,6 +21,8 @@ import { mobileApi } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
 
+const DESTINATION_OPTIONS = ['New Digha', 'Old Digha'];
+
 const DEFAULT_DESTINATIONS = [
   { id: '1', city: 'New Digha', label: 'Beachfront & Luxury', image: null },
   { id: '2', city: 'Old Digha', label: 'Heritage & Quiet', image: null },
@@ -29,6 +32,18 @@ export default function HomeScreen({ navigation }) {
   const [hotels, setHotels] = useState([]);
   const [destinations, setDestinations] = useState(DEFAULT_DESTINATIONS);
   const [loading, setLoading] = useState(false);
+  // Selected search state
+  const [selectedCity, setSelectedCity] = useState('New Digha');
+  const [destPickerIdx, setDestPickerIdx] = useState(0);
+
+  // Compute default dates
+  const today = new Date();
+  const defaultIn = new Date(today.getTime() + 86400000);
+  const defaultOut = new Date(today.getTime() + 86400000 * 4);
+  const checkInISO = defaultIn.toISOString().split('T')[0];
+  const checkOutISO = defaultOut.toISOString().split('T')[0];
+  const formattedCheckIn = `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}, Mon`;
+  const formattedCheckOut = `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}, Thu`;
 
   useEffect(() => {
     fetchLiveHotels();
@@ -37,7 +52,9 @@ export default function HomeScreen({ navigation }) {
   async function fetchLiveHotels() {
     try {
       setLoading(true);
+      console.log('[HOME] Fetching all hotels from backend...');
       const res = await mobileApi.searchHotels();
+      console.log('[HOME] Response:', res?.count, 'hotels');
       if (res && res.hotels && res.hotels.length > 0) {
         const combined = res.hotels.map(h => ({
           ...h,
@@ -47,7 +64,7 @@ export default function HomeScreen({ navigation }) {
           rating: h.rating || 0,
           reviewsCount: h.reviews_count || 0,
         }));
-        
+
         const newDighaHotel = combined.find(h => h.city === 'New Digha' && h.coverImage);
         const oldDighaHotel = combined.find(h => h.city === 'Old Digha' && h.coverImage);
 
@@ -58,26 +75,46 @@ export default function HomeScreen({ navigation }) {
         setHotels(combined);
       }
     } catch (err) {
-      console.log('API Error:', err.message);
+      console.error('[HOME] API Error:', err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  const today = new Date();
-  const defaultIn = new Date(today.getTime() + 86400000);
-  const defaultOut = new Date(today.getTime() + 86400000 * 4);
-  const formattedCheckIn = `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}, Mon`;
-  const formattedCheckOut = `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}, Thu`;
+  // Cycle through destination options when user taps WHERE TO?
+  const handleCycleDestination = () => {
+    const nextIdx = (destPickerIdx + 1) % DESTINATION_OPTIONS.length;
+    setDestPickerIdx(nextIdx);
+    setSelectedCity(DESTINATION_OPTIONS[nextIdx]);
+  };
+
+  // Main search handler: navigate to SearchScreen with real params
+  const handleSearch = () => {
+    console.log('[SEARCH] Navigating to Search with city:', selectedCity);
+    navigation.navigate('Explore', {
+      city: selectedCity,
+      checkIn: checkInISO,
+      checkOut: checkOutISO,
+      guests: 2,
+      rooms: 1,
+    });
+  };
 
   const handleSelectDestination = (destination) => {
-    navigation.navigate('Search', { city: destination.city });
+    setSelectedCity(destination.city);
+    navigation.navigate('Explore', {
+      city: destination.city,
+      checkIn: checkInISO,
+      checkOut: checkOutISO,
+      guests: 2,
+      rooms: 1,
+    });
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
+
       {/* Background Hero Image */}
       <ImageBackground
         source={{ uri: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80' }}
@@ -98,14 +135,14 @@ export default function HomeScreen({ navigation }) {
               <Text style={{color: '#fff', fontSize: 18}}>🔔</Text>
             </TouchableOpacity>
           </View>
-          
+
           <Text style={styles.heroTitle}>Find Your{'\n'}Perfect Stay</Text>
           <Text style={styles.locationPin}>📍 New Digha & Old Digha, WB</Text>
 
           {/* Search Glass Box */}
           <View style={styles.glassBoxContainer}>
             <BlurView intensity={50} tint="light" style={styles.glassBox}>
-              
+
               {/* TABS */}
               <View style={styles.tabsRow}>
                 <TouchableOpacity style={styles.tabActive}>
@@ -119,38 +156,39 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.inputBox} onPress={() => navigation.navigate('Search', { city: '' })}>
+              {/* WHERE TO — tapping cycles destination */}
+              <TouchableOpacity style={styles.inputBox} onPress={handleCycleDestination}>
                 <Text style={styles.inputLabel}>WHERE TO?</Text>
-                <Text style={styles.inputValue}>📍 New Digha, West Bengal</Text>
+                <Text style={styles.inputValue}>📍 {selectedCity}, West Bengal</Text>
               </TouchableOpacity>
 
               <View style={styles.row}>
-                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginRight: 8 }]} onPress={() => {}}>
+                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginRight: 8 }]}>
                   <Text style={styles.inputLabel}>Check-in</Text>
                   <Text style={styles.inputValue}>📅 {formattedCheckIn}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginLeft: 8 }]} onPress={() => {}}>
+                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginLeft: 8 }]}>
                   <Text style={styles.inputLabel}>Check-out</Text>
                   <Text style={styles.inputValue}>📅 {formattedCheckOut}</Text>
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.inputBox} onPress={() => {}}>
+              <TouchableOpacity style={styles.inputBox}>
                 <Text style={styles.inputLabel}>Guests & Rooms</Text>
                 <Text style={styles.inputValue}>👤 2 Guests, 1 Room</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.searchButton}
                 activeOpacity={0.88}
-                onPress={() => navigation.navigate('Search', { city: '' })}
+                onPress={handleSearch}
               >
                 <Text style={styles.searchButtonText}>🔍 SEARCH HOTELS</Text>
               </TouchableOpacity>
             </BlurView>
           </View>
 
-          {/* White Content Area */}
+          {/* White Content Area — Popular Destinations */}
           <View style={styles.whiteContentArea}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Popular Destinations</Text>
@@ -169,6 +207,38 @@ export default function HomeScreen({ navigation }) {
                 <DestinationCard item={item} onPress={handleSelectDestination} />
               )}
             />
+
+            {/* Featured Hotels section */}
+            <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+              <Text style={styles.sectionTitle}>Featured Stays</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Explore', { city: selectedCity })}>
+                <Text style={styles.viewAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+
+            {loading ? (
+              <ActivityIndicator color="#8F1239" size="large" style={{ marginTop: 20 }} />
+            ) : (
+              <FlatList
+                data={hotels}
+                keyExtractor={item => item.id}
+                scrollEnabled={false}
+                contentContainerStyle={styles.listContainer}
+                renderItem={({ item }) => (
+                  <HotelCard
+                    hotel={item}
+                    onPress={() => navigation.navigate('HotelDetails', { hotel: item })}
+                    isFavorite={false}
+                    onToggleFavorite={() => {}}
+                  />
+                )}
+                ListEmptyComponent={
+                  <View style={{ alignItems: 'center', marginTop: 20 }}>
+                    <Text style={{ color: '#4B5563' }}>No hotels found. Pull to refresh.</Text>
+                  </View>
+                }
+              />
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -179,7 +249,7 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ebf0f7', // light background behind popular destinations
+    backgroundColor: '#ebf0f7',
   },
   heroBackground: {
     position: 'absolute',
@@ -338,5 +408,10 @@ const styles = StyleSheet.create({
     color: '#8F1239',
     fontSize: 14,
     fontWeight: '700',
+  },
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 20,
   },
 });

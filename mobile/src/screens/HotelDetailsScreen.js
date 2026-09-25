@@ -84,6 +84,9 @@ export default function HotelDetailsScreen({ route, navigation }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          {/* Background Split */}
+          <View style={styles.topBackground} />
+          <View style={styles.bottomBackground} />
           {/* HERO IMAGE CONTAINER */}
           <View style={styles.heroImageWrapper}>
             <Image source={{ uri: heroImage }} style={styles.heroImage} />
@@ -228,11 +231,28 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+  },
+  topBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 380,
     backgroundColor: '#160824',
+  },
+  bottomBackground: {
+    position: 'absolute',
+    top: 380,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#F5F6F8',
   },
   container: {
     flex: 1,
-    backgroundColor: '#160824',
+    zIndex: 1,
   },
   scrollContent: {
     paddingBottom: 30,
@@ -319,18 +339,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   amenitiesCardContainer: {
-    backgroundColor: 'rgba(37, 12, 35, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 24,
     marginHorizontal: 16,
     marginTop: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardHeaderTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#666666',
     letterSpacing: 1.2,
     textAlign: 'center',
     marginBottom: 14,
@@ -349,24 +374,29 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   amenityLabel: {
-    color: '#FFFFFF',
+    color: '#333333',
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
   },
   roomCardContainer: {
-    backgroundColor: 'rgba(37, 12, 35, 0.85)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     marginHorizontal: 16,
     marginTop: 16,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   selectRoomSub: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#160824',
     marginBottom: 12,
   },
   roomsList: {

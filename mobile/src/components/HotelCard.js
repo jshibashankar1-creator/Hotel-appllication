@@ -64,17 +64,17 @@ export default function HotelCard({ hotel, onPress, onToggleFavorite, isFavorite
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(37, 12, 35, 0.85)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 12,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(0, 0, 0, 0.05)',
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 4,
   },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#160824',
+    backgroundColor: '#F0F0F0',
   },
   image: {
     width: '100%',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   hotelName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#160824',
     letterSpacing: 0.1,
   },
   ratingRow: {
@@ -128,12 +128,12 @@ const styles = StyleSheet.create({
   ratingScore: {
     fontSize: 12,
     fontWeight: '800',
-    color: COLORS.goldLight,
+    color: '#160824',
     marginRight: 4,
   },
   reviewsCount: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#666666',
   },
   priceRow: {
     flexDirection: 'row',
@@ -143,27 +143,25 @@ const styles = StyleSheet.create({
   priceAmount: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#160824',
   },
   priceUnit: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#666666',
     fontWeight: '500',
   },
   amenitiesText: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.65)',
+    color: '#666666',
     marginTop: 3,
   },
   bookButton: {
-    backgroundColor: COLORS.burgundyPill,
+    backgroundColor: '#7D143D', // Burgundy
     paddingVertical: 7,
     paddingHorizontal: 16,
     borderRadius: 18,
     alignSelf: 'flex-start',
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   bookButtonText: {
     color: '#FFFFFF',

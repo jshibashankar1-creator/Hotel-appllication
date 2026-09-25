@@ -66,6 +66,9 @@ export default function PaymentScreen({ route, navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#160824" />
       
       <View style={styles.responsiveWrapper}>
+        {/* Background Split */}
+        <View style={styles.topBackground} />
+        <View style={styles.bottomBackground} />
         <ScrollView
           style={styles.container}
           showsVerticalScrollIndicator={false}
@@ -155,11 +158,28 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+  },
+  topBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 380,
     backgroundColor: '#160824',
+  },
+  bottomBackground: {
+    position: 'absolute',
+    top: 380,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#F5F6F8',
   },
   container: {
     flex: 1,
-    backgroundColor: '#160824',
+    zIndex: 1,
   },
   scrollContent: {
     padding: 16,

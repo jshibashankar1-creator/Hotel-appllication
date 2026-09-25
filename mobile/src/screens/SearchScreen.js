@@ -127,6 +127,10 @@ export default function SearchScreen({ route, navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#160824" />
       
       <View style={styles.responsiveWrapper}>
+        {/* Background Split */}
+        <View style={styles.topBackground} />
+        <View style={styles.bottomBackground} />
+
         {/* TOP SEARCH SUMMARY BAR */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -256,20 +260,37 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight ||
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#160824',
+    backgroundColor: '#160824', // Top edge safe area matches top dark background
   },
   responsiveWrapper: {
     flex: 1,
     width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
-    backgroundColor: '#160824',
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+  },
+  topBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 180,
+    backgroundColor: '#160824', // Dark Navy/Plum
+  },
+  bottomBackground: {
+    position: 'absolute',
+    top: 180,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#F5F6F8', // Light off-white
   },
   header: {
-    backgroundColor: '#160824',
     paddingHorizontal: 16,
     paddingTop: STATUSBAR_HEIGHT + 10,
     paddingBottom: 12,
+    zIndex: 1,
   },
   searchSummaryPill: {
     flexDirection: 'row',
@@ -348,7 +369,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#160824',
+    zIndex: 1,
   },
   listContainer: {
     paddingHorizontal: 16,

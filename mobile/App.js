@@ -8,6 +8,7 @@ import { Text, View, StyleSheet, Platform } from 'react-native';
 import { COLORS } from './src/theme/colors';
 
 // Screens
+import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import OffersScreen from './src/screens/OffersScreen';
@@ -93,6 +94,7 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
       <Stack.Navigator
+        initialRouteName="Login"
         screenOptions={{
           headerStyle: {
             backgroundColor: '#4A0E20',
@@ -104,6 +106,11 @@ export default function App() {
           },
         }}
       >
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="MainTabs"
           component={MainTabNavigator}

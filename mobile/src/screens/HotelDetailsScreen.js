@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { COLORS } from '../theme/colors';
 import RoomCard from '../components/RoomCard';
 import StickyBookingBar from '../components/StickyBookingBar';
 import DatePickerModal from '../components/DatePickerModal';
+import { mobileApi } from '../services/api';
 
 
 const { width } = Dimensions.get('window');
@@ -41,18 +42,39 @@ export default function HotelDetailsScreen({ route, navigation }) {
 
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [isFavorite, setIsFavorite] = useState(hotel.isFavorite || false);
-  const [selectedRoom, setSelectedRoom] = useState(
-    hotel?.rooms && hotel.rooms.length > 0 ? hotel.rooms[0] : null
-  );
+  const [selectedRoom, setSelectedRoom] = useState(hotel?.rooms && hotel.rooms.length > 0 ? hotel.rooms[0] : null);
+  const [fullHotel, setFullHotel] = useState(hotel);
+  const [loading, setLoading] = useState(false);
 
-  const heroImage = hotel?.coverImage || hotel?.cover_image || (hotel?.images && hotel?.images[0]);
-  const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || hotel.pricePerNight || 0;
+  useEffect(() => {
+    async function fetchDetails() {
+      if (!hotel?.id) return;
+      try {
+        setLoading(true);
+        const res = await mobileApi.getHotelDetails(hotel.id);
+        if (res && res.hotel) {
+          setFullHotel(res.hotel);
+          if (res.hotel.rooms && res.hotel.rooms.length > 0) {
+            setSelectedRoom(res.hotel.rooms[0]);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch hotel details:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDetails();
+  }, [hotel?.id]);
+
+  const heroImage = fullHotel?.coverImage || fullHotel?.cover_image || (fullHotel?.images && fullHotel?.images[0]);
+  const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || fullHotel?.pricePerNight || fullHotel?.starting_price || 0;
   const calculatedTotalPrice = roomPricePerNight * bookingDates.nightsCount;
 
   const handleProceedToBooking = () => {
     navigation.navigate('BookingReview', {
-      hotel,
-      selectedRoom: selectedRoom || (hotel.rooms && hotel.rooms[0]),
+      hotel: fullHotel,
+      selectedRoom: selectedRoom || (fullHotel?.rooms && fullHotel.rooms[0]),
       checkInDate: bookingDates.formattedCheckIn,
       checkOutDate: bookingDates.formattedCheckOut,
       isoCheckIn: bookingDates.isoCheckIn,
@@ -113,17 +135,17 @@ export default function HotelDetailsScreen({ route, navigation }) {
           {/* HOTEL HEADLINE & SUBTEXT */}
           <View style={styles.titleSection}>
             <Text style={styles.hotelTitle}>
-              {hotel.name || 'Digha Beach Luxury Resort'}
+              {fullHotel?.name || 'Digha Beach Luxury Resort'}
             </Text>
 
             <View style={styles.ratingRow}>
               <Text style={styles.locationText}>
-                {hotel.city || 'New Digha'}, {hotel.state || 'WB'}
+                {fullHotel?.city || 'New Digha'}, {fullHotel?.state || 'WB'}
               </Text>
               <Text style={styles.ratingDot}>•</Text>
               <Text style={styles.starIcon}>⭐</Text>
-              <Text style={styles.ratingScore}>{hotel.rating || '4.8'}</Text>
-              <Text style={styles.reviewsCount}>({(hotel.reviewsCount || hotel.reviews_count || 215)} Reviews)</Text>
+              <Text style={styles.ratingScore}>{fullHotel?.rating || '4.8'}</Text>
+              <Text style={styles.reviewsCount}>({(fullHotel?.reviewsCount || fullHotel?.reviews_count || 215)} Reviews)</Text>
             </View>
           </View>
 
@@ -182,14 +204,20 @@ export default function HotelDetailsScreen({ route, navigation }) {
             <Text style={styles.selectRoomSub}>Select a Room:</Text>
 
             <View style={styles.roomsList}>
-              {(hotel.rooms || []).map(room => (
-                <RoomCard
-                  key={room.id}
-                  room={room}
-                  isSelected={selectedRoom?.id === room.id}
-                  onSelect={r => setSelectedRoom(r)}
-                />
-              ))}
+              {loading ? (
+                <Text style={{ color: '#666', textAlign: 'center', padding: 10 }}>Loading rooms...</Text>
+              ) : (fullHotel?.rooms || []).length === 0 ? (
+                <Text style={{ color: '#666', textAlign: 'center', padding: 10 }}>No rooms available.</Text>
+              ) : (
+                (fullHotel.rooms || []).map(room => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    isSelected={selectedRoom?.id === room.id}
+                    onSelect={r => setSelectedRoom(r)}
+                  />
+                ))
+              )}
             </View>
           </View>
         </ScrollView>
@@ -197,7 +225,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
         {/* STICKY BOTTOM BAR */}
         <StickyBookingBar
           price={calculatedTotalPrice}
-          currency={hotel.currency || '₹'}
+          currency={fullHotel?.currency || '₹'}
           buttonLabel={`Book ${bookingDates.nightsCount} Night${bookingDates.nightsCount > 1 ? 's' : ''}`}
           onBookPress={handleProceedToBooking}
         />

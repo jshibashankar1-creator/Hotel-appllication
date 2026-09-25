@@ -96,11 +96,13 @@ export default function ProfileScreen({ navigation }) {
           ))}
         </View>
 
-        {/* LOGOUT BUTTON */}
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.88}
-          onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+          onPress={() => {
+            mobileApi.logout();
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+          }}
         >
           <Text style={styles.logoutText}>Sign Out of HotelHub VIP</Text>
         </TouchableOpacity>

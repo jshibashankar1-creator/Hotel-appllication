@@ -108,8 +108,8 @@ router.post('/tickets/:id/reply', authenticate, (req, res) => {
   return res.json({ success: true, message: 'Reply added to thread.', ticket: updatedTicket });
 });
 
-// PUT /api/support/tickets/:id/status (Admin updates status)
-router.put('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin'), (req, res) => {
+// PUT & PATCH /api/support/tickets/:id/status (Admin updates status)
+const handleTicketStatusUpdate = (req, res) => {
   const { status } = req.body;
   if (!['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid status.' });
@@ -125,6 +125,9 @@ router.put('/tickets/:id/status', authenticate, requireRole('super_admin', 'admi
   });
 
   return res.json({ success: true, message: `Ticket marked as ${status.toUpperCase()}.`, ticket: updatedTicket });
-});
+};
+
+router.put('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'), handleTicketStatusUpdate);
+router.patch('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'), handleTicketStatusUpdate);
 
 export default router;

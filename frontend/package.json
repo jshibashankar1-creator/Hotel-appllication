@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build",
+    "build": "vite build && node -e \"import('fs').then(fs => { fs.copyFileSync('public/_redirects', 'dist/_redirects'); fs.mkdirSync('frontend/dist', {recursive: true}); fs.cpSync('dist', 'frontend/dist', {recursive: true}); })\"",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -379,6 +379,10 @@ class ApiService {
     });
   }
 
+  async updateTicketStatus(id, status) {
+    return this.updateSupportTicketStatus(id, status);
+  }
+
   // --- HOTEL ADMIN API ---
   async getMe() {
     return this.request('/auth/me');
@@ -506,6 +510,14 @@ class ApiService {
     });
   }
 
+  async updateOwnerKyc(userId, status, reason = null) {
+    return this.updateOwnerKYCStatus(userId, status, reason);
+  }
+
+  async updateOwnerKYC(userId, status, reason = null) {
+    return this.updateOwnerKYCStatus(userId, status, reason);
+  }
+
   // --- REPORTS & KPIS ---
   async getAdminKpis() {
     let res;
@@ -601,6 +613,108 @@ class ApiService {
     return this.request('/settings', {
       method: 'PUT',
       body: JSON.stringify(settingsData)
+    });
+  }
+
+  // --- PICKUP SERVICE ---
+  async getHotelPickupSettings(hotelId) {
+    return this.request(`/hotels/${hotelId}/pickup-settings`);
+  }
+
+  async updateHotelPickupSettings(hotelId, pickup_service_enabled) {
+    return this.request(`/hotels/${hotelId}/pickup-settings`, {
+      method: 'PUT',
+      body: JSON.stringify({ pickup_service_enabled })
+    });
+  }
+
+  async addPickupLocation(hotelId, locationData) {
+    return this.request(`/hotels/${hotelId}/pickup-locations`, {
+      method: 'POST',
+      body: JSON.stringify(locationData)
+    });
+  }
+
+  async updatePickupLocation(hotelId, locationId, locationData) {
+    return this.request(`/hotels/${hotelId}/pickup-locations/${locationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(locationData)
+    });
+  }
+
+  async deletePickupLocation(hotelId, locationId) {
+    return this.request(`/hotels/${hotelId}/pickup-locations/${locationId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async addPickupVehicle(hotelId, vehicleData) {
+    return this.request(`/hotels/${hotelId}/pickup-vehicles`, {
+      method: 'POST',
+      body: JSON.stringify(vehicleData)
+    });
+  }
+
+  async updatePickupVehicle(hotelId, vehicleId, vehicleData) {
+    return this.request(`/hotels/${hotelId}/pickup-vehicles/${vehicleId}`, {
+      method: 'PUT',
+      body: JSON.stringify(vehicleData)
+    });
+  }
+
+  async deletePickupVehicle(hotelId, vehicleId) {
+    return this.request(`/hotels/${hotelId}/pickup-vehicles/${vehicleId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getPickups(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/pickups?${query}`);
+  }
+
+  async getPickupDetails(id) {
+    return this.request(`/pickups/${id}`);
+  }
+
+  async updatePickupStatus(id, status, notes = '') {
+    return this.request(`/pickups/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, notes })
+    });
+  }
+
+  async assignPickupDriver(id, driverData) {
+    return this.request(`/pickups/${id}/assign-driver`, {
+      method: 'POST',
+      body: JSON.stringify(driverData)
+    });
+  }
+
+  // --- SUPPORT TICKETS ---
+  async getSupportTickets(userId = null) {
+    const endpoint = userId ? `/support/tickets?user_id=${userId}` : '/support/tickets';
+    return this.request(endpoint);
+  }
+
+  async createSupportTicket(ticketData) {
+    return this.request('/support/tickets', {
+      method: 'POST',
+      body: JSON.stringify(ticketData)
+    });
+  }
+
+  async replySupportTicket(id, text, newStatus = null) {
+    return this.request(`/support/tickets/${id}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ text, new_status: newStatus })
+    });
+  }
+
+  async updateTicketStatus(id, status) {
+    return this.request(`/support/tickets/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
     });
   }
 }

@@ -137,6 +137,44 @@ export default function BookingDetailsScreen({ route, navigation }) {
           </View>
         </View>
 
+        {/* PICKUP SERVICE DETAILS (If requested) */}
+        {currentBooking.pickup && currentBooking.pickup.required ? (
+          <View style={styles.sectionCard}>
+            <View style={styles.pickupHeaderFlex}>
+              <View>
+                <Text style={styles.sectionTitle}>🚗 PICKUP SERVICE</Text>
+                <Text style={styles.pickupSubHeader}>Hotel-Provided Station Transfer</Text>
+              </View>
+              <View style={[styles.pickupStatusPill, { backgroundColor: '#5B1230' }]}>
+                <Text style={styles.pickupStatusPillText}>FREE</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>📍</Text>
+              <Text style={styles.infoText}>
+                Route: {currentBooking.pickup.location_name || 'Station to Hotel'}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>🕐</Text>
+              <Text style={styles.infoText}>
+                Schedule: {currentBooking.pickup.pickup_time || '10:30 AM'} • {currentBooking.pickup.pickup_date || currentBooking.check_in_date}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoIcon}>✨</Text>
+              <Text style={[styles.infoText, { color: '#2E7D32', fontWeight: '800' }]}>
+                Complimentary Hotel Transfer Included (₹0)
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
         {/* ACTIONS */}
         <View style={styles.actionsGroup}>
           {isCompleted && (
@@ -355,5 +393,126 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
     fontSize: 13,
     fontWeight: '700',
+  },
+  pickupHeaderFlex: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  pickupSubHeader: {
+    fontSize: 12,
+    color: COLORS.goldDark,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  pickupStatusPill: {
+    backgroundColor: '#FAF7EE',
+    borderWidth: 1,
+    borderColor: COLORS.gold,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  pickupStatusPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.goldDark,
+  },
+  statusStepper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+    backgroundColor: '#FAFAFA',
+    padding: 10,
+    borderRadius: 14,
+  },
+  stepItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: COLORS.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  stepCirclePassed: {
+    backgroundColor: COLORS.gold,
+  },
+  stepCircleCurrent: {
+    backgroundColor: COLORS.primary,
+    borderWidth: 2,
+    borderColor: COLORS.gold,
+  },
+  stepCircleNum: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+  },
+  stepCircleNumPassed: {
+    color: COLORS.white,
+  },
+  stepItemLabel: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    textAlign: 'center',
+  },
+  stepItemLabelPassed: {
+    color: COLORS.textDark,
+    fontWeight: '800',
+  },
+  infoIcon: {
+    fontSize: 13,
+    marginRight: 8,
+  },
+  infoText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    flex: 1,
+  },
+  driverCard: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  driverHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  driverAvatar: {
+    fontSize: 22,
+  },
+  driverName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  driverVehicle: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginTop: 1,
+  },
+  driverPhoneBox: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  driverPhoneText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primaryDark,
   },
 });

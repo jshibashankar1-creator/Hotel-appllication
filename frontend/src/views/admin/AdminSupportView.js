@@ -156,20 +156,29 @@ export async function renderAdminSupportView(container) {
     modalRoot.querySelector('#modal-close-action')?.addEventListener('click', closeModal);
 
     modalRoot.querySelector('#btn-send-reply')?.addEventListener('click', async () => {
-      const text = modalRoot.querySelector('#reply-input').value.trim();
+      const inputEl = modalRoot.querySelector('#reply-input');
+      const text = inputEl ? inputEl.value.trim() : '';
       if (!text) return;
-      await api.replySupportTicket(ticketId, text);
-      window.showToast('Reply dispatched to ticket.', 'success');
-      const res = await api.getSupportTickets();
-      tickets = res.tickets;
-      openTicketModal(ticketId);
+      try {
+        await api.replySupportTicket(ticketId, text);
+        window.showToast('Reply dispatched to ticket.', 'success');
+        const res = await api.getSupportTickets();
+        tickets = res.tickets || [];
+        openTicketModal(ticketId);
+      } catch (err) {
+        window.showToast(err.message || 'Failed to dispatch reply.', 'error');
+      }
     });
 
     modalRoot.querySelector('#btn-resolve-ticket')?.addEventListener('click', async () => {
-      await api.updateTicketStatus(ticketId, 'resolved');
-      window.showToast('Ticket marked as RESOLVED.', 'success');
-      closeModal();
-      loadData();
+      try {
+        await api.updateTicketStatus(ticketId, 'resolved');
+        window.showToast('Ticket marked as RESOLVED.', 'success');
+        closeModal();
+        loadData();
+      } catch (err) {
+        window.showToast(err.message || 'Failed to update ticket status.', 'error');
+      }
     });
   }
 

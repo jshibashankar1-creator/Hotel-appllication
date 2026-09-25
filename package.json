@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build && node -e \"import('fs').then(fs => { fs.cpSync('frontend/dist', 'dist', {recursive: true}); fs.copyFileSync('frontend/public/_redirects', 'dist/_redirects'); fs.mkdirSync('frontend/frontend/dist', {recursive: true}); fs.cpSync('frontend/dist', 'frontend/frontend/dist', {recursive: true}); })\"",
     "build:frontend": "npm --prefix frontend run build",
     "dev:server": "npm --prefix server start",
     "dev:mobile": "npm --prefix mobile start",

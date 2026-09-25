@@ -288,6 +288,17 @@ export async function seedDatabase() {
           'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'
         ],
         amenities: ['Direct Beach Access', 'Infinity Pool', 'Ayurvedic Wellness Spa', 'Multi-Cuisine Seafood Restaurant', '24/7 Room Service', 'Valet Parking', 'Free High-speed Wi-Fi'],
+        pickup_service_enabled: true,
+        pickup_locations: [
+          { id: 'LOC-001', name: 'Netaji Subhash Chandra Bose Int\'l Airport (CCU)', type: 'airport', address: 'Jessore Rd, Dum Dum, Kolkata', active: true },
+          { id: 'LOC-002', name: 'New Digha Railway Station', type: 'railway', address: 'Station Road, New Digha', active: true },
+          { id: 'LOC-003', name: 'Digha Central Bus Stand', type: 'bus', address: 'State Highway 57, Digha', active: true }
+        ],
+        pickup_vehicles: [
+          { id: 'VEH-001', name: 'Executive Sedan', type: 'Sedan', capacity: 4, price: 800, vehicle_number: 'WB-30-AB-1290', active: true },
+          { id: 'VEH-002', name: 'Premium Luxury SUV', type: 'SUV', capacity: 6, price: 1200, vehicle_number: 'WB-30-CD-4421', active: true },
+          { id: 'VEH-003', name: 'Group Tempo Traveller', type: 'Tempo Traveller', capacity: 12, price: 2000, vehicle_number: 'WB-30-EF-8812', active: true }
+        ],
         created_at: '2026-02-15T10:00:00Z'
       },
       {
@@ -313,6 +324,15 @@ export async function seedDatabase() {
           'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80'
         ],
         amenities: ['Lush Garden', 'Spa & Wellness', 'Outdoor Swimming Pool', 'Live Bengali Folk Music', 'Complimentary Buffet Breakfast', 'Concierge Desk'],
+        pickup_service_enabled: true,
+        pickup_locations: [
+          { id: 'LOC-004', name: 'New Digha Railway Station', type: 'railway', address: 'Station Road, New Digha', active: true },
+          { id: 'LOC-005', name: 'Digha Central Bus Stand', type: 'bus', address: 'State Highway 57, Digha', active: true }
+        ],
+        pickup_vehicles: [
+          { id: 'VEH-004', name: 'Executive Sedan', type: 'Sedan', capacity: 4, price: 800, vehicle_number: 'WB-30-GH-9912', active: true },
+          { id: 'VEH-005', name: 'Luxury SUV (Innova Crysta)', type: 'SUV', capacity: 7, price: 1350, vehicle_number: 'WB-30-IJ-5510', active: true }
+        ],
         created_at: '2026-03-20T11:00:00Z'
       },
       {
@@ -338,6 +358,14 @@ export async function seedDatabase() {
           'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80'
         ],
         amenities: ['Direct Sea Promenade Access', 'Heritage Architecture', 'Seafood Special Restaurant', 'Free Wi-Fi', 'Complimentary Breakfast'],
+        pickup_service_enabled: true,
+        pickup_locations: [
+          { id: 'LOC-006', name: 'Old Digha Bus Depot', type: 'bus', address: 'Barrister Colony Road, Old Digha', active: true },
+          { id: 'LOC-007', name: 'New Digha Railway Station', type: 'railway', address: 'Station Road, New Digha', active: true }
+        ],
+        pickup_vehicles: [
+          { id: 'VEH-006', name: 'Standard Sedan (Dzire)', type: 'Sedan', capacity: 4, price: 750, vehicle_number: 'WB-30-KL-1102', active: true }
+        ],
         created_at: '2026-04-10T09:00:00Z'
       },
       {

@@ -15,12 +15,12 @@ import { COLORS } from '../theme/colors';
 import RoomCard from '../components/RoomCard';
 import StickyBookingBar from '../components/StickyBookingBar';
 import DatePickerModal from '../components/DatePickerModal';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
+
 
 const { width } = Dimensions.get('window');
 
 export default function HotelDetailsScreen({ route, navigation }) {
-  const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
+  const hotel = route.params?.hotel;
   const passedDates = route.params?.bookingDates || {};
 
   const today = new Date();
@@ -42,10 +42,10 @@ export default function HotelDetailsScreen({ route, navigation }) {
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [isFavorite, setIsFavorite] = useState(hotel.isFavorite || false);
   const [selectedRoom, setSelectedRoom] = useState(
-    hotel.rooms && hotel.rooms.length > 0 ? hotel.rooms[0] : RECOMMENDED_HOTELS[0].rooms[0]
+    hotel?.rooms && hotel.rooms.length > 0 ? hotel.rooms[0] : null
   );
 
-  const heroImage = hotel.coverImage || hotel.cover_image || (hotel.images && hotel.images[0]) || RECOMMENDED_HOTELS[0].coverImage;
+  const heroImage = hotel?.coverImage || hotel?.cover_image || (hotel?.images && hotel?.images[0]);
   const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || hotel.pricePerNight || 6499;
   const calculatedTotalPrice = roomPricePerNight * bookingDates.nightsCount;
 
@@ -70,6 +70,15 @@ export default function HotelDetailsScreen({ route, navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#160824" />
       
       <View style={styles.responsiveWrapper}>
+        {!hotel ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: '#fff', fontSize: 16 }}>Hotel not found</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, backgroundColor: COLORS.goldLight, padding: 10, borderRadius: 5 }}>
+              <Text style={{ color: '#000' }}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
         <ScrollView
           style={styles.container}
           showsVerticalScrollIndicator={false}
@@ -170,7 +179,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
             <Text style={styles.selectRoomSub}>Select a Room:</Text>
 
             <View style={styles.roomsList}>
-              {(hotel.rooms || RECOMMENDED_HOTELS[0].rooms).map(room => (
+              {(hotel.rooms || []).map(room => (
                 <RoomCard
                   key={room.id}
                   room={room}
@@ -200,6 +209,8 @@ export default function HotelDetailsScreen({ route, navigation }) {
           initialRooms={bookingDates.roomsCount}
           onConfirm={data => setBookingDates(data)}
         />
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

@@ -15,16 +15,17 @@ import { COLORS } from '../theme/colors';
 import HotelCard from '../components/HotelCard';
 import FilterModal from '../components/FilterModal';
 import DatePickerModal from '../components/DatePickerModal';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
+
 import { mobileApi } from '../services/api';
 
 export default function SearchScreen({ route, navigation }) {
   const searchState = route.params?.searchState || {};
   const initialCity = route.params?.city || searchState.location || '';
   const [searchQuery, setSearchQuery] = useState(initialCity);
-  const [hotels, setHotels] = useState(RECOMMENDED_HOTELS);
-  const [favorites, setFavorites] = useState(['htl-digha-luxury-resort']);
+  const [hotels, setHotels] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
@@ -58,26 +59,26 @@ export default function SearchScreen({ route, navigation }) {
   async function fetchHotels() {
     try {
       setLoading(true);
+      setError(null);
       const params = {};
       if (searchQuery) params.city = searchQuery;
       if (activeFilters.star) params.starCategory = activeFilters.star;
 
       const res = await mobileApi.searchHotels(params);
-      let combined = RECOMMENDED_HOTELS;
+      let combined = [];
 
       if (res && res.hotels && res.hotels.length > 0) {
         combined = res.hotels.map(h => {
-          const matched = RECOMMENDED_HOTELS.find(rh => rh.city.toLowerCase() === (h.city || '').toLowerCase());
           return {
             ...h,
-            coverImage: h.cover_image || (matched ? matched.coverImage : RECOMMENDED_HOTELS[0].coverImage),
-            images: h.gallery && h.gallery.length > 0 ? h.gallery : (matched ? matched.images : RECOMMENDED_HOTELS[0].images),
-            pricePerNight: h.starting_price || (matched ? matched.pricePerNight : 6499),
+            coverImage: h.cover_image,
+            images: h.gallery && h.gallery.length > 0 ? h.gallery : [h.cover_image],
+            pricePerNight: h.starting_price || h.price_per_night || 0,
             currency: '₹',
-            rating: h.rating || 4.8,
-            reviewsCount: h.reviews_count || 215,
+            rating: h.rating || 0,
+            reviewsCount: h.reviews_count || 0,
             isTopRated: true,
-            rooms: h.rooms || (matched ? matched.rooms : RECOMMENDED_HOTELS[0].rooms),
+            rooms: h.rooms || [],
           };
         });
       }
@@ -97,10 +98,10 @@ export default function SearchScreen({ route, navigation }) {
         combined.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       }
 
-      setHotels(combined.length > 0 ? combined : RECOMMENDED_HOTELS);
+      setHotels(combined);
     } catch (err) {
-      console.log('Search fallback to mock hotels:', err.message);
-      setHotels(RECOMMENDED_HOTELS);
+      console.log('API Error:', err.message);
+      setError('Unable to connect to server. Please check your internet connection or try again.');
     } finally {
       setLoading(false);
     }
@@ -199,6 +200,17 @@ export default function SearchScreen({ route, navigation }) {
             <View style={styles.loaderContainer}>
               <ActivityIndicator size="large" color={COLORS.goldLight} />
               <Text style={styles.loaderText}>Searching luxury stays...</Text>
+            </View>
+          ) : error ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60 }}>
+              <Text style={{ color: 'red', textAlign: 'center', marginBottom: 10 }}>{error}</Text>
+              <TouchableOpacity onPress={fetchHotels} style={{ backgroundColor: COLORS.goldLight, padding: 10, borderRadius: 5 }}>
+                <Text style={{ color: '#000' }}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : hotels.length === 0 ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60 }}>
+              <Text style={{ color: '#fff', textAlign: 'center' }}>No hotels available</Text>
             </View>
           ) : (
             <FlatList

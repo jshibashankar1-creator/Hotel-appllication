@@ -132,8 +132,8 @@ async function main() {
       body: JSON.stringify({
         hotel_id: 'HTL-001',
         room_id: 'RM-101',
-        check_in_date: '2026-10-01',
-        check_out_date: '2026-10-04',
+        check_in_date: '2027-10-01',
+        check_out_date: '2027-10-04',
         guests_count: 2,
         customer_name: 'Aarav Sharma',
         customer_email: 'aarav.sharma@gmail.com',

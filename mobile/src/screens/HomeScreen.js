@@ -15,15 +15,16 @@ import { COLORS } from '../theme/colors';
 import SearchCard from '../components/SearchCard';
 import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
-import { POPULAR_DESTINATIONS, RECOMMENDED_HOTELS } from '../data/mockData';
+import { POPULAR_DESTINATIONS } from '../data/mockData';
 import { mobileApi } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
-  const [hotels, setHotels] = useState(RECOMMENDED_HOTELS);
-  const [favorites, setFavorites] = useState(['htl-digha-luxury-resort']);
+  const [hotels, setHotels] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchLiveHotels();
@@ -32,27 +33,29 @@ export default function HomeScreen({ navigation }) {
   async function fetchLiveHotels() {
     try {
       setLoading(true);
+      setError(null);
       const res = await mobileApi.searchHotels();
       if (res && res.hotels && res.hotels.length > 0) {
         const combined = res.hotels.map(h => {
-          const matched = RECOMMENDED_HOTELS.find(rh => rh.city.toLowerCase() === (h.city || '').toLowerCase());
           return {
             ...h,
-            coverImage: h.cover_image || (matched ? matched.coverImage : RECOMMENDED_HOTELS[0].coverImage),
-            images: h.gallery && h.gallery.length > 0 ? h.gallery : (matched ? matched.images : RECOMMENDED_HOTELS[0].images),
-            pricePerNight: h.starting_price || (matched ? matched.pricePerNight : 6499),
+            coverImage: h.cover_image,
+            images: h.gallery && h.gallery.length > 0 ? h.gallery : [h.cover_image],
+            pricePerNight: h.starting_price || h.price_per_night || 0,
             currency: '₹',
             isTopRated: true,
-            reviewsCount: h.reviews_count || 215,
-            rating: h.rating || 4.8,
-            rooms: h.rooms || (matched ? matched.rooms : RECOMMENDED_HOTELS[0].rooms),
+            reviewsCount: h.reviews_count || 0,
+            rating: h.rating || 0,
+            rooms: h.rooms || [],
           };
         });
-        setHotels(combined.length >= 3 ? combined : RECOMMENDED_HOTELS);
+        setHotels(combined);
+      } else {
+        setHotels([]);
       }
     } catch (err) {
-      console.log('Using local luxury mock hotels dataset:', err.message);
-      setHotels(RECOMMENDED_HOTELS);
+      console.log('API Error:', err.message);
+      setError('Unable to connect to server. Please check your internet connection or try again.');
     } finally {
       setLoading(false);
     }
@@ -153,15 +156,28 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <View style={styles.hotelsList}>
-            {hotels.map(hotel => (
-              <HotelCard
-                key={hotel.id}
-                hotel={hotel}
-                isFavorite={favorites.includes(hotel.id)}
-                onToggleFavorite={toggleFavorite}
-                onPress={handleSelectHotel}
-              />
-            ))}
+            {loading ? (
+              <Text style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>Loading hotels...</Text>
+            ) : error ? (
+              <View style={{ alignItems: 'center', marginTop: 20 }}>
+                <Text style={{ color: 'red', textAlign: 'center', marginBottom: 10 }}>{error}</Text>
+                <TouchableOpacity onPress={fetchLiveHotels} style={{ backgroundColor: COLORS.goldLight, padding: 10, borderRadius: 5 }}>
+                  <Text style={{ color: '#000' }}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : hotels.length === 0 ? (
+              <Text style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>No hotels available</Text>
+            ) : (
+              hotels.map(hotel => (
+                <HotelCard
+                  key={hotel.id}
+                  hotel={hotel}
+                  isFavorite={favorites.includes(hotel.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onPress={handleSelectHotel}
+                />
+              ))
+            )}
           </View>
         </View>
       </ScrollView>

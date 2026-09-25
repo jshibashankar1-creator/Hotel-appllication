@@ -10,26 +10,20 @@ import {
   StatusBar,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
+
 
 export default function RoomDetailsScreen({ route, navigation }) {
-  const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
-  const room = route.params?.room || (hotel.rooms && hotel.rooms[0]) || {
-    name: 'Deluxe Ocean Suite',
-    type: 'Suite',
-    price: 350,
-    max_guests: 3,
-    image: RECOMMENDED_HOTELS[0].coverImage,
-  };
+  const hotel = route.params?.hotel || {};
+  const room = route.params?.room || (hotel?.rooms && hotel?.rooms[0]) || {};
 
-  const roomPrice = room.price || room.price_per_night || 350;
+  const roomPrice = room?.price || room?.price_per_night || 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Image
-          source={{ uri: room.image || (room.photos && room.photos[0]) || hotel.coverImage || hotel.cover_image }}
+          source={{ uri: room?.image || (room?.photos && room?.photos[0]) || hotel?.coverImage || hotel?.cover_image }}
           style={styles.heroImage}
         />
 
@@ -67,7 +61,7 @@ export default function RoomDetailsScreen({ route, navigation }) {
         <View>
           <Text style={styles.priceLabel}>Nightly Rate</Text>
           <Text style={styles.priceValue}>
-            ${roomPrice.toLocaleString()}
+            ₹{roomPrice.toLocaleString()}
             <Text style={styles.gstText}> + taxes</Text>
           </Text>
         </View>

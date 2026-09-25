@@ -11,12 +11,11 @@ import {
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import HotelCard from '../components/HotelCard';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
+
 
 export default function WishlistScreen({ navigation }) {
-  const [favorites, setFavorites] = useState(['htl-plaza-ny', 'htl-burj-dubai']);
-
-  const savedHotels = RECOMMENDED_HOTELS.filter(h => favorites.includes(h.id));
+  const [favorites, setFavorites] = useState([]);
+  const savedHotels = [];
 
   const toggleFavorite = (hotelId) => {
     setFavorites(favorites.filter(id => id !== hotelId));

@@ -10,20 +10,11 @@ import {
   Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
+
 
 export default function BookingConfirmationScreen({ route, navigation }) {
-  const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
-  const booking = route.params?.booking || {
-    booking_code: 'BK-DGH-8921',
-    hotel_name: hotel.name || 'Digha Beach Luxury Resort',
-    location: hotel.location || 'New Digha, WB',
-    check_in_date: '12 Aug, 2026',
-    check_out_date: '15 Aug, 2026',
-    guests_count: 2,
-    rooms_count: 1,
-    total_amount: 62160,
-  };
+  const hotel = route.params?.hotel || {};
+  const booking = route.params?.booking || {};
 
   const handleDownloadTicket = () => {
     navigation.navigate('BookingDetails', { booking, hotel });
@@ -90,18 +81,18 @@ export default function BookingConfirmationScreen({ route, navigation }) {
             <View style={styles.passMetaSection}>
               <Text style={styles.metaLabel}>Booking Details</Text>
               <Text style={styles.hotelNameText}>
-                {booking.hotel_name || hotel.name || 'Digha Beach Luxury Resort'}
+                {booking?.hotel_name || hotel?.name || ''}
               </Text>
 
               <View style={styles.datesRow}>
                 <View style={styles.dateCol}>
                   <Text style={styles.dateTitle}>Check-in 📅</Text>
-                  <Text style={styles.dateVal}>{booking.check_in_date || '12 Aug, 2026'}</Text>
+                  <Text style={styles.dateVal}>{booking?.check_in_date || booking?.formattedCheckIn || ''}</Text>
                 </View>
 
                 <View style={styles.dateColRight}>
                   <Text style={styles.dateTitle}>Check-out 👤</Text>
-                  <Text style={styles.dateVal}>{booking.check_out_date || '15 Aug, 2026'}</Text>
+                  <Text style={styles.dateVal}>{booking?.check_out_date || booking?.formattedCheckOut || ''}</Text>
                 </View>
               </View>
             </View>

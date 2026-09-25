@@ -46,19 +46,7 @@ export default function PaymentScreen({ route, navigation }) {
       }
 
       if (!createdBooking) {
-        createdBooking = {
-          id: `BKG-${Date.now().toString(36).toUpperCase()}`,
-          booking_code: `BK-DGH-${Math.floor(1000 + Math.random() * 9000)}`,
-          hotel_name: hotel.name,
-          location: hotel.location || `${hotel.city}, ${hotel.state || 'WB'}`,
-          check_in_date: bookingData.formattedCheckIn || bookingData.check_in_date || '20 Sep 2026',
-          check_out_date: bookingData.formattedCheckOut || bookingData.check_out_date || '23 Sep 2026',
-          guests_count: bookingData.guests_count || 2,
-          rooms_count: 1,
-          total_amount: bookingData.total_amount || 62160,
-          booking_status: 'confirmed',
-          payment_status: 'paid',
-        };
+        throw new Error('Failed to create booking. Backend returned empty response.');
       }
 
       navigation.replace('BookingConfirmation', {

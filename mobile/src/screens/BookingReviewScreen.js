@@ -12,15 +12,11 @@ import {
   Platform,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
-import { RECOMMENDED_HOTELS, ACTIVE_USER_PROFILE } from '../data/mockData';
+import { mobileApi } from '../services/api';
 
 export default function BookingReviewScreen({ route, navigation }) {
-  const hotel = route.params?.hotel || RECOMMENDED_HOTELS[0];
-  const room = route.params?.selectedRoom || route.params?.room || (hotel.rooms && hotel.rooms[0]) || {
-    id: 'rm-ocean-view-king',
-    name: 'Ocean View King',
-    price: 18500,
-  };
+  const hotel = route.params?.hotel;
+  const room = route.params?.selectedRoom || route.params?.room || (hotel?.rooms && hotel?.rooms[0]);
 
   const checkIn = route.params?.checkInDate || route.params?.formattedCheckIn || '2026-09-22';
   const checkOut = route.params?.checkOutDate || route.params?.formattedCheckOut || '2026-09-25';
@@ -30,11 +26,12 @@ export default function BookingReviewScreen({ route, navigation }) {
   const roomsCount = route.params?.roomsCount || 1;
   const nights = route.params?.nightsCount || 3;
 
-  const [guestName, setGuestName] = useState(ACTIVE_USER_PROFILE.name);
-  const [guestEmail, setGuestEmail] = useState(ACTIVE_USER_PROFILE.email);
-  const [guestPhone, setGuestPhone] = useState(ACTIVE_USER_PROFILE.phone);
+  const currentUser = mobileApi.currentUser || {};
+  const [guestName, setGuestName] = useState(currentUser.name || '');
+  const [guestEmail, setGuestEmail] = useState(currentUser.email || '');
+  const [guestPhone, setGuestPhone] = useState(currentUser.phone || '');
 
-  const roomRate = room.price || room.price_per_night || 18500;
+  const roomRate = room?.price || room?.price_per_night || 0;
   const baseAmount = roomRate * nights;
   const taxesAndFees = Math.round(baseAmount * 0.12);
   const totalAmount = baseAmount + taxesAndFees;
@@ -76,13 +73,13 @@ export default function BookingReviewScreen({ route, navigation }) {
           {/* HOTEL SUMMARY BANNER */}
           <View style={styles.hotelCard}>
             <Image
-              source={{ uri: hotel.coverImage || hotel.cover_image || RECOMMENDED_HOTELS[0].coverImage }}
+              source={{ uri: hotel?.coverImage || hotel?.cover_image || (hotel?.images && hotel?.images[0]) }}
               style={styles.hotelImage}
             />
             <View style={styles.hotelInfo}>
-              <Text style={styles.hotelName}>{hotel.name}</Text>
-              <Text style={styles.roomName}>{room.name || room.room_name || 'Ocean View King'}</Text>
-              <Text style={styles.locationText}>📍 {hotel.city || 'New Digha'}, {hotel.state || 'WB'}</Text>
+              <Text style={styles.hotelName}>{hotel?.name}</Text>
+              <Text style={styles.roomName}>{room?.name || room?.room_name || ''}</Text>
+              <Text style={styles.locationText}>📍 {hotel?.city || 'City'}, {hotel?.state || ''}</Text>
             </View>
           </View>
 

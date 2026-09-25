@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { mobileApi } from '../services/api';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
+
 
 export default function BookingDetailsScreen({ route, navigation }) {
   const initialBooking = route.params?.booking;
@@ -33,26 +33,38 @@ export default function BookingDetailsScreen({ route, navigation }) {
         setBooking(res.booking);
       }
     } catch (err) {
-      console.log('Using local booking itinerary:', err.message);
+      console.log('API error fetching booking details:', err.message);
     } finally {
       setLoading(false);
     }
   }
 
-  const currentBooking = booking || {
-    id: 'BKG-DIGH-01',
-    booking_code: 'BK-DGH-8921',
-    hotel_name: 'Hotel Sea Hawk New Digha',
-    location: 'Sea Beach Road, New Digha, West Bengal',
-    check_in_date: '12 Aug, Mon',
-    check_out_date: '15 Aug, Thu',
-    guests_count: 2,
-    rooms_count: 1,
-    room_name: 'Deluxe Sea Facing Room',
-    total_amount: 3500,
-    booking_status: 'confirmed',
-    payment_status: 'paid',
-  };
+  const currentBooking = booking;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#fff' }}>Loading booking details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!currentBooking) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#fff' }}>Booking not found.</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, padding: 10, backgroundColor: COLORS.goldLight, borderRadius: 5 }}>
+            <Text style={{ color: '#000' }}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const isCancellable = currentBooking.booking_status === 'confirmed';
   const isCompleted = currentBooking.booking_status === 'checked_out';

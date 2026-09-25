@@ -12,49 +12,13 @@ import {
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { mobileApi } from '../services/api';
-import { RECOMMENDED_HOTELS } from '../data/mockData';
 
-const DEFAULT_BOOKINGS = [
-  {
-    id: 'BKG-DIGH-01',
-    booking_code: 'BK-DGH-8921',
-    hotel_name: 'Hotel Sea Hawk New Digha',
-    location: 'Sea Beach Road, New Digha, West Bengal',
-    city: 'New Digha',
-    country: 'India',
-    check_in_date: '12 Aug, Mon',
-    check_out_date: '15 Aug, Thu',
-    guests_count: 2,
-    rooms_count: 1,
-    room_name: 'Deluxe Sea Facing Room',
-    total_amount: 3500,
-    booking_status: 'confirmed',
-    payment_status: 'paid',
-    cover_image: RECOMMENDED_HOTELS[0].coverImage,
-  },
-  {
-    id: 'BKG-DIGH-02',
-    booking_code: 'BK-ODG-4412',
-    hotel_name: 'Old Digha Heritage Beach Hotel',
-    location: 'Barrister Colony, Old Digha, West Bengal',
-    city: 'Old Digha',
-    country: 'India',
-    check_in_date: '05 Jul 2026',
-    check_out_date: '08 Jul 2026',
-    guests_count: 2,
-    rooms_count: 1,
-    room_name: 'Heritage AC Room',
-    total_amount: 2800,
-    booking_status: 'checked_out',
-    payment_status: 'paid',
-    cover_image: RECOMMENDED_HOTELS[2].coverImage,
-  },
-];
 
 export default function MyBookingsScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'completed', 'cancelled'
-  const [bookings, setBookings] = useState(DEFAULT_BOOKINGS);
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchLiveBookings();
@@ -67,12 +31,16 @@ export default function MyBookingsScreen({ navigation }) {
   async function fetchLiveBookings() {
     try {
       setLoading(true);
+      setError(null);
       const res = await mobileApi.getMyBookings();
       if (res && res.bookings && res.bookings.length > 0) {
         setBookings(res.bookings);
+      } else {
+        setBookings([]);
       }
     } catch (err) {
-      console.log('Bookings note:', err.message);
+      console.log('API Error:', err.message);
+      setError('Unable to fetch bookings. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -130,7 +98,18 @@ export default function MyBookingsScreen({ navigation }) {
 
       {/* Bookings List */}
       <View style={styles.content}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <View style={styles.emptyContainer}>
+            <Text style={{color: COLORS.textDark}}>Loading bookings...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.emptyContainer}>
+            <Text style={{color: 'red', textAlign: 'center', marginBottom: 10}}>{error}</Text>
+            <TouchableOpacity onPress={fetchLiveBookings} style={styles.exploreButton}>
+              <Text style={styles.exploreButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : filtered.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyEmoji}>📅</Text>
             <Text style={styles.emptyTitle}>No {activeTab} stays found</Text>
@@ -189,12 +168,12 @@ export default function MyBookingsScreen({ navigation }) {
                   </View>
                   <View style={styles.gridCol}>
                     <Text style={styles.gridLabel}>TOTAL PAID</Text>
-                    <Text style={styles.gridPrice}>${(item.total_amount || 1050).toLocaleString()}</Text>
+                    <Text style={styles.gridPrice}>₹{(item.total_amount || 0).toLocaleString()}</Text>
                   </View>
                 </View>
 
                 <View style={styles.cardFooterRow}>
-                  <Text style={styles.codeText}>Code: {item.booking_code || 'BK-PLZ-8921'}</Text>
+                  <Text style={styles.codeText}>Code: {item.booking_code || item.id || ''}</Text>
                   <Text style={styles.viewDetailsText}>View Digital Itinerary →</Text>
                 </View>
               </TouchableOpacity>

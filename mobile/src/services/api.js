@@ -6,7 +6,7 @@ const EMULATOR_API_URL = 'http://10.0.2.2:5000/api';
 const LOCAL_API_URL = 'http://localhost:5000/api';
 
 const DEFAULT_URL = Platform.OS === 'android'
-  ? (process.env.EXPO_PUBLIC_API_URL || LAN_API_URL)
+  ? (process.env.EXPO_PUBLIC_API_URL || EMULATOR_API_URL)
   : (process.env.EXPO_PUBLIC_API_URL || LOCAL_API_URL);
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_URL;

@@ -3,7 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet, Platform } from 'react-native';
+import { Text, View, StyleSheet, Platform, Image } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 import { COLORS } from './src/theme/colors';
 
@@ -38,27 +39,39 @@ function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: COLORS.burgundyPill || '#7D143D',
-        tabBarInactiveTintColor: '#888888',
+        tabBarInactiveTintColor: '#A0B0C0', // slightly lighter for dark/glass background
+        tabBarBackground: () => (
+          <BlurView 
+            tint="light" 
+            intensity={60} 
+            style={StyleSheet.absoluteFill} 
+          />
+        ),
         tabBarStyle: {
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          borderTopColor: 'transparent',
+          backgroundColor: 'rgba(255, 255, 255, 0.45)', // more transparent for glass
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(255, 255, 255, 0.65)',
+          borderLeftWidth: 1,
+          borderLeftColor: 'rgba(255, 255, 255, 0.50)',
+          borderRightWidth: 1,
+          borderRightColor: 'rgba(255, 255, 255, 0.50)',
           position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: Platform.OS === 'ios' ? 84 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 6,
+          bottom: Platform.OS === 'ios' ? 16 : 8,
+          left: 10,
+          right: 10,
+          height: Platform.OS === 'ios' ? 74 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 14 : 4,
           paddingTop: 6,
-          elevation: 10,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
+          elevation: 0,
+          shadowColor: '#0a1432',
+          shadowOffset: { width: 0, height: -5 },
+          shadowOpacity: 0.12,
+          shadowRadius: 25,
           maxWidth: 720,
           alignSelf: 'center',
-          width: '100%',
+          overflow: 'hidden', // to contain the blur within rounded corners
         },
         tabBarLabelStyle: {
           fontSize: 11,

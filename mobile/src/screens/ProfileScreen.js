@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   profileHeroCard: {
     backgroundColor: COLORS.primary,

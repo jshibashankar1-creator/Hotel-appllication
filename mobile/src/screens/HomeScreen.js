@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#160824',
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   responsiveWrapper: {
     width: '100%',

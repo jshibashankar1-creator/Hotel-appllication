@@ -134,7 +134,7 @@ router.get('/rooms', (req, res) => {
 });
 
 // 5. POST /api/hotel-admin/rooms — Create Room in this hotel
-router.post('/rooms', (req, res) => {
+router.post('/rooms', requireRole('hotel_admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 
@@ -165,7 +165,7 @@ router.post('/rooms', (req, res) => {
 });
 
 // 6. PUT /api/hotel-admin/rooms/:id — Update Room belonging to this hotel
-router.put('/rooms/:id', (req, res) => {
+router.put('/rooms/:id', requireRole('hotel_admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 
@@ -186,7 +186,7 @@ router.put('/rooms/:id', (req, res) => {
 });
 
 // 6b. DELETE /api/hotel-admin/rooms/:id — Delete Room strictly belonging to this hotel
-router.delete('/rooms/:id', (req, res) => {
+router.delete('/rooms/:id', requireRole('hotel_admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 

@@ -39,6 +39,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [fullHotel, setFullHotel] = useState(hotel);
   const [loading, setLoading] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     async function fetchDetails() {
@@ -150,41 +151,70 @@ export default function HotelDetailsScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* ROOM TYPE SELECTION */}
-          <Text style={styles.sectionTitle}>ROOM TYPE SELECTION</Text>
-          
-          {displayRooms.map((room, idx) => {
-            const isSelected = selectedRoom?.id === room.id || selectedRoom?.name === room.name;
-            const price = room.price || room.price_per_night || room.pricePerNight || 0;
-            return (
-              <TouchableOpacity key={idx} style={styles.roomCard} onPress={() => setSelectedRoom(room)} activeOpacity={0.9}>
-                <Image source={{uri: (room.photos && room.photos[0]) || room.image || room.cover_image }} style={styles.roomImage} />
-                <View style={styles.roomDetails}>
-                  <Text style={styles.roomName}>{room.room_name || room.name}</Text>
-                  <Text style={styles.roomSubInfo}>👤 {room.max_guests || '2'} Adults • 🛏️ {room.bedType || 'King Bed'}</Text>
-                  <Text style={styles.roomSubInfo}>🌅 {room.view || 'Great View'}</Text>
-                </View>
-                <View style={styles.roomRight}>
-                  <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
-                    {isSelected && <View style={styles.radioInner} />}
+          {/* HOTEL PICKUP SERVICE */}
+          <View style={styles.pickupCard}>
+            <View style={styles.pickupIconContainer}>
+              <Text style={styles.pickupIcon}>🚗</Text>
+            </View>
+            <View style={styles.pickupContent}>
+              <Text style={styles.pickupTitle}>Hotel Pickup Service Available</Text>
+              <Text style={styles.pickupDesc}>Direct airport & station pickup in premium AC vehicles with real-time driver tracking</Text>
+            </View>
+          </View>
+
+          {/* ABOUT HOTEL */}
+          <View style={styles.aboutHeader}>
+            <Text style={styles.aboutTitle}>About Hotel</Text>
+            <TouchableOpacity onPress={() => setShowFullDescription(!showFullDescription)}>
+              <Text style={styles.showMoreText}>{showFullDescription ? 'Show less' : 'Show more'}</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.aboutText} numberOfLines={showFullDescription ? undefined : 4}>
+            {fullHotel?.description || fullHotel?.about || 'Premier luxury beachfront resort in New Digha offering panoramic Bay of Bengal views, private balcony sea-facing suites, swimming pool, and authentic Bengali and Continental seafood dining.'}
+          </Text>
+
+          {/* SELECT ROOM */}
+          <Text style={styles.selectRoomTitle}>Select Room</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 10 }}>
+            {displayRooms.map((room, idx) => {
+              const isSelected = selectedRoom?.id === room.id || selectedRoom?.name === room.name;
+              const price = room.price || room.price_per_night || room.pricePerNight || 0;
+              return (
+                <TouchableOpacity key={idx} style={[styles.horizontalRoomCard, isSelected && styles.horizontalRoomCardSelected]} onPress={() => setSelectedRoom(room)} activeOpacity={0.9}>
+                  <View style={styles.roomImageContainer}>
+                    <Image source={{uri: (room.photos && room.photos[0]) || room.image || room.cover_image || 'https://via.placeholder.com/150' }} style={styles.horizontalRoomImage} />
+                    {isSelected && (
+                      <View style={styles.checkIconContainer}>
+                        <Text style={styles.checkIcon}>✓</Text>
+                      </View>
+                    )}
                   </View>
-                  <Text style={styles.roomPrice}>₹{price.toLocaleString()}</Text>
-                  <Text style={styles.roomPriceUnit}>/ night</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+                  <View style={styles.horizontalRoomDetails}>
+                    <Text style={styles.horizontalRoomName} numberOfLines={1}>{room.room_name || room.name}</Text>
+                    <Text style={styles.horizontalRoomSubInfo} numberOfLines={1}>{room.bedType || 'King Bed'} • {room.view || 'Sea Balcony'}</Text>
+                    <View style={{flexDirection: 'row', alignItems: 'baseline', marginTop: 4}}>
+                      <Text style={styles.horizontalRoomPrice}>${price}</Text>
+                      <Text style={styles.horizontalRoomPriceUnit}> / night</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
       </ScrollView>
 
       {/* BOTTOM BOOKING BAR */}
       <View style={styles.bottomBar}>
         <View>
-          <Text style={styles.totalLabel}>Total per night:</Text>
-          <Text style={styles.totalPrice}>₹{roomPricePerNight.toLocaleString()}</Text>
+          <View style={{flexDirection: 'row', alignItems: 'baseline'}}>
+            <Text style={styles.totalPrice}>${roomPricePerNight.toLocaleString()}</Text>
+            <Text style={styles.roomPriceUnit}> / night</Text>
+          </View>
+          <Text style={styles.totalLabel}>Includes taxes & fees</Text>
         </View>
         <TouchableOpacity style={styles.bookButton} activeOpacity={0.88} onPress={handleProceedToBooking}>
-          <Text style={styles.bookButtonText}>Select Room & Book</Text>
+          <Text style={styles.bookButtonText}>Select Room →</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -463,5 +493,134 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 14,
+  },
+  pickupCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FAF7F2', // light premium background
+    borderWidth: 1,
+    borderColor: '#E8E0D1',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  pickupIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3EAE0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  pickupIcon: {
+    fontSize: 20,
+  },
+  pickupContent: {
+    flex: 1,
+  },
+  pickupTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#4A1D2F',
+    marginBottom: 4,
+  },
+  pickupDesc: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 18,
+  },
+  aboutHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 28,
+    marginBottom: 12,
+  },
+  aboutTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#4A1D2F',
+  },
+  showMoreText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#B58E4A', // premium gold text
+  },
+  aboutText: {
+    fontSize: 14,
+    color: '#4B5563',
+    lineHeight: 22,
+  },
+  selectRoomTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#4A1D2F',
+    marginTop: 28,
+    marginBottom: 16,
+  },
+  horizontalRoomCard: {
+    width: 160,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    overflow: 'hidden',
+  },
+  horizontalRoomCardSelected: {
+    borderColor: '#4A1D2F',
+    borderWidth: 1.5,
+  },
+  roomImageContainer: {
+    width: '100%',
+    height: 110,
+    position: 'relative',
+  },
+  horizontalRoomImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  checkIconContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EAB308',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkIcon: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  horizontalRoomDetails: {
+    padding: 12,
+  },
+  horizontalRoomName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0B1733',
+    marginBottom: 4,
+  },
+  horizontalRoomSubInfo: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  horizontalRoomPrice: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#4A1D2F',
+  },
+  horizontalRoomPriceUnit: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '500',
   },
 });

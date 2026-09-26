@@ -14,8 +14,8 @@ router.get('/:id', (req, res) => {
   return res.json({ success: true, room: { ...room, hotel_name: hotel ? hotel.name : '' } });
 });
 
-// POST /api/rooms (Owner / Hotel Admin adds room to their hotel)
-router.post('/', authenticate, requireRole('owner', 'hotel_admin', 'admin'), (req, res) => {
+// POST /api/rooms (Hotel Admin adds room to their hotel)
+router.post('/', authenticate, requireRole('hotel_admin'), (req, res) => {
   const { hotel_id, room_name, room_type, description, max_guests, total_inventory, price_per_night, photos } = req.body;
 
   if (!hotel_id || !room_name || !price_per_night) {
@@ -27,10 +27,9 @@ router.post('/', authenticate, requireRole('owner', 'hotel_admin', 'admin'), (re
     return res.status(404).json({ success: false, message: 'Hotel not found.' });
   }
 
-  const isPlatformAdmin = ['super_admin', 'admin'].includes(req.user.role);
-  const isHotelAuthorized = hotel.owner_id === req.user.id || hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id;
+  const isHotelAuthorized = hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id;
 
-  if (!isPlatformAdmin && !isHotelAuthorized) {
+  if (!isHotelAuthorized) {
     return res.status(403).json({ success: false, message: 'You are not authorized to manage rooms for this hotel.' });
   }
 
@@ -56,18 +55,17 @@ router.post('/', authenticate, requireRole('owner', 'hotel_admin', 'admin'), (re
   return res.status(201).json({ success: true, message: 'Room created successfully.', room: newRoom });
 });
 
-// PUT /api/rooms/:id (Owner / Hotel Admin updates room)
-router.put('/:id', authenticate, requireRole('owner', 'hotel_admin', 'admin'), (req, res) => {
+// PUT /api/rooms/:id (Hotel Admin updates room)
+router.put('/:id', authenticate, requireRole('hotel_admin'), (req, res) => {
   const room = db.getRoomById(req.params.id);
   if (!room) {
     return res.status(404).json({ success: false, message: 'Room not found.' });
   }
 
   const hotel = db.getHotelById(room.hotel_id);
-  const isPlatformAdmin = ['super_admin', 'admin'].includes(req.user.role);
-  const isHotelAuthorized = hotel && (hotel.owner_id === req.user.id || hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id);
+  const isHotelAuthorized = hotel && (hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id);
 
-  if (!isPlatformAdmin && !isHotelAuthorized) {
+  if (!isHotelAuthorized) {
     return res.status(403).json({ success: false, message: 'You are not authorized to manage rooms for this hotel.' });
   }
 
@@ -88,18 +86,17 @@ router.put('/:id', authenticate, requireRole('owner', 'hotel_admin', 'admin'), (
   return res.json({ success: true, message: 'Room updated successfully.', room: updatedRoom });
 });
 
-// DELETE /api/rooms/:id (Owner / Hotel Admin disables room)
-router.delete('/:id', authenticate, requireRole('owner', 'hotel_admin', 'admin'), (req, res) => {
+// DELETE /api/rooms/:id (Hotel Admin disables room)
+router.delete('/:id', authenticate, requireRole('hotel_admin'), (req, res) => {
   const room = db.getRoomById(req.params.id);
   if (!room) {
     return res.status(404).json({ success: false, message: 'Room not found.' });
   }
 
   const hotel = db.getHotelById(room.hotel_id);
-  const isPlatformAdmin = ['super_admin', 'admin'].includes(req.user.role);
-  const isHotelAuthorized = hotel && (hotel.owner_id === req.user.id || hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id);
+  const isHotelAuthorized = hotel && (hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id);
 
-  if (!isPlatformAdmin && !isHotelAuthorized) {
+  if (!isHotelAuthorized) {
     return res.status(403).json({ success: false, message: 'You are not authorized to manage rooms for this hotel.' });
   }
 

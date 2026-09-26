@@ -17,6 +17,7 @@ import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
 import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
+import HeroSlider from '../components/HeroSlider';
 import { mobileApi } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -138,6 +139,13 @@ export default function HomeScreen({ navigation }) {
 
           <Text style={styles.heroTitle}>Find Your{'\n'}Perfect Stay</Text>
           <Text style={styles.locationPin}>📍 New Digha & Old Digha, WB</Text>
+
+          {/* Hero Slider */}
+          <HeroSlider 
+            data={hotels.filter(h => h.coverImage).slice(0, 5)} 
+            navigation={navigation} 
+            loading={loading}
+          />
 
           {/* Search Glass Box */}
           <View style={styles.glassBoxContainer}>

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../db/database.js';
-import { authenticate, JWT_SECRET, requireRole, requireSuperAdmin } from '../middleware/auth.js';
+import { authenticate, JWT_SECRET, requireRole, requireSuperAdmin, revokeToken } from '../middleware/auth.js';
 import { ADMIN_ROLES, DEFAULT_ROLE_PERMISSIONS } from '../models/User.js';
 
 const router = Router();
@@ -345,7 +345,7 @@ router.post('/admin/create', authenticate, requireRole('super_admin'), async (re
 // ============================================================================
 // UNIFIED AUTHENTICATION CONTROLLER (Single Login API for all roles)
 // ============================================================================
-const handleUnifiedLogin = async (req, res) => {
+const handleUnifiedLogin = async (req, res, loginScope = null) => {
   try {
     const { email, password, requiredRole } = req.body;
 
@@ -359,24 +359,11 @@ const handleUnifiedLogin = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Verify Password
-    let isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      // Support standard demo passwords across dev environments
-      if ((password === 'Admin@123456' || password === 'Admin@123') && ['super_admin', 'admin', 'support_admin', 'finance_admin'].includes(user.role)) {
-        isMatch = true;
-      } else if ((password === 'HotelAdmin@123456' || password === 'Password@123') && ['hotel_admin', 'owner'].includes(user.role)) {
-        isMatch = true;
-      } else if (password === 'Password@123' && user.role === 'customer') {
-        isMatch = true;
-      }
-    }
-
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Verify Account Status
     if (user.status && user.status !== 'active') {
       return res.status(403).json({
         success: false,
@@ -385,7 +372,21 @@ const handleUnifiedLogin = async (req, res) => {
       });
     }
 
-    // Role Enforcement if specific requiredRole is explicitly requested
+    const requestedScope = loginScope || requiredRole;
+    if (requestedScope === 'admin') {
+      const allowedAdminRoles = ['super_admin', 'admin', 'support_admin', 'finance_admin'];
+      if (!allowedAdminRoles.includes(user.role)) {
+        return res.status(403).json({ success: false, message: 'This account does not have Admin access.' });
+      }
+    }
+
+    if (requestedScope === 'hotel_admin' || requestedScope === 'owner') {
+      const allowedHotelRoles = ['hotel_admin', 'owner'];
+      if (!allowedHotelRoles.includes(user.role)) {
+        return res.status(403).json({ success: false, message: 'This account does not have Hotel Admin access.' });
+      }
+    }
+
     if (requiredRole && user.role !== requiredRole) {
       const isAdminRole = ['super_admin', 'admin', 'support_admin', 'finance_admin'].includes(user.role);
       const isHotelRole = ['hotel_admin', 'owner'].includes(user.role);
@@ -448,10 +449,21 @@ const handleUnifiedLogin = async (req, res) => {
 };
 
 // Mount Unified Login on standard & legacy endpoints
-router.post('/login', handleUnifiedLogin);
-router.post('/admin/login', handleUnifiedLogin);
-router.post('/hotel-admin/login', handleUnifiedLogin);
-router.post('/owner/login', handleUnifiedLogin);
+router.post('/login', (req, res) => handleUnifiedLogin(req, res, 'unified'));
+router.post('/admin/login', (req, res) => handleUnifiedLogin(req, res, 'admin'));
+router.post('/hotel-admin/login', (req, res) => handleUnifiedLogin(req, res, 'hotel_admin'));
+router.post('/owner/login', (req, res) => handleUnifiedLogin(req, res, 'owner'));
+
+router.post('/logout', authenticate, (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  if (token) revokeToken(token);
+
+  return res.json({
+    success: true,
+    message: 'Logged out successfully.'
+  });
+});
 
 // POST /api/auth/register (Customer & Hotel Partner Self-Registration)
 router.post('/register', async (req, res) => {

@@ -73,8 +73,8 @@ const getAdminHotels = (req, res) => {
   return res.json({ success: true, count: hotels.length, hotels });
 };
 
-router.get('/admin', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), getAdminHotels);
-router.get('/admin/all', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), getAdminHotels);
+router.get('/admin', authenticate, requireRole('super_admin', 'admin'), getAdminHotels);
+router.get('/admin/all', authenticate, requireRole('super_admin', 'admin'), getAdminHotels);
 
 // GET /api/hotels/owner (Hotel Owner & Hotel Admin: Hotels belonging to authenticated user)
 router.get('/owner', authenticate, requireRole('owner', 'super_admin', 'admin', 'hotel_admin'), (req, res) => {
@@ -206,9 +206,12 @@ router.put('/:id', authenticate, (req, res) => {
     return res.status(404).json({ success: false, message: 'Hotel not found.' });
   }
 
-  const isAdmin = ['super_admin', 'admin', 'hotel_admin'].includes(req.user.role);
-  if (!isAdmin && hotel.owner_id !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'You do not own this hotel.' });
+  const isPlatformAdmin = ['super_admin', 'admin'].includes(req.user.role);
+  const isOwner = hotel.owner_id === req.user.id;
+  const isAssignedHotelAdmin = hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id;
+
+  if (!isPlatformAdmin && !isOwner && !isAssignedHotelAdmin) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to update this hotel.' });
   }
 
   const updatedHotel = db.transaction((data) => {
@@ -229,7 +232,7 @@ router.put('/:id', authenticate, (req, res) => {
 });
 
 // PUT /api/hotels/:id/status (Hotel / Super Admin verifies/rejects/suspends hotel)
-router.put('/:id/status', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), (req, res) => {
+router.put('/:id/status', authenticate, requireRole('super_admin', 'admin'), (req, res) => {
   const { status } = req.body;
   if (!['active', 'under_review', 'suspended'].includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid status. Must be active, under_review, or suspended.' });

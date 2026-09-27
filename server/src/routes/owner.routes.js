@@ -5,7 +5,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 const router = Router();
 
 // GET /api/owners/kyc (Admin: List all owner KYC submissions)
-router.get('/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), (req, res) => {
+router.get('/kyc', authenticate, requireRole('super_admin', 'admin'), (req, res) => {
   const owners = db.getUsers().filter(u => u.role === 'owner').map(u => {
     const profile = db.getOwnerProfile(u.id);
     const hotels = db.getHotelsByOwner(u.id);
@@ -96,7 +96,7 @@ const handleOwnerKycUpdate = (req, res) => {
   });
 };
 
-router.put('/:userId/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), handleOwnerKycUpdate);
-router.patch('/:userId/kyc', authenticate, requireRole('super_admin', 'admin', 'hotel_admin'), handleOwnerKycUpdate);
+router.put('/:userId/kyc', authenticate, requireRole('super_admin', 'admin'), handleOwnerKycUpdate);
+router.patch('/:userId/kyc', authenticate, requireRole('super_admin', 'admin'), handleOwnerKycUpdate);
 
 export default router;

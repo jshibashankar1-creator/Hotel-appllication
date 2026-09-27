@@ -2,6 +2,16 @@ import jwt from 'jsonwebtoken';
 import { db } from '../db/database.js';
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'hotelhub_production_jwt_secret_key_2026_super_secure_enterprise';
+const revokedTokens = new Set();
+
+export function revokeToken(token) {
+  if (!token) return;
+  revokedTokens.add(token);
+}
+
+export function isTokenRevoked(token) {
+  return Boolean(token && revokedTokens.has(token));
+}
 
 export function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -10,6 +20,10 @@ export function authenticate(req, res, next) {
   }
 
   const token = authHeader.split(' ')[1];
+  if (isTokenRevoked(token)) {
+    return res.status(401).json({ success: false, message: 'Session has been revoked. Please log in again.' });
+  }
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = db.getUserById(decoded.userId);

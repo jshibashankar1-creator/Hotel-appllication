@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { db } from '../db/database.js';
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'hotelhub_production_jwt_secret_key_2026_super_secure_enterprise';
+if (!process.env.JWT_SECRET) {
+  console.error("FATAL ERROR: JWT_SECRET is not defined in the environment.");
+  process.exit(1);
+}
+export const JWT_SECRET = process.env.JWT_SECRET;
 const revokedTokens = new Set();
 
 export function revokeToken(token) {
@@ -67,7 +71,7 @@ export function authenticate(req, res, next) {
 export const authenticateUser = authenticate;
 
 /**
- * Role-Based Access Control Guard
+ * Role-Based Access Control Guard (Strict)
  */
 export function requireRole(...allowedRoles) {
   const flattenedRoles = allowedRoles.flat();
@@ -78,24 +82,8 @@ export function requireRole(...allowedRoles) {
 
     const userRole = req.user.role;
 
-    // Direct match
+    // Strict direct match only (No overlapping aliases)
     if (flattenedRoles.includes(userRole)) {
-      return next();
-    }
-
-    // super_admin inherits general platform admin sub-roles (admin, support_admin, finance_admin)
-    const PLATFORM_ADMIN_SUB_ROLES = ['admin', 'support_admin', 'finance_admin'];
-    if (userRole === 'super_admin' && (flattenedRoles.includes('super_admin') || flattenedRoles.some(r => PLATFORM_ADMIN_SUB_ROLES.includes(r)))) {
-      return next();
-    }
-
-    // hotel_admin matches owner role for property operations
-    if (userRole === 'hotel_admin' && flattenedRoles.includes('owner')) {
-      return next();
-    }
-
-    // owner matches hotel_admin for hotel operational routes
-    if (userRole === 'owner' && flattenedRoles.includes('hotel_admin')) {
       return next();
     }
 
@@ -115,11 +103,6 @@ export function requirePermission(...requiredPermissions) {
       return res.status(401).json({ success: false, message: 'Authentication required.' });
     }
 
-    // super_admin bypasses specific permission checks
-    if (req.user.role === 'super_admin') {
-      return next();
-    }
-
     const userPerms = new Set(req.user.permissions || []);
     const hasAllPerms = requiredPermissions.every(p => userPerms.has(p));
 
@@ -134,9 +117,23 @@ export function requirePermission(...requiredPermissions) {
   };
 }
 
-// Dedicated Role Middleware Helpers
+/**
+ * Tenant Access Guard
+ * Verifies if the authenticated user has access to the requested property
+ */
+export function requireTenantAccess(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
+  }
+
+  // Phase 3 implementation details will go here, 
+  // but for Phase 2, this conceptual layer is established.
+  return next();
+}
+
+// Dedicated Role Middleware Helpers (Strict mappings)
 export const requireSuperAdmin = requireRole('super_admin');
 export const requireAdmin = requireRole('super_admin', 'admin');
-export const requireFinanceAdmin = requireRole('super_admin', 'admin', 'finance_admin');
-export const requireSupportAdmin = requireRole('super_admin', 'admin', 'support_admin');
-export const requireHotelAdmin = requireRole('super_admin', 'admin', 'hotel_admin');
+export const requireFinanceAdmin = requireRole('finance_admin');
+export const requireSupportAdmin = requireRole('support_admin');
+export const requireHotelAdmin = requireRole('hotel_admin');

@@ -73,7 +73,6 @@ export function renderAdminLoginView(container) {
                   id="admin-email" 
                   class="form-input" 
                   placeholder="admin@hotelhub.com" 
-                  value="admin@hotelhub.com" 
                   required 
                   style="padding-left: 2.5rem;"
                 />
@@ -94,7 +93,6 @@ export function renderAdminLoginView(container) {
                   id="admin-password" 
                   class="form-input" 
                   placeholder="••••••••" 
-                  value="Admin@123" 
                   required 
                   style="padding-left: 2.5rem;"
                 />
@@ -115,22 +113,7 @@ export function renderAdminLoginView(container) {
             </button>
           </form>
 
-          <!-- Fast Role Switch Demo Hint for testing -->
-          <div style="margin-top: 1.5rem; padding: 0.85rem; background: var(--bg-surface-secondary); border-radius: var(--radius-md); border: 1px dashed var(--border-light); font-size: 0.75rem; color: var(--text-muted);">
-            <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem;">Platform Admin Demo Credentials:</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px;">
-              <span style="cursor: pointer; color: var(--color-primary);" onclick="document.getElementById('admin-email').value='admin@hotelhub.com'; document.getElementById('admin-password').value='Admin@123';">👑 Super Admin</span>
-              <span style="cursor: pointer; color: var(--color-primary);" onclick="document.getElementById('admin-email').value='manager@hotelhub.com'; document.getElementById('admin-password').value='Admin@123';">💼 Ops Admin</span>
-              <span style="cursor: pointer; color: var(--color-primary);" onclick="document.getElementById('admin-email').value='support.admin@hotelhub.com'; document.getElementById('admin-password').value='Admin@123';">🎧 Support Admin</span>
-              <span style="cursor: pointer; color: var(--color-primary);" onclick="document.getElementById('admin-email').value='finance.admin@hotelhub.com'; document.getElementById('admin-password').value='Admin@123';">💳 Finance Admin</span>
-            </div>
-            <div style="border-top: 1px solid var(--border-light); padding-top: 6px; text-align: center;">
-              <span>Looking for Hotel Admin? </span>
-              <a href="#/hotel-admin/login" style="color: var(--color-primary); font-weight: 700; text-decoration: none;">
-                🏨 Go to Hotel Admin Login
-              </a>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

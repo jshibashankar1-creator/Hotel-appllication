@@ -2,12 +2,12 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../db/database.js';
 import { authenticate, requireRole, requireSuperAdmin } from '../middleware/auth.js';
-import { ADMIN_ROLES, DEFAULT_ROLE_PERMISSIONS, USER_STATUSES } from '../models/User.js';
+import { PLATFORM_ADMIN_ROLES, ADMIN_ROLES, DEFAULT_ROLE_PERMISSIONS, USER_STATUSES } from '../models/User.js';
 
 const router = Router();
 
 // All routes here require admin authentication
-router.use(authenticate, requireRole(...ADMIN_ROLES));
+router.use(authenticate, requireRole(...PLATFORM_ADMIN_ROLES));
 
 // ============================================================================
 // ADMIN PROFILE & CREDENTIALS

@@ -5,7 +5,7 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 const router = Router();
 
 // GET /api/reports/admin-kpis (Admin Dashboard Overview)
-router.get('/admin-kpis', authenticate, requireRole('super_admin', 'admin', 'finance_admin', 'support_admin', 'hotel_admin'), (req, res) => {
+router.get('/admin-kpis', authenticate, requireRole('super_admin', 'admin', 'finance_admin'), (req, res) => {
   const hotels = db.getHotels();
   const bookings = db.getBookings();
   const owners = db.getOwnerProfiles();

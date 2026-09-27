@@ -7,7 +7,7 @@ const router = Router();
 // GET /api/support/tickets (Admin: all tickets, User: their tickets)
 router.get('/tickets', authenticate, (req, res) => {
   let tickets;
-  const isAdmin = ['super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'].includes(req.user.role);
+  const isAdmin = ['super_admin', 'admin', 'support_admin'].includes(req.user.role);
   if (isAdmin) {
     tickets = db.getSupportTickets();
   } else {
@@ -38,7 +38,7 @@ router.post('/tickets', authenticate, (req, res) => {
       if (b) bookingCode = b.booking_code;
     }
 
-    const isAdmin = ['super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'].includes(req.user.role);
+    const isAdmin = ['super_admin', 'admin', 'support_admin'].includes(req.user.role);
 
     const ticketObj = {
       id: ticketId,
@@ -83,7 +83,7 @@ router.post('/tickets/:id/reply', authenticate, (req, res) => {
   const updatedTicket = db.transaction((data) => {
     const idx = data.support_tickets.findIndex(t => t.id === req.params.id || t.ticket_code === req.params.id);
     if (idx !== -1) {
-      const isSenderAdmin = ['super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'].includes(req.user.role);
+      const isSenderAdmin = ['super_admin', 'admin', 'support_admin'].includes(req.user.role);
       data.support_tickets[idx].messages.push({
         sender: isSenderAdmin ? 'admin' : 'customer',
         text,
@@ -127,7 +127,7 @@ const handleTicketStatusUpdate = (req, res) => {
   return res.json({ success: true, message: `Ticket marked as ${status.toUpperCase()}.`, ticket: updatedTicket });
 };
 
-router.put('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'), handleTicketStatusUpdate);
-router.patch('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin', 'finance_admin', 'hotel_admin'), handleTicketStatusUpdate);
+router.put('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin'), handleTicketStatusUpdate);
+router.patch('/tickets/:id/status', authenticate, requireRole('super_admin', 'admin', 'support_admin'), handleTicketStatusUpdate);
 
 export default router;

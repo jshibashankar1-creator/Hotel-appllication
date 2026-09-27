@@ -44,7 +44,6 @@ export function renderLoginView(container) {
                   id="login-email" 
                   class="form-input" 
                   placeholder="name@hotelhub.com" 
-                  value="admin@hotelhub.com" 
                   required 
                   style="padding-left: 38px; height: 42px; font-size: 0.88rem;"
                 />
@@ -68,7 +67,6 @@ export function renderLoginView(container) {
                   id="login-password" 
                   class="form-input" 
                   placeholder="••••••••••••" 
-                  value="Admin@123456" 
                   required 
                   style="padding-left: 38px; height: 42px; font-size: 0.88rem;"
                 />
@@ -102,22 +100,7 @@ export function renderLoginView(container) {
             </a>
           </div>
 
-          <!-- Development Demo Fast Switcher (Dev Mode Only) -->
-          ${import.meta.env.DEV !== false ? `
-            <div style="margin-top: 16px; padding: 12px; background: var(--bg-surface-secondary); border-radius: var(--radius-sm); border: 1px dashed var(--border-light); font-size: 0.74rem; color: var(--text-muted);">
-              <div style="font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">
-                DEMO ACCOUNTS (DEVELOPMENT ONLY):
-              </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 4px 8px;" onclick="document.getElementById('login-email').value='admin@hotelhub.com'; document.getElementById('login-password').value='Admin@123456';">
-                  👑 Super Admin
-                </button>
-                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 4px 8px;" onclick="document.getElementById('login-email').value='hoteladmin@hotelhub.com'; document.getElementById('login-password').value='HotelAdmin@123456';">
-                  🏨 Hotel Admin
-                </button>
-              </div>
-            </div>
-          ` : ''}
+
 
           <!-- Footer security note -->
           <div style="margin-top: 16px; text-align: center; font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">

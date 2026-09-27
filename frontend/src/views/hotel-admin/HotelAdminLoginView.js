@@ -35,7 +35,6 @@ export function renderHotelAdminLoginView(container) {
                   id="hotelAdminEmail" 
                   required 
                   placeholder="hoteladmin@hotelhub.com"
-                  value="hoteladmin@hotelhub.com"
                   style="width: 100%; padding: 12px 14px 12px 42px; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.9rem; color: var(--text-primary); outline: none; transition: border-color 0.2s;"
                 />
               </div>
@@ -58,7 +57,6 @@ export function renderHotelAdminLoginView(container) {
                   id="hotelAdminPassword" 
                   required 
                   placeholder="••••••••••••"
-                  value="HotelAdmin@123456"
                   style="width: 100%; padding: 12px 14px 12px 42px; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.9rem; color: var(--text-primary); outline: none; transition: border-color 0.2s;"
                 />
               </div>
@@ -76,16 +74,7 @@ export function renderHotelAdminLoginView(container) {
             </button>
           </form>
 
-          <!-- Helper Credentials Demo Box -->
-          <div style="margin-top: 24px; padding: 14px; background: var(--bg-surface-secondary); border: 1px dashed var(--border-light); border-radius: var(--radius-sm);">
-            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
-              Demo Hotel Admin Credentials:
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-primary); font-family: monospace;">
-              <div><strong>Email:</strong> hoteladmin@hotelhub.com</div>
-              <div><strong>Pass:</strong> HotelAdmin@123456</div>
-            </div>
-          </div>
+
 
           <!-- Switch to Admin Login -->
           <div style="margin-top: 20px; text-align: center; font-size: 0.82rem; color: var(--text-muted);">

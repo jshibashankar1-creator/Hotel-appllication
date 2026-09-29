@@ -1,8 +1,8 @@
 # HotelHub Enterprise - Monorepo Netlify Build Configuration
 
 [build]
-  base = "frontend"
-  command = "npm run build"
+  base = "mobile"
+  command = "npx expo export -p web"
   publish = "dist"
 
 [build.environment]

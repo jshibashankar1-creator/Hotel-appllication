@@ -113,9 +113,40 @@ function MainTabNavigator() {
   );
 }
 
+const linking = {
+  prefixes: ['/', 'hotelhub://'],
+  config: {
+    initialRouteName: 'MainTabs',
+    screens: {
+      Login: 'login',
+      Register: 'signup',
+      MainTabs: {
+        path: '',
+        screens: {
+          Home: '',
+          Explore: 'explore',
+          Bookings: 'bookings',
+          Deals: 'deals',
+          Profile: 'profile'
+        }
+      },
+      HotelDetails: 'hotel/:id',
+      RoomDetails: 'room/:id',
+      BookingReview: 'review',
+      Payment: 'payment',
+      BookingConfirmation: 'confirmation',
+      BookingDetails: 'booking-details/:id',
+      Cancellation: 'cancellation',
+      ReviewModal: 'write-review',
+      Support: 'support',
+      Wishlist: 'wishlist'
+    }
+  }
+};
+
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
       <Stack.Navigator
         initialRouteName="MainTabs"

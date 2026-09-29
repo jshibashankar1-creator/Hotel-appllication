@@ -85,6 +85,20 @@ class MobileApiService {
   }
 
   // --- BOOKING & PAYMENTS ---
+  async createRazorpayOrder(payload) {
+    return this.request('/payments/create-order', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async verifyRazorpayPayment(payload) {
+    return this.request('/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
   async createBooking(payload) {
     return this.request('/bookings/create', {
       method: 'POST',

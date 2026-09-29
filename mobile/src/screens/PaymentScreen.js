@@ -31,32 +31,106 @@ export default function PaymentScreen({ route, navigation }) {
       setProcessing(true);
       setErrorMessage(null);
 
-      let createdBooking = null;
+      // 1. Create Razorpay TEST Order via Backend
+      const orderPayload = {
+        hotel_id: bookingData.hotel_id,
+        room_id: bookingData.room_id,
+        check_in_date: bookingData.check_in_date,
+        check_out_date: bookingData.check_out_date,
+        guests_count: bookingData.guests_count,
+        pickup: bookingData.pickup
+      };
 
-      try {
-        const res = await mobileApi.createBooking({
-          ...bookingData,
-          payment_method: selectedMethod,
+      const orderRes = await mobileApi.createRazorpayOrder(orderPayload);
+      
+      if (!orderRes || !orderRes.success) {
+        throw new Error(orderRes?.message || 'Failed to initialize payment gateway.');
+      }
+
+      // 2. Open Razorpay Checkout (Web implementation)
+      if (Platform.OS === 'web') {
+        await new Promise((resolve, reject) => {
+          if (window.Razorpay) return resolve();
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = resolve;
+          script.onerror = () => reject(new Error('Failed to load Razorpay SDK.'));
+          document.body.appendChild(script);
         });
-        if (res && res.booking) {
-          createdBooking = res.booking;
-        }
-      } catch (e) {
-        console.log('Backend API booking note:', e.message);
-      }
 
-      if (!createdBooking) {
-        throw new Error('Failed to create booking. Backend returned empty response.');
-      }
+        const options = {
+          key: orderRes.key_id, // Safely using public key returned by backend
+          amount: orderRes.amount_paise,
+          currency: orderRes.currency,
+          name: 'HotelHub',
+          description: `Booking for ${orderRes.hotel.name}`,
+          order_id: orderRes.order_id,
+          handler: async function (response) {
+            try {
+              setProcessing(true);
+              
+              // 3. Backend Signature Verification & Atomic Booking
+              const verifyPayload = {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                hotel_id: bookingData.hotel_id,
+                room_id: bookingData.room_id,
+                check_in_date: bookingData.check_in_date,
+                check_out_date: bookingData.check_out_date,
+                guests_count: bookingData.guests_count,
+                customer_name: bookingData.customer_name,
+                customer_email: bookingData.customer_email,
+                customer_phone: bookingData.customer_phone,
+                payment_method: selectedMethod,
+                pickup: bookingData.pickup
+              };
+              
+              const verifyRes = await mobileApi.verifyRazorpayPayment(verifyPayload);
+              if (verifyRes && verifyRes.success) {
+                // 4. Booking Confirmation
+                navigation.replace('BookingConfirmation', {
+                  hotel,
+                  room,
+                  booking: verifyRes.booking,
+                });
+              } else {
+                setErrorMessage('Payment verification failed on server.');
+                setProcessing(false);
+              }
+            } catch (verErr) {
+              setErrorMessage(verErr.message || 'Payment verification error.');
+              setProcessing(false);
+            }
+          },
+          prefill: {
+            name: bookingData.customer_name || 'Guest User',
+            email: bookingData.customer_email || 'guest@hotelhub.com',
+            contact: bookingData.customer_phone || '+919999999999'
+          },
+          theme: {
+            color: '#8F1239'
+          },
+          modal: {
+            ondismiss: function() {
+              setProcessing(false);
+            }
+          }
+        };
 
-      navigation.replace('BookingConfirmation', {
-        hotel,
-        room,
-        booking: createdBooking,
-      });
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response){
+          setErrorMessage(response.error.description || 'Payment failed.');
+          setProcessing(false);
+        });
+        rzp.open();
+      } else {
+        // Since react-native-razorpay isn't installed, and we can't mock, we alert
+        setErrorMessage("Native Razorpay checkout is not integrated. Please use Expo Web to complete TEST payments.");
+        setProcessing(false);
+      }
     } catch (err) {
-      setErrorMessage(err.message || 'Payment processing error. Please try again.');
-    } finally {
+      setErrorMessage(err.message || 'Payment initialization error. Please try again.');
       setProcessing(false);
     }
   };
@@ -66,7 +140,6 @@ export default function PaymentScreen({ route, navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#160824" />
       
       <View style={styles.responsiveWrapper}>
-        {/* Background Split */}
         <View style={styles.topBackground} />
         <View style={styles.bottomBackground} />
         <ScrollView
@@ -74,7 +147,6 @@ export default function PaymentScreen({ route, navigation }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* TOTAL PAYABLE HERO CARD */}
           <View style={styles.payableCard}>
             <Text style={styles.payableLabel}>TOTAL AMOUNT DUE</Text>
             <Text style={styles.payableAmount}>₹{bookingData.total_amount.toLocaleString()}</Text>
@@ -89,7 +161,6 @@ export default function PaymentScreen({ route, navigation }) {
             </View>
           ) : null}
 
-          {/* PAYMENT METHODS */}
           <Text style={styles.sectionHeading}>Select Payment Method</Text>
 
           <View style={styles.methodsList}>
@@ -117,7 +188,6 @@ export default function PaymentScreen({ route, navigation }) {
             })}
           </View>
 
-          {/* SECURITY BADGE */}
           <View style={styles.securityBadge}>
             <Text style={styles.securityIcon}>🔒</Text>
             <Text style={styles.securityText}>
@@ -125,7 +195,6 @@ export default function PaymentScreen({ route, navigation }) {
             </Text>
           </View>
 
-          {/* PAY NOW BUTTON */}
           <TouchableOpacity
             style={styles.payButton}
             activeOpacity={0.88}
@@ -321,3 +390,4 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 });
+

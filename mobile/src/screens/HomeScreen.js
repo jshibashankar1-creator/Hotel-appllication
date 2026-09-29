@@ -116,13 +116,19 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Background Hero Image */}
-      <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80' }}
-        style={styles.heroBackground}
-      >
-        <View style={styles.heroOverlay} />
-      </ImageBackground>
+      {/* Background Hero Area */}
+      <View style={[styles.heroBackground, {backgroundColor: '#0B1733'}]}>
+        {hotels.find(h => h.coverImage) ? (
+          <ImageBackground
+            source={{ uri: hotels.find(h => h.coverImage).coverImage }}
+            style={StyleSheet.absoluteFillObject}
+          >
+            <View style={styles.heroOverlay} />
+          </ImageBackground>
+        ) : (
+          <View style={styles.heroOverlay} />
+        )}
+      </View>
 
       <SafeAreaView style={styles.safeArea}>
         <ScrollView

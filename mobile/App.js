@@ -190,6 +190,11 @@ export default function App() {
           component={SupportScreen}
           options={{ title: '24/7 VIP Concierge' }}
         />
+        <Stack.Screen
+          name="Wishlist"
+          component={WishlistScreen}
+          options={{ title: 'Saved Luxury Stays' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

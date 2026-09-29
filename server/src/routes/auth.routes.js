@@ -597,4 +597,87 @@ router.get('/me', authenticate, (req, res) => {
   });
 });
 
+// ============================================================================
+// PROFILE & SETTINGS
+// ============================================================================
+
+// GET /api/auth/profile
+router.get('/profile', authenticate, (req, res) => {
+  const user = db.getUserById(req.user.id);
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+  return res.json({
+    success: true,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      avatar: user.avatar || '',
+      address: user.address || ''
+    }
+  });
+});
+
+// PUT /api/auth/profile
+router.put('/profile', authenticate, (req, res) => {
+  const { name, email, phone, avatar, address } = req.body;
+  const user = db.getUserById(req.user.id);
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+  // Validate email format and duplicates if changed
+  if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+    const existing = db.getUserByEmail(email);
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Email is already in use.' });
+    }
+  }
+
+  const updatedUser = db.transaction((data) => {
+    const idx = data.users.findIndex(u => u.id === req.user.id);
+    if (idx !== -1) {
+      if (name) data.users[idx].name = name;
+      if (email) data.users[idx].email = email.toLowerCase();
+      if (phone !== undefined) data.users[idx].phone = phone;
+      if (avatar !== undefined) data.users[idx].avatar = avatar;
+      if (address !== undefined) data.users[idx].address = address;
+    }
+    return data.users[idx];
+  });
+
+  return res.json({ success: true, message: 'Profile updated successfully.', user: updatedUser });
+});
+
+// GET /api/auth/settings
+router.get('/settings', authenticate, (req, res) => {
+  if (!db.data.user_settings) db.data.user_settings = {};
+  const settings = db.data.user_settings[req.user.id] || {
+    notifications_enabled: true,
+    promotional_emails: false,
+    language: 'en',
+    currency: 'INR'
+  };
+  return res.json({ success: true, settings });
+});
+
+// PUT /api/auth/settings
+router.put('/settings', authenticate, (req, res) => {
+  const newSettings = req.body;
+  
+  const updatedSettings = db.transaction((data) => {
+    if (!data.user_settings) data.user_settings = {};
+    const existing = data.user_settings[req.user.id] || {
+      notifications_enabled: true,
+      promotional_emails: false,
+      language: 'en',
+      currency: 'INR'
+    };
+    
+    data.user_settings[req.user.id] = { ...existing, ...newSettings };
+    return data.user_settings[req.user.id];
+  });
+
+  return res.json({ success: true, message: 'Settings updated.', settings: updatedSettings });
+});
+
 export default router;

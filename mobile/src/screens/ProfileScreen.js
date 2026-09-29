@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+import {
   View,
   Text,
   StyleSheet,
@@ -9,6 +10,9 @@ import {
   StatusBar,
   Image,
   Platform,
+  Modal,
+  TextInput,
+  Alert
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 
@@ -17,22 +21,114 @@ import { mobileApi } from '../services/api';
 export default function ProfileScreen({ navigation }) {
   const currentUser = mobileApi.currentUser || {};
   const [profile, setProfile] = useState({
-    name: currentUser.name || '',
-    email: currentUser.email || '',
-    avatar: currentUser.avatar || null,
-    membershipTier: 'Gold',
-    rewardPoints: 12500,
-    memberSince: currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : '2026',
+    name: currentUser.name || 'N/A',
+    email: currentUser.email || 'N/A',
+    phone: currentUser.phone || '',
+    avatar: currentUser.avatar || 'https://ui-avatars.com/api/?name=' + (currentUser.name || 'User') + '&background=D4AF37&color=fff',
+    membershipTier: currentUser.membershipTier || 'MEMBER',
+    rewardPoints: currentUser.rewardPoints ?? 'N/A',
+    memberSince: currentUser.createdAt ? new Date(currentUser.createdAt).getFullYear().toString() : 'N/A',
   });
 
+  const [settings, setSettings] = useState({
+    notifications_enabled: true,
+    promotional_emails: false,
+    language: 'en',
+    currency: 'INR'
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '' });
+
+  React.useEffect(() => {
+    fetchProfileData();
+  }, []);
+
+  const fetchProfileData = async () => {
+    setLoading(true);
+    try {
+      const [profRes, rewRes, memRes, setRes] = await Promise.all([
+        mobileApi.getProfile(),
+        mobileApi.getRewards(),
+        mobileApi.getMembership(),
+        mobileApi.getSettings()
+      ]);
+
+      if (profRes.success) {
+        setProfile(prev => ({
+          ...prev,
+          name: profRes.user.name,
+          email: profRes.user.email,
+          phone: profRes.user.phone || '',
+          avatar: profRes.user.avatar || 'https://ui-avatars.com/api/?name=' + (profRes.user.name) + '&background=D4AF37&color=fff',
+        }));
+      }
+
+      if (rewRes.success) {
+        setProfile(prev => ({ ...prev, rewardPoints: rewRes.rewards.points_balance }));
+      }
+
+      if (memRes.success) {
+        setProfile(prev => ({ ...prev, membershipTier: memRes.membership.membership_tier }));
+      }
+
+      if (setRes.success) {
+        setSettings(setRes.settings);
+      }
+    } catch (e) {
+      console.warn('Failed to load profile data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setLoading(true);
+    try {
+      const res = await mobileApi.updateProfile({ name: editProfileForm.name, phone: editProfileForm.phone });
+      if (res.success) {
+        await fetchProfileData();
+        setProfileModalVisible(false);
+      } else {
+        Alert.alert('Error', res.message || 'Failed to update profile');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'An error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSetting = async (key) => {
+    const newSettings = { ...settings, [key]: !settings[key] };
+    setSettings(newSettings);
+    try {
+      await mobileApi.updateSettings(newSettings);
+    } catch (e) {
+      // Revert if failed
+      setSettings(settings);
+    }
+  };
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const res = await mobileApi.getPaymentMethods();
+      Alert.alert('Payment Methods', res.message || 'Managed during checkout.');
+    } catch (e) {
+      Alert.alert('Error', 'Could not load payment methods.');
+    }
+  };
+
   const menuOptions = [
-    { id: '1', title: 'Personal Information', icon: '👤', subtitle: 'Manage names, contact & security' },
+    { id: '1', title: 'Personal Information', icon: '👤', subtitle: profile.phone || 'Update your details', action: () => { setEditProfileForm({ name: profile.name, phone: profile.phone }); setProfileModalVisible(true); } },
     { id: '2', title: 'My Bookings & Stays', icon: '📅', subtitle: 'Digital itineraries & invoices', action: () => navigation.navigate('Bookings') },
-    { id: '3', title: 'Saved Luxury Wishlist', icon: '🤍', subtitle: 'Properties saved for later', action: () => navigation.navigate('MainTabs', { screen: 'Wishlist' }) },
-    { id: '4', title: 'Payment Methods & Cards', icon: '💳', subtitle: 'Apple Pay, Visa •••• 8821' },
-    { id: '5', title: 'Exclusive VIP Offers', icon: '✨', subtitle: 'Special room upgrade certificates', action: () => navigation.navigate('MainTabs', { screen: 'Deals' }) },
+    { id: '3', title: 'Saved Luxury Wishlist', icon: '🤍', subtitle: 'Your favorite hotels', action: () => navigation.navigate('Wishlist') },
+    { id: '4', title: 'Payment Methods & Cards', icon: '💳', subtitle: 'Managed securely during checkout', action: fetchPaymentMethods },
+    { id: '5', title: 'Exclusive VIP Offers', icon: '✨', subtitle: 'Personalized deals', action: () => navigation.navigate('Deals') },
     { id: '6', title: '24/7 VIP Concierge Support', icon: '💬', subtitle: 'Live chat & ticket tracking', action: () => navigation.navigate('Support') },
-    { id: '7', title: 'App Settings & Preferences', icon: '⚙️', subtitle: 'Currency ($ USD), Dark Mode' },
+    { id: '7', title: 'App Settings & Preferences', icon: '⚙️', subtitle: 'Notifications, Language & More', action: () => setSettingsModalVisible(true) },
   ];
 
   return (
@@ -77,11 +173,13 @@ export default function ProfileScreen({ navigation }) {
           {menuOptions.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              activeOpacity={0.88}
+              activeOpacity={item.disabled ? 1 : 0.88}
               style={[
                 styles.menuItem,
-                index === menuOptions.length - 1 && { borderBottomWidth: 0 }
+                index === menuOptions.length - 1 && { borderBottomWidth: 0 },
+                item.disabled && { opacity: 0.5 }
               ]}
+              disabled={item.disabled}
               onPress={item.action || (() => {})}
             >
               <View style={styles.menuIconCircle}>
@@ -99,14 +197,84 @@ export default function ProfileScreen({ navigation }) {
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.88}
-          onPress={() => {
-            mobileApi.logout();
+          onPress={async () => {
+            await mobileApi.logout();
             navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           }}
         >
           <Text style={styles.logoutText}>Sign Out of HotelHub VIP</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* EDIT PROFILE MODAL */}
+      <Modal
+        visible={profileModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setProfileModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Personal Information</Text>
+            
+            <Text style={styles.modalLabel}>Name</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editProfileForm.name}
+              onChangeText={(txt) => setEditProfileForm({ ...editProfileForm, name: txt })}
+            />
+
+            <Text style={styles.modalLabel}>Phone Number</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editProfileForm.phone}
+              keyboardType="phone-pad"
+              onChangeText={(txt) => setEditProfileForm({ ...editProfileForm, phone: txt })}
+              placeholder="+91..."
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setProfileModalVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleUpdateProfile} disabled={loading}>
+                <Text style={styles.modalSaveText}>{loading ? 'Saving...' : 'Save'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* SETTINGS MODAL */}
+      <Modal
+        visible={settingsModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSettingsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Settings & Preferences</Text>
+            
+            <TouchableOpacity style={styles.settingToggleRow} onPress={() => toggleSetting('notifications_enabled')}>
+              <Text style={styles.settingToggleText}>Push Notifications</Text>
+              <Text style={styles.settingStatus}>{settings.notifications_enabled ? 'ON' : 'OFF'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.settingToggleRow} onPress={() => toggleSetting('promotional_emails')}>
+              <Text style={styles.settingToggleText}>Promotional Emails</Text>
+              <Text style={styles.settingStatus}>{settings.promotional_emails ? 'ON' : 'OFF'}</Text>
+            </TouchableOpacity>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.modalSaveBtn, { flex: 1, marginLeft: 0 }]} onPress={() => setSettingsModalVisible(false)}>
+                <Text style={styles.modalSaveText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -272,5 +440,89 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     fontSize: 14,
     fontWeight: '800',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    width: '100%',
+    borderRadius: 24,
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginBottom: 20,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: COLORS.textDark,
+    marginBottom: 16,
+  },
+  settingToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  settingToggleText: {
+    fontSize: 16,
+    color: COLORS.textDark,
+    fontWeight: '500',
+  },
+  settingStatus: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    marginTop: 24,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    marginRight: 8,
+  },
+  modalCancelText: {
+    color: '#64748B',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  modalSaveBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+    marginLeft: 8,
+  },
+  modalSaveText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
   },
 });

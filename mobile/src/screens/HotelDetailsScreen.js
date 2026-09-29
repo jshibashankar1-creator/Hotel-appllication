@@ -23,13 +23,21 @@ export default function HotelDetailsScreen({ route, navigation }) {
   const defaultIn = passedDates.checkInDate || new Date(today.getTime() + 86400000);
   const defaultOut = passedDates.checkOutDate || new Date(today.getTime() + 86400000 * 4);
 
+  const getLocalISODate = (d) => {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [bookingDates] = useState({
     checkInDate: defaultIn,
     checkOutDate: defaultOut,
     formattedCheckIn: passedDates.formattedCheckIn || `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}`,
     formattedCheckOut: passedDates.formattedCheckOut || `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}`,
-    isoCheckIn: passedDates.isoCheckIn || defaultIn.toISOString().split('T')[0],
-    isoCheckOut: passedDates.isoCheckOut || defaultOut.toISOString().split('T')[0],
+    isoCheckIn: passedDates.isoCheckIn || getLocalISODate(defaultIn),
+    isoCheckOut: passedDates.isoCheckOut || getLocalISODate(defaultOut),
     guestsCount: passedDates.guestsCount || 2,
     roomsCount: passedDates.roomsCount || 1,
     nightsCount: passedDates.nightsCount || 3,

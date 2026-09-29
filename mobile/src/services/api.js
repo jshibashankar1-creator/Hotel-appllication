@@ -18,9 +18,17 @@ class MobileApiService {
     this.currentUser = user;
   }
 
-  logout() {
-    this.token = null;
-    this.currentUser = null;
+  async logout() {
+    try {
+      if (this.token) {
+        await this.request('/auth/logout', { method: 'POST' });
+      }
+    } catch (e) {
+      console.warn('[Mobile API] Logout API error:', e.message);
+    } finally {
+      this.token = null;
+      this.currentUser = null;
+    }
   }
 
   async request(endpoint, options = {}) {
@@ -146,6 +154,70 @@ class MobileApiService {
       method: 'POST',
       body: JSON.stringify({ text })
     });
+  }
+
+  // ============================================================================
+  // CUSTOMER PROFILE & SETTINGS
+  // ============================================================================
+  async getProfile() {
+    const res = await this.request('/auth/profile');
+    if (res.user) {
+      this.currentUser = { ...this.currentUser, ...res.user };
+    }
+    return res;
+  }
+
+  async updateProfile(data) {
+    const res = await this.request('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    if (res.user) {
+      this.currentUser = { ...this.currentUser, ...res.user };
+    }
+    return res;
+  }
+
+  async getSettings() {
+    return this.request('/auth/settings');
+  }
+
+  async updateSettings(data) {
+    return this.request('/auth/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  // ============================================================================
+  // WISHLIST, OFFERS, REWARDS, MEMBERSHIP, PAYMENT METHODS
+  // ============================================================================
+  async getWishlist() {
+    return this.request('/wishlist');
+  }
+
+  async addWishlist(hotelId) {
+    return this.request(`/wishlist/${hotelId}`, { method: 'POST' });
+  }
+
+  async removeWishlist(hotelId) {
+    return this.request(`/wishlist/${hotelId}`, { method: 'DELETE' });
+  }
+
+  async getOffers() {
+    return this.request('/offers');
+  }
+
+  async getRewards() {
+    return this.request('/rewards');
+  }
+
+  async getMembership() {
+    return this.request('/membership');
+  }
+
+  async getPaymentMethods() {
+    return this.request('/payment-methods');
   }
 }
 

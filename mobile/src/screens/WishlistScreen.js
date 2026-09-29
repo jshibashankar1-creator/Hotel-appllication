@@ -13,12 +13,48 @@ import { COLORS } from '../theme/colors';
 import HotelCard from '../components/HotelCard';
 
 
+import { mobileApi } from '../services/api';
+
 export default function WishlistScreen({ navigation }) {
   const [favorites, setFavorites] = useState([]);
-  const savedHotels = [];
+  const [savedHotels, setSavedHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleFavorite = (hotelId) => {
-    setFavorites(favorites.filter(id => id !== hotelId));
+  React.useEffect(() => {
+    fetchWishlist();
+  }, []);
+
+  const fetchWishlist = async () => {
+    setLoading(true);
+    try {
+      const res = await mobileApi.getWishlist();
+      if (res.success) {
+        setSavedHotels(res.hotels || []);
+        setFavorites((res.hotels || []).map(h => h.id));
+      }
+    } catch (e) {
+      console.warn('Failed to load wishlist:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (hotelId) => {
+    const isFav = favorites.includes(hotelId);
+    try {
+      if (isFav) {
+        setFavorites(favorites.filter(id => id !== hotelId));
+        setSavedHotels(savedHotels.filter(h => h.id !== hotelId));
+        await mobileApi.removeWishlist(hotelId);
+      } else {
+        // Technically not possible from this screen since only saved hotels are shown,
+        // but adding for completeness
+        setFavorites([...favorites, hotelId]);
+        await mobileApi.addWishlist(hotelId);
+      }
+    } catch (e) {
+      console.warn('Failed to toggle wishlist:', e);
+    }
   };
 
   const handleSelectHotel = (hotel) => {

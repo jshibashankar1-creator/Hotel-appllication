@@ -37,6 +37,7 @@ export default function PaymentScreen({ route, navigation }) {
         room_id: bookingData.room_id,
         check_in_date: bookingData.check_in_date,
         check_out_date: bookingData.check_out_date,
+        rooms_count: bookingData.rooms_count || 1,
         guests_count: bookingData.guests_count,
         pickup: bookingData.pickup
       };
@@ -78,6 +79,7 @@ export default function PaymentScreen({ route, navigation }) {
                 room_id: bookingData.room_id,
                 check_in_date: bookingData.check_in_date,
                 check_out_date: bookingData.check_out_date,
+                rooms_count: bookingData.rooms_count || 1,
                 guests_count: bookingData.guests_count,
                 customer_name: bookingData.customer_name,
                 customer_email: bookingData.customer_email,
@@ -125,9 +127,62 @@ export default function PaymentScreen({ route, navigation }) {
         });
         rzp.open();
       } else {
-        // Since react-native-razorpay isn't installed, and we can't mock, we alert
-        setErrorMessage("Native Razorpay checkout is not integrated. Please use Expo Web to complete TEST payments.");
-        setProcessing(false);
+        const RazorpayCheckout = require('react-native-razorpay').default;
+        const options = {
+          description: `Booking for ${orderRes.hotel.name}`,
+          image: orderRes.hotel.coverImage || 'https://via.placeholder.com/150',
+          currency: orderRes.currency,
+          key: orderRes.key_id, // Safely using public key returned by backend
+          amount: orderRes.amount_paise,
+          name: 'HotelHub',
+          order_id: orderRes.order_id,
+          prefill: {
+            email: bookingData.customer_email || 'guest@hotelhub.com',
+            contact: bookingData.customer_phone || '+919999999999',
+            name: bookingData.customer_name || 'Guest User'
+          },
+          theme: { color: '#8F1239' }
+        };
+
+        RazorpayCheckout.open(options).then(async (response) => {
+          try {
+            setProcessing(true);
+            const verifyPayload = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              hotel_id: bookingData.hotel_id,
+              room_id: bookingData.room_id,
+              check_in_date: bookingData.check_in_date,
+              check_out_date: bookingData.check_out_date,
+              rooms_count: bookingData.rooms_count || 1,
+              guests_count: bookingData.guests_count,
+              customer_name: bookingData.customer_name,
+              customer_email: bookingData.customer_email,
+              customer_phone: bookingData.customer_phone,
+              payment_method: selectedMethod,
+              pickup: bookingData.pickup
+            };
+            
+            const verifyRes = await mobileApi.verifyRazorpayPayment(verifyPayload);
+            if (verifyRes && verifyRes.success) {
+              navigation.replace('BookingConfirmation', {
+                hotel,
+                room,
+                booking: verifyRes.booking,
+              });
+            } else {
+              setErrorMessage('Payment verification failed on server.');
+              setProcessing(false);
+            }
+          } catch (verErr) {
+            setErrorMessage(verErr.message || 'Payment verification error.');
+            setProcessing(false);
+          }
+        }).catch((error) => {
+          setErrorMessage(error.description || error.message || 'Payment failed or cancelled.');
+          setProcessing(false);
+        });
       }
     } catch (err) {
       setErrorMessage(err.message || 'Payment initialization error. Please try again.');

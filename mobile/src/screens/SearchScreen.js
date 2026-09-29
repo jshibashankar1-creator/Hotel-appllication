@@ -33,7 +33,8 @@ export default function SearchScreen({ route, navigation }) {
   // Format dates for display
   const formatDate = (isoStr) => {
     if (!isoStr) return '';
-    const d = new Date(isoStr);
+    // Append T12:00:00 to avoid timezone shifting issues when parsing YYYY-MM-DD
+    const d = new Date(isoStr.includes('T') ? isoStr : isoStr + 'T12:00:00');
     return `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}`;
   };
 

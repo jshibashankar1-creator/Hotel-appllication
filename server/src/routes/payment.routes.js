@@ -32,9 +32,9 @@ function getDatesInRange(startDateStr, endDateStr) {
 }
 
 // Helper to calculate verified pricing
-function calculateVerifiedPricing(hotel, room, dateList, pickup) {
+function calculateVerifiedPricing(hotel, room, dateList, pickup, roomsCount = 1) {
   const nights = dateList.length;
-  const baseAmount = room.price_per_night * nights;
+  const baseAmount = room.price_per_night * nights * roomsCount;
   const taxAmount = Math.round(baseAmount * 0.12); // 12% GST
 
   let validatedPickup = { required: false, pickup_required: false, pickup_charge: 0, service: 'NOT_REQUIRED' };
@@ -58,6 +58,7 @@ function calculateVerifiedPricing(hotel, room, dateList, pickup) {
 
   return {
     nights,
+    roomsCount,
     baseAmount,
     taxAmount,
     pickupAmount,
@@ -77,6 +78,7 @@ router.post('/create-order', authenticate, async (req, res) => {
       check_in_date,
       check_out_date,
       guests_count,
+      rooms_count,
       pickup
     } = req.body;
 
@@ -127,21 +129,23 @@ router.post('/create-order', authenticate, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Check-out date must be after check-in date.' });
     }
 
+    const rCount = Math.max(1, Number(rooms_count) || 1);
+
     // Availability validation for each night
     for (const d of dateList) {
       const avail = db.getAvailability(room.id, d);
       const booked = avail ? avail.booked_count : 0;
       const blocked = avail ? avail.blocked_count : 0;
-      if (booked + blocked >= (room.total_inventory || 15)) {
+      if (booked + blocked + rCount > (room.total_inventory || 15)) {
         return res.status(400).json({
           success: false,
-          message: `Room is fully booked for date: ${d}. Please choose alternative dates.`
+          message: `Insufficient room capacity for date: ${d}. Requested: ${rCount}, Available: ${(room.total_inventory || 15) - (booked + blocked)}`
         });
       }
     }
 
     // Dynamic Server Price Calculation
-    const pricing = calculateVerifiedPricing(hotel, room, dateList, pickup);
+    const pricing = calculateVerifiedPricing(hotel, room, dateList, pickup, rCount);
     const amountInPaise = Math.round(pricing.totalAmount * 100);
 
     // Call Real Razorpay Orders API
@@ -161,8 +165,27 @@ router.post('/create-order', authenticate, async (req, res) => {
         customer_name: req.user.name,
         check_in_date,
         check_out_date,
-        pickup_required: String(pricing.validatedPickup.required)
+        pickup_required: String(pricing.validatedPickup.required),
+        rooms_count: String(rCount)
       }
+    });
+
+    db.transaction((data) => {
+      data.payments.unshift({
+        id: `ORD-${Date.now().toString(36).toUpperCase()}`,
+        razorpay_order_id: rzpOrder.id,
+        customer_id: req.user.id,
+        customer_name: req.user.name,
+        hotel_id: hotel.id,
+        room_id: room.id,
+        amount: pricing.totalAmount,
+        currency: 'INR',
+        rooms_count: rCount,
+        guests_count: Number(guests_count) || 2,
+        status: 'created',
+        created_at: new Date().toISOString()
+      });
+      return true;
     });
 
     return res.status(201).json({
@@ -234,6 +257,7 @@ router.post('/verify', authenticate, async (req, res) => {
       check_in_date,
       check_out_date,
       guests_count,
+      rooms_count,
       customer_name,
       customer_email,
       customer_phone,
@@ -263,12 +287,45 @@ router.post('/verify', authenticate, async (req, res) => {
       });
     }
 
-    // 2. Fetch Razorpay Order & Payment to confirm actual captured status and amount
+    // 2. Fetch Server-Side Order
+    const serverOrder = db.getPayments().find(p => p.razorpay_order_id === razorpay_order_id);
+    if (!serverOrder) {
+      return res.status(404).json({ success: false, message: 'Server-side order record not found.' });
+    }
+
+    if (serverOrder.customer_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Unauthorized order ownership.' });
+    }
+
+    // Idempotency: Check if already verified
+    if (serverOrder.status === 'successful' || db.getPayments().some(p => p.razorpay_payment_id === razorpay_payment_id)) {
+      const existingBooking = db.getBookings().find(b => b.razorpay_order_id === razorpay_order_id);
+      return res.status(200).json({
+        success: true,
+        message: 'Payment already verified.',
+        booking: existingBooking,
+        payment: serverOrder
+      });
+    }
+
+    // 3. Fetch Razorpay Order & Payment to confirm actual captured status and amount
     const razorpay = getRazorpayInstance();
     const rzpOrder = await razorpay.orders.fetch(razorpay_order_id);
-
     if (!rzpOrder) {
       return res.status(404).json({ success: false, message: 'Razorpay order record not found.' });
+    }
+
+    const rzpPayment = await razorpay.payments.fetch(razorpay_payment_id);
+    if (!rzpPayment) {
+      return res.status(404).json({ success: false, message: 'Razorpay payment record not found.' });
+    }
+
+    if (rzpPayment.order_id !== razorpay_order_id) {
+      return res.status(400).json({ success: false, message: 'Payment does not belong to the specified order.' });
+    }
+
+    if (rzpPayment.status !== 'captured') {
+      return res.status(400).json({ success: false, message: `Payment verification failed. Status is '${rzpPayment.status}', expected 'captured'.` });
     }
 
     let hotel = db.getHotelById(hotel_id);
@@ -285,14 +342,20 @@ router.post('/verify', authenticate, async (req, res) => {
     }
 
     const dateList = getDatesInRange(check_in_date, check_out_date);
-    const pricing = calculateVerifiedPricing(hotel, room, dateList, pickup);
+    const rCount = Math.max(1, Number(rooms_count) || serverOrder.rooms_count || 1);
+    const pricing = calculateVerifiedPricing(hotel, room, dateList, pickup, rCount);
 
-    // Validate that order amount matches server calculation
-    if (rzpOrder.amount !== Math.round(pricing.totalAmount * 100)) {
+    // Validate that order amount and payment amount match server calculation
+    const expectedAmountPaise = Math.round(pricing.totalAmount * 100);
+    if (rzpOrder.amount !== expectedAmountPaise || rzpPayment.amount !== expectedAmountPaise) {
       return res.status(400).json({
         success: false,
-        message: `Payment amount mismatch: Gateway charged ₹${rzpOrder.amount / 100}, expected ₹${pricing.totalAmount}.`
+        message: `Payment amount mismatch: Gateway charged ₹${rzpPayment.amount / 100}, expected ₹${pricing.totalAmount}.`
       });
+    }
+
+    if (rzpOrder.currency !== 'INR' || rzpPayment.currency !== 'INR') {
+      return res.status(400).json({ success: false, message: 'Payment currency mismatch. Expected INR.' });
     }
 
     // 3. ATOMIC TRANSACTION: Check Availability, Lock Inventory & Commit Booking
@@ -302,7 +365,7 @@ router.post('/verify', authenticate, async (req, res) => {
         const avail = data.room_availability.find(a => a.room_id === room_id && a.date === d);
         const booked = avail ? avail.booked_count : 0;
         const blocked = avail ? avail.blocked_count : 0;
-        if (booked + blocked >= room.total_inventory) {
+        if (booked + blocked + rCount > room.total_inventory) {
           throw new Error(`Room capacity reached for date: ${d}.`);
         }
       }
@@ -315,12 +378,12 @@ router.post('/verify', authenticate, async (req, res) => {
             id: `AVL-${Date.now().toString(36).toUpperCase()}-${d}`,
             room_id,
             date: d,
-            booked_count: 1,
+            booked_count: rCount,
             blocked_count: 0
           };
           data.room_availability.push(avail);
         } else {
-          avail.booked_count += 1;
+          avail.booked_count += rCount;
         }
       }
 
@@ -347,7 +410,8 @@ router.post('/verify', authenticate, async (req, res) => {
         check_in_date,
         check_out_date,
         nights: pricing.nights,
-        guests_count: Number(guests_count) || 2,
+        rooms_count: rCount,
+        guests_count: Number(guests_count) || serverOrder.guests_count || 2,
         base_amount: pricing.baseAmount,
         tax_amount: pricing.taxAmount,
         total_amount: pricing.totalAmount,
@@ -364,25 +428,37 @@ router.post('/verify', authenticate, async (req, res) => {
       };
       data.bookings.unshift(bookingObj);
 
-      // Create Payment Ledger entry
-      const paymentObj = {
-        id: `PAY-${Date.now().toString(36).toUpperCase()}`,
-        transaction_id: razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_payment_id,
-        booking_id: bookingId,
-        booking_code: bookingCode,
-        customer_id: req.user.id,
-        customer_name: bookingObj.customer_name,
-        hotel_name: hotel.name,
-        amount: pricing.totalAmount,
-        currency: 'INR',
-        payment_method: payment_method || 'Razorpay (UPI/Card)',
-        gateway_reference: razorpay_payment_id,
-        status: 'successful',
-        created_at: new Date().toISOString()
-      };
-      data.payments.unshift(paymentObj);
+      // Update Payment Ledger entry
+      let paymentObj = data.payments.find(p => p.razorpay_order_id === razorpay_order_id && p.status === 'created');
+      if (paymentObj) {
+        paymentObj.transaction_id = razorpay_payment_id;
+        paymentObj.razorpay_payment_id = razorpay_payment_id;
+        paymentObj.booking_id = bookingId;
+        paymentObj.booking_code = bookingCode;
+        paymentObj.payment_method = payment_method || 'Razorpay (UPI/Card)';
+        paymentObj.gateway_reference = razorpay_payment_id;
+        paymentObj.status = 'successful';
+        paymentObj.updated_at = new Date().toISOString();
+      } else {
+        paymentObj = {
+          id: `PAY-${Date.now().toString(36).toUpperCase()}`,
+          transaction_id: razorpay_payment_id,
+          razorpay_order_id,
+          razorpay_payment_id,
+          booking_id: bookingId,
+          booking_code: bookingCode,
+          customer_id: req.user.id,
+          customer_name: bookingObj.customer_name,
+          hotel_name: hotel.name,
+          amount: pricing.totalAmount,
+          currency: 'INR',
+          payment_method: payment_method || 'Razorpay (UPI/Card)',
+          gateway_reference: razorpay_payment_id,
+          status: 'successful',
+          created_at: new Date().toISOString()
+        };
+        data.payments.unshift(paymentObj);
+      }
 
       return { booking: bookingObj, payment: paymentObj };
     });
@@ -425,7 +501,26 @@ router.post('/webhook', (req, res) => {
     }
 
     const event = req.body.event;
-    console.log(`📡 Razorpay Webhook Event received: ${event}`);
+
+    // Phase 8 Idempotent Webhook
+    if (event === 'payment.captured' || event === 'payment.authorized') {
+      const paymentPayload = req.body.payload.payment.entity;
+      const orderId = paymentPayload.order_id;
+      const paymentId = paymentPayload.id;
+
+      db.transaction((data) => {
+        let paymentRecord = data.payments.find(p => p.razorpay_order_id === orderId);
+        if (paymentRecord && paymentRecord.status !== 'successful') {
+           if (event === 'payment.captured') {
+             // In a robust architecture, you'd confirm booking here if not already done.
+             // We just mark payment record as successful if it's missing verification.
+             paymentRecord.status = 'successful';
+             paymentRecord.razorpay_payment_id = paymentId;
+           }
+        }
+        return true;
+      });
+    }
 
     // Acknowledge receipt
     return res.json({ status: 'ok', event_processed: event });

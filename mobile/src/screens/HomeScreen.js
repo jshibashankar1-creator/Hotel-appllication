@@ -18,6 +18,7 @@ import { COLORS } from '../theme/colors';
 import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
 import HeroSlider from '../components/HeroSlider';
+import DatePickerModal from '../components/DatePickerModal';
 import { mobileApi } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -37,14 +38,31 @@ export default function HomeScreen({ navigation }) {
   const [selectedCity, setSelectedCity] = useState('New Digha');
   const [destPickerIdx, setDestPickerIdx] = useState(0);
 
-  // Compute default dates
+  // Search Parameters State
   const today = new Date();
   const defaultIn = new Date(today.getTime() + 86400000);
   const defaultOut = new Date(today.getTime() + 86400000 * 4);
-  const checkInISO = defaultIn.toISOString().split('T')[0];
-  const checkOutISO = defaultOut.toISOString().split('T')[0];
-  const formattedCheckIn = `${defaultIn.getDate()} ${defaultIn.toLocaleString('en-US', { month: 'short' })}, Mon`;
-  const formattedCheckOut = `${defaultOut.getDate()} ${defaultOut.toLocaleString('en-US', { month: 'short' })}, Thu`;
+  
+  const [checkIn, setCheckIn] = useState(defaultIn);
+  const [checkOut, setCheckOut] = useState(defaultOut);
+  const [guests, setGuests] = useState(2);
+  const [rooms, setRooms] = useState(1);
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+
+  const getLocalISODate = (d) => {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDisplayDate = (d) => {
+    if (!d) return '';
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return `${d.getDate()} ${monthNames[d.getMonth()]}, ${dayNames[d.getDay()]}`;
+  };
 
   useEffect(() => {
     fetchLiveHotels();
@@ -94,10 +112,10 @@ export default function HomeScreen({ navigation }) {
     console.log('[SEARCH] Navigating to Search with city:', selectedCity);
     navigation.navigate('Explore', {
       city: selectedCity,
-      checkIn: checkInISO,
-      checkOut: checkOutISO,
-      guests: 2,
-      rooms: 1,
+      checkIn: getLocalISODate(checkIn),
+      checkOut: getLocalISODate(checkOut),
+      guests,
+      rooms,
     });
   };
 
@@ -105,11 +123,18 @@ export default function HomeScreen({ navigation }) {
     setSelectedCity(destination.city);
     navigation.navigate('Explore', {
       city: destination.city,
-      checkIn: checkInISO,
-      checkOut: checkOutISO,
-      guests: 2,
-      rooms: 1,
+      checkIn: getLocalISODate(checkIn),
+      checkOut: getLocalISODate(checkOut),
+      guests,
+      rooms,
     });
+  };
+
+  const handleConfirmDates = (data) => {
+    setCheckIn(data.checkInDate);
+    setCheckOut(data.checkOutDate);
+    setGuests(data.guestsCount);
+    setRooms(data.roomsCount);
   };
 
   return (
@@ -177,19 +202,19 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
 
               <View style={styles.row}>
-                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginRight: 8 }]}>
+                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginRight: 8 }]} onPress={() => setDatePickerVisible(true)}>
                   <Text style={styles.inputLabel}>Check-in</Text>
-                  <Text style={styles.inputValue}>📅 {formattedCheckIn}</Text>
+                  <Text style={styles.inputValue}>📅 {formatDisplayDate(checkIn)}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginLeft: 8 }]}>
+                <TouchableOpacity style={[styles.inputBox, { flex: 1, marginLeft: 8 }]} onPress={() => setDatePickerVisible(true)}>
                   <Text style={styles.inputLabel}>Check-out</Text>
-                  <Text style={styles.inputValue}>📅 {formattedCheckOut}</Text>
+                  <Text style={styles.inputValue}>📅 {formatDisplayDate(checkOut)}</Text>
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.inputBox}>
+              <TouchableOpacity style={styles.inputBox} onPress={() => setDatePickerVisible(true)}>
                 <Text style={styles.inputLabel}>Guests & Rooms</Text>
-                <Text style={styles.inputValue}>👤 2 Guests, 1 Room</Text>
+                <Text style={styles.inputValue}>👤 {guests} Guest{guests > 1 ? 's' : ''}, {rooms} Room{rooms > 1 ? 's' : ''}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -256,6 +281,16 @@ export default function HomeScreen({ navigation }) {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <DatePickerModal
+        visible={isDatePickerVisible}
+        onClose={() => setDatePickerVisible(false)}
+        initialCheckIn={checkIn}
+        initialCheckOut={checkOut}
+        initialGuests={guests}
+        initialRooms={rooms}
+        onConfirm={handleConfirmDates}
+      />
     </View>
   );
 }

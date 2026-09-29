@@ -14,10 +14,15 @@ import { COLORS } from '../theme/colors';
 import DealCard from '../components/DealCard';
 
 
+import { mobileApi } from '../services/api';
+
 export default function OffersScreen({ navigation }) {
   const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 45, seconds: 30 });
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchOffers();
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev.seconds > 0) {
@@ -32,6 +37,19 @@ export default function OffersScreen({ navigation }) {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const fetchOffers = async () => {
+    try {
+      const res = await mobileApi.getOffers();
+      if (res.success) {
+        setOffers(res.offers || []);
+      }
+    } catch (e) {
+      console.warn('Error loading offers', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDigits = num => num.toString().padStart(2, '0');
 
@@ -126,7 +144,22 @@ export default function OffersScreen({ navigation }) {
         </View>
 
         <View style={styles.dealsList}>
-          {[]}
+          {offers.map(offer => (
+            <DealCard
+              key={offer.id}
+              deal={{
+                id: offer.id,
+                name: offer.title,
+                location: offer.description,
+                discountPercent: offer.discount_pct || 10,
+                rating: 4.8,
+                reviewsCount: 120,
+                originalPrice: 400,
+                discountedPrice: 400 - (400 * (offer.discount_pct || 10) / 100),
+                coverImage: 'https://images.unsplash.com/photo-1542314831-c6a4d27a6555?auto=format&fit=crop&q=80&w=600',
+              }}
+            />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

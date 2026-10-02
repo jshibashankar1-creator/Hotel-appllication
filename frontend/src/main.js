@@ -81,6 +81,51 @@ window.handleSignOut = function() {
   window.navigateTo('/login');
 };
 
+const THEME_STORAGE_KEY = 'hotelhub_theme';
+
+function applyAdminTheme(themeMode = localStorage.getItem(THEME_STORAGE_KEY) || 'light') {
+  const resolvedTheme = themeMode === 'dark' || themeMode === 'light' ? themeMode : 'light';
+  document.body.setAttribute('data-theme', resolvedTheme);
+
+  const toggleBtn = document.getElementById('header-theme-toggle');
+  const toggleIcon = document.getElementById('header-theme-icon');
+  if (toggleBtn && toggleIcon) {
+    const isDark = resolvedTheme === 'dark';
+    toggleIcon.textContent = isDark ? '☀️' : '🌙';
+    toggleBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    toggleBtn.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+}
+
+window.toggleAdminTheme = function() {
+  const currentTheme = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  applyAdminTheme(nextTheme);
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    applyAdminTheme(savedTheme);
+    return;
+  }
+
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyAdminTheme(prefersDark ? 'dark' : 'light');
+});
+
+window.addEventListener('storage', (event) => {
+  if (event.key === THEME_STORAGE_KEY && (event.newValue === 'dark' || event.newValue === 'light')) {
+    applyAdminTheme(event.newValue);
+  }
+});
+
+const themeToggle = document.getElementById('header-theme-toggle');
+if (themeToggle) {
+  themeToggle.addEventListener('click', window.toggleAdminTheme);
+}
+
 // Global Navigation Function
 window.navigateTo = function(path) {
   const cleanPath = path.startsWith('#') ? path : `#${path.startsWith('/') ? path : '/' + path}`;

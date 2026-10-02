@@ -443,6 +443,26 @@ button {
   box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.2);
 }
 
+.header-theme-toggle {
+  width: 42px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-xs);
+}
+
+.header-theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-accent);
+}
+
 .header-icon-btn {
   width: 36px;
   height: 36px;

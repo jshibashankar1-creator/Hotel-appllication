@@ -12,9 +12,12 @@ import {
   Platform,
 } from 'react-native';
 import HotelCard from '../components/HotelCard';
+import { useTheme } from '../theme/ThemeProvider';
 import { mobileApi } from '../services/api';
 
 export default function SearchScreen({ route, navigation }) {
+  const { theme, isDark } = useTheme();
+
   // Read city from route params (sent by HomeScreen SEARCH HOTELS button)
   const paramCity = route.params?.city || '';
   const paramCheckIn = route.params?.checkIn || '';
@@ -108,6 +111,141 @@ export default function SearchScreen({ route, navigation }) {
   const handleSelectHotel = (hotel) => {
     navigation.navigate('HotelDetails', { hotel });
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      backgroundColor: isDark ? theme.primaryDark : '#071B3A',
+      paddingBottom: 24,
+      paddingTop: Platform.OS === 'ios' ? 20 : 16,
+      paddingHorizontal: 16,
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    backButton: {
+      padding: 4,
+    },
+    headerTitles: {
+      flex: 1,
+      marginLeft: 16,
+    },
+    headerTitle: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    headerSubtitle: {
+      color: isDark ? '#D1D5DB' : '#A0B0C0',
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    searchIcon: {
+      padding: 8,
+    },
+    filtersContainer: {
+      marginTop: -16,
+      marginBottom: 10,
+    },
+    filtersScroll: {
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+    filterPill: {
+      backgroundColor: isDark ? theme.surfaceSecondary : 'rgba(255,255,255,0.85)',
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      marginRight: 10,
+      borderWidth: 1,
+      borderColor: isDark ? theme.border : 'rgba(255,255,255,0.9)',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+    },
+    filterPillActive: {
+      backgroundColor: isDark ? theme.surface : '#fff',
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      marginRight: 10,
+      borderWidth: 1,
+      borderColor: theme.primary,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+    },
+    filterPillText: {
+      color: isDark ? theme.textPrimary : '#0B1733',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    filterPillTextActive: {
+      color: theme.primary,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    listContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      paddingBottom: 120,
+    },
+    centeredState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 60,
+      paddingHorizontal: 32,
+    },
+    emptyIcon: {
+      fontSize: 48,
+      marginBottom: 16,
+    },
+    stateText: {
+      color: theme.textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+      marginTop: 12,
+      textAlign: 'center',
+    },
+    stateSubText: {
+      color: theme.textSecondary,
+      fontSize: 13,
+      marginTop: 6,
+      textAlign: 'center',
+    },
+    errorText: {
+      color: theme.error,
+      fontSize: 14,
+      fontWeight: '600',
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    retryButton: {
+      backgroundColor: theme.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      borderRadius: 12,
+    },
+    retryText: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 14,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -217,136 +355,3 @@ export default function SearchScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ebf0f7',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    backgroundColor: '#071B3A',
-    paddingBottom: 24,
-    paddingTop: Platform.OS === 'ios' ? 20 : 16,
-    paddingHorizontal: 16,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitles: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    color: '#A0B0C0',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  searchIcon: {
-    padding: 8,
-  },
-  filtersContainer: {
-    marginTop: -16,
-    marginBottom: 10,
-  },
-  filtersScroll: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  filterPill: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  filterPillActive: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#8F1239',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  filterPillText: {
-    color: '#0B1733',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  filterPillTextActive: {
-    color: '#8F1239',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 120,
-  },
-  centeredState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 60,
-    paddingHorizontal: 32,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  stateText: {
-    color: '#0B1733',
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 12,
-    textAlign: 'center',
-  },
-  stateSubText: {
-    color: '#64748b',
-    fontSize: 13,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: '#8F1239',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  retryText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-});

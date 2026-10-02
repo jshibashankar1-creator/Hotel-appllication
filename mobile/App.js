@@ -3,9 +3,10 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet, Platform, Image } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 
+import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { COLORS } from './src/theme/colors';
 
 // Screens
@@ -34,16 +35,17 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabNavigator() {
+  const { theme, isDark } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: COLORS.burgundyPill || '#7D143D',
-        tabBarInactiveTintColor: '#8C9BB0',
-        // Premium Frosted Glass Background using expo-blur
+        tabBarActiveTintColor: isDark ? '#E9D5A8' : COLORS.burgundyPill || '#7D143D',
+        tabBarInactiveTintColor: isDark ? '#8A94A6' : '#8C9BB0',
         tabBarBackground: () => (
           <BlurView
-            tint="light"
+            tint={isDark ? 'dark' : 'light'}
             intensity={85}
             style={[
               StyleSheet.absoluteFill,
@@ -56,17 +58,15 @@ function MainTabNavigator() {
           />
         ),
         tabBarStyle: {
-          // Semi-transparent frosted glass surface
-          backgroundColor: 'rgba(245, 247, 250, 0.55)',
+          backgroundColor: isDark ? 'rgba(15, 17, 21, 0.78)' : 'rgba(245, 247, 250, 0.55)',
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,
-          // Crisp white glass border
           borderTopWidth: 1,
-          borderTopColor: 'rgba(255, 255, 255, 0.80)',
+          borderTopColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 0.80)',
           borderLeftWidth: 1,
-          borderLeftColor: 'rgba(255, 255, 255, 0.70)',
+          borderLeftColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 0.70)',
           borderRightWidth: 1,
-          borderRightColor: 'rgba(255, 255, 255, 0.70)',
+          borderRightColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 0.70)',
           borderBottomWidth: 0,
           position: 'absolute',
           bottom: Platform.OS === 'ios' ? 16 : 8,
@@ -75,11 +75,10 @@ function MainTabNavigator() {
           height: Platform.OS === 'ios' ? 74 : 64,
           paddingBottom: Platform.OS === 'ios' ? 14 : 4,
           paddingTop: 6,
-          // Soft shadow beneath the glass
           elevation: 24,
-          shadowColor: '#0B1733',
+          shadowColor: theme.shadow,
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.14,
+          shadowOpacity: isDark ? 0.35 : 0.14,
           shadowRadius: 32,
           maxWidth: 720,
           alignSelf: 'center',
@@ -144,17 +143,19 @@ const linking = {
   }
 };
 
-export default function App() {
+function AppContent() {
+  const { theme, isDark } = useTheme();
+
   return (
     <NavigationContainer linking={linking}>
-      <StatusBar style="dark" backgroundColor="#FFFFFF" />
+      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={isDark ? '#0F1115' : '#FFFFFF'} />
       <Stack.Navigator
         initialRouteName="MainTabs"
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#4A0E20',
+            backgroundColor: isDark ? theme.primaryDark : '#4A0E20',
           },
-          headerTintColor: COLORS.white,
+          headerTintColor: isDark ? theme.textPrimary : COLORS.white,
           headerTitleStyle: {
             fontWeight: '800',
             fontSize: 16,
@@ -228,6 +229,14 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

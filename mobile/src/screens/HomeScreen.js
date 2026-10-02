@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
+import { useTheme } from '../theme/ThemeProvider';
 import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
 import HeroSlider from '../components/HeroSlider';
@@ -31,6 +32,7 @@ const DEFAULT_DESTINATIONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
+  const { theme, isDark } = useTheme();
   const [hotels, setHotels] = useState([]);
   const [destinations, setDestinations] = useState(DEFAULT_DESTINATIONS);
   const [loading, setLoading] = useState(false);
@@ -137,12 +139,187 @@ export default function HomeScreen({ navigation }) {
     setRooms(data.roomsCount);
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    heroBackground: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: height * 0.55,
+      backgroundColor: isDark ? '#0F1115' : '#0B1733',
+    },
+    heroOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: isDark ? 'rgba(7, 12, 18, 0.55)' : 'rgba(7, 27, 58, 0.5)',
+    },
+    safeArea: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 120,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 20,
+      marginBottom: 16,
+    },
+    greetingText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    bellIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.14)',
+    },
+    heroTitle: {
+      fontSize: 36,
+      fontWeight: '700',
+      color: '#fff',
+      paddingHorizontal: 20,
+      lineHeight: 44,
+    },
+    locationPin: {
+      fontSize: 14,
+      color: '#f8fafc',
+      paddingHorizontal: 20,
+      marginTop: 8,
+      fontWeight: '500',
+    },
+    glassBoxContainer: {
+      paddingHorizontal: 20,
+      marginTop: 24,
+      marginBottom: 20,
+    },
+    glassBox: {
+      borderRadius: 24,
+      padding: 16,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.7)',
+      backgroundColor: isDark ? 'rgba(23, 26, 33, 0.72)' : 'rgba(255,255,255,0.35)',
+    },
+    tabsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    tabActive: {
+      flex: 1,
+      backgroundColor: theme.primary,
+      borderRadius: 20,
+      paddingVertical: 10,
+      alignItems: 'center',
+      marginRight: 8,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    tabInactive: {
+      flex: 1,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)',
+      borderRadius: 20,
+      paddingVertical: 10,
+      alignItems: 'center',
+      marginHorizontal: 4,
+    },
+    tabTextActive: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 13,
+    },
+    tabTextInactive: {
+      color: isDark ? '#E5E7EB' : '#0B1733',
+      fontWeight: '600',
+      fontSize: 13,
+    },
+    inputBox: {
+      backgroundColor: isDark ? 'rgba(20, 24, 30, 0.9)' : 'rgba(255,255,255,0.9)',
+      borderRadius: 16,
+      padding: 12,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: isDark ? theme.border : 'rgba(255,255,255,0.7)',
+    },
+    row: {
+      flexDirection: 'row',
+    },
+    inputLabel: {
+      fontSize: 10,
+      color: isDark ? '#CBD5E1' : '#64748b',
+      fontWeight: '700',
+      marginBottom: 4,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    inputValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: isDark ? '#F8FAFC' : '#0B1733',
+    },
+    searchButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      marginTop: 8,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    searchButtonText: {
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+    },
+    whiteContentArea: {
+      paddingTop: 10,
+      backgroundColor: theme.background,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: theme.textPrimary,
+    },
+    viewAllText: {
+      color: theme.primary,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    listContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 4,
+      paddingBottom: 20,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* Background Hero Area */}
-      <View style={[styles.heroBackground, {backgroundColor: '#0B1733'}]}>
+      <View style={styles.heroBackground}>
         {hotels.find(h => h.coverImage) ? (
           <ImageBackground
             source={{ uri: hotels.find(h => h.coverImage).coverImage }}
@@ -295,172 +472,3 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ebf0f7',
-  },
-  heroBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: height * 0.55,
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7, 27, 58, 0.5)',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 120,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 20,
-    marginBottom: 16,
-  },
-  greetingText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  bellIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroTitle: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#fff',
-    paddingHorizontal: 20,
-    lineHeight: 44,
-  },
-  locationPin: {
-    fontSize: 14,
-    color: '#f8fafc',
-    paddingHorizontal: 20,
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  glassBoxContainer: {
-    paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 20,
-  },
-  glassBox: {
-    borderRadius: 24,
-    padding: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
-    backgroundColor: 'rgba(255,255,255,0.35)',
-  },
-  tabsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  tabActive: {
-    flex: 1,
-    backgroundColor: '#8F1239',
-    borderRadius: 20,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginRight: 8,
-    shadowColor: '#8F1239',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  tabInactive: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    borderRadius: 20,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  tabTextActive: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  tabTextInactive: {
-    color: '#0B1733',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  inputBox: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 10,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  inputLabel: {
-    fontSize: 10,
-    color: '#64748b',
-    fontWeight: '700',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  inputValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0B1733',
-  },
-  searchButton: {
-    backgroundColor: '#8F1239',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#8F1239',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  searchButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  whiteContentArea: {
-    paddingTop: 10,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0B1733',
-  },
-  viewAllText: {
-    color: '#8F1239',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 20,
-  },
-});

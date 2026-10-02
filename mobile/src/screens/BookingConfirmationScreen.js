@@ -112,7 +112,7 @@ export default function BookingConfirmationScreen({ route, navigation }) {
             <Text style={styles.downloadButtonText}>↓ Download E-Ticket</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.viewBookingsButton} activeOpacity={0.88} onPress={() => navigation.navigate('MyBookings')}>
+          <TouchableOpacity style={styles.viewBookingsButton} activeOpacity={0.88} onPress={() => navigation.navigate('MainTabs', { screen: 'Bookings' })}>
             <Text style={styles.viewBookingsText}>View My Bookings</Text>
           </TouchableOpacity>
 

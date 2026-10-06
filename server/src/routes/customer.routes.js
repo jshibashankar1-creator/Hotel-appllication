@@ -152,4 +152,24 @@ router.get('/membership', authenticate, (req, res) => {
   return res.json({ success: true, membership: db.data.memberships[req.user.id] });
 });
 
+// ============================================================================
+// BANNERS
+// ============================================================================
+// GET /api/banners does not need authentication. It should probably be public.
+// But customer.routes.js seems to be mounted at /api and might not enforce `authenticate` globally on the router itself. 
+// Wait, looking at the code above, the routes use `authenticate` individually.
+// Let's add the banner route without `authenticate`.
+
+router.get('/banners', (req, res) => {
+  const allBanners = db.getBanners();
+  const activeBanners = allBanners.filter(b => b.is_active !== false);
+  
+  activeBanners.sort((a, b) => {
+    if (a.sort_order !== b.sort_order) return (a.sort_order || 0) - (b.sort_order || 0);
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+  
+  return res.json({ success: true, count: activeBanners.length, banners: activeBanners });
+});
+
 export default router;

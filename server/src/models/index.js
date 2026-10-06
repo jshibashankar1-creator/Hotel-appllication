@@ -10,3 +10,4 @@ export { Review } from './Review.js';
 export { SupportTicket } from './SupportTicket.js';
 export { PlatformSettings } from './PlatformSettings.js';
 export { AuditLog } from './AuditLog.js';
+export { Banner } from './Banner.js';

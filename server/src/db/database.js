@@ -20,6 +20,7 @@ class RelationalDatabase {
       payments: [],
       refunds: [],
       reviews: [],
+      banners: [],
       support_tickets: [],
       audit_logs: [],
       platform_settings: {
@@ -224,6 +225,16 @@ class RelationalDatabase {
     this.load();
     if (userId) return this.data.support_tickets.filter(t => t.user_id === userId);
     return this.data.support_tickets;
+  }
+
+  getBanners() {
+    this.load();
+    return this.data.banners || [];
+  }
+
+  getBannersByHotel(hotelId) {
+    this.load();
+    return (this.data.banners || []).filter(b => b.hotel_id === hotelId);
   }
 
   getAuditLogs() {

@@ -48,6 +48,7 @@ import { renderOwnerPickupsView } from './views/owner/OwnerPickupsView.js';
 import { renderOwnerSupportView } from './views/owner/OwnerSupportView.js';
 import { renderOwnerOnboardView } from './views/owner/OwnerOnboardView.js';
 import { renderOwnerProfileView } from './views/owner/OwnerProfileView.js';
+import { renderOwnerBannersView } from './views/owner/OwnerBannersView.js';
 
 const ADMIN_ROLES = new Set(['super_admin', 'admin', 'support_admin', 'finance_admin']);
 const HOTEL_ADMIN_ROLES = new Set(['hotel_admin', 'owner']);
@@ -397,6 +398,9 @@ function handleRoute() {
       </a>
 
       <div class="nav-section-label">FRONT DESK</div>
+      <a href="#/hotel-admin/banners" class="nav-item ${hash === '#/hotel-admin/banners' || hash === '#/owner/banners' ? 'active' : ''}">
+        <div class="nav-item-left"><i data-lucide="image"></i><span>Hotel Banners</span></div>
+      </a>
       <a href="#/hotel-admin/bookings" class="nav-item ${hash === '#/hotel-admin/bookings' || hash === '#/owner/bookings' ? 'active' : ''}">
         <div class="nav-item-left"><i data-lucide="calendar-check"></i><span>Bookings</span></div>
       </a>
@@ -600,6 +604,13 @@ function handleRoute() {
       viewTitle.textContent = 'Reservations Management';
       viewSubtitle.textContent = 'Full list of guest bookings with stay dates, guest contact, and payout details';
       renderOwnerBookingsView(contentArea);
+      break;
+
+    case '#/hotel-admin/banners':
+    case '#/owner/banners':
+      viewTitle.textContent = 'Hotel Banners Management';
+      viewSubtitle.textContent = 'Manage movable banner images displayed on the customer app home screen';
+      renderOwnerBannersView(contentArea);
       break;
 
     case '#/hotel-admin/pickups':

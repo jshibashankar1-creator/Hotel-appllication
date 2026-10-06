@@ -34,6 +34,7 @@ const DEFAULT_DESTINATIONS = [
 export default function HomeScreen({ navigation }) {
   const { theme, isDark } = useTheme();
   const [hotels, setHotels] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [destinations, setDestinations] = useState(DEFAULT_DESTINATIONS);
   const [loading, setLoading] = useState(false);
   // Selected search state
@@ -68,7 +69,19 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     fetchLiveHotels();
+    fetchBanners();
   }, []);
+
+  async function fetchBanners() {
+    try {
+      const res = await mobileApi.request('/banners');
+      if (res && res.banners) {
+        setBanners(res.banners);
+      }
+    } catch (err) {
+      console.error('[HOME] Banners API Error:', err.message);
+    }
+  }
 
   async function fetchLiveHotels() {
     try {
@@ -350,7 +363,7 @@ export default function HomeScreen({ navigation }) {
 
           {/* Hero Slider */}
           <HeroSlider 
-            data={hotels.filter(h => h.coverImage).slice(0, 5)} 
+            data={banners} 
             navigation={navigation} 
             loading={loading}
           />

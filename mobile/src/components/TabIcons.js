@@ -1,56 +1,48 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-export function TabIcon({ name, focused, color, size = 22 }) {
-  let glyph = '•';
-  let fontSize = 18;
+export function TabIcon({ name, focused, color, size = 24 }) {
+  let iconName;
 
   if (name === 'Home') {
-    glyph = '🏠';
-    fontSize = 18;
+    iconName = focused ? 'home' : 'home-outline';
   } else if (name === 'Explore') {
-    glyph = '🔍';
-    fontSize = 18;
+    iconName = focused ? 'search' : 'search-outline';
   } else if (name === 'Bookings') {
-    glyph = '📅';
-    fontSize = 18;
+    iconName = focused ? 'calendar' : 'calendar-outline';
   } else if (name === 'Deals') {
-    glyph = '🏷️';
-    fontSize = 18;
+    iconName = focused ? 'pricetag' : 'pricetag-outline';
   } else if (name === 'Profile') {
-    glyph = '👤';
-    fontSize = 18;
+    iconName = focused ? 'person' : 'person-outline';
+  } else {
+    iconName = 'ellipse-outline';
   }
 
   return (
     <View style={styles.iconBox}>
-      <Text style={[styles.iconGlyph, { opacity: focused ? 1 : 0.6, fontSize }]}>
-        {glyph}
-      </Text>
-      {focused && <View style={styles.activeDot} />}
+      {focused && (
+        <View style={[styles.activeBackground, { backgroundColor: color + '1A' }]} />
+      )}
+      <Ionicons name={iconName} size={size} color={color} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   iconBox: {
-    width: 28,
-    height: 30,
+    width: 48,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
-  iconGlyph: {
-    textAlign: 'center',
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-  },
-  activeDot: {
+  activeBackground: {
     position: 'absolute',
+    top: -2,
     bottom: -2,
-    width: 5,
-    height: 5,
-    backgroundColor: '#D6A72C',
-    borderRadius: 2.5,
+    left: -4,
+    right: -4,
+    borderRadius: 16,
   },
 });

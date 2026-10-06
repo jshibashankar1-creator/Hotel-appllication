@@ -42,7 +42,7 @@ function MainTabNavigator() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: isDark ? '#E9D5A8' : COLORS.burgundyPill || '#7D143D',
-        tabBarInactiveTintColor: isDark ? '#8A94A6' : '#8C9BB0',
+        tabBarInactiveTintColor: isDark ? '#8A94A6' : '#6B7280',
         tabBarBackground: () => (
           <BlurView
             tint={isDark ? 'dark' : 'light'}

@@ -140,10 +140,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.15)', // clean overlay
   },
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   locationBadge: {
     backgroundColor: 'rgba(0,0,0,0.5)',
     paddingHorizontal: 10,

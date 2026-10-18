@@ -1,32 +1,16 @@
 import mongoose from 'mongoose';
 
-const bannerSchema = new mongoose.Schema({
-  hotel_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hotel',
-    required: true,
-  },
-  title: {
-    type: String,
-    trim: true,
-  },
-  image_url: {
-    type: String,
-    required: true,
-  },
-  image_public_id: {
-    type: String,
-  },
-  sort_order: {
-    type: Number,
-    default: 0,
-  },
-  is_active: {
-    type: Boolean,
-    default: true,
-  },
-}, {
-  timestamps: true,
-});
+const BannerSchema = new mongoose.Schema({
+  id: { type: String, unique: true, sparse: true, index: true },
+  hotel_id: { type: String, required: true, index: true },
+  title: { type: String, default: '', trim: true },
+  image_url: { type: String, required: true },
+  image_public_id: { type: String },
+  sort_order: { type: Number, default: 0 },
+  is_active: { type: Boolean, default: true },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
 
-export const Banner = mongoose.model('Banner', bannerSchema);
+export const Banner = mongoose.models.Banner || mongoose.model('Banner', BannerSchema);
+

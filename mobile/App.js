@@ -40,9 +40,8 @@ function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: isDark ? '#E9D5A8' : COLORS.burgundyPill || '#7D143D',
-        tabBarInactiveTintColor: isDark ? '#8A94A6' : '#6B7280',
+        tabBarActiveTintColor: isDark ? '#E9D5A8' : (COLORS.burgundyPill || '#8F1239'),
+        tabBarInactiveTintColor: isDark ? '#8A94A6' : '#8C9BB0',
         tabBarBackground: () => (
           <BlurView
             tint={isDark ? 'dark' : 'light'}
@@ -50,36 +49,41 @@ function MainTabNavigator() {
             style={[
               StyleSheet.absoluteFill,
               {
-                borderTopLeftRadius: 28,
-                borderTopRightRadius: 28,
+                borderTopLeftRadius: 18,
+                borderTopRightRadius: 18,
+                borderBottomLeftRadius: 22,
+                borderBottomRightRadius: 22,
                 overflow: 'hidden',
               }
             ]}
           />
         ),
         tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(15, 17, 21, 0.78)' : 'rgba(245, 247, 250, 0.55)',
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
+          backgroundColor: isDark ? 'rgba(15, 17, 21, 0.85)' : 'rgba(255, 255, 255, 0.90)',
+          borderTopLeftRadius: 18,
+          borderTopRightRadius: 18,
+          borderBottomLeftRadius: 22,
+          borderBottomRightRadius: 22,
           borderTopWidth: 1,
-          borderTopColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 0.80)',
+          borderTopColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 1)',
           borderLeftWidth: 1,
-          borderLeftColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 0.70)',
+          borderLeftColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 1)',
           borderRightWidth: 1,
-          borderRightColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 0.70)',
-          borderBottomWidth: 0,
+          borderRightColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 1)',
+          borderBottomWidth: 1,
+          borderBottomColor: isDark ? 'rgba(42, 48, 58, 0.9)' : 'rgba(255, 255, 255, 1)',
           position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 16 : 8,
-          left: 10,
-          right: 10,
+          bottom: Platform.OS === 'ios' ? 20 : 12,
+          left: 12,
+          right: 12,
           height: Platform.OS === 'ios' ? 74 : 64,
           paddingBottom: Platform.OS === 'ios' ? 14 : 4,
           paddingTop: 6,
-          elevation: 24,
-          shadowColor: theme.shadow,
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: isDark ? 0.35 : 0.14,
-          shadowRadius: 32,
+          elevation: isDark ? 24 : 12,
+          shadowColor: isDark ? theme.shadow : '#000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: isDark ? 0.35 : 0.1,
+          shadowRadius: 16,
           maxWidth: 720,
           alignSelf: 'center',
           overflow: 'hidden',

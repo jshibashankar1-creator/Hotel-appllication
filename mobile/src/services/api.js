@@ -219,6 +219,15 @@ class MobileApiService {
   async getPaymentMethods() {
     return this.request('/payment-methods');
   }
+
+  // --- FOOD & BANNERS ---
+  async getFoodItems() {
+    return this.request('/food');
+  }
+
+  async getBanners() {
+    return this.request('/banners');
+  }
 }
 
 export const mobileApi = new MobileApiService();

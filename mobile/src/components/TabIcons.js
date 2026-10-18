@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../theme/colors';
 
 export function TabIcon({ name, focused, color, size = 24 }) {
   let iconName;
@@ -20,29 +21,27 @@ export function TabIcon({ name, focused, color, size = 24 }) {
   }
 
   return (
-    <View style={styles.iconBox}>
-      {focused && (
-        <View style={[styles.activeBackground, { backgroundColor: color + '1A' }]} />
-      )}
-      <Ionicons name={iconName} size={size} color={color} />
+    <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
+      <Ionicons 
+        name={iconName} 
+        size={size} 
+        color={color || (focused ? (COLORS.burgundyPill || '#8F1239') : '#8C9BB0')} 
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  iconBox: {
-    width: 48,
+  iconContainer: {
+    width: 44,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-  },
-  activeBackground: {
-    position: 'absolute',
-    top: -2,
-    bottom: -2,
-    left: -4,
-    right: -4,
     borderRadius: 16,
+    marginTop: Platform.OS === 'ios' ? 4 : 0,
+  },
+  iconContainerActive: {
+    backgroundColor: 'rgba(143, 18, 57, 0.12)',
   },
 });
+

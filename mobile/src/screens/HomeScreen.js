@@ -20,6 +20,8 @@ import DestinationCard from '../components/DestinationCard';
 import HotelCard from '../components/HotelCard';
 import HeroSlider from '../components/HeroSlider';
 import DatePickerModal from '../components/DatePickerModal';
+import FoodCard from '../components/FoodCard';
+import FoodDetailsModal from '../components/FoodDetailsModal';
 import { mobileApi } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -37,9 +39,16 @@ export default function HomeScreen({ navigation }) {
   const [banners, setBanners] = useState([]);
   const [destinations, setDestinations] = useState(DEFAULT_DESTINATIONS);
   const [loading, setLoading] = useState(false);
+  const [bannersLoading, setBannersLoading] = useState(false);
   // Selected search state
   const [selectedCity, setSelectedCity] = useState('New Digha');
   const [destPickerIdx, setDestPickerIdx] = useState(0);
+
+  const [foodItems, setFoodItems] = useState([]);
+  const [foodLoading, setFoodLoading] = useState(false);
+  const [foodError, setFoodError] = useState(null);
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [isFoodModalVisible, setFoodModalVisible] = useState(false);
 
   // Search Parameters State
   const today = new Date();
@@ -70,16 +79,36 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     fetchLiveHotels();
     fetchBanners();
+    fetchFoodItems();
   }, []);
+
+  async function fetchFoodItems() {
+    try {
+      setFoodLoading(true);
+      setFoodError(null);
+      const data = await mobileApi.getFoodItems();
+      if (data && data.success) {
+        setFoodItems(data.data || data.foods || []);
+      }
+    } catch (err) {
+      console.error('[HOME] Error fetching food:', err.message);
+      setFoodError(err.message);
+    } finally {
+      setFoodLoading(false);
+    }
+  }
 
   async function fetchBanners() {
     try {
-      const res = await mobileApi.request('/banners');
-      if (res && res.banners) {
-        setBanners(res.banners);
+      setBannersLoading(true);
+      const data = await mobileApi.getBanners ? await mobileApi.getBanners() : await mobileApi.request('/banners');
+      if (data && (data.banners || data.data)) {
+        setBanners(data.banners || data.data);
       }
     } catch (err) {
-      console.error('[HOME] Banners API Error:', err.message);
+      console.error('[HOME] Error fetching banners:', err.message);
+    } finally {
+      setBannersLoading(false);
     }
   }
 
@@ -150,6 +179,11 @@ export default function HomeScreen({ navigation }) {
     setCheckOut(data.checkOutDate);
     setGuests(data.guestsCount);
     setRooms(data.roomsCount);
+  };
+
+  const handleFoodPress = (food) => {
+    setSelectedFood(food);
+    setFoodModalVisible(true);
   };
 
   const styles = StyleSheet.create({
@@ -365,7 +399,7 @@ export default function HomeScreen({ navigation }) {
           <HeroSlider 
             data={banners} 
             navigation={navigation} 
-            loading={loading}
+            loading={bannersLoading}
           />
 
           {/* Search Glass Box */}
@@ -437,6 +471,40 @@ export default function HomeScreen({ navigation }) {
               )}
             />
 
+            {/* Food & Dining Section */}
+            <View style={{ marginTop: 24 }}>
+              <View style={styles.sectionHeader}>
+                <View>
+                  <Text style={styles.sectionTitle}>Food & Dining</Text>
+                  <Text style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>Delicious food at your stay</Text>
+                </View>
+              </View>
+              
+              {foodLoading ? (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <ActivityIndicator color="#8F1239" size="large" />
+                  <Text style={{ marginTop: 10, color: '#64748b' }}>Loading Food...</Text>
+                </View>
+              ) : foodError || foodItems.length === 0 ? (
+                <View style={{ padding: 20, alignItems: 'center', backgroundColor: '#f8fafc', marginHorizontal: 20, borderRadius: 16 }}>
+                  <Text style={{ color: '#475569', fontSize: 14, fontWeight: '500' }}>
+                    Food & Dining is currently unavailable
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={foodItems}
+                  keyExtractor={item => item._id || Math.random().toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20 }}
+                  renderItem={({ item }) => (
+                    <FoodCard item={item} onPress={handleFoodPress} />
+                  )}
+                />
+              )}
+            </View>
+
             {/* Featured Hotels section */}
             <View style={[styles.sectionHeader, { marginTop: 24 }]}>
               <Text style={styles.sectionTitle}>Featured Stays</Text>
@@ -480,6 +548,12 @@ export default function HomeScreen({ navigation }) {
         initialGuests={guests}
         initialRooms={rooms}
         onConfirm={handleConfirmDates}
+      />
+
+      <FoodDetailsModal 
+        visible={isFoodModalVisible}
+        onClose={() => setFoodModalVisible(false)}
+        food={selectedFood}
       />
     </View>
   );

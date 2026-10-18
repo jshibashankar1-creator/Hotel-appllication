@@ -441,17 +441,23 @@ router.put('/profile', (req, res) => {
   });
 });
 
-// 14. BANNER MANAGEMENT API
+// --- 14. BANNER MANAGEMENT API ---
+
 // GET /api/hotel-admin/banners
 router.get('/banners', (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
-  const banners = db.getBannersByHotel(hotel.id);
-  // Sort using sort_order ASC, then created_at DESC
+
+  const banners = typeof db.getBannersByHotel === 'function' 
+    ? db.getBannersByHotel(hotel.id)
+    : (db.data.banners || []).filter(b => b.hotel_id === hotel.id);
+
+  // Sort by sort_order ASC, then created_at DESC
   banners.sort((a, b) => {
     if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
     return new Date(b.created_at) - new Date(a.created_at);
   });
+
   return res.json({ success: true, count: banners.length, banners });
 });
 
@@ -552,7 +558,7 @@ router.delete('/banners/:id', requireRole('hotel_admin'), (req, res) => {
   let deleted = false;
 
   db.transaction(data => {
-    if (!data.banners) return;
+    if (!data.banners) data.banners = [];
     const idx = data.banners.findIndex(b => b.id === bannerId && b.hotel_id === hotel.id);
     if (idx !== -1) {
       data.banners.splice(idx, 1);

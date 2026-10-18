@@ -38,6 +38,7 @@ import { renderAdminPickupsView } from './views/admin/AdminPickupsView.js';
 // Hotel Admin / Owner Views
 import { renderOwnerDashboardView } from './views/owner/OwnerDashboardView.js';
 import { renderOwnerHotelView } from './views/owner/OwnerHotelView.js';
+import { renderOwnerBannersView } from './views/owner/OwnerBannersView.js';
 import { renderOwnerRoomsView } from './views/owner/OwnerRoomsView.js';
 import { renderOwnerAvailabilityView } from './views/owner/OwnerAvailabilityView.js';
 import { renderOwnerBookingsView } from './views/owner/OwnerBookingsView.js';
@@ -390,6 +391,9 @@ function handleRoute() {
       <a href="#/hotel-admin/property" class="nav-item ${hash === '#/hotel-admin/property' || hash === '#/owner/hotel' ? 'active' : ''}">
         <div class="nav-item-left"><i data-lucide="building"></i><span>Property Details</span></div>
       </a>
+      <a href="#/hotel-admin/banners" class="nav-item ${hash === '#/hotel-admin/banners' || hash === '#/owner/banners' ? 'active' : ''}">
+        <div class="nav-item-left"><i data-lucide="image"></i><span>Banners</span></div>
+      </a>
       <a href="#/hotel-admin/rooms" class="nav-item ${hash === '#/hotel-admin/rooms' || hash === '#/owner/rooms' ? 'active' : ''}">
         <div class="nav-item-left"><i data-lucide="bed-double"></i><span>Rooms</span></div>
       </a>
@@ -583,6 +587,13 @@ function handleRoute() {
       viewTitle.textContent = 'Property Details & Media';
       viewSubtitle.textContent = 'Edit hotel details, address, amenities, and high-resolution photo gallery';
       renderOwnerHotelView(contentArea);
+      break;
+
+    case '#/hotel-admin/banners':
+    case '#/owner/banners':
+      viewTitle.textContent = 'Customer App Banners';
+      viewSubtitle.textContent = 'Add, arrange, and manage the promotional hero sliders shown on the app';
+      renderOwnerBannersView(contentArea);
       break;
 
     case '#/hotel-admin/rooms':

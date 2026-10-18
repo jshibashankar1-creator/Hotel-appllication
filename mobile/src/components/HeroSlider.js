@@ -77,9 +77,7 @@ export default function HeroSlider({ data, navigation, loading }) {
         onPressIn={stopAutoSlide}
         onPressOut={startAutoSlide}
       >
-        <Image source={{ uri: item.image_url || item.coverImage }} style={styles.image} />
-        
-        {/* Clean Gradient Overlay */}
+        <Image source={{ uri: item.image_url || item.coverImage }} style={styles.image} resizeMode="cover" />
         <View style={styles.gradientOverlay} />
       </TouchableOpacity>
     );
@@ -99,14 +97,16 @@ export default function HeroSlider({ data, navigation, loading }) {
         scrollEventThrottle={16}
         onScrollBeginDrag={stopAutoSlide}
         onScrollEndDrag={startAutoSlide}
-        snapToInterval={BANNER_WIDTH + 16} // Width + marginRight
+        snapToInterval={BANNER_WIDTH + 16}
         snapToAlignment="start"
         decelerationRate="fast"
         contentContainerStyle={{ paddingHorizontal: 20 }}
       />
       {data.length > 1 && (
-        <View style={styles.paginationTextContainer}>
-          <Text style={styles.paginationText}>{currentIndex + 1}/{data.length}</Text>
+        <View style={styles.paginationContainer}>
+          <Text style={styles.paginationText}>
+            {currentIndex + 1}/{data.length}
+          </Text>
         </View>
       )}
     </View>
@@ -239,13 +239,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  paginationTextContainer: {
+  paginationContainer: {
     position: 'absolute',
-    bottom: 25,
-    right: 35,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    bottom: 12,
+    right: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 12,
   },
   paginationText: {

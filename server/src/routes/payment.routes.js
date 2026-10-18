@@ -6,13 +6,30 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
-// Lazy initialization of Razorpay instance
-function getRazorpayInstance() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+// Helper to safely fetch, validate, and sanitize Razorpay credentials
+function getRazorpayCredentials() {
+  const rawKeyId = process.env.RAZORPAY_KEY_ID;
+  const rawKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  const keyId = rawKeyId ? String(rawKeyId).trim() : '';
+  const keySecret = rawKeySecret ? String(rawKeySecret).trim() : '';
+
   if (!keyId || !keySecret) {
-    throw new Error('Razorpay credentials are not configured in server environment.');
+    const missing = [];
+    if (!keyId) missing.push('RAZORPAY_KEY_ID');
+    if (!keySecret) missing.push('RAZORPAY_KEY_SECRET');
+    const err = new Error(`Razorpay credentials missing in server environment: ${missing.join(', ')}.`);
+    err.code = 'RAZORPAY_MISSING_CONFIG';
+    err.statusCode = 500;
+    throw err;
   }
+
+  return { keyId, keySecret };
+}
+
+// Lazy initialization of Razorpay SDK instance
+function getRazorpayInstance() {
+  const { keyId, keySecret } = getRazorpayCredentials();
   return new Razorpay({
     key_id: keyId,
     key_secret: keySecret
@@ -149,7 +166,8 @@ router.post('/create-order', authenticate, async (req, res) => {
     const amountInPaise = Math.round(pricing.totalAmount * 100);
 
     // Call Real Razorpay Orders API
-    const razorpay = getRazorpayInstance();
+    const { keyId, keySecret } = getRazorpayCredentials();
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
     const receipt = `rcpt_${Date.now().toString(36)}_${Math.floor(100 + Math.random() * 900)}`;
 
     const rzpOrder = await razorpay.orders.create({
@@ -190,7 +208,7 @@ router.post('/create-order', authenticate, async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      key_id: process.env.RAZORPAY_KEY_ID,
+      key_id: keyId,
       order_id: rzpOrder.id,
       amount: pricing.totalAmount,
       amount_paise: rzpOrder.amount,
@@ -216,10 +234,34 @@ router.post('/create-order', authenticate, async (req, res) => {
       pickup: pricing.validatedPickup
     });
   } catch (err) {
-    console.error('Razorpay order creation error:', err);
-    return res.status(500).json({
+    const rawKeyId = process.env.RAZORPAY_KEY_ID ? String(process.env.RAZORPAY_KEY_ID).trim() : '';
+    const hasSecret = Boolean(process.env.RAZORPAY_KEY_SECRET && String(process.env.RAZORPAY_KEY_SECRET).trim());
+    const isTestKey = rawKeyId.startsWith('rzp_test_');
+    const isLiveKey = rawKeyId.startsWith('rzp_live_');
+    const keyMode = isTestKey ? 'test' : isLiveKey ? 'live' : 'unknown/invalid';
+
+    console.error('Razorpay order creation error:', {
+      statusCode: err.statusCode || 500,
+      code: err.error?.code || err.code || 'UNKNOWN_ERROR',
+      description: err.error?.description || err.message,
+      diagnostics: {
+        keyIdPresent: Boolean(rawKeyId),
+        keyIdPrefix: rawKeyId ? rawKeyId.slice(0, 9) : null,
+        keyMode,
+        keySecretPresent: hasSecret
+      }
+    });
+
+    const statusCode = err.statusCode || (err.code === 'RAZORPAY_MISSING_CONFIG' ? 500 : 500);
+    let userMessage = err.error?.description || err.message || 'Failed to create Razorpay payment order.';
+    if (err.statusCode === 401) {
+      userMessage = 'Razorpay authentication failed. The server-side API Key ID and Secret do not match or are expired in Razorpay Dashboard.';
+    }
+
+    return res.status(statusCode).json({
       success: false,
-      message: err.error?.description || err.message || 'Failed to create Razorpay payment order.'
+      message: userMessage,
+      error_code: err.error?.code || err.code || 'PAYMENT_ORDER_ERROR'
     });
   }
 });
@@ -235,8 +277,9 @@ router.post('/test-sign', authenticate, (req, res) => {
   if (!order_id || !payment_id) {
     return res.status(400).json({ success: false, message: 'order_id and payment_id are required.' });
   }
+  const { keySecret } = getRazorpayCredentials();
   const signature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .createHmac('sha256', keySecret)
     .update(`${order_id}|${payment_id}`)
     .digest('hex');
 
@@ -273,7 +316,7 @@ router.post('/verify', authenticate, async (req, res) => {
     }
 
     // 1. Verify Cryptographic HMAC SHA256 Signature
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const { keySecret } = getRazorpayCredentials();
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSignature = crypto
       .createHmac('sha256', keySecret)

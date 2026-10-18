@@ -117,8 +117,11 @@ async function runTests() {
     process.env.RAZORPAY_KEY_ID = origKeyId;
     process.env.RAZORPAY_KEY_SECRET = origKeySecret;
 
-    // TEST 4: Razorpay 401 Authentication failure handling
+    // TEST 4: Razorpay 401 Authentication failure handling (with mismatched test credentials)
     console.log('[Test 4] Razorpay 401 authentication failed error message mapping');
+    process.env.RAZORPAY_KEY_ID = 'rzp_test_invalidKeyId1234';
+    process.env.RAZORPAY_KEY_SECRET = 'invalidKeySecret56789012';
+
     const res401 = await makeRequest(server, {
       path: '/api/payments/create-order',
       method: 'POST'
@@ -139,6 +142,30 @@ async function runTests() {
     );
     assert(!JSON.stringify(res401.data).includes(process.env.RAZORPAY_KEY_SECRET), 'Secret must not be in response body');
     console.log('  -> PASS: 401 mapped to actionable explanation without secret exposure\n');
+
+    // Restore original env
+    process.env.RAZORPAY_KEY_ID = origKeyId;
+    process.env.RAZORPAY_KEY_SECRET = origKeySecret;
+
+    // TEST 5: Real Razorpay order creation success (201 Created)
+    console.log('[Test 5] Valid Razorpay credentials produce real order (201 Created)');
+    const res201 = await makeRequest(server, {
+      path: '/api/payments/create-order',
+      method: 'POST'
+    }, {
+      hotel_id: 'htl-01',
+      room_id: 'rm-01',
+      check_in_date: '2026-11-01',
+      check_out_date: '2026-11-03',
+      guests_count: 2
+    });
+
+    assert.strictEqual(res201.status, 201, 'Expected 201 status for valid order creation');
+    assert.strictEqual(res201.data.success, true);
+    assert(res201.data.order_id && res201.data.order_id.startsWith('order_'), 'Must return valid order_id');
+    assert.strictEqual(res201.data.currency, 'INR');
+    assert(!JSON.stringify(res201.data).includes(process.env.RAZORPAY_KEY_SECRET), 'Secret must not be in response body');
+    console.log(`  -> PASS: Genuine Razorpay order created successfully (order_id: ${res201.data.order_id})\n`);
 
     console.log('=== ALL RAZORPAY TEST SUITE TESTS PASSED ===\n');
   } finally {

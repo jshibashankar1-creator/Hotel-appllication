@@ -40,6 +40,7 @@ function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
+        headerShown: false,
         tabBarActiveTintColor: isDark ? '#E9D5A8' : (COLORS.burgundyPill || '#8F1239'),
         tabBarInactiveTintColor: isDark ? '#8A94A6' : '#8C9BB0',
         tabBarBackground: () => (

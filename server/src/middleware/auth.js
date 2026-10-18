@@ -137,3 +137,8 @@ export const requireAdmin = requireRole('super_admin', 'admin');
 export const requireFinanceAdmin = requireRole('finance_admin');
 export const requireSupportAdmin = requireRole('support_admin');
 export const requireHotelAdmin = requireRole('hotel_admin');
+
+// Aliases for compatibility
+export const protect = authenticate;
+export const restrictTo = (...roles) => requireRole(...roles);
+

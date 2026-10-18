@@ -1294,6 +1294,20 @@
   ],
   "payments": [
     {
+      "id": "ORD-MVDLLO4C",
+      "razorpay_order_id": "order_TpJZqJUThqRdhs",
+      "customer_id": "USR-CUST-1",
+      "customer_name": "Aarav Sharma",
+      "hotel_id": "HTL-001",
+      "room_id": "RM-101",
+      "amount": 19040,
+      "currency": "INR",
+      "rooms_count": 1,
+      "guests_count": 2,
+      "status": "created",
+      "created_at": "2026-10-18T09:03:25.788Z"
+    },
+    {
       "id": "PAY-MUJ8YG1G",
       "transaction_id": "TXN-MUJ8YG1G",
       "booking_id": "BKG-MUJ8YG1G",

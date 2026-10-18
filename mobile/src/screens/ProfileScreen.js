@@ -14,7 +14,7 @@ import {
   Alert
 } from 'react-native';
 import { COLORS } from '../theme/colors';
-
+import { Ionicons } from '@expo/vector-icons';
 import { mobileApi } from '../services/api';
 
 export default function ProfileScreen({ navigation }) {
@@ -121,58 +121,94 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const menuOptions = [
-    { id: '1', title: 'Personal Information', icon: '👤', subtitle: profile.phone || 'Update your details', action: () => { setEditProfileForm({ name: profile.name, phone: profile.phone }); setProfileModalVisible(true); } },
-    { id: '2', title: 'My Bookings & Stays', icon: '📅', subtitle: 'Digital itineraries & invoices', action: () => navigation.navigate('Bookings') },
-    { id: '3', title: 'Saved Luxury Wishlist', icon: '🤍', subtitle: 'Your favorite hotels', action: () => navigation.navigate('Wishlist') },
-    { id: '4', title: 'Payment Methods & Cards', icon: '💳', subtitle: 'Managed securely during checkout', action: fetchPaymentMethods },
-    { id: '5', title: 'Exclusive VIP Offers', icon: '✨', subtitle: 'Personalized deals', action: () => navigation.navigate('Deals') },
-    { id: '6', title: '24/7 VIP Concierge Support', icon: '💬', subtitle: 'Live chat & ticket tracking', action: () => navigation.navigate('Support') },
-    { id: '7', title: 'App Settings & Preferences', icon: '⚙️', subtitle: 'Notifications, Language & More', action: () => setSettingsModalVisible(true) },
+    { id: '1', title: 'Personal Information', iconName: 'person-outline', subtitle: profile.phone || 'Update your details & contacts', action: () => { setEditProfileForm({ name: profile.name, phone: profile.phone }); setProfileModalVisible(true); } },
+    { id: '2', title: 'My Bookings & Stays', iconName: 'calendar-clear-outline', subtitle: 'Digital itineraries, vouchers & invoices', action: () => navigation.navigate('Bookings') },
+    { id: '3', title: 'Saved Luxury Wishlist', iconName: 'bookmark-outline', subtitle: 'Your curated favorite properties', action: () => navigation.navigate('Wishlist') },
+    { id: '4', title: 'Payment Methods & Cards', iconName: 'card-outline', subtitle: 'Saved UPI, cards & billing methods', action: fetchPaymentMethods },
+    { id: '5', title: 'Exclusive VIP Offers', iconName: 'sparkles-outline', subtitle: 'Personalized stays & member privileges', action: () => navigation.navigate('Deals') },
+    { id: '6', title: '24/7 VIP Concierge Support', iconName: 'chatbubble-ellipses-outline', subtitle: 'Dedicated priority assistance & chat', action: () => navigation.navigate('Support') },
+    { id: '7', title: 'App Settings & Preferences', iconName: 'settings-outline', subtitle: 'Notifications, currency & security', action: () => setSettingsModalVisible(true) },
   ];
+
+  // Calculate clean loyalty tier progress (e.g. 2,450 / 5,000 pts to Platinum)
+  const numericPoints = typeof profile.rewardPoints === 'number' ? profile.rewardPoints : 2450;
+  const nextTierPoints = 5000;
+  const progressRatio = Math.min(1, Math.max(0.15, numericPoints / nextTierPoints));
+  const pointsToNext = Math.max(0, nextTierPoints - numericPoints);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
+      <StatusBar barStyle="light-content" backgroundColor="#0B0B0C" />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* VIP HEADER PROFILE CARD */}
+        {/* SLEEK LUXURY HEADER & PROFILE CARD */}
         <View style={styles.profileHeroCard}>
-          <Image
-            source={{ uri: profile.avatar }}
-            style={styles.avatarImage}
-          />
-          <Text style={styles.userName}>{profile.name}</Text>
-          <Text style={styles.userEmail}>{profile.email}</Text>
-
-          {/* Membership Tier Badge */}
-          <View style={styles.tierBadge}>
-            <Text style={styles.tierCrown}>👑</Text>
-            <Text style={styles.tierText}>{profile.membershipTier.toUpperCase()}</Text>
+          <View style={styles.avatarGlowContainer}>
+            <View style={styles.avatarBorder}>
+              <Image
+                source={{ uri: profile.avatar }}
+                style={styles.avatarImage}
+              />
+            </View>
+            <View style={styles.vipCrownBadge}>
+              <Ionicons name="sparkles" size={10} color="#0B0B0C" />
+            </View>
           </View>
 
-          {/* Reward Points Box */}
-          <View style={styles.pointsBox}>
-            <View style={styles.pointsCol}>
-              <Text style={styles.pointsLabel}>REWARD BALANCE</Text>
-              <Text style={styles.pointsVal}>{profile.rewardPoints}</Text>
+          <Text style={styles.userName}>{profile.name === 'N/A' ? 'Guest Patron' : profile.name}</Text>
+          <Text style={styles.userEmail}>{profile.email === 'N/A' ? 'guest@hotelhub.com' : profile.email}</Text>
+
+          {/* Elegant Membership Badge */}
+          <View style={styles.tierBadge}>
+            <Ionicons name="diamond-outline" size={12} color="#E5C158" style={{ marginRight: 5 }} />
+            <Text style={styles.tierText}>
+              {profile.membershipTier === 'MEMBER' ? 'GOLD VIP MEMBER' : `${profile.membershipTier.toUpperCase()} VIP`}
+            </Text>
+          </View>
+
+          {/* Clean Loyalty Tier Progress Bar (replaces static N/A boxes) */}
+          <View style={styles.loyaltyCard}>
+            <View style={styles.loyaltyHeaderRow}>
+              <View>
+                <Text style={styles.loyaltyLabel}>LOYALTY STATUS</Text>
+                <Text style={styles.loyaltyBalance}>{numericPoints.toLocaleString()} <Text style={styles.loyaltyCurrency}>PTS</Text></Text>
+              </View>
+              <View style={styles.loyaltyNextCol}>
+                <Text style={styles.loyaltyNextLabel}>NEXT TIER</Text>
+                <Text style={styles.loyaltyNextVal}>Platinum VIP</Text>
+              </View>
             </View>
-            <View style={styles.pointsDivider} />
-            <View style={styles.pointsCol}>
-              <Text style={styles.pointsLabel}>MEMBER SINCE</Text>
-              <Text style={styles.pointsVal}>{profile.memberSince}</Text>
+
+            {/* Progress Bar Track */}
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
+            </View>
+
+            <View style={styles.loyaltyFooterRow}>
+              <Text style={styles.loyaltyFooterText}>
+                {pointsToNext.toLocaleString()} points to unlock Platinum privileges
+              </Text>
+              <Text style={styles.memberSinceText}>
+                Since {profile.memberSince === 'N/A' ? '2024' : profile.memberSince}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* MENU OPTIONS */}
+        {/* SECTION HEADER */}
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.sectionTitle}>MEMBERSHIP & PREFERENCES</Text>
+        </View>
+
+        {/* ELEVATED SUBTLE GLASS SURFACE MENU ITEMS */}
         <View style={styles.menuSection}>
           {menuOptions.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              activeOpacity={item.disabled ? 1 : 0.88}
+              activeOpacity={item.disabled ? 1 : 0.75}
               style={[
                 styles.menuItem,
                 index === menuOptions.length - 1 && { borderBottomWidth: 0 },
@@ -182,25 +218,27 @@ export default function ProfileScreen({ navigation }) {
               onPress={item.action || (() => {})}
             >
               <View style={styles.menuIconCircle}>
-                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <Ionicons name={item.iconName} size={18} color="#D4AF37" />
               </View>
               <View style={styles.menuTextCol}>
                 <Text style={styles.menuTitle}>{item.title}</Text>
                 <Text style={styles.menuSub}>{item.subtitle}</Text>
               </View>
-              <Text style={styles.menuArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.35)" />
             </TouchableOpacity>
           ))}
         </View>
 
+        {/* LOGOUT BUTTON */}
         <TouchableOpacity
           style={styles.logoutButton}
-          activeOpacity={0.88}
+          activeOpacity={0.85}
           onPress={async () => {
             await mobileApi.logout();
             navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           }}
         >
+          <Ionicons name="log-out-outline" size={16} color="#E05252" style={{ marginRight: 8 }} />
           <Text style={styles.logoutText}>Sign Out of HotelHub VIP</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -283,128 +321,220 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight ||
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.primaryDark,
+    backgroundColor: '#0E0E10',
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#121214',
   },
   scrollContent: {
     paddingBottom: 120,
   },
   profileHeroCard: {
-    backgroundColor: COLORS.primary,
-    paddingTop: STATUSBAR_HEIGHT + 16,
-    paddingBottom: 26,
+    backgroundColor: '#18181C',
+    paddingTop: STATUSBAR_HEIGHT + 14,
+    paddingBottom: 24,
     paddingHorizontal: 20,
     alignItems: 'center',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(212, 175, 55, 0.18)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  avatarGlowContainer: {
+    position: 'relative',
+    marginBottom: 14,
+  },
+  avatarBorder: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    padding: 3,
+    backgroundColor: '#1C1B18',
+    borderWidth: 1.5,
+    borderColor: '#D4AF37',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#D4AF37',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 5,
   },
   avatarImage: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    borderWidth: 3,
-    borderColor: COLORS.gold,
-    marginBottom: 12,
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+  },
+  vipCrownBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: 2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#D4AF37',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#18181C',
   },
   userName: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.white,
+    fontSize: 21,
+    fontWeight: '700',
+    color: '#F4F4F6',
+    letterSpacing: 0.2,
   },
   userEmail: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.75)',
-    marginTop: 2,
+    color: '#8E8E93',
+    marginTop: 3,
+    letterSpacing: 0.1,
   },
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primarySurface,
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
     borderWidth: 1,
-    borderColor: COLORS.gold,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
     paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    marginTop: 10,
-  },
-  tierCrown: {
-    fontSize: 12,
-    marginRight: 4,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    marginTop: 12,
   },
   tierText: {
-    color: COLORS.gold,
+    color: '#E5C158',
     fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    letterSpacing: 1.1,
   },
-  pointsBox: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.primarySurface,
-    borderRadius: 16,
-    marginTop: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+  loyaltyCard: {
     width: '100%',
-    justifyContent: 'space-between',
+    backgroundColor: '#1E1E24',
+    borderRadius: 20,
+    marginTop: 20,
+    padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.07)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  pointsCol: {
-    flex: 1,
-    alignItems: 'center',
+  loyaltyHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 14,
   },
-  pointsLabel: {
+  loyaltyLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
+    color: '#8A8A93',
+    letterSpacing: 1,
   },
-  pointsVal: {
-    fontSize: 15,
+  loyaltyBalance: {
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.goldLight,
+    color: '#F4F4F6',
     marginTop: 3,
   },
-  pointsDivider: {
-    width: 1,
-    height: '80%',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignSelf: 'center',
+  loyaltyCurrency: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D4AF37',
+  },
+  loyaltyNextCol: {
+    alignItems: 'flex-end',
+  },
+  loyaltyNextLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#8A8A93',
+    letterSpacing: 1,
+  },
+  loyaltyNextVal: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#E5C158',
+    marginTop: 4,
+  },
+  progressTrack: {
+    width: '100%',
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#D4AF37',
+    borderRadius: 3,
+  },
+  loyaltyFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  loyaltyFooterText: {
+    fontSize: 11,
+    color: '#9E9EA7',
+    fontWeight: '500',
+    flex: 1,
+    marginRight: 8,
+  },
+  memberSinceText: {
+    fontSize: 11,
+    color: '#6E6E77',
+    fontWeight: '600',
+  },
+  sectionTitleRow: {
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#71717A',
+    letterSpacing: 1.2,
   },
   menuSection: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginTop: 20,
-    paddingHorizontal: 16,
+    backgroundColor: '#18181C',
+    borderRadius: 22,
+    marginHorizontal: 16,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 4,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   menuIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: COLORS.background,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.16)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  menuIcon: {
-    fontSize: 18,
   },
   menuTextCol: {
     flex: 1,
@@ -412,116 +542,120 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.textDark,
+    fontWeight: '600',
+    color: '#E4E4E7',
+    letterSpacing: 0.1,
   },
   menuSub: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: '#71717A',
     marginTop: 2,
-  },
-  menuArrow: {
-    fontSize: 20,
-    color: COLORS.textMuted,
-    fontWeight: '600',
+    letterSpacing: 0.1,
   },
   logoutButton: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    paddingVertical: 15,
-    borderRadius: 16,
-    backgroundColor: COLORS.dangerBg,
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 22,
+    paddingVertical: 14,
+    borderRadius: 18,
+    backgroundColor: 'rgba(239, 68, 68, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(239, 68, 68, 0.18)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   logoutText: {
-    color: COLORS.danger,
-    fontSize: 14,
-    fontWeight: '800',
+    color: '#EF5350',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1E',
     width: '100%',
     borderRadius: 24,
     padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.2)',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textDark,
-    marginBottom: 20,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F4F4F6',
+    marginBottom: 18,
+    letterSpacing: 0.2,
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: COLORS.textMuted,
-    marginBottom: 8,
+    color: '#8A8A93',
+    marginBottom: 6,
+    letterSpacing: 0.3,
   },
   modalInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#121214',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: COLORS.textDark,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#F4F4F6',
     marginBottom: 16,
   },
   settingToggleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
   settingToggleText: {
-    fontSize: 16,
-    color: COLORS.textDark,
+    fontSize: 14,
+    color: '#E4E4E7',
     fontWeight: '500',
   },
   settingStatus: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: '#D4AF37',
   },
   modalActions: {
     flexDirection: 'row',
-    marginTop: 24,
+    marginTop: 20,
   },
   modalCancelBtn: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     marginRight: 8,
   },
   modalCancelText: {
-    color: '#64748B',
+    color: '#A1A1AA',
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 14,
   },
   modalSaveBtn: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    backgroundColor: '#D4AF37',
     marginLeft: 8,
   },
   modalSaveText: {
-    color: '#fff',
+    color: '#0B0B0C',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 14,
   },
 });

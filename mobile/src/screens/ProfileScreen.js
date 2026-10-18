@@ -130,7 +130,7 @@ export default function ProfileScreen({ navigation }) {
     { id: '7', title: 'App Settings & Preferences', iconName: 'settings-outline', subtitle: 'Notifications, currency & security', action: () => setSettingsModalVisible(true) },
   ];
 
-  // Calculate clean loyalty tier progress (e.g. 2,450 / 5,000 pts to Platinum)
+  // Loyalty Points & Tier details
   const numericPoints = typeof profile.rewardPoints === 'number' ? profile.rewardPoints : 2450;
   const nextTierPoints = 5000;
   const progressRatio = Math.min(1, Math.max(0.15, numericPoints / nextTierPoints));
@@ -138,77 +138,86 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0B0C" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* CLEAN TOP BAR */}
+      <View style={styles.topHeader}>
+        <Text style={styles.topHeaderTitle}>Profile</Text>
+      </View>
+
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* SLEEK LUXURY HEADER & PROFILE CARD */}
-        <View style={styles.profileHeroCard}>
-          <View style={styles.avatarGlowContainer}>
-            <View style={styles.avatarBorder}>
-              <Image
-                source={{ uri: profile.avatar }}
-                style={styles.avatarImage}
-              />
-            </View>
-            <View style={styles.vipCrownBadge}>
-              <Ionicons name="sparkles" size={10} color="#0B0B0C" />
+        {/* PURE WHITE MEMBERSHIP PROFILE CARD */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileHeaderRow}>
+            <Image
+              source={{ uri: profile.avatar }}
+              style={styles.avatarImage}
+            />
+            <View style={styles.profileInfoCol}>
+              <View style={styles.nameBadgeRow}>
+                <Text style={styles.userName} numberOfLines={1}>
+                  {profile.name === 'N/A' ? 'Guest Patron' : profile.name}
+                </Text>
+              </View>
+              <Text style={styles.userEmail} numberOfLines={1}>
+                {profile.email === 'N/A' ? 'guest@hotelhub.com' : profile.email}
+              </Text>
+              
+              {/* Brand Maroon Membership Pill */}
+              <View style={styles.tierPill}>
+                <Ionicons name="diamond" size={10} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Text style={styles.tierPillText}>
+                  {profile.membershipTier === 'MEMBER' ? 'GOLD VIP' : `${profile.membershipTier.toUpperCase()} VIP`}
+                </Text>
+              </View>
             </View>
           </View>
 
-          <Text style={styles.userName}>{profile.name === 'N/A' ? 'Guest Patron' : profile.name}</Text>
-          <Text style={styles.userEmail}>{profile.email === 'N/A' ? 'guest@hotelhub.com' : profile.email}</Text>
-
-          {/* Elegant Membership Badge */}
-          <View style={styles.tierBadge}>
-            <Ionicons name="diamond-outline" size={12} color="#E5C158" style={{ marginRight: 5 }} />
-            <Text style={styles.tierText}>
-              {profile.membershipTier === 'MEMBER' ? 'GOLD VIP MEMBER' : `${profile.membershipTier.toUpperCase()} VIP`}
-            </Text>
-          </View>
-
-          {/* Clean Loyalty Tier Progress Bar (replaces static N/A boxes) */}
-          <View style={styles.loyaltyCard}>
-            <View style={styles.loyaltyHeaderRow}>
+          {/* Clean Loyalty Tier Progress Bar */}
+          <View style={styles.loyaltyBox}>
+            <View style={styles.loyaltyTopRow}>
               <View>
-                <Text style={styles.loyaltyLabel}>LOYALTY STATUS</Text>
-                <Text style={styles.loyaltyBalance}>{numericPoints.toLocaleString()} <Text style={styles.loyaltyCurrency}>PTS</Text></Text>
+                <Text style={styles.loyaltyLabel}>LOYALTY BALANCE</Text>
+                <Text style={styles.loyaltyPoints}>
+                  {numericPoints.toLocaleString()} <Text style={styles.loyaltyPtsSuffix}>Points</Text>
+                </Text>
               </View>
-              <View style={styles.loyaltyNextCol}>
-                <Text style={styles.loyaltyNextLabel}>NEXT TIER</Text>
-                <Text style={styles.loyaltyNextVal}>Platinum VIP</Text>
+              <View style={styles.loyaltyTierRight}>
+                <Text style={styles.loyaltyNextLabel}>NEXT LEVEL</Text>
+                <Text style={styles.loyaltyNextTier}>Platinum VIP</Text>
               </View>
             </View>
 
-            {/* Progress Bar Track */}
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
             </View>
 
             <View style={styles.loyaltyFooterRow}>
-              <Text style={styles.loyaltyFooterText}>
-                {pointsToNext.toLocaleString()} points to unlock Platinum privileges
+              <Text style={styles.loyaltySubtext}>
+                {pointsToNext.toLocaleString()} points to next tier
               </Text>
               <Text style={styles.memberSinceText}>
-                Since {profile.memberSince === 'N/A' ? '2024' : profile.memberSince}
+                Member since {profile.memberSince === 'N/A' ? '2024' : profile.memberSince}
               </Text>
             </View>
           </View>
         </View>
 
         {/* SECTION HEADER */}
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>MEMBERSHIP & PREFERENCES</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>ACCOUNT & PREFERENCES</Text>
         </View>
 
-        {/* ELEVATED SUBTLE GLASS SURFACE MENU ITEMS */}
-        <View style={styles.menuSection}>
+        {/* WHITE SURFACE MENU CONTAINER */}
+        <View style={styles.menuContainer}>
           {menuOptions.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              activeOpacity={item.disabled ? 1 : 0.75}
+              activeOpacity={item.disabled ? 1 : 0.7}
               style={[
                 styles.menuItem,
                 index === menuOptions.length - 1 && { borderBottomWidth: 0 },
@@ -217,29 +226,33 @@ export default function ProfileScreen({ navigation }) {
               disabled={item.disabled}
               onPress={item.action || (() => {})}
             >
-              <View style={styles.menuIconCircle}>
-                <Ionicons name={item.iconName} size={18} color="#D4AF37" />
+              {/* Soft tinted circular icon wrapper */}
+              <View style={styles.iconWrapper}>
+                <Ionicons name={item.iconName} size={18} color="#8B1538" />
               </View>
-              <View style={styles.menuTextCol}>
+
+              <View style={styles.menuContentCol}>
                 <Text style={styles.menuTitle}>{item.title}</Text>
-                <Text style={styles.menuSub}>{item.subtitle}</Text>
+                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.35)" />
+
+              {/* Subtle chevron */}
+              <Ionicons name="chevron-forward" size={17} color="#C7C7CC" />
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* LOGOUT BUTTON */}
+        {/* SUBTLE OUTLINE / SOFT-TINTED RED LOGOUT BUTTON */}
         <TouchableOpacity
           style={styles.logoutButton}
-          activeOpacity={0.85}
+          activeOpacity={0.78}
           onPress={async () => {
             await mobileApi.logout();
             navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           }}
         >
-          <Ionicons name="log-out-outline" size={16} color="#E05252" style={{ marginRight: 8 }} />
-          <Text style={styles.logoutText}>Sign Out of HotelHub VIP</Text>
+          <Ionicons name="log-out-outline" size={17} color="#D32F2F" style={{ marginRight: 8 }} />
+          <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -321,294 +334,283 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? (StatusBar.currentHeight ||
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0E0E10',
+    backgroundColor: '#FFFFFF',
+  },
+  topHeader: {
+    paddingTop: Platform.OS === 'android' ? STATUSBAR_HEIGHT + 8 : 10,
+    paddingBottom: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDEDED',
+  },
+  topHeaderTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    letterSpacing: -0.3,
   },
   container: {
     flex: 1,
-    backgroundColor: '#121214',
+    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
     paddingBottom: 120,
   },
-  profileHeroCard: {
-    backgroundColor: '#18181C',
-    paddingTop: STATUSBAR_HEIGHT + 14,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(212, 175, 55, 0.18)',
+  // PURE WHITE PROFILE / MEMBERSHIP CARD
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#EDEDED',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  avatarGlowContainer: {
-    position: 'relative',
-    marginBottom: 14,
-  },
-  avatarBorder: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    padding: 3,
-    backgroundColor: '#1C1B18',
-    borderWidth: 1.5,
-    borderColor: '#D4AF37',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    elevation: 2,
+  },
+  profileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatarImage: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-  },
-  vipCrownBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: 2,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#D4AF37',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     borderWidth: 2,
-    borderColor: '#18181C',
+    borderColor: '#FBF6F0',
+  },
+  profileInfoCol: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  nameBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   userName: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#F4F4F6',
-    letterSpacing: 0.2,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    letterSpacing: -0.2,
   },
   userEmail: {
     fontSize: 13,
-    color: '#8E8E93',
-    marginTop: 3,
-    letterSpacing: 0.1,
+    color: '#6C757D',
+    marginTop: 2,
   },
-  tierBadge: {
+  tierPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.35)',
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    marginTop: 12,
+    alignSelf: 'flex-start',
+    backgroundColor: '#8B1538',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginTop: 8,
   },
-  tierText: {
-    color: '#E5C158',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.1,
+  tierPillText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
   },
-  loyaltyCard: {
-    width: '100%',
-    backgroundColor: '#1E1E24',
-    borderRadius: 20,
-    marginTop: 20,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
+  // CLEAN LOYALTY TIER PROGRESS
+  loyaltyBox: {
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
   },
-  loyaltyHeaderRow: {
+  loyaltyTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 14,
+    alignItems: 'flex-end',
+    marginBottom: 10,
   },
   loyaltyLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#8A8A93',
-    letterSpacing: 1,
+    color: '#8E8E93',
+    letterSpacing: 0.8,
   },
-  loyaltyBalance: {
-    fontSize: 22,
+  loyaltyPoints: {
+    fontSize: 20,
     fontWeight: '800',
-    color: '#F4F4F6',
-    marginTop: 3,
+    color: '#1A1A1A',
+    marginTop: 2,
   },
-  loyaltyCurrency: {
+  loyaltyPtsSuffix: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#D4AF37',
+    fontWeight: '600',
+    color: '#8B1538',
   },
-  loyaltyNextCol: {
+  loyaltyTierRight: {
     alignItems: 'flex-end',
   },
   loyaltyNextLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#8A8A93',
-    letterSpacing: 1,
+    color: '#8E8E93',
+    letterSpacing: 0.8,
   },
-  loyaltyNextVal: {
-    fontSize: 14,
+  loyaltyNextTier: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#E5C158',
-    marginTop: 4,
+    color: '#8B1538',
+    marginTop: 2,
   },
   progressTrack: {
     width: '100%',
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#F0F0F0',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#8B1538',
     borderRadius: 3,
   },
   loyaltyFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 10,
   },
-  loyaltyFooterText: {
+  loyaltySubtext: {
     fontSize: 11,
-    color: '#9E9EA7',
+    color: '#6C757D',
     fontWeight: '500',
-    flex: 1,
-    marginRight: 8,
   },
   memberSinceText: {
     fontSize: 11,
-    color: '#6E6E77',
-    fontWeight: '600',
+    color: '#8E8E93',
+    fontWeight: '500',
   },
-  sectionTitleRow: {
+  // SECTION TITLE
+  sectionHeaderRow: {
     paddingHorizontal: 22,
     paddingTop: 24,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
   sectionTitle: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#71717A',
-    letterSpacing: 1.2,
+    fontWeight: '800',
+    color: '#8E8E93',
+    letterSpacing: 1,
   },
-  menuSection: {
-    backgroundColor: '#18181C',
-    borderRadius: 22,
+  // WHITE CARD MENU CONTAINER
+  menuContainer: {
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
-    paddingHorizontal: 14,
+    borderRadius: 20,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: '#EDEDED',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    elevation: 2,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: '#F0F0F0',
   },
-  menuIconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(212, 175, 55, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.16)',
+  iconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FBF6F0',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F5ECE1',
   },
-  menuTextCol: {
+  menuContentCol: {
     flex: 1,
     marginLeft: 14,
   },
   menuTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#E4E4E7',
-    letterSpacing: 0.1,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    letterSpacing: -0.1,
   },
-  menuSub: {
-    fontSize: 11,
-    color: '#71717A',
+  menuSubtitle: {
+    fontSize: 12,
+    color: '#6C757D',
     marginTop: 2,
-    letterSpacing: 0.1,
   },
+  // LOGOUT BUTTON
   logoutButton: {
     flexDirection: 'row',
     marginHorizontal: 16,
     marginTop: 22,
     paddingVertical: 14,
-    borderRadius: 18,
-    backgroundColor: 'rgba(239, 68, 68, 0.06)',
+    borderRadius: 16,
+    backgroundColor: '#FFF0F2',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.18)',
+    borderColor: '#FFDCE1',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoutText: {
-    color: '#EF5350',
-    fontSize: 13,
+    color: '#D32F2F',
+    fontSize: 14,
     fontWeight: '700',
-    letterSpacing: 0.2,
   },
+  // MODALS
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#1A1A1E',
+    backgroundColor: '#FFFFFF',
     width: '100%',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.2)',
+    borderRadius: 22,
+    padding: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 6,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#F4F4F6',
-    marginBottom: 18,
-    letterSpacing: 0.2,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    marginBottom: 16,
   },
   modalLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8A8A93',
+    fontWeight: '700',
+    color: '#6C757D',
     marginBottom: 6,
-    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   modalInput: {
-    backgroundColor: '#121214',
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 14,
+    borderColor: '#EDEDED',
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 14,
-    color: '#F4F4F6',
-    marginBottom: 16,
+    color: '#1A1A1A',
+    marginBottom: 14,
   },
   settingToggleRow: {
     flexDirection: 'row',
@@ -616,45 +618,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: '#F0F0F0',
   },
   settingToggleText: {
     fontSize: 14,
-    color: '#E4E4E7',
-    fontWeight: '500',
+    color: '#1A1A1A',
+    fontWeight: '600',
   },
   settingStatus: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#D4AF37',
+    fontWeight: '800',
+    color: '#8B1538',
   },
   modalActions: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 18,
   },
   modalCancelBtn: {
     flex: 1,
-    paddingVertical: 13,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
     marginRight: 8,
   },
   modalCancelText: {
-    color: '#A1A1AA',
-    fontWeight: '600',
+    color: '#6C757D',
+    fontWeight: '700',
     fontSize: 14,
   },
   modalSaveBtn: {
     flex: 1,
-    paddingVertical: 13,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 14,
-    backgroundColor: '#D4AF37',
+    borderRadius: 12,
+    backgroundColor: '#8B1538',
     marginLeft: 8,
   },
   modalSaveText: {
-    color: '#0B0B0C',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
   },

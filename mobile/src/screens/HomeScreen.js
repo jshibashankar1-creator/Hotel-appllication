@@ -101,12 +101,17 @@ export default function HomeScreen({ navigation }) {
   async function fetchBanners() {
     try {
       setBannersLoading(true);
-      const data = await mobileApi.getBanners ? await mobileApi.getBanners() : await mobileApi.request('/banners');
-      if (data && (data.banners || data.data)) {
-        setBanners(data.banners || data.data);
+      const data = await mobileApi.getBanners();
+      if (data && Array.isArray(data.banners)) {
+        setBanners(data.banners);
+      } else if (data && Array.isArray(data.data)) {
+        setBanners(data.data);
+      } else {
+        setBanners([]);
       }
     } catch (err) {
       console.error('[HOME] Error fetching banners:', err.message);
+      setBanners([]);
     } finally {
       setBannersLoading(false);
     }
@@ -524,7 +529,14 @@ export default function HomeScreen({ navigation }) {
                 renderItem={({ item }) => (
                   <HotelCard
                     hotel={item}
-                    onPress={() => navigation.navigate('HotelDetails', { hotel: item })}
+                    onPress={() => {
+                      const hotelId = item?.id || item?._id;
+                      if (!hotelId) {
+                        console.error('[HOME] Cannot navigate: Missing hotel ID', item);
+                        return;
+                      }
+                      navigation.navigate('HotelDetails', { id: hotelId, hotel: item });
+                    }}
                     isFavorite={false}
                     onToggleFavorite={() => {}}
                   />

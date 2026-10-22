@@ -54,21 +54,28 @@ export default function OffersScreen({ navigation }) {
   const formatDigits = num => num.toString().padStart(2, '0');
 
   const handleSelectDeal = (deal) => {
+    const hotelId = deal?.id || deal?.hotel_id;
+    if (!hotelId) {
+      console.error('[OFFERS] Cannot navigate: Missing hotel ID', deal);
+      return;
+    }
+    const hotelObj = {
+      id: hotelId,
+      name: deal.name,
+      location: deal.location,
+      city: deal.city,
+      country: deal.country,
+      rating: deal.rating,
+      reviewsCount: deal.reviewsCount,
+      pricePerNight: deal.discountedPrice,
+      coverImage: deal.coverImage,
+      images: [deal.coverImage],
+      currency: deal.currency || '₹',
+      isTopRated: true,
+    };
     navigation.navigate('HotelDetails', {
-      hotel: {
-        id: deal.id,
-        name: deal.name,
-        location: deal.location,
-        city: deal.city,
-        country: deal.country,
-        rating: deal.rating,
-        reviewsCount: deal.reviewsCount,
-        pricePerNight: deal.discountedPrice,
-        coverImage: deal.coverImage,
-        images: [deal.coverImage],
-        currency: deal.currency || '$',
-        isTopRated: true,
-      }
+      id: hotelId,
+      hotel: hotelObj
     });
   };
 

@@ -134,7 +134,16 @@ const linking = {
           Profile: 'profile'
         }
       },
-      HotelDetails: 'hotel/:id',
+      HotelDetails: {
+        path: 'hotel/:id',
+        parse: {
+          id: (id) => `${id}`,
+        },
+        stringify: {
+          hotel: () => undefined,
+          bookingDates: () => undefined,
+        },
+      },
       RoomDetails: 'room/:id',
       BookingReview: 'review',
       Payment: 'payment',

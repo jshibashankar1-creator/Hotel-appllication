@@ -46,6 +46,7 @@ class RelationalDatabase {
           const raw = fs.readFileSync(DB_FILE, 'utf-8');
           this.data = JSON.parse(raw);
           if (!this.data.audit_logs) this.data.audit_logs = [];
+          if (!Array.isArray(this.data.banners)) this.data.banners = [];
           if (Array.isArray(this.data.hotels)) {
             this.data.hotels.forEach(h => {
               if (h.pickup_service_enabled === undefined) h.pickup_service_enabled = true;

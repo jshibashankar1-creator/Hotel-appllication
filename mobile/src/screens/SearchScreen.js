@@ -109,7 +109,12 @@ export default function SearchScreen({ route, navigation }) {
   };
 
   const handleSelectHotel = (hotel) => {
-    navigation.navigate('HotelDetails', { hotel });
+    const hotelId = hotel?.id || hotel?._id;
+    if (!hotelId) {
+      console.error('[SEARCH] Cannot navigate: Missing hotel ID', hotel);
+      return;
+    }
+    navigation.navigate('HotelDetails', { id: hotelId, hotel });
   };
 
   const styles = StyleSheet.create({

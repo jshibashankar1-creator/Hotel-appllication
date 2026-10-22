@@ -1,11 +1,8 @@
 import { Platform } from 'react-native';
 
-const LAN_API_URL = 'http://192.168.1.2:5000/api';
-const EMULATOR_API_URL = 'http://10.0.2.2:5000/api';
-const LOCAL_API_URL = 'http://localhost:5000/api';
-
 const DEFAULT_URL = 'https://hotel-appllication.onrender.com/api';
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_URL;
+// Prioritize EXPO_PUBLIC_API_URL for local dev; default to production deployed backend
+const BASE_URL = (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.trim()) || DEFAULT_URL;
 
 class MobileApiService {
   constructor() {
@@ -89,6 +86,9 @@ class MobileApiService {
   }
 
   async getHotelDetails(id) {
+    if (!id || id === 'undefined' || id === 'null') {
+      throw new Error(`getHotelDetails requires a valid hotel ID, received: ${id}`);
+    }
     return this.request(`/hotels/${id}`);
   }
 

@@ -10,13 +10,15 @@ import {
   StatusBar,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { mobileApi } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
 
 export default function HotelDetailsScreen({ route, navigation }) {
-  const hotel = route.params?.hotel;
+  const hotelParam = route.params?.hotel;
+  const hotelId = route.params?.id || route.params?.hotelId || hotelParam?.id || hotelParam?._id;
   const passedDates = route.params?.bookingDates || {};
 
   const today = new Date();
@@ -45,30 +47,89 @@ export default function HotelDetailsScreen({ route, navigation }) {
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [fullHotel, setFullHotel] = useState(hotel);
-  const [loading, setLoading] = useState(false);
+  const [fullHotel, setFullHotel] = useState(hotelParam || null);
+  const [loading, setLoading] = useState(!hotelParam && Boolean(hotelId));
+  const [fetchError, setFetchError] = useState(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     async function fetchDetails() {
-      if (!hotel?.id) return;
+      if (!hotelId) return;
       try {
         setLoading(true);
-        const res = await mobileApi.getHotelDetails(hotel.id);
+        setFetchError(null);
+        const res = await mobileApi.getHotelDetails(hotelId);
         if (res && res.hotel) {
           setFullHotel(res.hotel);
           if (res.hotel.rooms && res.hotel.rooms.length > 0) {
             setSelectedRoom(res.hotel.rooms[0]);
           }
+        } else {
+          setFetchError('Hotel details not found');
         }
       } catch (err) {
-        console.warn('Failed to fetch hotel details:', err.message);
+        console.warn('[HotelDetails] Failed to fetch hotel details:', err.message);
+        if (!fullHotel) {
+          setFetchError(err.message || 'Failed to load hotel details.');
+        }
       } finally {
         setLoading(false);
       }
     }
     fetchDetails();
-  }, [hotel?.id]);
+  }, [hotelId]);
+
+  if (!hotelId) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+        <StatusBar barStyle="dark-content" />
+        <Text style={{ fontSize: 50, marginBottom: 16 }}>🏨</Text>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: '#0B1733', textAlign: 'center', marginBottom: 8 }}>
+          Hotel Not Found
+        </Text>
+        <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
+          The requested hotel was not specified or has an invalid identifier.
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: '#8F1239', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 14 }}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Back to Stays</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (fetchError && !fullHotel) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+        <StatusBar barStyle="dark-content" />
+        <Text style={{ fontSize: 50, marginBottom: 16 }}>⚠️</Text>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: '#0B1733', textAlign: 'center', marginBottom: 8 }}>
+          Unable to Load Hotel
+        </Text>
+        <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
+          {fetchError}
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: '#8F1239', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 14 }}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Back to Stays</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (loading && !fullHotel) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <StatusBar barStyle="dark-content" />
+        <ActivityIndicator size="large" color="#8F1239" />
+        <Text style={{ marginTop: 16, color: '#64748b', fontWeight: '600' }}>Loading Hotel Details...</Text>
+      </SafeAreaView>
+    );
+  }
 
   const heroImage = fullHotel?.coverImage || fullHotel?.cover_image || (fullHotel?.images && fullHotel?.images[0]);
   const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || fullHotel?.pricePerNight || fullHotel?.starting_price || 0;

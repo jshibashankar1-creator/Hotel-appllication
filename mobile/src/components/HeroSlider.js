@@ -69,16 +69,90 @@ export default function HeroSlider({ data, navigation, loading }) {
   }
 
   const renderItem = ({ item }) => {
+    const hotel = item.hotel || {};
+    const hotelId = item.hotel_id || hotel.id || hotel._id || item.id;
+    const imageUrl = item.image_url || item.cover_image || item.coverImage || hotel.cover_image;
+    const title = item.title || hotel.name || 'Featured Luxury Stay';
+    const city = hotel.city || item.city || '';
+    const rating = hotel.rating || item.rating || 0;
+    const reviewsCount = hotel.reviews_count || hotel.reviewsCount || item.reviewsCount || 0;
+    const price = hotel.starting_price || hotel.price_per_night || hotel.pricePerNight || item.pricePerNight || 0;
+    const desc = item.subtitle || hotel.description || item.description || '';
+
+    const handlePress = () => {
+      if (!hotelId) {
+        console.warn('[HeroSlider] Cannot navigate: missing hotel ID for banner', item);
+        return;
+      }
+      navigation.navigate('HotelDetails', {
+        id: hotelId,
+        hotel: Object.keys(hotel).length > 0 ? hotel : (item.name ? item : null),
+      });
+    };
+
     return (
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => {}}
+        onPress={handlePress}
         style={styles.slideContainer}
         onPressIn={stopAutoSlide}
         onPressOut={startAutoSlide}
       >
-        <Image source={{ uri: item.image_url || item.coverImage }} style={styles.image} resizeMode="cover" />
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={[styles.image, { backgroundColor: '#0B1733' }]} />
+        )}
         <View style={styles.gradientOverlay} />
+
+        <View style={styles.content}>
+          <View style={styles.topRow}>
+            {city ? (
+              <View style={styles.locationBadge}>
+                <Text style={styles.locationText}>📍 {city}</Text>
+              </View>
+            ) : <View />}
+            {rating > 0 ? (
+              <View style={styles.ratingBadge}>
+                <Text style={styles.ratingIcon}>★</Text>
+                <Text style={styles.ratingText}>
+                  {rating} <Text style={styles.reviewCount}>({reviewsCount})</Text>
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.mainInfo}>
+            <Text style={styles.title} numberOfLines={1}>{title}</Text>
+            {desc ? (
+              <Text style={styles.subtitle} numberOfLines={1}>{desc}</Text>
+            ) : null}
+          </View>
+
+          {price > 0 ? (
+            <BlurView intensity={30} tint="light" style={styles.glassmorphismBar}>
+              <View>
+                <Text style={styles.priceLabel}>Starting from</Text>
+                <Text style={styles.priceText}>₹{price} <Text style={styles.perNight}>/ night</Text></Text>
+              </View>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={handlePress}
+              >
+                <Text style={styles.ctaText}>View Details</Text>
+              </TouchableOpacity>
+            </BlurView>
+          ) : (
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={handlePress}
+              >
+                <Text style={styles.ctaText}>View Details</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -138,7 +212,17 @@ const styles = StyleSheet.create({
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.15)', // clean overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.35)', // dark overlay for readability
+  },
+  content: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   locationBadge: {
     backgroundColor: 'rgba(0,0,0,0.5)',

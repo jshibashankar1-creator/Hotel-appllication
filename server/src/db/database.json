@@ -4337,5 +4337,6 @@
       "details": "Created new admin 'Suspended Test User' (suspended.test@hotelhub.com) with role 'admin'.",
       "ip_address": "127.0.0.1"
     }
-  ]
+  ],
+  "banners": []
 }

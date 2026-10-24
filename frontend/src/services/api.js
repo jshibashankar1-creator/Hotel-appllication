@@ -329,53 +329,66 @@ class ApiService {
   }
 
   async uploadBannerImage(file, hotelId = null, onProgress = null) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE_URL}/uploads/banner-image`);
+    const uploadWithUrl = (url) => {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
 
-      if (this.token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${this.token}`);
-      }
+        if (this.token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${this.token}`);
+        }
 
-      if (xhr.upload && typeof onProgress === 'function') {
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            onProgress(percent);
+        if (xhr.upload && typeof onProgress === 'function') {
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percent = Math.round((event.loaded / event.total) * 100);
+              onProgress(percent);
+            }
+          };
+        }
+
+        xhr.onload = () => {
+          let resData = {};
+          try {
+            resData = JSON.parse(xhr.responseText || '{}');
+          } catch (e) {
+            resData = { message: xhr.responseText || 'Upload failed' };
+          }
+
+          if (xhr.status >= 200 && xhr.status < 300 && resData.success) {
+            resolve(resData);
+          } else {
+            const err = new Error(resData.message || `Upload failed with HTTP ${xhr.status}`);
+            err.status = xhr.status;
+            err.data = resData;
+            reject(err);
           }
         };
-      }
 
-      xhr.onload = () => {
-        let resData = {};
-        try {
-          resData = JSON.parse(xhr.responseText || '{}');
-        } catch (e) {
-          resData = { message: xhr.responseText || 'Upload failed' };
+        xhr.onerror = () => {
+          reject(new Error('Network error during image upload to server.'));
+        };
+
+        const formData = new FormData();
+        formData.append('image', file);
+        if (hotelId) {
+          formData.append('hotel_id', hotelId);
         }
 
-        if (xhr.status >= 200 && xhr.status < 300 && resData.success) {
-          resolve(resData);
-        } else {
-          const err = new Error(resData.message || `Upload failed with HTTP ${xhr.status}`);
-          err.status = xhr.status;
-          err.data = resData;
-          reject(err);
-        }
-      };
+        xhr.send(formData);
+      });
+    };
 
-      xhr.onerror = () => {
-        reject(new Error('Network error during image upload to server.'));
-      };
-
-      const formData = new FormData();
-      formData.append('image', file);
-      if (hotelId) {
-        formData.append('hotel_id', hotelId);
+    try {
+      return await uploadWithUrl(`${API_BASE_URL}/uploads/banner-image`);
+    } catch (err) {
+      // If the backend has not yet rebooted with /uploads/banner-image (HTTP 404), seamlessly fallback to /uploads/room-image
+      if (err.status === 404) {
+        console.warn('POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image');
+        return await uploadWithUrl(`${API_BASE_URL}/uploads/room-image`);
       }
-
-      xhr.send(formData);
-    });
+      throw err;
+    }
   }
 
   // --- AVAILABILITY ---

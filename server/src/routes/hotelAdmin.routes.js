@@ -462,7 +462,7 @@ router.get('/banners', (req, res) => {
 });
 
 // POST /api/hotel-admin/banners
-router.post('/banners', requireRole('hotel_admin'), (req, res) => {
+router.post('/banners', requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 
@@ -492,7 +492,7 @@ router.post('/banners', requireRole('hotel_admin'), (req, res) => {
 });
 
 // PUT /api/hotel-admin/banners/:id
-router.put('/banners/:id', requireRole('hotel_admin'), (req, res) => {
+router.put('/banners/:id', requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 
@@ -522,7 +522,7 @@ router.put('/banners/:id', requireRole('hotel_admin'), (req, res) => {
 });
 
 // PATCH /api/hotel-admin/banners/:id/status
-router.patch('/banners/:id/status', requireRole('hotel_admin'), (req, res) => {
+router.patch('/banners/:id/status', requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 
@@ -550,7 +550,7 @@ router.patch('/banners/:id/status', requireRole('hotel_admin'), (req, res) => {
 });
 
 // DELETE /api/hotel-admin/banners/:id
-router.delete('/banners/:id', requireRole('hotel_admin'), (req, res) => {
+router.delete('/banners/:id', requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 

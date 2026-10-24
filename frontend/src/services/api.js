@@ -55,6 +55,38 @@ class ApiService {
     }
   }
 
+  async get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'GET' });
+  }
+
+  async post(endpoint, data = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async put(endpoint, data = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async patch(endpoint, data = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'DELETE' });
+  }
+
   // --- AUTH ---
   async login(email, password, requiredRole = null) {
     const data = await this.request('/auth/login', {
@@ -541,6 +573,38 @@ class ApiService {
     return this.request('/hotel-admin/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData)
+    });
+  }
+
+  // --- HOTEL ADMIN BANNERS ---
+  async getHotelAdminBanners() {
+    return this.request('/hotel-admin/banners');
+  }
+
+  async createHotelAdminBanner(bannerData) {
+    return this.request('/hotel-admin/banners', {
+      method: 'POST',
+      body: JSON.stringify(bannerData)
+    });
+  }
+
+  async updateHotelAdminBanner(id, bannerData) {
+    return this.request(`/hotel-admin/banners/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(bannerData)
+    });
+  }
+
+  async updateHotelAdminBannerStatus(id, isActive) {
+    return this.request(`/hotel-admin/banners/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_active: isActive })
+    });
+  }
+
+  async deleteHotelAdminBanner(id) {
+    return this.request(`/hotel-admin/banners/${id}`, {
+      method: 'DELETE'
     });
   }
 

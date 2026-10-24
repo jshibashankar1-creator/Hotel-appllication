@@ -425,8 +425,17 @@ class ApiService {
     if (endStr) params.append('endDate', endStr);
 
     const qs = params.toString();
-    const endpoint = `/availability/room/${encodeURIComponent(roomId)}${qs ? `?${qs}` : ''}`;
-    return this.request(endpoint);
+    const primaryEndpoint = `/availability/room/${encodeURIComponent(roomId)}${qs ? `?${qs}` : ''}`;
+    try {
+      return await this.request(primaryEndpoint);
+    } catch (err) {
+      if (err.status === 404) {
+        // Fallback to direct route /availability/:roomId for backwards/active deployment compatibility
+        const fallbackEndpoint = `/availability/${encodeURIComponent(roomId)}${qs ? `?${qs}` : ''}`;
+        return await this.request(fallbackEndpoint);
+      }
+      throw err;
+    }
   }
 
   async blockAvailability(roomId, date, blockedCount) {

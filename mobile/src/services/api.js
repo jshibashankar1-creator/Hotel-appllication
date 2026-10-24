@@ -232,6 +232,7 @@ class MobileApiService {
     return this.request('/food');
   }
 
+  // getBanners() supports optional filter parameters e.g. { hotel_id }
   async getBanners(params = {}) {
     const query = new URLSearchParams(params).toString();
     return this.request(query ? `/banners?${query}` : '/banners');

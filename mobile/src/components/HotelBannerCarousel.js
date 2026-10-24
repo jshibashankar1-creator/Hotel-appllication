@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
-// Content container in HotelDetailsScreen has 20px padding on each side:
-const CAROUSEL_WIDTH = Math.min(width - 40, 500);
-const CAROUSEL_HEIGHT = 150;
+// Top hero banner sizing: responsive on mobile, max 540 on tablet/web
+const CAROUSEL_WIDTH = Math.min(width - 32, 540);
+const CAROUSEL_HEIGHT = Math.min(Math.round(CAROUSEL_WIDTH * 0.52), 210);
 
 export default function HotelBannerCarousel({ banners, onBannerPress }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -64,7 +64,15 @@ export default function HotelBannerCarousel({ banners, onBannerPress }) {
   };
 
   if (validBanners.length === 0) {
-    return null;
+    return (
+      <View style={styles.container}>
+        <View style={[styles.card, styles.emptyHeroCard]}>
+          <Text style={styles.emptyIcon}>🏨</Text>
+          <Text style={styles.emptyTitle}>Welcome to our property</Text>
+          <Text style={styles.emptySubtitle}>Explore rooms and amenities below</Text>
+        </View>
+      </View>
+    );
   }
 
   const renderItem = ({ item, index }) => {
@@ -99,8 +107,10 @@ export default function HotelBannerCarousel({ banners, onBannerPress }) {
 
         {/* Badge & Title Content */}
         <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>SPECIAL OFFER</Text>
+          <View style={[styles.badge, item.fallback && styles.fallbackBadge]}>
+            <Text style={styles.badgeText}>
+              {item.fallback ? 'FEATURED STAY' : 'SPECIAL OFFER'}
+            </Text>
           </View>
           {validBanners.length > 1 && (
             <View style={styles.counterBadge}>
@@ -118,11 +128,13 @@ export default function HotelBannerCarousel({ banners, onBannerPress }) {
             </Text>
           ) : (
             <Text style={styles.title} numberOfLines={1}>
-              Exclusive Hotel Offer
+              {item.fallback ? 'Exclusive Stay' : 'Exclusive Hotel Offer'}
             </Text>
           )}
           <View style={styles.actionRow}>
-            <Text style={styles.actionText}>View Offer</Text>
+            <Text style={styles.actionText}>
+              {item.fallback ? 'Explore Rooms' : 'View Offer'}
+            </Text>
             <Text style={styles.actionArrow}>→</Text>
           </View>
         </View>
@@ -227,11 +239,35 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
+  fallbackBadge: {
+    backgroundColor: '#0F766E', // Refined teal for featured hotel overview
+  },
   badgeText: {
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.6,
+  },
+  emptyHeroCard: {
+    backgroundColor: '#1E293B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyIcon: {
+    fontSize: 34,
+    marginBottom: 8,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#F8FAFC',
+    marginBottom: 4,
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '500',
   },
   counterBadge: {
     backgroundColor: 'rgba(0,0,0,0.5)',

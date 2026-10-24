@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -87,7 +87,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
     async function fetchHotelBanners() {
       if (!hotelId) return;
       try {
-        // Fetch banners filtered by hotel_id or all active banners
+        // Fetch banners filtered by hotel_id from backend
         const res = await mobileApi.getBanners({ hotel_id: hotelId });
         const list = Array.isArray(res?.banners) ? res.banners : [];
         // Match banner.hotel_id to selected hotel's actual ID and ensure active
@@ -104,12 +104,37 @@ export default function HotelDetailsScreen({ route, navigation }) {
     }
     fetchHotelBanners();
   }, [hotelId]);
+
   // Ensure a room is selected once hotel data is loaded
   useEffect(() => {
     if (!selectedRoom && fullHotel?.rooms?.length > 0) {
       setSelectedRoom(fullHotel.rooms[0]);
     }
   }, [fullHotel]);
+
+  // Resolve display banners unconditionally at the top level
+  const displayBanners = useMemo(() => {
+    // 1. Promotional or fallback banners from backend
+    if (hotelBanners && hotelBanners.length > 0) {
+      return hotelBanners;
+    }
+    // 2. Fallback to hotel cover image from fullHotel or hotelParam
+    const cover = fullHotel?.coverImage || fullHotel?.cover_image || (fullHotel?.images && fullHotel?.images[0]);
+    if (cover) {
+      return [{
+        id: `cover-${hotelId}`,
+        hotel_id: hotelId,
+        title: fullHotel?.name || 'Exclusive Stay',
+        image_url: cover,
+        cover_image: cover,
+        sort_order: 0,
+        is_active: true,
+        fallback: true
+      }];
+    }
+    // 3. Empty state (no promotional banners, no cover image)
+    return [];
+  }, [hotelBanners, fullHotel, hotelId]);
 
   if (!hotelId) {
     return (
@@ -163,7 +188,6 @@ export default function HotelDetailsScreen({ route, navigation }) {
     );
   }
 
-  const heroImage = fullHotel?.coverImage || fullHotel?.cover_image || (fullHotel?.images && fullHotel?.images[0]);
   const roomPricePerNight = selectedRoom?.price || selectedRoom?.price_per_night || fullHotel?.pricePerNight || fullHotel?.starting_price || 0;
   
   const handleProceedToBooking = () => {
@@ -199,48 +223,47 @@ export default function HotelDetailsScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="dark-content" />
+
+      {/* TOP HEADER NAVIGATION BAR */}
+      <View style={styles.topHeaderBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIconButton} activeOpacity={0.8}>
+          <Text style={styles.headerIconText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {fullHotel?.name || 'Hotel Details'}
+        </Text>
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity 
+            style={[styles.headerIconButton, { marginRight: 8 }]} 
+            onPress={() => setIsFavorite(!isFavorite)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.headerIconText, isFavorite && { color: '#E11D48' }]}>
+              {isFavorite ? '♥' : '♡'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIconButton} activeOpacity={0.8}>
+            <Text style={styles.headerIconText}>➦</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView 
         ref={mainScrollViewRef}
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={styles.scrollContent}
       >
-        
-        {/* HERO IMAGE */}
-        <View style={styles.heroImageWrapper}>
-          <Image source={{ uri: heroImage }} style={styles.heroImage} />
-          
-          <View style={styles.topOverlay}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-              <Text style={styles.iconText}>←</Text>
-            </TouchableOpacity>
-            <View style={{flexDirection: 'row'}}>
-              <TouchableOpacity style={[styles.iconButton, {marginRight: 10}]}>
-                <Text style={styles.iconText}>♡</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}>
-                <Text style={styles.iconText}>➦</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          
-          <View style={styles.imageCounter}>
-            <Text style={styles.imageCounterText}>1/12</Text>
-          </View>
-        </View>
+        {/* DYNAMIC PROMOTIONAL BANNER CAROUSEL (Top of page, before Hotel Name) */}
+        <HotelBannerCarousel
+          banners={displayBanners}
+          onBannerPress={handleBannerPress}
+        />
 
         <View style={styles.contentContainer}>
-          <Text style={styles.hotelTitle}>{fullHotel?.name || 'Digha Beach Luxury Resort'}</Text>
-          <Text style={styles.locationText}>📍 {fullHotel?.city || 'New Digha'}, WB</Text>
-          <Text style={styles.ratingText}>⭐ <Text style={{fontWeight:'700'}}>{fullHotel?.rating || '4.8'}</Text> <Text style={{color:'#64748b'}}>({fullHotel?.reviewsCount || '215'} Reviews)</Text></Text>
-
-          {/* PROMOTIONAL BANNER CAROUSEL (Real admin-uploaded banners for this hotel) */}
-          {hotelBanners && hotelBanners.length > 0 && (
-            <HotelBannerCarousel
-              banners={hotelBanners}
-              onBannerPress={handleBannerPress}
-            />
-          )}
+          <Text style={styles.hotelTitle}>{fullHotel?.name || 'Hotel'}</Text>
+          <Text style={styles.locationText}>📍 {fullHotel?.city || 'Location'}{fullHotel?.state ? `, ${fullHotel.state}` : ''}</Text>
+          <Text style={styles.ratingText}>⭐ <Text style={{fontWeight:'700'}}>{fullHotel?.rating || '4.8'}</Text> <Text style={{color:'#64748b'}}>({fullHotel?.reviewsCount || '0'} Reviews)</Text></Text>
 
           {/* TABS */}
           <View style={styles.tabsRow}>
@@ -293,7 +316,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
           <Text style={styles.aboutText} numberOfLines={showFullDescription ? undefined : 4}>
-            {fullHotel?.description || fullHotel?.about || 'Premier luxury beachfront resort in New Digha offering panoramic Bay of Bengal views, private balcony sea-facing suites, swimming pool, and authentic Bengali and Continental seafood dining.'}
+            {fullHotel?.description || fullHotel?.about || 'Comfortable stay with modern amenities, prime location, and quality hospitality.'}
           </Text>
 
           {/* SELECT ROOM */}
@@ -304,10 +327,17 @@ export default function HotelDetailsScreen({ route, navigation }) {
             {displayRooms.map((room, idx) => {
               const isSelected = selectedRoom?.id === room.id || selectedRoom?.name === room.name;
               const price = room.price || room.price_per_night || room.pricePerNight || 0;
+              const roomImg = (room.photos && room.photos[0]) || room.image || room.cover_image || fullHotel?.cover_image || fullHotel?.coverImage;
               return (
                 <TouchableOpacity key={idx} style={[styles.horizontalRoomCard, isSelected && styles.horizontalRoomCardSelected]} onPress={() => setSelectedRoom(room)} activeOpacity={0.9}>
                   <View style={styles.roomImageContainer}>
-                    <Image source={{uri: (room.photos && room.photos[0]) || room.image || room.cover_image || 'https://via.placeholder.com/150' }} style={styles.horizontalRoomImage} />
+                    {roomImg ? (
+                      <Image source={{ uri: roomImg }} style={styles.horizontalRoomImage} resizeMode="cover" />
+                    ) : (
+                      <View style={[styles.horizontalRoomImage, { backgroundColor: '#1E293B', alignItems: 'center', justifyContent: 'center' }]}>
+                        <Text style={{ fontSize: 24 }}>🛏️</Text>
+                      </View>
+                    )}
                     {isSelected && (
                       <View style={styles.checkIconContainer}>
                         <Text style={styles.checkIcon}>✓</Text>
@@ -354,55 +384,55 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
-  heroImageWrapper: {
-    width: width,
-    height: height * 0.35,
-    position: 'relative',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    overflow: 'hidden',
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  topOverlay: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : StatusBar.currentHeight + 10,
-    left: 20,
-    right: 20,
+  topHeaderBar: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 12,
+    paddingBottom: 8,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: '#ebf0f7',
+    zIndex: 10,
   },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+  headerTitle: {
+    flex: 1,
+    marginHorizontal: 12,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0B1733',
+    textAlign: 'center',
+  },
+  headerIconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
+        cursor: 'pointer',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 3,
+        elevation: 2,
+      },
+    }),
   },
-  iconText: {
-    color: '#fff',
-    fontSize: 20,
-  },
-  imageCounter: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  imageCounterText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 12,
+  headerIconText: {
+    color: '#0B1733',
+    fontSize: 18,
+    fontWeight: '700',
   },
   contentContainer: {
     padding: 20,
+    paddingTop: 8,
   },
   hotelTitle: {
     fontSize: 22,
@@ -705,7 +735,6 @@ const styles = StyleSheet.create({
   horizontalRoomImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   checkIconContainer: {
     position: 'absolute',

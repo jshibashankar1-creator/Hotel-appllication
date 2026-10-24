@@ -143,4 +143,108 @@ router.post(
   }
 );
 
+/**
+ * POST /api/uploads/banner-image
+ * Authenticated Hotel Admin & Owner endpoint to upload promotional banner images to Cloudinary
+ */
+router.post(
+  '/banner-image',
+  authenticate,
+  requireRole('hotel_admin', 'owner', 'super_admin', 'admin'),
+  (req, res) => {
+    upload.single('image')(req, res, async (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            success: false,
+            message: 'Banner image size exceeds maximum limit of 5 MB.'
+          });
+        }
+        return res.status(400).json({
+          success: false,
+          message: err.message || 'File upload validation failed.'
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No image file was provided in the request payload (expected field "image").'
+        });
+      }
+
+      // Property Authorization check: If hotel_id is supplied, verify caller ownership/assignment
+      const hotelId = req.body.hotel_id;
+      if (hotelId) {
+        const hotel = db.getHotelById(hotelId);
+        if (!hotel) {
+          return res.status(404).json({
+            success: false,
+            message: 'Specified hotel property does not exist.'
+          });
+        }
+
+        const isAuthorized =
+          req.user.role === 'super_admin' ||
+          req.user.role === 'admin' ||
+          hotel.owner_id === req.user.id ||
+          hotel.hotel_admin_id === req.user.id ||
+          hotel.id === req.user.hotel_id;
+
+        if (!isAuthorized) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access denied: You are not authorized to upload banners for this hotel property.'
+          });
+        }
+      }
+
+      if (!isCloudinaryConfigured()) {
+        return res.status(500).json({
+          success: false,
+          message: 'Cloudinary server credentials (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are missing. Please configure them in server .env.'
+        });
+      }
+
+      try {
+        const cloudinaryClient = getCloudinaryClient();
+        const uploadResult = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinaryClient.uploader.upload_stream(
+            {
+              folder: 'hotelhub/banners',
+              resource_type: 'image',
+              transformation: [
+                { quality: 'auto', fetch_format: 'auto' }
+              ]
+            },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          uploadStream.end(req.file.buffer);
+        });
+
+        return res.json({
+          success: true,
+          message: 'Banner image uploaded successfully to Cloudinary.',
+          secure_url: uploadResult.secure_url,
+          url: uploadResult.secure_url,
+          public_id: uploadResult.public_id,
+          format: uploadResult.format,
+          bytes: uploadResult.bytes,
+          width: uploadResult.width,
+          height: uploadResult.height
+        });
+      } catch (uploadErr) {
+        console.error('Cloudinary banner image upload error:', uploadErr?.message || uploadErr);
+        return res.status(502).json({
+          success: false,
+          message: uploadErr?.message || 'Failed to upload image to Cloudinary service.'
+        });
+      }
+    });
+  }
+);
+
 export default router;

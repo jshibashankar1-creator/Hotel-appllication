@@ -21,7 +21,19 @@ export async function renderOwnerAvailabilityView(container) {
     let selectedRoomId = rooms[0].id;
 
     async function loadMatrix() {
-      const availRes = await api.getRoomAvailability(selectedRoomId, 14);
+      // Calculate local calendar dates formatted as YYYY-MM-DD
+      const now = new Date();
+      const formatYMD = (d) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      const startDateStr = formatYMD(now);
+      const endDateObj = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14);
+      const endDateStr = formatYMD(endDateObj);
+
+      const availRes = await api.getRoomAvailability(selectedRoomId, startDateStr, endDateStr);
       const matrix = availRes.matrix;
 
       container.innerHTML = `

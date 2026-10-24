@@ -393,7 +393,51 @@ class ApiService {
 
   // --- AVAILABILITY ---
   async getRoomAvailability(roomId, startDate, endDate) {
-    return this.request(`/availability/room/${roomId}?startDate=${startDate}&endDate=${endDate}`);
+    let startStr = startDate;
+    let endStr = endDate;
+
+    // Helper to format Date object or date-compatible string as YYYY-MM-DD
+    const toYMD = (d) => {
+      if (!d) return null;
+      if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+      const dateObj = new Date(d);
+      if (isNaN(dateObj.getTime())) return null;
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // If second param was passed as number of days (e.g. getRoomAvailability(id, 14))
+    if (typeof startDate === 'number' || (typeof startDate === 'string' && !isNaN(Number(startDate)) && startDate.length < 5)) {
+      const daysCount = Number(startDate) || 14;
+      const now = new Date();
+      startStr = toYMD(now);
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysCount);
+      endStr = toYMD(end);
+    } else {
+      startStr = toYMD(startDate);
+      endStr = toYMD(endDate);
+    }
+
+    const params = new URLSearchParams();
+    if (startStr) params.append('startDate', startStr);
+    if (endStr) params.append('endDate', endStr);
+
+    const qs = params.toString();
+    const endpoint = `/availability/room/${encodeURIComponent(roomId)}${qs ? `?${qs}` : ''}`;
+    return this.request(endpoint);
+  }
+
+  async blockAvailability(roomId, date, blockedCount) {
+    return this.request('/availability/block', {
+      method: 'POST',
+      body: JSON.stringify({
+        room_id: roomId,
+        date,
+        blocked_count: blockedCount
+      })
+    });
   }
 
   async toggleBlackoutDate(roomId, date, isBlocked) {

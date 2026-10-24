@@ -245,8 +245,10 @@ class RelationalDatabase {
 
     if (banners.length > 0) {
       banners.sort((a, b) => {
-        if (a.sort_order !== b.sort_order) return (a.sort_order || 0) - (b.sort_order || 0);
-        return new Date(b.created_at) - new Date(a.created_at);
+        const orderA = Number(a.sort_order) || 0;
+        const orderB = Number(b.sort_order) || 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(a.created_at || 0) - new Date(b.created_at || 0);
       });
       const hotel = this.getHotelById(hotelId);
       return banners.map(b => {
@@ -281,6 +283,42 @@ class RelationalDatabase {
     }
 
     return [];
+  }
+
+  syncHotelCoverFromBanners(hotelId, externalData = null) {
+    if (!hotelId) return null;
+    const executeSync = (data) => {
+      if (!data.hotels) return null;
+      const hotel = data.hotels.find(h => String(h.id) === String(hotelId));
+      if (!hotel) return null;
+
+      const activeBanners = (data.banners || [])
+        .filter(b => String(b.hotel_id) === String(hotelId) && b.is_active !== false && (b.image_url || b.cover_image));
+
+      if (activeBanners.length > 0) {
+        activeBanners.sort((a, b) => {
+          const orderA = Number(a.sort_order) || 0;
+          const orderB = Number(b.sort_order) || 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+        });
+
+        const primaryBanner = activeBanners[0];
+        const primaryImage = primaryBanner.image_url || primaryBanner.cover_image;
+        if (primaryImage && hotel.cover_image !== primaryImage) {
+          hotel.cover_image = primaryImage;
+          hotel.updated_at = new Date().toISOString();
+        }
+      }
+      // If no active banners remain: preserve existing hotel cover, do not overwrite with empty or stock photo
+      return hotel.cover_image;
+    };
+
+    if (externalData) {
+      return executeSync(externalData);
+    } else {
+      return this.transaction(data => executeSync(data));
+    }
   }
 
   getAuditLogs() {

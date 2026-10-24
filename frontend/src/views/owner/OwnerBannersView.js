@@ -20,6 +20,12 @@ export async function renderOwnerBannersView(container) {
           <i data-lucide="loader-2" class="spin" style="width: 32px; height: 32px; margin-bottom: 12px;"></i>
           <p>Loading banners...</p>
         </div>
+        <div style="background: rgba(128, 0, 32, 0.05); border: 1px solid rgba(128, 0, 32, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #800020; flex-shrink: 0;"></i>
+          <span style="font-size: 13px; color: #475569;">
+            The active promotional banner with the lowest display order automatically becomes your hotel's <strong>Primary Cover Photo</strong> across Property Details and Customer App.
+          </span>
+        </div>
         <div id="banners-error" class="alert alert-error" style="display: none; margin-bottom: 16px;"></div>
         <div id="banners-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; display: none;">
           <!-- Banners go here -->
@@ -75,7 +81,7 @@ export async function renderOwnerBannersView(container) {
           <div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
             <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
             <p style="font-weight: 500; font-size: 16px; margin-bottom: 8px;">No Banners Found</p>
-            <p style="font-size: 14px; margin-bottom: 16px;">Upload your first promotional banner to showcase on the customer app.</p>
+            <p style="font-size: 14px; margin-bottom: 16px;">Upload your first promotional banner to showcase on the customer app and set your cover photo.</p>
             <button id="btn-empty-add-banner" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
               <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Banner Now
             </button>
@@ -85,21 +91,46 @@ export async function renderOwnerBannersView(container) {
         grid.querySelector('#btn-empty-add-banner')?.addEventListener('click', () => openBannerModal());
       } else {
         grid.style.display = 'grid';
+
+        // Identify primary active banner (lowest sort_order, tie-broken by creation order)
+        const activeBanners = banners
+          .filter(b => b.is_active !== false && (b.image_url || b.cover_image))
+          .slice()
+          .sort((a, b) => {
+            const orderDiff = (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0);
+            if (orderDiff !== 0) return orderDiff;
+            return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+          });
+        const primaryBannerId = activeBanners.length > 0 ? activeBanners[0].id : null;
+
         banners.forEach(b => {
+          const isPrimary = b.id === primaryBannerId;
           const card = document.createElement('div');
           card.className = 'card';
           card.style.overflow = 'hidden';
+          if (isPrimary) {
+            card.style.border = '2px solid #800020';
+            card.style.boxShadow = '0 4px 14px rgba(128, 0, 32, 0.15)';
+          }
           card.innerHTML = `
             <div style="height: 160px; background: #e2e8f0; position: relative;">
               <img src="${b.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400x200?text=Invalid+Image'" />
               ${!b.is_active ? '<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; letter-spacing: 0.05em;">INACTIVE</div>' : ''}
+              ${isPrimary ? `
+                <div style="position: absolute; top: 8px; left: 8px; background: #800020; color: #ffffff; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.03em;">
+                  <i data-lucide="star" style="width: 11px; height: 11px; fill: #fbbf24; stroke: #fbbf24;"></i> PRIMARY COVER PHOTO
+                </div>
+              ` : ''}
               <div style="position: absolute; top: 8px; right: 8px; background: ${b.is_active ? '#10b981' : '#64748b'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
                 ${b.is_active ? 'ACTIVE' : 'INACTIVE'}
               </div>
             </div>
             <div style="padding: 16px;">
               <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #0f172a; font-weight: 600;">${b.title || 'Untitled Banner'}</h4>
-              <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Display Order: <strong>${b.sort_order ?? 0}</strong></p>
+              <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">
+                Display Order: <strong>${b.sort_order ?? 0}</strong>
+                ${isPrimary ? '<span style="margin-left: 6px; color: #800020; font-weight: 600;">(Syncs as Hotel Cover)</span>' : ''}
+              </p>
               
               <div style="display: flex; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 12px;">
                 <button class="btn-edit" data-id="${b.id}" style="background: none; border: none; color: #3b82f6; font-weight: 500; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; gap: 4px;">

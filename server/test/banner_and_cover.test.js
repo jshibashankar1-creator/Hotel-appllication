@@ -294,6 +294,7 @@ describe('HotelHub Banner & Cover Photo Test Suite', () => {
   test('13. Owner can update hotel cover_image and verify persistence', async () => {
     const originalHotel = db.getHotelById(testHotelId);
     const originalCover = originalHotel ? originalHotel.cover_image : null;
+    const originalUpdatedAt = originalHotel ? originalHotel.updated_at : undefined;
     const updatedCoverUrl = 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200';
 
     try {
@@ -326,7 +327,11 @@ describe('HotelHub Banner & Cover Photo Test Suite', () => {
       if (originalCover) {
         db.transaction((data) => {
           const h = data.hotels.find((item) => item.id === testHotelId);
-          if (h) h.cover_image = originalCover;
+          if (h) {
+            h.cover_image = originalCover;
+            if (originalUpdatedAt !== undefined) h.updated_at = originalUpdatedAt;
+            else delete h.updated_at;
+          }
         });
       }
     }

@@ -255,6 +255,8 @@ router.put('/:id', authenticate, (req, res) => {
         id: hotel.id,
         owner_id: hotel.owner_id // preserve ownership
       };
+      // Priority rule: active first banner is source of truth
+      db.syncHotelCoverFromBanners(hotel.id, data);
       return data.hotels[idx];
     }
     return null;

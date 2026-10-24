@@ -1,4 +1,4 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))d(o);new MutationObserver(o=>{for(const n of o)if(n.type==="childList")for(const r of n.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&d(r)}).observe(document,{childList:!0,subtree:!0});function a(o){const n={};return o.integrity&&(n.integrity=o.integrity),o.referrerPolicy&&(n.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?n.credentials="include":o.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function d(o){if(o.ep)return;o.ep=!0;const n=a(o);fetch(o.href,n)}})();const G="https://hotel-appllication.onrender.com/api",N=G.replace(/\/$/,"").endsWith("/api")?G.replace(/\/$/,""):`${G.replace(/\/$/,"")}/api`;class n1{constructor(){this.token=localStorage.getItem("hotelhub_auth_token")||null,this.currentUser=JSON.parse(localStorage.getItem("hotelhub_current_user")||"null")}setSession(e,a){this.token=e,this.currentUser=a,e?(localStorage.setItem("hotelhub_auth_token",e),localStorage.setItem("hotelhub_current_user",JSON.stringify(a))):(localStorage.removeItem("hotelhub_auth_token"),localStorage.removeItem("hotelhub_current_user"))}clearSession(){this.setSession(null,null)}async request(e,a={}){const d={"Content-Type":"application/json",...a.headers};this.token&&(d.Authorization=`Bearer ${this.token}`);try{const o=await fetch(`${N}${e}`,{...a,headers:d}),n=await o.json().catch(()=>({}));if(!o.ok){const r=new Error(n.message||`API request failed with status ${o.status}`);throw r.status=o.status,r.data=n,r}return n}catch(o){throw a.silent||console.error(`API Error on ${e}:`,o.message),o}}async get(e,a={}){return this.request(e,{...a,method:"GET"})}async post(e,a={},d={}){return this.request(e,{...d,method:"POST",body:JSON.stringify(a)})}async put(e,a={},d={}){return this.request(e,{...d,method:"PUT",body:JSON.stringify(a)})}async patch(e,a={},d={}){return this.request(e,{...d,method:"PATCH",body:JSON.stringify(a)})}async delete(e,a={}){return this.request(e,{...a,method:"DELETE"})}async login(e,a,d=null){const o=await this.request("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:a,requiredRole:d})});return this.setSession(o.token,o.user),o}async adminLogin(e,a){return this.login(e,a)}async hotelAdminLogin(e,a){return this.login(e,a)}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return a.token&&a.user&&a.user.status==="active"&&this.setSession(a.token,a.user),a}async adminSetup(e,a,d,o){const n=await this.request("/auth/admin/setup",{method:"POST",body:JSON.stringify({name:e,email:a,password:d,phone:o})});return this.setSession(n.token,n.user),n}async adminCreate(e){return this.request("/auth/admin/create",{method:"POST",body:JSON.stringify(e)})}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return this.setSession(a.token,a.user),a}async getMe(){try{const e=await this.request("/auth/me");return this.currentUser=e.user,localStorage.setItem("hotelhub_current_user",JSON.stringify(e.user)),e.user}catch(e){throw this.clearSession(),e}}logout(){return this.clearSession(),this.request("/auth/logout",{method:"POST"}).catch(()=>{})}async getAdminProfile(){return this.request("/admin/profile")}async updateAdminProfile(e,a){const d=await this.request("/admin/profile",{method:"PUT",body:JSON.stringify({name:e,phone:a})});return d.user&&(this.currentUser={...this.currentUser,...d.user},localStorage.setItem("hotelhub_current_user",JSON.stringify(this.currentUser))),d}async changeAdminPassword(e,a){return this.request("/admin/change-password",{method:"PUT",body:JSON.stringify({currentPassword:e,newPassword:a})})}async getAdminUsers(){return this.request("/admin/users")}async getAdminUser(e){return this.request(`/admin/users/${e}`)}async updateAdminUserStatus(e,a){return this.request(`/admin/users/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateAdminUserRole(e,a,d){return this.request(`/admin/users/${e}/role`,{method:"PUT",body:JSON.stringify({role:a,permissions:d})})}async deleteAdminUser(e){return this.request(`/admin/users/${e}`,{method:"DELETE"})}async getAuditLogs(){return this.request("/admin/audit-logs")}async getHotels(e={}){const a=new URLSearchParams(e).toString();return this.request(`/hotels${a?`?${a}`:""}`)}async getAdminHotels(){return this.request("/hotels/admin")}async getOwnerHotels(){return this.request("/hotels/owner")}async getHotelById(e){return this.request(`/hotels/${e}`)}async getHotelSummary(e){return this.request(`/hotels/${e}/summary`)}async onboardHotel(e){return this.request("/hotels/onboard",{method:"POST",body:JSON.stringify(e)})}async updateHotel(e,a){return this.request(`/hotels/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelStatus(e,a){return this.request(`/hotels/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async getRoomsByHotel(e){return this.request(`/rooms/hotel/${e}`)}async createRoom(e){return this.request("/rooms",{method:"POST",body:JSON.stringify(e)})}async updateRoom(e,a){return this.request(`/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteRoom(e){return this.request(`/rooms/${e}`,{method:"DELETE"})}async uploadRoomImage(e,a=null,d=null){return new Promise((o,n)=>{const r=new XMLHttpRequest;r.open("POST",`${N}/uploads/room-image`),this.token&&r.setRequestHeader("Authorization",`Bearer ${this.token}`),r.upload&&typeof d=="function"&&(r.upload.onprogress=s=>{if(s.lengthComputable){const p=Math.round(s.loaded/s.total*100);d(p)}}),r.onload=()=>{let s={};try{s=JSON.parse(r.responseText||"{}")}catch{s={message:r.responseText||"Upload failed"}}if(r.status>=200&&r.status<300&&s.success)o(s);else{const p=new Error(s.message||`Upload failed with HTTP ${r.status}`);p.status=r.status,p.data=s,n(p)}},r.onerror=()=>{n(new Error("Network error during image upload to server."))};const c=new FormData;c.append("image",e),a&&c.append("hotel_id",a),r.send(c)})}async uploadBannerImage(e,a=null,d=null){const o=n=>new Promise((r,c)=>{const s=new XMLHttpRequest;s.open("POST",n),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=h=>{if(h.lengthComputable){const v=Math.round(h.loaded/h.total*100);d(v)}}),s.onload=()=>{let h={};try{h=JSON.parse(s.responseText||"{}")}catch{h={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&h.success)r(h);else{const v=new Error(h.message||`Upload failed with HTTP ${s.status}`);v.status=s.status,v.data=h,c(v)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/banner-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw n}}async uploadCoverImage(e,a=null,d=null){const o=n=>new Promise((r,c)=>{const s=new XMLHttpRequest;s.open("POST",n),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=h=>{if(h.lengthComputable){const v=Math.round(h.loaded/h.total*100);d(v)}}),s.onload=()=>{let h={};try{h=JSON.parse(s.responseText||"{}")}catch{h={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&h.success)r(h);else{const v=new Error(h.message||`Upload failed with HTTP ${s.status}`);v.status=s.status,v.data=h,c(v)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/cover-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/cover-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw n}}async getRoomAvailability(e,a,d){let o=a,n=d;const r=h=>{if(!h)return null;if(typeof h=="string"&&/^\d{4}-\d{2}-\d{2}$/.test(h))return h;const v=new Date(h);if(isNaN(v.getTime()))return null;const u=v.getFullYear(),m=String(v.getMonth()+1).padStart(2,"0"),l=String(v.getDate()).padStart(2,"0");return`${u}-${m}-${l}`};if(typeof a=="number"||typeof a=="string"&&!isNaN(Number(a))&&a.length<5){const h=Number(a)||14,v=new Date;o=r(v);const u=new Date(v.getFullYear(),v.getMonth(),v.getDate()+h);n=r(u)}else o=r(a),n=r(d);const c=new URLSearchParams;o&&c.append("startDate",o),n&&c.append("endDate",n);const s=c.toString(),p=`/availability/room/${encodeURIComponent(e)}${s?`?${s}`:""}`;try{return await this.request(p,{silent:!0})}catch(h){if(h.status===404){const v=`/availability/${encodeURIComponent(e)}${s?`?${s}`:""}`;return await this.request(v)}throw h}}async blockAvailability(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,blocked_count:d})})}async toggleBlackoutDate(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,is_blocked:d})})}async createBooking(e){return this.request("/bookings/create",{method:"POST",body:JSON.stringify(e)})}async getMyBookings(){return this.request("/bookings/my")}async getOwnerBookings(){return this.request("/bookings/owner")}async getAdminBookings(){return this.request("/bookings/admin")}async getBookingById(e){return this.request(`/bookings/${e}`)}async checkInBooking(e){return this.request(`/bookings/${e}/checkin`,{method:"PUT"})}async checkInGuest(e){return this.checkInBooking(e)}async checkOutBooking(e){return this.request(`/bookings/${e}/checkout`,{method:"PUT"})}async checkOutGuest(e){return this.checkOutBooking(e)}async cancelBooking(e,a){return this.request(`/bookings/${e}/cancel`,{method:"POST",body:JSON.stringify({reason:a})})}async getAdminPayments(){return this.request("/payments/admin")}async getAdminRefunds(){return this.request("/refunds/admin")}async processRefund(e,a,d){return this.request(`/refunds/${e}/process`,{method:"PUT",body:JSON.stringify({status:a,admin_notes:d})})}async getCommissionLedger(){return this.request("/commissions/ledger")}async getOwnerEarnings(){return this.request("/commissions/owner-earnings")}async updateCommissionRate(e){return this.request("/commissions/rate",{method:"PUT",body:JSON.stringify({rate:e})})}async getReviews(e){return this.request(`/reviews/hotel/${e}`)}async submitReview(e){return this.request("/reviews",{method:"POST",body:JSON.stringify(e)})}async getSupportTickets(){return this.request("/support/tickets")}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateSupportTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateTicketStatus(e,a){return this.updateSupportTicketStatus(e,a)}async getMe(){return this.request("/auth/me")}async getHotelAdminDashboard(){return this.request("/hotel-admin/dashboard")}async getHotelAdminKpis(){return this.request("/hotel-admin/dashboard")}async getHotelAdminHotel(){return this.request("/hotel-admin/hotel")}async getHotelAdminProperty(){return this.request("/hotel-admin/property")}async updateHotelAdminHotel(e){return this.request("/hotel-admin/hotel",{method:"PUT",body:JSON.stringify(e)})}async updateHotelAdminProperty(e){return this.request("/hotel-admin/property",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminRooms(){return this.request("/hotel-admin/rooms")}async createHotelAdminRoom(e){return this.request("/hotel-admin/rooms",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminRoom(e,a){return this.request(`/hotel-admin/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteHotelAdminRoom(e){return this.request(`/hotel-admin/rooms/${e}`,{method:"DELETE"})}async getHotelAdminAvailability(){return this.request("/hotel-admin/availability")}async updateHotelAdminAvailability(e){return this.request("/hotel-admin/availability",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBookings(){return this.request("/hotel-admin/bookings")}async getHotelAdminCheckIns(){return this.request("/hotel-admin/check-ins")}async hotelAdminCheckIn(e){return this.request("/hotel-admin/check-in",{method:"POST",body:JSON.stringify({bookingId:e})})}async hotelAdminCheckOut(e){return this.request("/hotel-admin/check-out",{method:"POST",body:JSON.stringify({bookingId:e})})}async getHotelAdminEarnings(){return this.request("/hotel-admin/earnings")}async getHotelAdminSupport(){return this.request("/hotel-admin/support")}async getHotelAdminProfile(){return this.request("/hotel-admin/profile")}async updateHotelAdminProfile(e){return this.request("/hotel-admin/profile",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBanners(){return this.request("/hotel-admin/banners")}async createHotelAdminBanner(e){return this.request("/hotel-admin/banners",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminBanner(e,a){return this.request(`/hotel-admin/banners/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelAdminBannerStatus(e,a){return this.request(`/hotel-admin/banners/${e}/status`,{method:"PATCH",body:JSON.stringify({is_active:a})})}async deleteHotelAdminBanner(e){return this.request(`/hotel-admin/banners/${e}`,{method:"DELETE"})}async getOwnerKYCList(){return this.request("/owners/kyc")}async getOwnersKyc(){return this.request("/owners/kyc")}async updateOwnerKYCStatus(e,a,d=null){return this.request(`/owners/${e}/kyc`,{method:"PUT",body:JSON.stringify({status:a,reason:d})})}async updateOwnerKyc(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async updateOwnerKYC(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async getAdminKpis(){let e;try{e=await this.request("/reports/admin-kpis")}catch{try{e=await this.request("/admin/kpis")}catch{try{e=await this.request("/admin/dashboard")}catch{e={success:!0,data:{},kpis:{}}}}}const a=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{},d=a.total_hotels??a.totalHotels??0,o=a.verified_hotels??a.verifiedHotels??0,n=a.pending_hotels??a.underReviewHotels??0,r=a.total_bookings??a.totalBookings??0,c=a.todays_bookings??a.todayBookings??0,s=a.upcoming_checkins_count??a.upcomingCheckIns??0,p=a.total_gmv??a.grossPlatformVolume??0,h=a.platform_revenue??a.netPlatformCommission??a.platformCommission??0,v=a.active_in_house_stays??a.checked_in_bookings_count??a.activeInHouseStays??0,u=a.upcoming_checkouts_count??a.upcomingCheckOuts??0,m=a.cancelled_bookings_count??a.cancelledRefunded??0;return{success:!0,data:{totalHotels:d,verifiedHotels:o,underReviewHotels:n,totalBookings:r,todayBookings:c,upcomingCheckIns:s,grossPlatformVolume:p,netPlatformCommission:h,activeInHouseStays:v,upcomingCheckOuts:u,cancelledRefunded:m,pendingKYC:a.pending_kyc_count??a.pendingKYC??0,pendingRefunds:a.pending_refunds_count??a.pendingRefunds??0},kpis:{total_hotels:d,verified_hotels:o,pending_hotels:n,total_bookings:r,todays_bookings:c,total_gmv:p,platform_revenue:h,active_in_house_stays:v,checked_in_bookings_count:v,upcoming_checkins_count:s,upcoming_checkouts_count:u,cancelled_bookings_count:m,pending_refunds_count:a.pending_refunds_count??a.pendingRefunds??0,pending_kyc_count:a.pending_kyc_count??a.pendingKYC??0}}}async getAdminKPIs(){return this.getAdminKpis()}async getOwnerKPIs(){return this.request("/reports/owner-kpis")}async getOwnerKpis(){return this.request("/reports/owner-kpis")}async getDailyReport(){return this.request("/reports/daily")}async getMonthlyReport(){return this.request("/reports/monthly")}async getSettings(){return this.request("/settings")}async updateSettings(e){return this.request("/settings",{method:"PUT",body:JSON.stringify(e)})}async getHotelPickupSettings(e){return this.request(`/hotels/${e}/pickup-settings`)}async updateHotelPickupSettings(e,a){return this.request(`/hotels/${e}/pickup-settings`,{method:"PUT",body:JSON.stringify({pickup_service_enabled:a})})}async addPickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations`,{method:"POST",body:JSON.stringify(a)})}async updatePickupLocation(e,a,d){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"DELETE"})}async addPickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles`,{method:"POST",body:JSON.stringify(a)})}async updatePickupVehicle(e,a,d){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"DELETE"})}async getPickups(e={}){const a=new URLSearchParams(e).toString();return this.request(`/pickups?${a}`)}async getPickupDetails(e){return this.request(`/pickups/${e}`)}async updatePickupStatus(e,a,d=""){return this.request(`/pickups/${e}/status`,{method:"PATCH",body:JSON.stringify({status:a,notes:d})})}async assignPickupDriver(e,a){return this.request(`/pickups/${e}/assign-driver`,{method:"POST",body:JSON.stringify(a)})}async getSupportTickets(e=null){const a=e?`/support/tickets?user_id=${e}`:"/support/tickets";return this.request(a)}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}}const x=new n1;/**
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))d(o);new MutationObserver(o=>{for(const n of o)if(n.type==="childList")for(const r of n.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&d(r)}).observe(document,{childList:!0,subtree:!0});function a(o){const n={};return o.integrity&&(n.integrity=o.integrity),o.referrerPolicy&&(n.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?n.credentials="include":o.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function d(o){if(o.ep)return;o.ep=!0;const n=a(o);fetch(o.href,n)}})();const G="https://hotel-appllication.onrender.com/api",N=G.replace(/\/$/,"").endsWith("/api")?G.replace(/\/$/,""):`${G.replace(/\/$/,"")}/api`;class n1{constructor(){this.token=localStorage.getItem("hotelhub_auth_token")||null,this.currentUser=JSON.parse(localStorage.getItem("hotelhub_current_user")||"null")}setSession(e,a){this.token=e,this.currentUser=a,e?(localStorage.setItem("hotelhub_auth_token",e),localStorage.setItem("hotelhub_current_user",JSON.stringify(a))):(localStorage.removeItem("hotelhub_auth_token"),localStorage.removeItem("hotelhub_current_user"))}clearSession(){this.setSession(null,null)}async request(e,a={}){const d={"Content-Type":"application/json",...a.headers};this.token&&(d.Authorization=`Bearer ${this.token}`);try{const o=await fetch(`${N}${e}`,{...a,headers:d}),n=await o.json().catch(()=>({}));if(!o.ok){const r=new Error(n.message||`API request failed with status ${o.status}`);throw r.status=o.status,r.data=n,r}return n}catch(o){throw a.silent||console.error(`API Error on ${e}:`,o.message),o}}async get(e,a={}){return this.request(e,{...a,method:"GET"})}async post(e,a={},d={}){return this.request(e,{...d,method:"POST",body:JSON.stringify(a)})}async put(e,a={},d={}){return this.request(e,{...d,method:"PUT",body:JSON.stringify(a)})}async patch(e,a={},d={}){return this.request(e,{...d,method:"PATCH",body:JSON.stringify(a)})}async delete(e,a={}){return this.request(e,{...a,method:"DELETE"})}async login(e,a,d=null){const o=await this.request("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:a,requiredRole:d})});return this.setSession(o.token,o.user),o}async adminLogin(e,a){return this.login(e,a)}async hotelAdminLogin(e,a){return this.login(e,a)}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return a.token&&a.user&&a.user.status==="active"&&this.setSession(a.token,a.user),a}async adminSetup(e,a,d,o){const n=await this.request("/auth/admin/setup",{method:"POST",body:JSON.stringify({name:e,email:a,password:d,phone:o})});return this.setSession(n.token,n.user),n}async adminCreate(e){return this.request("/auth/admin/create",{method:"POST",body:JSON.stringify(e)})}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return this.setSession(a.token,a.user),a}async getMe(){try{const e=await this.request("/auth/me");return this.currentUser=e.user,localStorage.setItem("hotelhub_current_user",JSON.stringify(e.user)),e.user}catch(e){throw this.clearSession(),e}}logout(){return this.clearSession(),this.request("/auth/logout",{method:"POST"}).catch(()=>{})}async getAdminProfile(){return this.request("/admin/profile")}async updateAdminProfile(e,a){const d=await this.request("/admin/profile",{method:"PUT",body:JSON.stringify({name:e,phone:a})});return d.user&&(this.currentUser={...this.currentUser,...d.user},localStorage.setItem("hotelhub_current_user",JSON.stringify(this.currentUser))),d}async changeAdminPassword(e,a){return this.request("/admin/change-password",{method:"PUT",body:JSON.stringify({currentPassword:e,newPassword:a})})}async getAdminUsers(){return this.request("/admin/users")}async getAdminUser(e){return this.request(`/admin/users/${e}`)}async updateAdminUserStatus(e,a){return this.request(`/admin/users/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateAdminUserRole(e,a,d){return this.request(`/admin/users/${e}/role`,{method:"PUT",body:JSON.stringify({role:a,permissions:d})})}async deleteAdminUser(e){return this.request(`/admin/users/${e}`,{method:"DELETE"})}async getAuditLogs(){return this.request("/admin/audit-logs")}async getHotels(e={}){const a=new URLSearchParams(e).toString();return this.request(`/hotels${a?`?${a}`:""}`)}async getAdminHotels(){return this.request("/hotels/admin")}async getOwnerHotels(){return this.request("/hotels/owner")}async getHotelById(e){return this.request(`/hotels/${e}`)}async getHotelSummary(e){return this.request(`/hotels/${e}/summary`)}async onboardHotel(e){return this.request("/hotels/onboard",{method:"POST",body:JSON.stringify(e)})}async updateHotel(e,a){return this.request(`/hotels/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelStatus(e,a){return this.request(`/hotels/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async getRoomsByHotel(e){return this.request(`/rooms/hotel/${e}`)}async createRoom(e){return this.request("/rooms",{method:"POST",body:JSON.stringify(e)})}async updateRoom(e,a){return this.request(`/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteRoom(e){return this.request(`/rooms/${e}`,{method:"DELETE"})}async uploadRoomImage(e,a=null,d=null){return new Promise((o,n)=>{const r=new XMLHttpRequest;r.open("POST",`${N}/uploads/room-image`),this.token&&r.setRequestHeader("Authorization",`Bearer ${this.token}`),r.upload&&typeof d=="function"&&(r.upload.onprogress=s=>{if(s.lengthComputable){const p=Math.round(s.loaded/s.total*100);d(p)}}),r.onload=()=>{let s={};try{s=JSON.parse(r.responseText||"{}")}catch{s={message:r.responseText||"Upload failed"}}if(r.status>=200&&r.status<300&&s.success)o(s);else{const p=new Error(s.message||`Upload failed with HTTP ${r.status}`);p.status=r.status,p.data=s,n(p)}},r.onerror=()=>{n(new Error("Network error during image upload to server."))};const c=new FormData;c.append("image",e),a&&c.append("hotel_id",a),r.send(c)})}async uploadBannerImage(e,a=null,d=null){const o=n=>new Promise((r,c)=>{const s=new XMLHttpRequest;s.open("POST",n),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=h=>{if(h.lengthComputable){const m=Math.round(h.loaded/h.total*100);d(m)}}),s.onload=()=>{let h={};try{h=JSON.parse(s.responseText||"{}")}catch{h={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&h.success)r(h);else{const m=new Error(h.message||`Upload failed with HTTP ${s.status}`);m.status=s.status,m.data=h,c(m)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/banner-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw n}}async uploadCoverImage(e,a=null,d=null){const o=n=>new Promise((r,c)=>{const s=new XMLHttpRequest;s.open("POST",n),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=h=>{if(h.lengthComputable){const m=Math.round(h.loaded/h.total*100);d(m)}}),s.onload=()=>{let h={};try{h=JSON.parse(s.responseText||"{}")}catch{h={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&h.success)r(h);else{const m=new Error(h.message||`Upload failed with HTTP ${s.status}`);m.status=s.status,m.data=h,c(m)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/cover-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/cover-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw n}}async getRoomAvailability(e,a,d){let o=a,n=d;const r=h=>{if(!h)return null;if(typeof h=="string"&&/^\d{4}-\d{2}-\d{2}$/.test(h))return h;const m=new Date(h);if(isNaN(m.getTime()))return null;const y=m.getFullYear(),u=String(m.getMonth()+1).padStart(2,"0"),l=String(m.getDate()).padStart(2,"0");return`${y}-${u}-${l}`};if(typeof a=="number"||typeof a=="string"&&!isNaN(Number(a))&&a.length<5){const h=Number(a)||14,m=new Date;o=r(m);const y=new Date(m.getFullYear(),m.getMonth(),m.getDate()+h);n=r(y)}else o=r(a),n=r(d);const c=new URLSearchParams;o&&c.append("startDate",o),n&&c.append("endDate",n);const s=c.toString(),p=`/availability/room/${encodeURIComponent(e)}${s?`?${s}`:""}`;try{return await this.request(p,{silent:!0})}catch(h){if(h.status===404){const m=`/availability/${encodeURIComponent(e)}${s?`?${s}`:""}`;return await this.request(m)}throw h}}async blockAvailability(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,blocked_count:d})})}async toggleBlackoutDate(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,is_blocked:d})})}async createBooking(e){return this.request("/bookings/create",{method:"POST",body:JSON.stringify(e)})}async getMyBookings(){return this.request("/bookings/my")}async getOwnerBookings(){return this.request("/bookings/owner")}async getAdminBookings(){return this.request("/bookings/admin")}async getBookingById(e){return this.request(`/bookings/${e}`)}async checkInBooking(e){return this.request(`/bookings/${e}/checkin`,{method:"PUT"})}async checkInGuest(e){return this.checkInBooking(e)}async checkOutBooking(e){return this.request(`/bookings/${e}/checkout`,{method:"PUT"})}async checkOutGuest(e){return this.checkOutBooking(e)}async cancelBooking(e,a){return this.request(`/bookings/${e}/cancel`,{method:"POST",body:JSON.stringify({reason:a})})}async getAdminPayments(){return this.request("/payments/admin")}async getAdminRefunds(){return this.request("/refunds/admin")}async processRefund(e,a,d){return this.request(`/refunds/${e}/process`,{method:"PUT",body:JSON.stringify({status:a,admin_notes:d})})}async getCommissionLedger(){return this.request("/commissions/ledger")}async getOwnerEarnings(){return this.request("/commissions/owner-earnings")}async updateCommissionRate(e){return this.request("/commissions/rate",{method:"PUT",body:JSON.stringify({rate:e})})}async getReviews(e){return this.request(`/reviews/hotel/${e}`)}async submitReview(e){return this.request("/reviews",{method:"POST",body:JSON.stringify(e)})}async getSupportTickets(){return this.request("/support/tickets")}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateSupportTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateTicketStatus(e,a){return this.updateSupportTicketStatus(e,a)}async getMe(){return this.request("/auth/me")}async getHotelAdminDashboard(){return this.request("/hotel-admin/dashboard")}async getHotelAdminKpis(){return this.request("/hotel-admin/dashboard")}async getHotelAdminHotel(){return this.request("/hotel-admin/hotel")}async getHotelAdminProperty(){return this.request("/hotel-admin/property")}async updateHotelAdminHotel(e){return this.request("/hotel-admin/hotel",{method:"PUT",body:JSON.stringify(e)})}async updateHotelAdminProperty(e){return this.request("/hotel-admin/property",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminRooms(){return this.request("/hotel-admin/rooms")}async createHotelAdminRoom(e){return this.request("/hotel-admin/rooms",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminRoom(e,a){return this.request(`/hotel-admin/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteHotelAdminRoom(e){return this.request(`/hotel-admin/rooms/${e}`,{method:"DELETE"})}async getHotelAdminAvailability(){return this.request("/hotel-admin/availability")}async updateHotelAdminAvailability(e){return this.request("/hotel-admin/availability",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBookings(){return this.request("/hotel-admin/bookings")}async getHotelAdminCheckIns(){return this.request("/hotel-admin/check-ins")}async hotelAdminCheckIn(e){return this.request("/hotel-admin/check-in",{method:"POST",body:JSON.stringify({bookingId:e})})}async hotelAdminCheckOut(e){return this.request("/hotel-admin/check-out",{method:"POST",body:JSON.stringify({bookingId:e})})}async getHotelAdminEarnings(){return this.request("/hotel-admin/earnings")}async getHotelAdminSupport(){return this.request("/hotel-admin/support")}async getHotelAdminProfile(){return this.request("/hotel-admin/profile")}async updateHotelAdminProfile(e){return this.request("/hotel-admin/profile",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBanners(){return this.request("/hotel-admin/banners")}async createHotelAdminBanner(e){return this.request("/hotel-admin/banners",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminBanner(e,a){return this.request(`/hotel-admin/banners/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelAdminBannerStatus(e,a){return this.request(`/hotel-admin/banners/${e}/status`,{method:"PATCH",body:JSON.stringify({is_active:a})})}async deleteHotelAdminBanner(e){return this.request(`/hotel-admin/banners/${e}`,{method:"DELETE"})}async getOwnerKYCList(){return this.request("/owners/kyc")}async getOwnersKyc(){return this.request("/owners/kyc")}async updateOwnerKYCStatus(e,a,d=null){return this.request(`/owners/${e}/kyc`,{method:"PUT",body:JSON.stringify({status:a,reason:d})})}async updateOwnerKyc(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async updateOwnerKYC(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async getAdminKpis(){let e;try{e=await this.request("/reports/admin-kpis")}catch{try{e=await this.request("/admin/kpis")}catch{try{e=await this.request("/admin/dashboard")}catch{e={success:!0,data:{},kpis:{}}}}}const a=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{},d=a.total_hotels??a.totalHotels??0,o=a.verified_hotels??a.verifiedHotels??0,n=a.pending_hotels??a.underReviewHotels??0,r=a.total_bookings??a.totalBookings??0,c=a.todays_bookings??a.todayBookings??0,s=a.upcoming_checkins_count??a.upcomingCheckIns??0,p=a.total_gmv??a.grossPlatformVolume??0,h=a.platform_revenue??a.netPlatformCommission??a.platformCommission??0,m=a.active_in_house_stays??a.checked_in_bookings_count??a.activeInHouseStays??0,y=a.upcoming_checkouts_count??a.upcomingCheckOuts??0,u=a.cancelled_bookings_count??a.cancelledRefunded??0;return{success:!0,data:{totalHotels:d,verifiedHotels:o,underReviewHotels:n,totalBookings:r,todayBookings:c,upcomingCheckIns:s,grossPlatformVolume:p,netPlatformCommission:h,activeInHouseStays:m,upcomingCheckOuts:y,cancelledRefunded:u,pendingKYC:a.pending_kyc_count??a.pendingKYC??0,pendingRefunds:a.pending_refunds_count??a.pendingRefunds??0},kpis:{total_hotels:d,verified_hotels:o,pending_hotels:n,total_bookings:r,todays_bookings:c,total_gmv:p,platform_revenue:h,active_in_house_stays:m,checked_in_bookings_count:m,upcoming_checkins_count:s,upcoming_checkouts_count:y,cancelled_bookings_count:u,pending_refunds_count:a.pending_refunds_count??a.pendingRefunds??0,pending_kyc_count:a.pending_kyc_count??a.pendingKYC??0}}}async getAdminKPIs(){return this.getAdminKpis()}async getOwnerKPIs(){return this.request("/reports/owner-kpis")}async getOwnerKpis(){return this.request("/reports/owner-kpis")}async getDailyReport(){return this.request("/reports/daily")}async getMonthlyReport(){return this.request("/reports/monthly")}async getSettings(){return this.request("/settings")}async updateSettings(e){return this.request("/settings",{method:"PUT",body:JSON.stringify(e)})}async getHotelPickupSettings(e){return this.request(`/hotels/${e}/pickup-settings`)}async updateHotelPickupSettings(e,a){return this.request(`/hotels/${e}/pickup-settings`,{method:"PUT",body:JSON.stringify({pickup_service_enabled:a})})}async addPickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations`,{method:"POST",body:JSON.stringify(a)})}async updatePickupLocation(e,a,d){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"DELETE"})}async addPickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles`,{method:"POST",body:JSON.stringify(a)})}async updatePickupVehicle(e,a,d){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"DELETE"})}async getPickups(e={}){const a=new URLSearchParams(e).toString();return this.request(`/pickups?${a}`)}async getPickupDetails(e){return this.request(`/pickups/${e}`)}async updatePickupStatus(e,a,d=""){return this.request(`/pickups/${e}/status`,{method:"PATCH",body:JSON.stringify({status:a,notes:d})})}async assignPickupDriver(e,a){return this.request(`/pickups/${e}/assign-driver`,{method:"POST",body:JSON.stringify(a)})}async getSupportTickets(e=null){const a=e?`/support/tickets?user_id=${e}`:"/support/tickets";return this.request(a)}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}}const x=new n1;/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -8,7 +8,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l1=i=>Array.from(i.attributes).reduce((e,a)=>(e[a.name]=a.value,e),{}),h1=i=>typeof i=="string"?i:!i||!i.class?"":i.class&&typeof i.class=="string"?i.class.split(" "):i.class&&Array.isArray(i.class)?i.class:"",p1=i=>i.flatMap(h1).map(a=>a.trim()).filter(Boolean).filter((a,d,o)=>o.indexOf(a)===d).join(" "),v1=i=>i.replace(/(\w)(\w*)(_|-|\s*)/g,(e,a,d)=>a.toUpperCase()+d.toLowerCase()),J=(i,{nameAttr:e,icons:a,attrs:d})=>{var l;const o=i.getAttribute(e);if(o==null)return;const n=v1(o),r=a[n];if(!r)return console.warn(`${i.outerHTML} icon name was not found in the provided icons object.`);const c=l1(i),[s,p,h]=r,v={...p,"data-lucide":o,...d,...c},u=p1(["lucide",`lucide-${o}`,c,d]);u&&Object.assign(v,{class:u});const m=c1([s,v,h]);return(l=i.parentNode)==null?void 0:l.replaceChild(m,i)};/**
+ */const l1=i=>Array.from(i.attributes).reduce((e,a)=>(e[a.name]=a.value,e),{}),h1=i=>typeof i=="string"?i:!i||!i.class?"":i.class&&typeof i.class=="string"?i.class.split(" "):i.class&&Array.isArray(i.class)?i.class:"",p1=i=>i.flatMap(h1).map(a=>a.trim()).filter(Boolean).filter((a,d,o)=>o.indexOf(a)===d).join(" "),v1=i=>i.replace(/(\w)(\w*)(_|-|\s*)/g,(e,a,d)=>a.toUpperCase()+d.toLowerCase()),J=(i,{nameAttr:e,icons:a,attrs:d})=>{var l;const o=i.getAttribute(e);if(o==null)return;const n=v1(o),r=a[n];if(!r)return console.warn(`${i.outerHTML} icon name was not found in the provided icons object.`);const c=l1(i),[s,p,h]=r,m={...p,"data-lucide":o,...d,...c},y=p1(["lucide",`lucide-${o}`,c,d]);y&&Object.assign(m,{class:y});const u=c1([s,m,h]);return(l=i.parentNode)==null?void 0:l.replaceChild(u,i)};/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7476,7 +7476,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#login-password"),a=i.querySelector("#btn-toggle-pwd");a&&e&&a.addEventListener("click",s=>{s.preventDefault(),e.type==="password"?(e.type="text",a.textContent="Hide"):(e.type="password",a.textContent="Show")});const d=i.querySelector("#unified-login-form"),o=i.querySelector("#login-alert"),n=i.querySelector("#btn-submit-unified-login"),r=i.querySelector("#btn-submit-text");function c(s,p="danger"){o&&(o.style.display="block",p==="danger"?(o.style.background="var(--status-danger-bg)",o.style.border="1px solid var(--status-danger-border)",o.style.color="var(--status-danger)"):(o.style.background="var(--status-success-bg)",o.style.border="1px solid var(--status-success-border)",o.style.color="var(--status-success)"),o.innerHTML=s)}d&&d.addEventListener("submit",async s=>{var v,u;s.preventDefault(),s.stopPropagation();const p=(v=i.querySelector("#login-email"))==null?void 0:v.value.trim(),h=(u=i.querySelector("#login-password"))==null?void 0:u.value;if(!p||!h){c("Please enter both email and password.");return}o.style.display="none",n.disabled=!0,r.textContent="Signing in...";try{const m=await x.login(p,h);if(!m.success||!m.token)throw new Error(m.message||"Authentication failed. Please verify credentials.");const l=m.user||{},g=l.role;if(g==="customer"){x.clearSession(),c("Customer accounts are for the HotelHub Mobile App. Please use the mobile application to manage guest bookings.","danger"),n.disabled=!1,r.textContent="Sign In";return}c(`Welcome back, <strong>${l.name||"User"}</strong>! Redirecting to workspace...`,"success"),setTimeout(()=>{let y="/admin/dashboard";g==="hotel_admin"||g==="owner"?y="/hotel-admin/dashboard":g==="support_admin"?y="/admin/support":g==="finance_admin"&&(y="/admin/payments"),typeof window.navigateTo=="function"?window.navigateTo(y):window.location.hash=`#${y}`},350)}catch(m){console.error("Unified login error:",m),c(m.message||"Invalid email or password."),n.disabled=!1,r.textContent="Sign In",window.lucide&&window.lucide.createIcons()}})}function xM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#login-password"),a=i.querySelector("#btn-toggle-pwd");a&&e&&a.addEventListener("click",s=>{s.preventDefault(),e.type==="password"?(e.type="text",a.textContent="Hide"):(e.type="password",a.textContent="Show")});const d=i.querySelector("#unified-login-form"),o=i.querySelector("#login-alert"),n=i.querySelector("#btn-submit-unified-login"),r=i.querySelector("#btn-submit-text");function c(s,p="danger"){o&&(o.style.display="block",p==="danger"?(o.style.background="var(--status-danger-bg)",o.style.border="1px solid var(--status-danger-border)",o.style.color="var(--status-danger)"):(o.style.background="var(--status-success-bg)",o.style.border="1px solid var(--status-success-border)",o.style.color="var(--status-success)"),o.innerHTML=s)}d&&d.addEventListener("submit",async s=>{var m,y;s.preventDefault(),s.stopPropagation();const p=(m=i.querySelector("#login-email"))==null?void 0:m.value.trim(),h=(y=i.querySelector("#login-password"))==null?void 0:y.value;if(!p||!h){c("Please enter both email and password.");return}o.style.display="none",n.disabled=!0,r.textContent="Signing in...";try{const u=await x.login(p,h);if(!u.success||!u.token)throw new Error(u.message||"Authentication failed. Please verify credentials.");const l=u.user||{},v=l.role;if(v==="customer"){x.clearSession(),c("Customer accounts are for the HotelHub Mobile App. Please use the mobile application to manage guest bookings.","danger"),n.disabled=!1,r.textContent="Sign In";return}c(`Welcome back, <strong>${l.name||"User"}</strong>! Redirecting to workspace...`,"success"),setTimeout(()=>{let g="/admin/dashboard";v==="hotel_admin"||v==="owner"?g="/hotel-admin/dashboard":v==="support_admin"?g="/admin/support":v==="finance_admin"&&(g="/admin/payments"),typeof window.navigateTo=="function"?window.navigateTo(g):window.location.hash=`#${g}`},350)}catch(u){console.error("Unified login error:",u),c(u.message||"Invalid email or password."),n.disabled=!1,r.textContent="Sign In",window.lucide&&window.lucide.createIcons()}})}function xM(i){i.innerHTML=`
     <div style="min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background-color: var(--bg-app);">
       <div style="width: 100%; max-width: 520px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-md); overflow: hidden;">
         
@@ -7629,7 +7629,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#partner-register-form"),a=i.querySelector("#register-alert"),d=i.querySelector("#btn-submit-register"),o=i.querySelector("#btn-register-text");function n(r,c="danger"){a&&(a.style.display="block",c==="danger"?(a.style.background="var(--status-danger-bg)",a.style.border="1px solid var(--status-danger-border)",a.style.color="var(--status-danger)"):(a.style.background="var(--status-success-bg)",a.style.border="1px solid var(--status-success-border)",a.style.color="var(--status-success)"),a.innerHTML=r)}e&&e.addEventListener("submit",async r=>{var l,g,y,S,b,f,M;r.preventDefault(),r.stopPropagation();const c=(l=i.querySelector("#reg-name"))==null?void 0:l.value.trim(),s=(g=i.querySelector("#reg-phone"))==null?void 0:g.value.trim(),p=(y=i.querySelector("#reg-email"))==null?void 0:y.value.trim(),h=(S=i.querySelector("#reg-hotel-name"))==null?void 0:S.value.trim(),v=(b=i.querySelector("#reg-hotel-address"))==null?void 0:b.value.trim(),u=(f=i.querySelector("#reg-password"))==null?void 0:f.value,m=(M=i.querySelector("#reg-confirm-password"))==null?void 0:M.value;if(!c||!p||!u||!h){n("Please fill in all required fields.");return}if(u!==m){n("Passwords do not match. Please re-enter.");return}a.style.display="none",d.disabled=!0,o.textContent="Registering property...";try{const w=await x.register({name:c,phone:s,email:p,password:u,role:"hotel_admin",hotel_name:h,hotel_address:v});if(!w.success)throw new Error(w.message||"Registration failed.");n("<strong>Registration submitted!</strong> Your hotel partner dossier is under administrative review. Redirecting to login...","success"),setTimeout(()=>{typeof window.navigateTo=="function"?window.navigateTo("/login"):window.location.hash="#/login"},1200)}catch(w){console.error("Registration error:",w),n(w.message||"Registration failed. Please try again."),d.disabled=!1,o.textContent="Submit Partner Registration",window.lucide&&window.lucide.createIcons()}})}function I(i,e="Administrator"){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#partner-register-form"),a=i.querySelector("#register-alert"),d=i.querySelector("#btn-submit-register"),o=i.querySelector("#btn-register-text");function n(r,c="danger"){a&&(a.style.display="block",c==="danger"?(a.style.background="var(--status-danger-bg)",a.style.border="1px solid var(--status-danger-border)",a.style.color="var(--status-danger)"):(a.style.background="var(--status-success-bg)",a.style.border="1px solid var(--status-success-border)",a.style.color="var(--status-success)"),a.innerHTML=r)}e&&e.addEventListener("submit",async r=>{var l,v,g,b,S,w,M;r.preventDefault(),r.stopPropagation();const c=(l=i.querySelector("#reg-name"))==null?void 0:l.value.trim(),s=(v=i.querySelector("#reg-phone"))==null?void 0:v.value.trim(),p=(g=i.querySelector("#reg-email"))==null?void 0:g.value.trim(),h=(b=i.querySelector("#reg-hotel-name"))==null?void 0:b.value.trim(),m=(S=i.querySelector("#reg-hotel-address"))==null?void 0:S.value.trim(),y=(w=i.querySelector("#reg-password"))==null?void 0:w.value,u=(M=i.querySelector("#reg-confirm-password"))==null?void 0:M.value;if(!c||!p||!y||!h){n("Please fill in all required fields.");return}if(y!==u){n("Passwords do not match. Please re-enter.");return}a.style.display="none",d.disabled=!0,o.textContent="Registering property...";try{const f=await x.register({name:c,phone:s,email:p,password:y,role:"hotel_admin",hotel_name:h,hotel_address:m});if(!f.success)throw new Error(f.message||"Registration failed.");n("<strong>Registration submitted!</strong> Your hotel partner dossier is under administrative review. Redirecting to login...","success"),setTimeout(()=>{typeof window.navigateTo=="function"?window.navigateTo("/login"):window.location.hash="#/login"},1200)}catch(f){console.error("Registration error:",f),n(f.message||"Registration failed. Please try again."),d.disabled=!1,o.textContent="Submit Partner Registration",window.lucide&&window.lucide.createIcons()}})}function I(i,e="Administrator"){i.innerHTML=`
     <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
       <div style="width: 100%; max-width: 540px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center; box-shadow: var(--shadow-md);">
         
@@ -7667,7 +7667,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.85rem;">Loading live platform metrics...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d,o,n]=await Promise.all([x.getAdminKpis(),x.getAdminBookings(),x.getAdminRefunds(),x.getOwnersKyc(),x.getSupportTickets()]),r=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_hotels:0,verified_hotels:0,pending_hotels:0,total_bookings:0,todays_bookings:0,upcoming_checkins_count:0,checked_in_bookings_count:0,upcoming_checkouts_count:0,cancelled_bookings_count:0,total_gmv:0,platform_revenue:0,pending_refunds_count:0,pending_kyc_count:0},c=((a==null?void 0:a.bookings)||[]).slice(0,6),s=((d==null?void 0:d.refunds)||[]).filter(v=>v.status==="pending"),p=((o==null?void 0:o.owners)||[]).filter(v=>v.kyc_status==="pending"),h=((n==null?void 0:n.tickets)||[]).filter(v=>v.status==="open"||v.status==="in_progress");i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d,o,n]=await Promise.all([x.getAdminKpis(),x.getAdminBookings(),x.getAdminRefunds(),x.getOwnersKyc(),x.getSupportTickets()]),r=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_hotels:0,verified_hotels:0,pending_hotels:0,total_bookings:0,todays_bookings:0,upcoming_checkins_count:0,checked_in_bookings_count:0,upcoming_checkouts_count:0,cancelled_bookings_count:0,total_gmv:0,platform_revenue:0,pending_refunds_count:0,pending_kyc_count:0},c=((a==null?void 0:a.bookings)||[]).slice(0,6),s=((d==null?void 0:d.refunds)||[]).filter(m=>m.status==="pending"),p=((o==null?void 0:o.owners)||[]).filter(m=>m.kyc_status==="pending"),h=((n==null?void 0:n.tickets)||[]).filter(m=>m.status==="open"||m.status==="in_progress");i.innerHTML=`
       <!-- 1. TOP 4-COLUMN KPI CARDS (Desktop: 4 cols, Tablet: 2 cols, Mobile: 1 col) -->
       <div class="metrics-grid">
         <!-- TOTAL HOTELS -->
@@ -7790,31 +7790,31 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                         No reservations found on the platform yet.
                       </td>
                     </tr>
-                  `:c.map(v=>`
+                  `:c.map(m=>`
                     <tr>
                       <td>
-                        <span class="code-pill">${v.booking_code||"BKG-000"}</span>
+                        <span class="code-pill">${m.booking_code||"BKG-000"}</span>
                       </td>
                       <td>
-                        <div style="font-weight: 600; color: var(--text-main);">${v.customer_name||v.guest_name||"Guest User"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${v.customer_phone||v.customer_email||"—"}</div>
+                        <div style="font-weight: 600; color: var(--text-main);">${m.customer_name||m.guest_name||"Guest User"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${m.customer_phone||m.customer_email||"—"}</div>
                       </td>
                       <td>
-                        <div style="font-weight: 600; color: var(--text-main);">${v.hotel_name||"Grand Horizon Hotel"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${v.room_name||"Deluxe Room"} (${v.guests_count||2} Guests)</div>
+                        <div style="font-weight: 600; color: var(--text-main);">${m.hotel_name||"Grand Horizon Hotel"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${m.room_name||"Deluxe Room"} (${m.guests_count||2} Guests)</div>
                       </td>
                       <td>
                         <div style="font-size: 0.76rem; color: var(--text-main); font-weight: 500;">
-                          ${o1(v.check_in_date,v.check_out_date,v.nights)}
+                          ${o1(m.check_in_date,m.check_out_date,m.nights)}
                         </div>
                       </td>
                       <td>
-                        <div style="font-weight: 700; color: var(--text-main);">₹${(v.total_amount||0).toLocaleString("en-IN")}</div>
-                        <div style="font-size: 0.72rem; color: var(--status-success);">Cut: ₹${(v.commission_amount||Math.round((v.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
+                        <div style="font-weight: 700; color: var(--text-main);">₹${(m.total_amount||0).toLocaleString("en-IN")}</div>
+                        <div style="font-size: 0.72rem; color: var(--status-success);">Cut: ₹${(m.commission_amount||Math.round((m.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
                       </td>
                       <td>
-                        <span class="status-pill ${v.booking_status||"confirmed"}">
-                          ${(v.booking_status||"confirmed").replace("_"," ")}
+                        <span class="status-pill ${m.booking_status||"confirmed"}">
+                          ${(m.booking_status||"confirmed").replace("_"," ")}
                         </span>
                       </td>
                     </tr>
@@ -7830,29 +7830,29 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <div style="text-align: center; color: var(--text-muted); padding: 24px 12px; background: var(--bg-surface-secondary); border-radius: var(--radius-sm);">
                 No reservations found on the platform yet.
               </div>
-            `:c.map(v=>`
+            `:c.map(m=>`
               <div class="mobile-booking-card">
                 <div class="mb-card-header">
-                  <span class="code-pill">${v.booking_code||"BKG-000"}</span>
-                  <span class="status-pill ${v.booking_status||"confirmed"}">
-                    ${(v.booking_status||"confirmed").replace("_"," ")}
+                  <span class="code-pill">${m.booking_code||"BKG-000"}</span>
+                  <span class="status-pill ${m.booking_status||"confirmed"}">
+                    ${(m.booking_status||"confirmed").replace("_"," ")}
                   </span>
                 </div>
                 <div class="mb-card-guest">
-                  <div class="mb-guest-name">${v.customer_name||v.guest_name||"Guest User"}</div>
-                  <div class="mb-guest-contact">${v.customer_phone||v.customer_email||"—"}</div>
+                  <div class="mb-guest-name">${m.customer_name||m.guest_name||"Guest User"}</div>
+                  <div class="mb-guest-contact">${m.customer_phone||m.customer_email||"—"}</div>
                 </div>
                 <div class="mb-card-hotel">
-                  <div class="mb-hotel-name">${v.hotel_name||"Grand Horizon Hotel"}</div>
-                  <div class="mb-room-type">${v.room_name||"Deluxe Room"} • ${v.guests_count||2} Guests</div>
+                  <div class="mb-hotel-name">${m.hotel_name||"Grand Horizon Hotel"}</div>
+                  <div class="mb-room-type">${m.room_name||"Deluxe Room"} • ${m.guests_count||2} Guests</div>
                 </div>
                 <div class="mb-card-dates">
                   <i data-lucide="calendar" style="width: 14px; height: 14px; color: var(--color-accent-dark); flex-shrink: 0;"></i>
-                  <span>${o1(v.check_in_date,v.check_out_date,v.nights)}</span>
+                  <span>${o1(m.check_in_date,m.check_out_date,m.nights)}</span>
                 </div>
                 <div class="mb-card-footer">
-                  <div class="mb-amount">₹${(v.total_amount||0).toLocaleString("en-IN")}</div>
-                  <div class="mb-cut">Platform Cut: ₹${(v.commission_amount||Math.round((v.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
+                  <div class="mb-amount">₹${(m.total_amount||0).toLocaleString("en-IN")}</div>
+                  <div class="mb-cut">Platform Cut: ₹${(m.commission_amount||Math.round((m.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
                 </div>
               </div>
             `).join("")}
@@ -7897,7 +7897,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 <span class="nav-badge danger">${s.length} Pending</span>
               </div>
               <p class="action-card-desc">
-                ${s.length>0?`${s.length} cancellation claim${s.length>1?"s":""} total ₹${s.reduce((v,u)=>v+(u.refund_amount||0),0).toLocaleString("en-IN")} requiring payout approval.`:"All guest cancellation refund claims have been cleared."}
+                ${s.length>0?`${s.length} cancellation claim${s.length>1?"s":""} total ₹${s.reduce((m,y)=>m+(y.refund_amount||0),0).toLocaleString("en-IN")} requiring payout approval.`:"All guest cancellation refund claims have been cleared."}
               </p>
               <a href="#/admin/refunds" class="btn btn-danger btn-sm" style="width: 100%;">
                 <span>Process Refund Queue</span>
@@ -7946,7 +7946,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <div style="background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); padding: 20px; border-radius: var(--radius-sm); color: var(--status-danger);">
           <strong>Error loading hotels:</strong> ${p.message}
         </div>
-      `}}function r(){const p=e.filter(h=>{const v=h.name.toLowerCase().includes(o.toLowerCase())||h.city.toLowerCase().includes(o.toLowerCase())||h.owner_name.toLowerCase().includes(o.toLowerCase()),u=a==="all"||h.city.toLowerCase()===a.toLowerCase(),m=d==="all"||h.status.toLowerCase()===d.toLowerCase();return v&&u&&m});i.innerHTML=`
+      `}}function r(){const p=e.filter(h=>{const m=h.name.toLowerCase().includes(o.toLowerCase())||h.city.toLowerCase().includes(o.toLowerCase())||h.owner_name.toLowerCase().includes(o.toLowerCase()),y=a==="all"||h.city.toLowerCase()===a.toLowerCase(),u=d==="all"||h.status.toLowerCase()===d.toLowerCase();return m&&y&&u});i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div class="search-input-box">
@@ -8043,7 +8043,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="hotel-modal-root"></div>
-    `,c(),window.lucide&&window.lucide.createIcons()}function c(){var p,h,v;(p=i.querySelector("#hotel-search-input"))==null||p.addEventListener("input",u=>{o=u.target.value,r()}),(h=i.querySelector("#city-filter"))==null||h.addEventListener("change",u=>{a=u.target.value,r()}),(v=i.querySelector("#status-filter"))==null||v.addEventListener("change",u=>{d=u.target.value,r()}),i.querySelectorAll(".btn-set-status").forEach(u=>{u.addEventListener("click",async()=>{const m=u.getAttribute("data-hotel-id"),l=u.getAttribute("data-status");try{await x.updateHotelStatus(m,l),window.showToast(`Hotel status updated to ${l.toUpperCase()}`,"success"),n()}catch(g){window.showToast(g.message,"error")}})}),i.querySelectorAll(".btn-inspect-hotel").forEach(u=>{u.addEventListener("click",()=>{const m=u.getAttribute("data-hotel-id");s(m)})})}function s(p){var m,l,g,y;const h=e.find(S=>S.id===p);if(!h)return;const v=i.querySelector("#hotel-modal-root");v.innerHTML=`
+    `,c(),window.lucide&&window.lucide.createIcons()}function c(){var p,h,m;(p=i.querySelector("#hotel-search-input"))==null||p.addEventListener("input",y=>{o=y.target.value,r()}),(h=i.querySelector("#city-filter"))==null||h.addEventListener("change",y=>{a=y.target.value,r()}),(m=i.querySelector("#status-filter"))==null||m.addEventListener("change",y=>{d=y.target.value,r()}),i.querySelectorAll(".btn-set-status").forEach(y=>{y.addEventListener("click",async()=>{const u=y.getAttribute("data-hotel-id"),l=y.getAttribute("data-status");try{await x.updateHotelStatus(u,l),window.showToast(`Hotel status updated to ${l.toUpperCase()}`,"success"),n()}catch(v){window.showToast(v.message,"error")}})}),i.querySelectorAll(".btn-inspect-hotel").forEach(y=>{y.addEventListener("click",()=>{const u=y.getAttribute("data-hotel-id");s(u)})})}function s(p){var u,l,v,g;const h=e.find(b=>b.id===p);if(!h)return;const m=i.querySelector("#hotel-modal-root");m.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container">
           <div class="modal-header">
@@ -8085,9 +8085,9 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div>
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Configured Amenities</div>
               <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                ${h.amenities.map(S=>`
+                ${h.amenities.map(b=>`
                   <span style="background: var(--bg-surface-secondary); border: 1px solid var(--border-light); font-size: 0.72rem; padding: 3px 8px; border-radius: var(--radius-full); color: var(--text-main);">
-                    ✓ ${S}
+                    ✓ ${b}
                   </span>
                 `).join("")}
               </div>
@@ -8107,7 +8107,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const u=()=>{v.innerHTML=""};(m=v.querySelector("#modal-close"))==null||m.addEventListener("click",u),(l=v.querySelector("#modal-close-action"))==null||l.addEventListener("click",u),(g=v.querySelector("#modal-suspend-btn"))==null||g.addEventListener("click",async()=>{await x.updateHotelStatus(p,"suspended"),window.showToast("Hotel suspended from customer application.","warning"),u(),n()}),(y=v.querySelector("#modal-approve-btn"))==null||y.addEventListener("click",async()=>{await x.updateHotelStatus(p,"active"),window.showToast("Hotel is now LIVE on customer app!","success"),u(),n()})}n()}async function wM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const y=()=>{m.innerHTML=""};(u=m.querySelector("#modal-close"))==null||u.addEventListener("click",y),(l=m.querySelector("#modal-close-action"))==null||l.addEventListener("click",y),(v=m.querySelector("#modal-suspend-btn"))==null||v.addEventListener("click",async()=>{await x.updateHotelStatus(p,"suspended"),window.showToast("Hotel suspended from customer application.","warning"),y(),n()}),(g=m.querySelector("#modal-approve-btn"))==null||g.addEventListener("click",async()=>{await x.updateHotelStatus(p,"active"),window.showToast("Hotel is now LIVE on customer app!","success"),y(),n()})}n()}async function wM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner KYC applications...</p>
@@ -8166,7 +8166,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="owner-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-inspect-owner").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-owner-id");n(c)})})}function n(r){var h,v,u,m;const c=e.find(l=>l.user_id===r);if(!c)return;const s=i.querySelector("#owner-modal-root");s.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-inspect-owner").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-owner-id");n(c)})})}function n(r){var h,m,y,u;const c=e.find(l=>l.user_id===r);if(!c)return;const s=i.querySelector("#owner-modal-root");s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container">
           <div class="modal-header">
@@ -8205,12 +8205,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(v=s.querySelector("#modal-close-action"))==null||v.addEventListener("click",p),(u=s.querySelector("#modal-approve-btn"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#modal-approve-btn");l&&(l.disabled=!0);try{await x.updateOwnerKyc(r,"verified"),window.showToast(`Owner ${c.name} verified successfully! Associated hotel is now active.`,"success"),p(),a()}catch(g){l&&(l.disabled=!1),window.showToast(g.message||"Failed to approve owner KYC.","error")}}),(m=s.querySelector("#modal-reject-btn"))==null||m.addEventListener("click",async()=>{const l=s.querySelector("#reject-box"),g=s.querySelector("#modal-reject-btn");if(l.style.display==="none")l.style.display="block",g&&(g.textContent="Confirm Rejection");else{const y=s.querySelector("#reject-reason").value||"Documentation incomplete.";g&&(g.disabled=!0);try{await x.updateOwnerKyc(r,"rejected",y),window.showToast(`KYC application for ${c.name} rejected.`,"error"),p(),a()}catch(S){g&&(g.disabled=!1),window.showToast(S.message||"Failed to reject owner KYC.","error")}}})}a()}async function kM(i){let e=[],a="",d="all";async function o(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#modal-approve-btn"))==null||y.addEventListener("click",async()=>{const l=s.querySelector("#modal-approve-btn");l&&(l.disabled=!0);try{await x.updateOwnerKyc(r,"verified"),window.showToast(`Owner ${c.name} verified successfully! Associated hotel is now active.`,"success"),p(),a()}catch(v){l&&(l.disabled=!1),window.showToast(v.message||"Failed to approve owner KYC.","error")}}),(u=s.querySelector("#modal-reject-btn"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#reject-box"),v=s.querySelector("#modal-reject-btn");if(l.style.display==="none")l.style.display="block",v&&(v.textContent="Confirm Rejection");else{const g=s.querySelector("#reject-reason").value||"Documentation incomplete.";v&&(v.disabled=!0);try{await x.updateOwnerKyc(r,"rejected",g),window.showToast(`KYC application for ${c.name} rejected.`,"error"),p(),a()}catch(b){v&&(v.disabled=!1),window.showToast(b.message||"Failed to reject owner KYC.","error")}}})}a()}async function kM(i){let e=[],a="",d="all";async function o(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading bookings...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminBookings()).bookings,n()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function n(){const s=e.filter(p=>{const h=p.booking_code.toLowerCase().includes(a.toLowerCase())||p.customer_name.toLowerCase().includes(a.toLowerCase())||p.hotel_name.toLowerCase().includes(a.toLowerCase()),v=d==="all"||p.booking_status===d;return h&&v});i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminBookings()).bookings,n()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function n(){const s=e.filter(p=>{const h=p.booking_code.toLowerCase().includes(a.toLowerCase())||p.customer_name.toLowerCase().includes(a.toLowerCase())||p.hotel_name.toLowerCase().includes(a.toLowerCase()),m=d==="all"||p.booking_status===d;return h&&m});i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div class="search-input-box">
@@ -8286,7 +8286,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="booking-modal-root"></div>
-    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var s,p;(s=i.querySelector("#booking-search-input"))==null||s.addEventListener("input",h=>{a=h.target.value,n()}),(p=i.querySelector("#booking-status-filter"))==null||p.addEventListener("change",h=>{d=h.target.value,n()}),i.querySelectorAll(".btn-view-invoice").forEach(h=>{h.addEventListener("click",()=>{const v=h.getAttribute("data-booking-id");c(v)})})}function c(s){var u,m;const p=e.find(l=>l.id===s);if(!p)return;const h=i.querySelector("#booking-modal-root");h.innerHTML=`
+    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var s,p;(s=i.querySelector("#booking-search-input"))==null||s.addEventListener("input",h=>{a=h.target.value,n()}),(p=i.querySelector("#booking-status-filter"))==null||p.addEventListener("change",h=>{d=h.target.value,n()}),i.querySelectorAll(".btn-view-invoice").forEach(h=>{h.addEventListener("click",()=>{const m=h.getAttribute("data-booking-id");c(m)})})}function c(s){var y,u;const p=e.find(l=>l.id===s);if(!p)return;const h=i.querySelector("#booking-modal-root");h.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 600px;">
           <div class="modal-header">
@@ -8351,7 +8351,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const v=()=>{h.innerHTML=""};(u=h.querySelector("#modal-close"))==null||u.addEventListener("click",v),(m=h.querySelector("#modal-close-action"))==null||m.addEventListener("click",v)}o()}async function SM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const m=()=>{h.innerHTML=""};(y=h.querySelector("#modal-close"))==null||y.addEventListener("click",m),(u=h.querySelector("#modal-close-action"))==null||u.addEventListener("click",m)}o()}async function SM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading payment transactions...</p>
@@ -8472,7 +8472,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="refund-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-process-refund").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-refund-id");n(c)})})}function n(r){var h,v,u,m;const c=e.find(l=>l.id===r);if(!c)return;const s=i.querySelector("#refund-modal-root");s.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-process-refund").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-refund-id");n(c)})})}function n(r){var h,m,y,u;const c=e.find(l=>l.id===r);if(!c)return;const s=i.querySelector("#refund-modal-root");s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px;">
           <div class="modal-header">
@@ -8517,7 +8517,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(v=s.querySelector("#modal-close-action"))==null||v.addEventListener("click",p),(u=s.querySelector("#modal-approve-refund"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#refund-admin-notes").value||"Approved under cancellation policy.";await x.processRefund(r,"approved",l),window.showToast(`Refund of ₹${c.refund_amount.toLocaleString("en-IN")} approved successfully.`,"success"),p(),a()}),(m=s.querySelector("#modal-reject-refund"))==null||m.addEventListener("click",async()=>{const l=s.querySelector("#refund-admin-notes").value||"Refund rejected.";await x.processRefund(r,"rejected",l),window.showToast("Refund rejected.","error"),p(),a()})}a()}async function CM(i){let e=null;async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#modal-approve-refund"))==null||y.addEventListener("click",async()=>{const l=s.querySelector("#refund-admin-notes").value||"Approved under cancellation policy.";await x.processRefund(r,"approved",l),window.showToast(`Refund of ₹${c.refund_amount.toLocaleString("en-IN")} approved successfully.`,"success"),p(),a()}),(u=s.querySelector("#modal-reject-refund"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#refund-admin-notes").value||"Refund rejected.";await x.processRefund(r,"rejected",l),window.showToast("Refund rejected.","error"),p(),a()})}a()}async function CM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading commission ledger...</p>
@@ -8707,7 +8707,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="support-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-open-ticket").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-ticket-id");n(c)})})}function n(r){var h,v,u,m;const c=e.find(l=>l.id===r);if(!c)return;const s=i.querySelector("#support-modal-root");s.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-open-ticket").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-ticket-id");n(c)})})}function n(r){var h,m,y,u;const c=e.find(l=>l.id===r);if(!c)return;const s=i.querySelector("#support-modal-root");s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 620px;">
           <div class="modal-header">
@@ -8752,7 +8752,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(v=s.querySelector("#modal-close-action"))==null||v.addEventListener("click",p),(u=s.querySelector("#btn-send-reply"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#reply-input"),g=l?l.value.trim():"";if(g)try{await x.replySupportTicket(r,g),window.showToast("Reply dispatched to ticket.","success"),e=(await x.getSupportTickets()).tickets||[],n(r)}catch(y){window.showToast(y.message||"Failed to dispatch reply.","error")}}),(m=s.querySelector("#btn-resolve-ticket"))==null||m.addEventListener("click",async()=>{try{await x.updateTicketStatus(r,"resolved"),window.showToast("Ticket marked as RESOLVED.","success"),p(),a()}catch(l){window.showToast(l.message||"Failed to update ticket status.","error")}})}a()}async function $M(i){let e="daily",a=[],d=[];async function o(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#btn-send-reply"))==null||y.addEventListener("click",async()=>{const l=s.querySelector("#reply-input"),v=l?l.value.trim():"";if(v)try{await x.replySupportTicket(r,v),window.showToast("Reply dispatched to ticket.","success"),e=(await x.getSupportTickets()).tickets||[],n(r)}catch(g){window.showToast(g.message||"Failed to dispatch reply.","error")}}),(u=s.querySelector("#btn-resolve-ticket"))==null||u.addEventListener("click",async()=>{try{await x.updateTicketStatus(r,"resolved"),window.showToast("Ticket marked as RESOLVED.","success"),p(),a()}catch(l){window.showToast(l.message||"Failed to update ticket status.","error")}})}a()}async function $M(i){let e="daily",a=[],d=[];async function o(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading financial statements...</p>
@@ -8816,8 +8816,8 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var c,s,p;(c=i.querySelector("#tab-daily"))==null||c.addEventListener("click",()=>{e="daily",n()}),(s=i.querySelector("#tab-monthly"))==null||s.addEventListener("click",()=>{e="monthly",n()}),(p=i.querySelector("#btn-export-csv"))==null||p.addEventListener("click",()=>{const h=e==="daily",v=[h?"Date":"Month","Bookings Count","Gross Volume","Platform Commission","Owner Payout","Refunds"],u=h?a.map(y=>[y.date,y.bookings_count,y.gross_amount,y.commission_earned,y.owner_payout,y.refunds_amount]):d.map(y=>[y.month,y.bookings_count,y.gross_amount,y.commission_earned,y.owner_payout,y.refunds_amount]),m="data:text/csv;charset=utf-8,"+[v.join(","),...u.map(y=>y.join(","))].join(`
-`),l=encodeURI(m),g=document.createElement("a");g.setAttribute("href",l),g.setAttribute("download",`hotelhub_${e}_report_${new Date().toISOString().slice(0,10)}.csv`),document.body.appendChild(g),g.click(),document.body.removeChild(g),window.showToast("Financial CSV report exported successfully.","success")})}o()}async function VM(i){let e=null;async function a(){i.innerHTML=`
+    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var c,s,p;(c=i.querySelector("#tab-daily"))==null||c.addEventListener("click",()=>{e="daily",n()}),(s=i.querySelector("#tab-monthly"))==null||s.addEventListener("click",()=>{e="monthly",n()}),(p=i.querySelector("#btn-export-csv"))==null||p.addEventListener("click",()=>{const h=e==="daily",m=[h?"Date":"Month","Bookings Count","Gross Volume","Platform Commission","Owner Payout","Refunds"],y=h?a.map(g=>[g.date,g.bookings_count,g.gross_amount,g.commission_earned,g.owner_payout,g.refunds_amount]):d.map(g=>[g.month,g.bookings_count,g.gross_amount,g.commission_earned,g.owner_payout,g.refunds_amount]),u="data:text/csv;charset=utf-8,"+[m.join(","),...y.map(g=>g.join(","))].join(`
+`),l=encodeURI(u),v=document.createElement("a");v.setAttribute("href",l),v.setAttribute("download",`hotelhub_${e}_report_${new Date().toISOString().slice(0,10)}.csv`),document.body.appendChild(v),v.click(),document.body.removeChild(v),window.showToast("Financial CSV report exported successfully.","success")})}o()}async function VM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading settings...</p>
@@ -8981,7 +8981,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </form>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("admin-users-table-body"),a=document.getElementById("users-action-alert"),d=document.getElementById("audit-logs-container");async function o(){try{const[r,c]=await Promise.all([x.getAdminUsers(),x.getAuditLogs()]),s=r.users,p=c.logs;s.length===0?e.innerHTML='<tr><td colspan="7" style="text-align: center; padding: 2rem;">No administrator accounts found.</td></tr>':e.innerHTML=s.map(h=>{const v={super_admin:"background: #0B192C; color: #C5A880; font-weight: 700;",admin:"background: rgba(59, 130, 246, 0.15); color: #1D4ED8;",finance_admin:"background: rgba(16, 185, 129, 0.15); color: #065F46;",support_admin:"background: rgba(245, 158, 11, 0.15); color: #92400E;",hotel_admin:"background: rgba(139, 92, 246, 0.15); color: #5B21B6;"}[h.role]||"background: var(--bg-surface-secondary); color: var(--text-secondary);",u={active:'<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #065F46;">Active</span>',suspended:'<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #991B1B;">Suspended</span>',inactive:'<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">Inactive</span>',pending:'<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #92400E;">Pending</span>'}[h.status]||`<span class="badge">${h.status}</span>`,m=h.permissions?h.permissions.length:0;return`
+  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("admin-users-table-body"),a=document.getElementById("users-action-alert"),d=document.getElementById("audit-logs-container");async function o(){try{const[r,c]=await Promise.all([x.getAdminUsers(),x.getAuditLogs()]),s=r.users,p=c.logs;s.length===0?e.innerHTML='<tr><td colspan="7" style="text-align: center; padding: 2rem;">No administrator accounts found.</td></tr>':e.innerHTML=s.map(h=>{const m={super_admin:"background: #0B192C; color: #C5A880; font-weight: 700;",admin:"background: rgba(59, 130, 246, 0.15); color: #1D4ED8;",finance_admin:"background: rgba(16, 185, 129, 0.15); color: #065F46;",support_admin:"background: rgba(245, 158, 11, 0.15); color: #92400E;",hotel_admin:"background: rgba(139, 92, 246, 0.15); color: #5B21B6;"}[h.role]||"background: var(--bg-surface-secondary); color: var(--text-secondary);",y={active:'<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #065F46;">Active</span>',suspended:'<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #991B1B;">Suspended</span>',inactive:'<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">Inactive</span>',pending:'<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #92400E;">Pending</span>'}[h.status]||`<span class="badge">${h.status}</span>`,u=h.permissions?h.permissions.length:0;return`
             <tr>
               <td>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -8995,14 +8995,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </div>
               </td>
               <td>
-                <span class="badge" style="${v}; font-size: 0.75rem; text-transform: uppercase;">
+                <span class="badge" style="${m}; font-size: 0.75rem; text-transform: uppercase;">
                   ${h.role.replace("_"," ")}
                 </span>
               </td>
-              <td>${u}</td>
+              <td>${y}</td>
               <td>
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">
-                  ${h.role==="super_admin"?"Full Authority (All)":`${m} permissions`}
+                  ${h.role==="super_admin"?"Full Authority (All)":`${u} permissions`}
                 </span>
               </td>
               <td style="font-size: 0.8rem; color: var(--text-muted);">
@@ -9191,7 +9191,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("create-admin-form"),a=document.getElementById("create-admin-alert"),d=document.getElementById("btn-submit-create");e.addEventListener("submit",async o=>{o.preventDefault();const n=document.getElementById("admin-name").value.trim(),r=document.getElementById("admin-email").value.trim(),c=document.getElementById("admin-phone").value.trim(),s=document.getElementById("admin-password").value,p=document.getElementById("admin-role-select").value,h=document.getElementById("admin-status-select").value,v=Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(u=>u.value);d.disabled=!0,d.innerHTML="<span>Creating...</span>",a.style.display="none";try{await x.adminCreate({name:n,email:r,phone:c,password:s,role:p,status:h,permissions:v}),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${n}' created successfully! Redirecting...`,setTimeout(()=>{window.navigateTo?window.navigateTo("/admin/admins"):window.location.hash="#/admin/admins"},1200)}catch(u){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=u.message||"Failed to create administrator.",d.disabled=!1,d.innerHTML='<i data-lucide="shield-check" style="width: 16px; height: 16px;"></i><span>Provision Administrator</span>',window.lucide&&window.lucide.createIcons()}})}async function PM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("create-admin-form"),a=document.getElementById("create-admin-alert"),d=document.getElementById("btn-submit-create");e.addEventListener("submit",async o=>{o.preventDefault();const n=document.getElementById("admin-name").value.trim(),r=document.getElementById("admin-email").value.trim(),c=document.getElementById("admin-phone").value.trim(),s=document.getElementById("admin-password").value,p=document.getElementById("admin-role-select").value,h=document.getElementById("admin-status-select").value,m=Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(y=>y.value);d.disabled=!0,d.innerHTML="<span>Creating...</span>",a.style.display="none";try{await x.adminCreate({name:n,email:r,phone:c,password:s,role:p,status:h,permissions:m}),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${n}' created successfully! Redirecting...`,setTimeout(()=>{window.navigateTo?window.navigateTo("/admin/admins"):window.location.hash="#/admin/admins"},1200)}catch(y){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=y.message||"Failed to create administrator.",d.disabled=!1,d.innerHTML='<i data-lucide="shield-check" style="width: 16px; height: 16px;"></i><span>Provision Administrator</span>',window.lucide&&window.lucide.createIcons()}})}async function PM(i){i.innerHTML=`
     <div style="display: flex; justify-content: center; padding: 2rem 0;">
       <div style="width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 2rem;">
         
@@ -9324,7 +9324,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading platform-wide pickup transfers...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{const[h,v]=await Promise.all([x.getPickups(),x.getAdminHotels()]);e=h.pickups||[],a=v.hotels||[],s()}catch(h){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickups: ${h.message}</div>`}}function s(){const h=e.filter(l=>{var M,w,k,H;const g=l.pickup||{},y=((M=l.booking_code)==null?void 0:M.toLowerCase().includes(d.toLowerCase()))||((w=l.customer_name)==null?void 0:w.toLowerCase().includes(d.toLowerCase()))||((k=l.hotel_name)==null?void 0:k.toLowerCase().includes(d.toLowerCase()))||((H=g.location_name)==null?void 0:H.toLowerCase().includes(d.toLowerCase())),S=o==="all"||g.status===o,b=n==="all"||l.hotel_id===n,f=r==="all"||g.type===r;return y&&S&&b&&f}),v=e.reduce((l,g)=>{var y;return l+(((y=g.pickup)==null?void 0:y.pickup_charge)||0)},0),u=e.filter(l=>{var g;return["confirmed","assigned","driver_on_way"].includes((g=l.pickup)==null?void 0:g.status)}).length,m=e.filter(l=>{var g;return((g=l.pickup)==null?void 0:g.status)==="completed"}).length;i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{const[h,m]=await Promise.all([x.getPickups(),x.getAdminHotels()]);e=h.pickups||[],a=m.hotels||[],s()}catch(h){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickups: ${h.message}</div>`}}function s(){const h=e.filter(l=>{var M,f,k,H;const v=l.pickup||{},g=((M=l.booking_code)==null?void 0:M.toLowerCase().includes(d.toLowerCase()))||((f=l.customer_name)==null?void 0:f.toLowerCase().includes(d.toLowerCase()))||((k=l.hotel_name)==null?void 0:k.toLowerCase().includes(d.toLowerCase()))||((H=v.location_name)==null?void 0:H.toLowerCase().includes(d.toLowerCase())),b=o==="all"||v.status===o,S=n==="all"||l.hotel_id===n,w=r==="all"||v.type===r;return g&&b&&S&&w}),m=e.reduce((l,v)=>{var g;return l+(((g=v.pickup)==null?void 0:g.pickup_charge)||0)},0),y=e.filter(l=>{var v;return["confirmed","assigned","driver_on_way"].includes((v=l.pickup)==null?void 0:v.status)}).length,u=e.filter(l=>{var v;return((v=l.pickup)==null?void 0:v.status)==="completed"}).length;i.innerHTML=`
       <!-- TOP METRIC CARDS -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
         <div class="panel-card" style="padding: 16px;">
@@ -9335,19 +9335,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
         <div class="panel-card" style="padding: 16px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active / On-Duty</div>
-          <div style="font-size: 1.6rem; font-weight: 900; color: var(--color-gold); margin-top: 4px;">${u}</div>
+          <div style="font-size: 1.6rem; font-weight: 900; color: var(--color-gold); margin-top: 4px;">${y}</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Confirmed or en route</div>
         </div>
 
         <div class="panel-card" style="padding: 16px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Completed Transfers</div>
-          <div style="font-size: 1.6rem; font-weight: 900; color: var(--status-success); margin-top: 4px;">${m}</div>
+          <div style="font-size: 1.6rem; font-weight: 900; color: var(--status-success); margin-top: 4px;">${u}</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Guests safely dropped</div>
         </div>
 
         <div class="panel-card" style="padding: 16px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pickup Gross Volume</div>
-          <div style="font-size: 1.6rem; font-weight: 900; color: var(--text-dark); margin-top: 4px;">₹${v.toLocaleString("en-IN")}</div>
+          <div style="font-size: 1.6rem; font-weight: 900; color: var(--text-dark); margin-top: 4px;">₹${m.toLocaleString("en-IN")}</div>
           <div style="font-size: 0.72rem; color: var(--status-success); margin-top: 2px;">100% Verified Revenue</div>
         </div>
       </div>
@@ -9403,7 +9403,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${h.length===0?`
                 <tr><td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted);">No transfer activity found matching criteria.</td></tr>
-              `:h.map(l=>{const g=l.pickup||{},y=g.driver||{};return`
+              `:h.map(l=>{const v=l.pickup||{},g=v.driver||{};return`
                   <tr>
                     <td>
                       <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${l.booking_code}</span>
@@ -9418,32 +9418,32 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                     </td>
                     <td>
                       <div style="font-weight: 700; color: var(--color-primary-dark); text-transform: capitalize;">
-                        ${g.type==="airport"?"✈️ Airport":g.type==="railway"?"🚆 Railway":g.type==="bus"?"🚌 Bus":"📍 Custom"}
+                        ${v.type==="airport"?"✈️ Airport":v.type==="railway"?"🚆 Railway":v.type==="bus"?"🚌 Bus":"📍 Custom"}
                       </div>
                       <div style="font-size: 0.75rem; color: var(--text-muted); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        ${g.location_name||"Designated Point"}
+                        ${v.location_name||"Designated Point"}
                       </div>
-                      ${g.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${g.flight_number}</div>`:""}
-                      ${g.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${g.train_number}</div>`:""}
+                      ${v.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${v.flight_number}</div>`:""}
+                      ${v.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${v.train_number}</div>`:""}
                     </td>
                     <td>
-                      <div style="font-weight: 600;">${g.pickup_time||"10:30 AM"}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${g.pickup_date||l.check_in_date}</div>
+                      <div style="font-weight: 600;">${v.pickup_time||"10:30 AM"}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${v.pickup_date||l.check_in_date}</div>
                     </td>
                     <td>
-                      <div style="font-weight: 700; color: #2E7D32;">${g.pickup_charge===0||g.pickup_service==="FREE"||g.service==="FREE"?"FREE (₹0)":`₹${(g.pickup_charge||0).toLocaleString("en-IN")}`}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${g.location_name||"Station Transfer"}</div>
+                      <div style="font-weight: 700; color: #2E7D32;">${v.pickup_charge===0||v.pickup_service==="FREE"||v.service==="FREE"?"FREE (₹0)":`₹${(v.pickup_charge||0).toLocaleString("en-IN")}`}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${v.location_name||"Station Transfer"}</div>
                     </td>
                     <td>
-                      ${y.name?`
-                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${y.name}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">${y.phone?"📞 "+y.phone:""} ${y.vehicle_number?`(${y.vehicle_number})`:""}</div>
+                      ${g.name?`
+                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${g.name}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">${g.phone?"📞 "+g.phone:""} ${g.vehicle_number?`(${g.vehicle_number})`:""}</div>
                       `:`
                         <span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">Unassigned</span>
                       `}
                     </td>
                     <td>
-                      <span class="status-pill ${g.status||"confirmed"}">${(g.status||"confirmed").replace("_"," ")}</span>
+                      <span class="status-pill ${v.status||"confirmed"}">${(v.status||"confirmed").replace("_"," ")}</span>
                     </td>
                   </tr>
                 `}).join("")}
@@ -9451,12 +9451,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,p(),window.lucide&&window.lucide.createIcons()}function p(){var h,v,u,m;(h=i.querySelector("#pickup-search-input"))==null||h.addEventListener("input",l=>{d=l.target.value,s()}),(v=i.querySelector("#pickup-hotel-filter"))==null||v.addEventListener("change",l=>{n=l.target.value,s()}),(u=i.querySelector("#pickup-type-filter"))==null||u.addEventListener("change",l=>{r=l.target.value,s()}),(m=i.querySelector("#pickup-status-filter"))==null||m.addEventListener("change",l=>{o=l.target.value,s()})}c()}async function qM(i){i.innerHTML=`
+    `,p(),window.lucide&&window.lucide.createIcons()}function p(){var h,m,y,u;(h=i.querySelector("#pickup-search-input"))==null||h.addEventListener("input",l=>{d=l.target.value,s()}),(m=i.querySelector("#pickup-hotel-filter"))==null||m.addEventListener("change",l=>{n=l.target.value,s()}),(y=i.querySelector("#pickup-type-filter"))==null||y.addEventListener("change",l=>{r=l.target.value,s()}),(u=i.querySelector("#pickup-status-filter"))==null||u.addEventListener("change",l=>{o=l.target.value,s()})}c()}async function qM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotel dashboard...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d]=await Promise.all([x.getHotelAdminDashboard().catch(()=>({})),x.getHotelAdminBookings().catch(()=>x.getOwnerBookings().catch(()=>({}))),x.getHotelAdminHotel().catch(()=>x.getOwnerHotels().catch(()=>({})))]),o=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_rooms:0,available_rooms:0,occupied_rooms:0,upcoming_checkins_count:0,todays_arrivals:0,todays_departures:0,hotel_revenue:0},n=(a==null?void 0:a.bookings)||[],r=(e==null?void 0:e.hotel)||(d==null?void 0:d.hotel)||(d!=null&&d.hotels?d.hotels[0]:null)||{},c=new Date().toISOString().slice(0,10),s=n.filter(u=>u.check_in_date===c&&u.booking_status==="confirmed"),p=n.filter(u=>u.check_out_date===c&&u.booking_status==="checked_in"),h=n.reduce((u,m)=>u+(m.total_amount||0),0),v=n.reduce((u,m)=>u+(m.owner_payout||Math.round(m.total_amount*.85)),0);i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d]=await Promise.all([x.getHotelAdminDashboard().catch(()=>({})),x.getHotelAdminBookings().catch(()=>x.getOwnerBookings().catch(()=>({}))),x.getHotelAdminHotel().catch(()=>x.getOwnerHotels().catch(()=>({})))]),o=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_rooms:0,available_rooms:0,occupied_rooms:0,upcoming_checkins_count:0,todays_arrivals:0,todays_departures:0,hotel_revenue:0},n=(a==null?void 0:a.bookings)||[],r=(e==null?void 0:e.hotel)||(d==null?void 0:d.hotel)||(d!=null&&d.hotels?d.hotels[0]:null)||{},c=new Date().toISOString().slice(0,10),s=n.filter(y=>y.check_in_date===c&&y.booking_status==="confirmed"),p=n.filter(y=>y.check_out_date===c&&y.booking_status==="checked_in"),h=n.reduce((y,u)=>y+(u.total_amount||0),0),m=n.reduce((y,u)=>y+(u.owner_payout||Math.round(u.total_amount*.85)),0);i.innerHTML=`
       <!-- Top Metrics Overview -->
       <div class="metrics-grid">
         <div class="metric-card">
@@ -9497,7 +9497,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Hotel Net Earnings</span>
             <div class="metric-icon-box gold"><i data-lucide="wallet"></i></div>
           </div>
-          <div class="metric-value">₹${v.toLocaleString("en-IN")}</div>
+          <div class="metric-value">₹${m.toLocaleString("en-IN")}</div>
           <div class="metric-footer">
             <span>85% Net Share (After 15% Platform Cut)</span>
           </div>
@@ -9574,19 +9574,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${n.length===0?`
                 <tr><td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">No bookings found for your property yet.</td></tr>
-              `:n.map(u=>`
+              `:n.map(y=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${u.booking_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${y.booking_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${u.customer_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${u.customer_phone||u.customer_email}</div>
+                    <div style="font-weight: 600;">${y.customer_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${y.customer_phone||y.customer_email}</div>
                   </td>
-                  <td>${u.room_name} (${u.guests_count} Guests)</td>
-                  <td><strong style="color: var(--color-primary);">${u.check_in_date}</strong></td>
-                  <td>${u.check_out_date} (${u.nights}n)</td>
-                  <td>₹${u.total_amount.toLocaleString("en-IN")}</td>
-                  <td style="font-weight: 700; color: var(--status-success);">₹${u.owner_payout.toLocaleString("en-IN")}</td>
-                  <td><span class="status-pill ${u.booking_status}">${u.booking_status.replace("_"," ")}</span></td>
+                  <td>${y.room_name} (${y.guests_count} Guests)</td>
+                  <td><strong style="color: var(--color-primary);">${y.check_in_date}</strong></td>
+                  <td>${y.check_out_date} (${y.nights}n)</td>
+                  <td>₹${y.total_amount.toLocaleString("en-IN")}</td>
+                  <td style="font-weight: 700; color: var(--status-success);">₹${y.owner_payout.toLocaleString("en-IN")}</td>
+                  <td><span class="status-pill ${y.booking_status}">${y.booking_status.replace("_"," ")}</span></td>
                 </tr>
               `).join("")}
             </tbody>
@@ -9598,10 +9598,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotel details...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{let M=function(C,V="info"){b&&(b.className=`upload-status-msg ${V}`,b.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{let k=function(C,V="info"){M&&(M.className=`upload-status-msg ${V}`,M.innerHTML=`
         <i data-lucide="${V==="error"?"alert-triangle":V==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
         <span>${C}</span>
-      `,b.style.display="flex",window.lucide&&window.lucide.createIcons())},w=function(){b&&(b.style.display="none",b.innerHTML="")},k=function(C){h=C,m.className="upload-dropzone has-preview",m.innerHTML=`
+      `,M.style.display="flex",window.lucide&&window.lucide.createIcons())},H=function(){M&&(M.style.display="none",M.innerHTML="")},P=function(C){h=C,v.className="upload-dropzone has-preview",v.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container" style="max-height: 240px;">
           <img src="${C}" alt="Property Cover" class="upload-preview-img" id="hotel-cover-preview-img" style="height: 240px; object-fit: cover;">
           <div class="upload-preview-badge">
@@ -9616,7 +9616,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),q()},H=function(){h="",m.className="upload-dropzone",m.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),R()},_=function(){h="",v.className="upload-dropzone",v.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 26px; height: 26px;"></i>
@@ -9627,14 +9627,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Photo
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),$()},$=function(){const C=m.querySelector("#btn-upload-cover-trigger");C&&(C.onclick=V=>{V.stopPropagation(),u&&u.click()}),m.onclick=()=>{!m.classList.contains("has-preview")&&u&&u.click()},m.ondragover=V=>{V.preventDefault(),m.classList.add("drag-over")},m.ondragleave=()=>{m.classList.remove("drag-over")},m.ondrop=V=>{V.preventDefault(),m.classList.remove("drag-over"),V.dataTransfer&&V.dataTransfer.files&&V.dataTransfer.files.length>0&&_(V.dataTransfer.files[0])}},q=function(){const C=m.querySelector("#btn-change-cover"),V=m.querySelector("#btn-remove-cover");C&&(C.onclick=E=>{E.stopPropagation(),u&&u.click()}),V&&(V.onclick=E=>{E.stopPropagation(),H(),M('Cover photo removed. Click "Save Property Changes" to apply.',"info")})};var e=M,a=w,d=k,o=H,n=$,r=q;const s=(await x.getOwnerHotels()).hotels;if(!s||s.length===0){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),E()},E=function(){const C=v.querySelector("#btn-upload-cover-trigger");C&&(C.onclick=V=>{V.stopPropagation(),l&&l.click()}),v.onclick=()=>{!v.classList.contains("has-preview")&&l&&l.click()},v.ondragover=V=>{V.preventDefault(),v.classList.add("drag-over")},v.ondragleave=()=>{v.classList.remove("drag-over")},v.ondrop=V=>{V.preventDefault(),v.classList.remove("drag-over"),V.dataTransfer&&V.dataTransfer.files&&V.dataTransfer.files.length>0&&q(V.dataTransfer.files[0])}},R=function(){const C=v.querySelector("#btn-change-cover"),V=v.querySelector("#btn-remove-cover");C&&(C.onclick=z=>{z.stopPropagation(),l&&l.click()}),V&&(V.onclick=z=>{z.stopPropagation(),_(),k('Cover photo removed. Click "Save Property Changes" to apply.',"info")})};var e=k,a=H,d=P,o=_,n=E,r=R;const s=(await x.getOwnerHotels()).hotels;if(!s||s.length===0){i.innerHTML=`
         <div class="panel-card" style="text-align: center; padding: 40px;">
           <i data-lucide="building" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;"></i>
           <h3 style="font-size: 1.1rem; color: var(--text-main);">No Hotel Registered Yet</h3>
           <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">Complete our multi-step onboarding wizard to register your property for admin review.</p>
           <a href="#/owner/onboard" class="btn btn-primary">Start Hotel Onboarding Wizard</a>
         </div>
-      `,window.lucide&&window.lucide.createIcons();return}const p=s[0];let h=p.cover_image||"",v=!1;i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons();return}const p=s[0];let h=p.cover_image||"",m=!1,y=!1,u=null;try{const C=await x.get("/hotel-admin/banners");if(C&&Array.isArray(C.banners)){const V=C.banners.filter(z=>z.is_active!==!1&&(z.image_url||z.cover_image)).sort((z,A)=>{const $=(Number(z.sort_order)||0)-(Number(A.sort_order)||0);return $!==0?$:new Date(z.created_at||0)-new Date(A.created_at||0)});if(V.length>0){y=!0,u=V[0];const z=u.image_url||u.cover_image;z&&(h=z)}}}catch{}i.innerHTML=`
       <div style="max-width: 820px;">
         <div class="panel-card">
           <div class="card-header">
@@ -9686,6 +9686,22 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 <label class="form-label" style="margin-bottom: 0;">Property Cover Photo</label>
                 <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">Max 5 MB • JPG, PNG, WEBP</span>
               </div>
+
+              ${y?`
+                <div style="background: rgba(128, 0, 32, 0.05); border: 1px solid rgba(128, 0, 32, 0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+                  <i data-lucide="info" style="width: 16px; height: 16px; color: #800020; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div style="font-size: 0.78rem; color: #4a1525; line-height: 1.45;">
+                    <strong>Synchronized with First Active Banner:</strong> Your lowest sort-order active promotional banner (Display Order: <strong>${(u==null?void 0:u.sort_order)??0}</strong>) is the active source of truth for your property's public cover photo. Any manual upload will be safely preserved as fallback when no banners are active.
+                  </div>
+                </div>
+              `:`
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+                  <i data-lucide="check-circle" style="width: 16px; height: 16px; color: #059669; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div style="font-size: 0.78rem; color: #065f46; line-height: 1.45;">
+                    <strong>Direct Cover Photo Active:</strong> No active promotional banners found. This image serves as your public property cover photo.
+                  </div>
+                </div>
+              `}
 
               <div class="room-photo-uploader" id="hotel-cover-uploader">
                 <!-- Hidden Native File Input -->
@@ -9752,7 +9768,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const u=i.querySelector("#hotel-cover-file-input"),m=i.querySelector("#hotel-cover-dropzone"),l=i.querySelector("#hotel-cover-progress-box"),g=i.querySelector("#hotel-cover-progress-fill"),y=i.querySelector("#hotel-cover-progress-percent"),S=i.querySelector("#hotel-cover-progress-label"),b=i.querySelector("#hotel-cover-status-box"),f=i.querySelector("#btn-save-hotel");async function _(C){if(!C)return;const V=["image/jpeg","image/jpg","image/png","image/webp"],E=C.name?C.name.split(".").pop().toLowerCase():"",D=["jpg","jpeg","png","webp"],B=V.includes((C.type||"").toLowerCase()),L=D.includes(E);if(!B&&!L){M("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const T=5*1024*1024;if(C.size>T){M(`File size exceeds 5 MB limit (${(C.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}w(),v=!0,f&&(f.disabled=!0),l.style.display="flex",g.style.width="0%",y.textContent="0%",S.textContent=`Uploading ${C.name}...`;try{const z=await x.uploadCoverImage(C,p.id,A=>{g.style.width=`${A}%`,y.textContent=`${A}%`});h=z.secure_url||z.url,k(h),M('Cover photo uploaded to Cloudinary! Click "Save Property Changes" to persist.',"success")}catch(z){console.error("Hotel cover upload failed:",z),M(z.message||"Cover photo upload failed. Please verify network or Cloudinary configuration.","error")}finally{v=!1,l.style.display="none",f&&(f.disabled=!1),u&&(u.value="")}}u&&(u.onchange=C=>{C.target.files&&C.target.files.length>0&&_(C.target.files[0])}),h?q():$(),f==null||f.addEventListener("click",async()=>{var D;if(v){(D=window.showToast)==null||D.call(window,"Please wait until image upload completes before saving.","error");return}const C=Array.from(i.querySelectorAll(".amenity-checkbox:checked")).map(B=>B.value),V={name:i.querySelector("#edit-hotel-name").value,hotel_type:i.querySelector("#edit-hotel-type").value,city:i.querySelector("#edit-hotel-city").value,state:i.querySelector("#edit-hotel-state").value,address:i.querySelector("#edit-hotel-address").value,description:i.querySelector("#edit-hotel-desc").value,cover_image:h,amenities:C},E=f.innerHTML;f.disabled=!0,f.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons();try{await x.updateHotel(p.id,V),p.cover_image=h,p.name=V.name,M("Property details and cover photo saved successfully.","success"),window.showToast&&window.showToast("Hotel details and cover photo saved successfully.","success")}catch(B){console.error("Save hotel failed:",B),M(B.message||"Failed to save property changes. You can retry saving without re-uploading.","error"),window.showToast&&window.showToast(B.message||"Failed to save hotel details.","error")}finally{f.disabled=!1,f.innerHTML=E,window.lucide&&window.lucide.createIcons()}})}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}async function BM(i){let e=null,a=[];i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const l=i.querySelector("#hotel-cover-file-input"),v=i.querySelector("#hotel-cover-dropzone"),g=i.querySelector("#hotel-cover-progress-box"),b=i.querySelector("#hotel-cover-progress-fill"),S=i.querySelector("#hotel-cover-progress-percent"),w=i.querySelector("#hotel-cover-progress-label"),M=i.querySelector("#hotel-cover-status-box"),f=i.querySelector("#btn-save-hotel");async function q(C){if(!C)return;const V=["image/jpeg","image/jpg","image/png","image/webp"],z=C.name?C.name.split(".").pop().toLowerCase():"",A=["jpg","jpeg","png","webp"],$=V.includes((C.type||"").toLowerCase()),B=A.includes(z);if(!$&&!B){k("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const L=5*1024*1024;if(C.size>L){k(`File size exceeds 5 MB limit (${(C.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}H(),m=!0,f&&(f.disabled=!0),g.style.display="flex",b.style.width="0%",S.textContent="0%",w.textContent=`Uploading ${C.name}...`;try{const T=await x.uploadCoverImage(C,p.id,D=>{b.style.width=`${D}%`,S.textContent=`${D}%`});h=T.secure_url||T.url,P(h),k('Cover photo uploaded to Cloudinary! Click "Save Property Changes" to persist.',"success")}catch(T){console.error("Hotel cover upload failed:",T),k(T.message||"Cover photo upload failed. Please verify network or Cloudinary configuration.","error")}finally{m=!1,g.style.display="none",f&&(f.disabled=!1),l&&(l.value="")}}l&&(l.onchange=C=>{C.target.files&&C.target.files.length>0&&q(C.target.files[0])}),h?R():E(),f==null||f.addEventListener("click",async()=>{var A;if(m){(A=window.showToast)==null||A.call(window,"Please wait until image upload completes before saving.","error");return}const C=Array.from(i.querySelectorAll(".amenity-checkbox:checked")).map($=>$.value),V={name:i.querySelector("#edit-hotel-name").value,hotel_type:i.querySelector("#edit-hotel-type").value,city:i.querySelector("#edit-hotel-city").value,state:i.querySelector("#edit-hotel-state").value,address:i.querySelector("#edit-hotel-address").value,description:i.querySelector("#edit-hotel-desc").value,cover_image:h,amenities:C},z=f.innerHTML;f.disabled=!0,f.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons();try{await x.updateHotel(p.id,V),p.cover_image=h,p.name=V.name,k("Property details and cover photo saved successfully.","success"),window.showToast&&window.showToast("Hotel details and cover photo saved successfully.","success")}catch($){console.error("Save hotel failed:",$),k($.message||"Failed to save property changes. You can retry saving without re-uploading.","error"),window.showToast&&window.showToast($.message||"Failed to save hotel details.","error")}finally{f.disabled=!1,f.innerHTML=z,window.lucide&&window.lucide.createIcons()}})}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}async function BM(i){let e=null,a=[];i.innerHTML=`
     <div class="card fade-in">
       <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
@@ -9768,6 +9784,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <i data-lucide="loader-2" class="spin" style="width: 32px; height: 32px; margin-bottom: 12px;"></i>
           <p>Loading banners...</p>
         </div>
+        <div style="background: rgba(128, 0, 32, 0.05); border: 1px solid rgba(128, 0, 32, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #800020; flex-shrink: 0;"></i>
+          <span style="font-size: 13px; color: #475569;">
+            The active promotional banner with the lowest display order automatically becomes your hotel's <strong>Primary Cover Photo</strong> across Property Details and Customer App.
+          </span>
+        </div>
         <div id="banners-error" class="alert alert-error" style="display: none; margin-bottom: 16px;"></div>
         <div id="banners-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; display: none;">
           <!-- Banners go here -->
@@ -9777,50 +9799,58 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
     <!-- Modal container root -->
     <div id="banner-modal-root"></div>
-  `,window.lucide&&window.lucide.createIcons();const d=i.querySelector("#banners-grid"),o=i.querySelector("#banners-loading"),n=i.querySelector("#banners-error"),r=i.querySelector("#banners-subtitle"),c=i.querySelector("#btn-add-banner"),s=i.querySelector("#banner-modal-root");try{const v=await x.getOwnerHotels();v&&v.hotels&&v.hotels.length>0&&(e=v.hotels[0],r.textContent=`Manage promotional slider images for ${e.name}.`)}catch(v){console.warn("Could not fetch hotel details:",v.message)}async function p(){var v;try{o.style.display="block",d.style.display="none",n.style.display="none";const u=await x.get("/hotel-admin/banners");if(o.style.display="none",!u.success){n.textContent=u.message||"Failed to load banners.",n.style.display="block";return}a=u.banners||[],d.innerHTML="",a.length===0?(d.style.display="block",d.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const d=i.querySelector("#banners-grid"),o=i.querySelector("#banners-loading"),n=i.querySelector("#banners-error"),r=i.querySelector("#banners-subtitle"),c=i.querySelector("#btn-add-banner"),s=i.querySelector("#banner-modal-root");try{const m=await x.getOwnerHotels();m&&m.hotels&&m.hotels.length>0&&(e=m.hotels[0],r.textContent=`Manage promotional slider images for ${e.name}.`)}catch(m){console.warn("Could not fetch hotel details:",m.message)}async function p(){var m;try{o.style.display="block",d.style.display="none",n.style.display="none";const y=await x.get("/hotel-admin/banners");if(o.style.display="none",!y.success){n.textContent=y.message||"Failed to load banners.",n.style.display="block";return}if(a=y.banners||[],d.innerHTML="",a.length===0)d.style.display="block",d.innerHTML=`
           <div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
             <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
             <p style="font-weight: 500; font-size: 16px; margin-bottom: 8px;">No Banners Found</p>
-            <p style="font-size: 14px; margin-bottom: 16px;">Upload your first promotional banner to showcase on the customer app.</p>
+            <p style="font-size: 14px; margin-bottom: 16px;">Upload your first promotional banner to showcase on the customer app and set your cover photo.</p>
             <button id="btn-empty-add-banner" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
               <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Banner Now
             </button>
           </div>
-        `,window.lucide&&window.lucide.createIcons(),(v=d.querySelector("#btn-empty-add-banner"))==null||v.addEventListener("click",()=>h())):(d.style.display="grid",a.forEach(m=>{const l=document.createElement("div");l.className="card",l.style.overflow="hidden",l.innerHTML=`
+        `,window.lucide&&window.lucide.createIcons(),(m=d.querySelector("#btn-empty-add-banner"))==null||m.addEventListener("click",()=>h());else{d.style.display="grid";const u=a.filter(v=>v.is_active!==!1&&(v.image_url||v.cover_image)).slice().sort((v,g)=>{const b=(Number(v.sort_order)||0)-(Number(g.sort_order)||0);return b!==0?b:new Date(v.created_at||0)-new Date(g.created_at||0)}),l=u.length>0?u[0].id:null;a.forEach(v=>{const g=v.id===l,b=document.createElement("div");b.className="card",b.style.overflow="hidden",g&&(b.style.border="2px solid #800020",b.style.boxShadow="0 4px 14px rgba(128, 0, 32, 0.15)"),b.innerHTML=`
             <div style="height: 160px; background: #e2e8f0; position: relative;">
-              <img src="${m.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400x200?text=Invalid+Image'" />
-              ${m.is_active?"":'<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; letter-spacing: 0.05em;">INACTIVE</div>'}
-              <div style="position: absolute; top: 8px; right: 8px; background: ${m.is_active?"#10b981":"#64748b"}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                ${m.is_active?"ACTIVE":"INACTIVE"}
+              <img src="${v.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400x200?text=Invalid+Image'" />
+              ${v.is_active?"":'<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; letter-spacing: 0.05em;">INACTIVE</div>'}
+              ${g?`
+                <div style="position: absolute; top: 8px; left: 8px; background: #800020; color: #ffffff; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 0.03em;">
+                  <i data-lucide="star" style="width: 11px; height: 11px; fill: #fbbf24; stroke: #fbbf24;"></i> PRIMARY COVER PHOTO
+                </div>
+              `:""}
+              <div style="position: absolute; top: 8px; right: 8px; background: ${v.is_active?"#10b981":"#64748b"}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                ${v.is_active?"ACTIVE":"INACTIVE"}
               </div>
             </div>
             <div style="padding: 16px;">
-              <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #0f172a; font-weight: 600;">${m.title||"Untitled Banner"}</h4>
-              <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">Display Order: <strong>${m.sort_order??0}</strong></p>
+              <h4 style="margin: 0 0 4px 0; font-size: 15px; color: #0f172a; font-weight: 600;">${v.title||"Untitled Banner"}</h4>
+              <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">
+                Display Order: <strong>${v.sort_order??0}</strong>
+                ${g?'<span style="margin-left: 6px; color: #800020; font-weight: 600;">(Syncs as Hotel Cover)</span>':""}
+              </p>
               
               <div style="display: flex; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 12px;">
-                <button class="btn-edit" data-id="${m.id}" style="background: none; border: none; color: #3b82f6; font-weight: 500; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                <button class="btn-edit" data-id="${v.id}" style="background: none; border: none; color: #3b82f6; font-weight: 500; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; gap: 4px;">
                   <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Edit
                 </button>
-                <button class="btn-toggle" data-id="${m.id}" data-active="${m.is_active}" style="background: none; border: none; color: ${m.is_active?"#f59e0b":"#10b981"}; font-weight: 500; cursor: pointer; padding: 4px;">
-                  ${m.is_active?"Disable":"Enable"}
+                <button class="btn-toggle" data-id="${v.id}" data-active="${v.is_active}" style="background: none; border: none; color: ${v.is_active?"#f59e0b":"#10b981"}; font-weight: 500; cursor: pointer; padding: 4px;">
+                  ${v.is_active?"Disable":"Enable"}
                 </button>
-                <button class="btn-delete" data-id="${m.id}" style="background: none; border: none; color: #ef4444; font-weight: 500; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                <button class="btn-delete" data-id="${v.id}" style="background: none; border: none; color: #ef4444; font-weight: 500; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; gap: 4px;">
                   <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete
                 </button>
               </div>
             </div>
-          `,d.appendChild(l)}),d.querySelectorAll(".btn-edit").forEach(m=>{m.addEventListener("click",()=>{const l=a.find(g=>g.id===m.dataset.id);l&&h(l)})}),d.querySelectorAll(".btn-toggle").forEach(m=>{m.addEventListener("click",async()=>{const l=m.dataset.id,g=m.dataset.active==="true";if(confirm(`Are you sure you want to ${g?"disable":"enable"} this banner?`))try{m.textContent="...",await x.patch(`/hotel-admin/banners/${l}/status`,{is_active:!g}),window.showToast("Banner status updated","success"),p()}catch(y){window.showToast(y.message,"error"),p()}})}),d.querySelectorAll(".btn-delete").forEach(m=>{m.addEventListener("click",async()=>{if(confirm("Are you sure you want to delete this banner permanently?"))try{m.textContent="...",await x.delete(`/hotel-admin/banners/${m.dataset.id}`),window.showToast("Banner deleted successfully","success"),p()}catch(l){window.showToast(l.message,"error"),p()}})})),window.lucide&&window.lucide.createIcons()}catch(u){o.style.display="none",n.textContent=u.message,n.style.display="block"}}function h(v=null){var T,z;const u=!!v;let m=v?v.image_url:"",l=v?v.image_public_id:null,g=!1;s.innerHTML=`
+          `,d.appendChild(b)}),d.querySelectorAll(".btn-edit").forEach(v=>{v.addEventListener("click",()=>{const g=a.find(b=>b.id===v.dataset.id);g&&h(g)})}),d.querySelectorAll(".btn-toggle").forEach(v=>{v.addEventListener("click",async()=>{const g=v.dataset.id,b=v.dataset.active==="true";if(confirm(`Are you sure you want to ${b?"disable":"enable"} this banner?`))try{v.textContent="...",await x.patch(`/hotel-admin/banners/${g}/status`,{is_active:!b}),window.showToast("Banner status updated","success"),p()}catch(S){window.showToast(S.message,"error"),p()}})}),d.querySelectorAll(".btn-delete").forEach(v=>{v.addEventListener("click",async()=>{if(confirm("Are you sure you want to delete this banner permanently?"))try{v.textContent="...",await x.delete(`/hotel-admin/banners/${v.dataset.id}`),window.showToast("Banner deleted successfully","success"),p()}catch(g){window.showToast(g.message,"error"),p()}})})}window.lucide&&window.lucide.createIcons()}catch(y){o.style.display="none",n.textContent=y.message,n.style.display="block"}}function h(m=null){var $,B;const y=!!m;let u=m?m.image_url:"",l=m?m.image_public_id:null,v=!1;s.innerHTML=`
       <div class="modal-overlay active" id="modal-banner-overlay" style="display: flex;">
         <div class="modal-container" style="max-width: 540px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
-            <h3 class="modal-title">${u?"Edit Banner":"Add New Promotional Banner"}</h3>
+            <h3 class="modal-title">${y?"Edit Banner":"Add New Promotional Banner"}</h3>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
           <form id="form-banner" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; margin: 0;">
             <div class="modal-body" style="overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 20px;">
-              <input type="hidden" id="banner-id" value="${v?v.id:""}" />
+              <input type="hidden" id="banner-id" value="${m?m.id:""}" />
 
               <!-- Property Selection (Locked to authorized hotel) -->
               <div class="form-group" style="margin-bottom: 16px;">
@@ -9835,7 +9865,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <!-- Banner Title -->
               <div class="form-group" style="margin-bottom: 16px;">
                 <label class="form-label" for="banner-title">Banner Title (Optional)</label>
-                <input type="text" id="banner-title" class="form-input" placeholder="e.g. Summer Weekend Getaway Special" value="${v&&v.title?v.title:""}" />
+                <input type="text" id="banner-title" class="form-input" placeholder="e.g. Summer Weekend Getaway Special" value="${m&&m.title?m.title:""}" />
                 <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">Displayed as a headline caption on promotional hero carousels.</p>
               </div>
 
@@ -9851,10 +9881,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                   <input type="file" id="banner-photo-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;" />
 
                   <!-- Dropzone / Preview Area -->
-                  <div class="upload-dropzone ${m?"has-preview":""}" id="banner-photo-dropzone">
-                    ${m?`
+                  <div class="upload-dropzone ${u?"has-preview":""}" id="banner-photo-dropzone">
+                    ${u?`
                       <div class="upload-preview-wrapper" id="upload-preview-container">
-                        <img src="${m}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
+                        <img src="${u}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
                         <div class="upload-preview-badge">
                           <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
                         </div>
@@ -9901,14 +9931,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="form-group">
                   <label class="form-label" for="banner-order">Display Order</label>
-                  <input type="number" id="banner-order" class="form-input" min="0" value="${v?v.sort_order??0:0}" />
+                  <input type="number" id="banner-order" class="form-input" min="0" value="${m?m.sort_order??0:0}" />
                   <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">Lower numbers appear first.</p>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="banner-status">Status</label>
                   <select id="banner-status" class="form-input">
-                    <option value="true" ${!v||v.is_active!==!1?"selected":""}>Active</option>
-                    <option value="false" ${v&&v.is_active===!1?"selected":""}>Inactive</option>
+                    <option value="true" ${!m||m.is_active!==!1?"selected":""}>Active</option>
+                    <option value="false" ${m&&m.is_active===!1?"selected":""}>Inactive</option>
                   </select>
                   <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">Active banners are visible to guests.</p>
                 </div>
@@ -9919,18 +9949,18 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div class="modal-footer" style="flex-shrink: 0; background: var(--bg-surface-secondary, #f8fafc); border-top: 1px solid var(--border-light, #e2e8f0); padding: 14px 20px; z-index: 10;">
               <button type="button" class="btn btn-secondary" id="btn-cancel-banner">Cancel</button>
               <button type="submit" class="btn btn-primary" id="btn-save-banner">
-                ${u?"Update Banner":"Save Banner"}
+                ${y?"Update Banner":"Save Banner"}
               </button>
             </div>
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const y=s.querySelector("#banner-photo-file-input"),S=s.querySelector("#banner-photo-dropzone"),b=s.querySelector("#upload-progress-box"),f=s.querySelector("#upload-progress-fill"),M=s.querySelector("#upload-progress-percent"),w=s.querySelector("#upload-progress-label"),k=s.querySelector("#upload-status-box"),H=s.querySelector("#btn-save-banner"),_=s.querySelector("#form-banner");function $(A,P="info"){k&&(k.className=`upload-status-msg ${P}`,k.innerHTML=`
-        <i data-lucide="${P==="error"?"alert-triangle":P==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-        <span>${A}</span>
-      `,k.style.display="flex",window.lucide&&window.lucide.createIcons())}function q(){k&&(k.style.display="none",k.innerHTML="")}function C(A){m=A,S.className="upload-dropzone has-preview",S.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const g=s.querySelector("#banner-photo-file-input"),b=s.querySelector("#banner-photo-dropzone"),S=s.querySelector("#upload-progress-box"),w=s.querySelector("#upload-progress-fill"),M=s.querySelector("#upload-progress-percent"),f=s.querySelector("#upload-progress-label"),k=s.querySelector("#upload-status-box"),H=s.querySelector("#btn-save-banner"),P=s.querySelector("#form-banner");function _(L,T="info"){k&&(k.className=`upload-status-msg ${T}`,k.innerHTML=`
+        <i data-lucide="${T==="error"?"alert-triangle":T==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+        <span>${L}</span>
+      `,k.style.display="flex",window.lucide&&window.lucide.createIcons())}function q(){k&&(k.style.display="none",k.innerHTML="")}function E(L){u=L,b.className="upload-dropzone has-preview",b.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container">
-          <img src="${A}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
+          <img src="${L}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
           <div class="upload-preview-badge">
             <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
           </div>
@@ -9943,7 +9973,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),B()}function V(){m="",l=null,S.className="upload-dropzone",S.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),z()}function R(){u="",l=null,b.className="upload-dropzone",b.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 28px; height: 28px;"></i>
@@ -9954,7 +9984,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),D()}async function E(A){if(!A)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(A.type.toLowerCase())){$("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const R=5*1024*1024;if(A.size>R){$(`File size exceeds 5 MB limit (${(A.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}q(),g=!0,H&&(H.disabled=!0),b.style.display="flex",f.style.width="0%",M.textContent="0%",w.textContent=`Uploading ${A.name}...`;try{const O=await x.uploadBannerImage(A,e?e.id:null,F=>{f.style.width=`${F}%`,M.textContent=`${F}%`});m=O.secure_url,l=O.public_id||null,C(m),$("Image uploaded securely to Cloudinary!","success")}catch(O){console.error("Banner upload failed:",O),$(O.message||"Image upload failed. Please check network or Cloudinary configuration.","error")}finally{g=!1,b.style.display="none",H&&(H.disabled=!1),y&&(y.value="")}}function D(){const A=S.querySelector("#btn-browse-trigger");A==null||A.addEventListener("click",P=>{P.stopPropagation(),y==null||y.click()})}function B(){var A,P;(A=S.querySelector("#btn-replace-image"))==null||A.addEventListener("click",R=>{R.stopPropagation(),y==null||y.click()}),(P=S.querySelector("#btn-remove-image"))==null||P.addEventListener("click",R=>{R.stopPropagation(),V(),q()})}S.addEventListener("click",()=>{!m&&!g&&(y==null||y.click())}),y==null||y.addEventListener("change",A=>{A.target.files&&A.target.files[0]&&E(A.target.files[0])}),["dragenter","dragover"].forEach(A=>{S.addEventListener(A,P=>{P.preventDefault(),P.stopPropagation(),S.classList.add("drag-over")})}),["dragleave","drop"].forEach(A=>{S.addEventListener(A,P=>{P.preventDefault(),P.stopPropagation(),S.classList.remove("drag-over")})}),S.addEventListener("drop",A=>{var R;if(g)return;const P=(R=A.dataTransfer)==null?void 0:R.files;P&&P.length>0&&E(P[0])}),m?B():D();const L=()=>{s.innerHTML=""};(T=s.querySelector("#modal-close"))==null||T.addEventListener("click",L),(z=s.querySelector("#btn-cancel-banner"))==null||z.addEventListener("click",L),_==null||_.addEventListener("submit",async A=>{if(A.preventDefault(),g){window.showToast("Please wait for image upload to complete.","warning");return}if(!m){$("Banner image is required. Please upload an image first.","error"),window.showToast("Please upload a banner image before saving.","error");return}const P=s.querySelector("#banner-id").value,R={title:s.querySelector("#banner-title").value.trim(),image_url:m,image_public_id:l,sort_order:parseInt(s.querySelector("#banner-order").value)||0,is_active:s.querySelector("#banner-status").value==="true"};e&&(R.hotel_id=e.id);const O=H.textContent;H.textContent="Saving...",H.disabled=!0;try{P?(await x.put(`/hotel-admin/banners/${P}`,R),window.showToast("Banner updated successfully","success")):(await x.post("/hotel-admin/banners",R),window.showToast("Banner created successfully","success")),L(),p()}catch(F){window.showToast(F.message,"error"),$(F.message,"error")}finally{H.textContent=O,H.disabled=!1}})}c.addEventListener("click",()=>h()),p()}async function DM(i){let e=[];async function a(){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),V()}async function C(L){if(!L)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(L.type.toLowerCase())){_("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const D=5*1024*1024;if(L.size>D){_(`File size exceeds 5 MB limit (${(L.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}q(),v=!0,H&&(H.disabled=!0),S.style.display="flex",w.style.width="0%",M.textContent="0%",f.textContent=`Uploading ${L.name}...`;try{const O=await x.uploadBannerImage(L,e?e.id:null,F=>{w.style.width=`${F}%`,M.textContent=`${F}%`});u=O.secure_url,l=O.public_id||null,E(u),_("Image uploaded securely to Cloudinary!","success")}catch(O){console.error("Banner upload failed:",O),_(O.message||"Image upload failed. Please check network or Cloudinary configuration.","error")}finally{v=!1,S.style.display="none",H&&(H.disabled=!1),g&&(g.value="")}}function V(){const L=b.querySelector("#btn-browse-trigger");L==null||L.addEventListener("click",T=>{T.stopPropagation(),g==null||g.click()})}function z(){var L,T;(L=b.querySelector("#btn-replace-image"))==null||L.addEventListener("click",D=>{D.stopPropagation(),g==null||g.click()}),(T=b.querySelector("#btn-remove-image"))==null||T.addEventListener("click",D=>{D.stopPropagation(),R(),q()})}b.addEventListener("click",()=>{!u&&!v&&(g==null||g.click())}),g==null||g.addEventListener("change",L=>{L.target.files&&L.target.files[0]&&C(L.target.files[0])}),["dragenter","dragover"].forEach(L=>{b.addEventListener(L,T=>{T.preventDefault(),T.stopPropagation(),b.classList.add("drag-over")})}),["dragleave","drop"].forEach(L=>{b.addEventListener(L,T=>{T.preventDefault(),T.stopPropagation(),b.classList.remove("drag-over")})}),b.addEventListener("drop",L=>{var D;if(v)return;const T=(D=L.dataTransfer)==null?void 0:D.files;T&&T.length>0&&C(T[0])}),u?z():V();const A=()=>{s.innerHTML=""};($=s.querySelector("#modal-close"))==null||$.addEventListener("click",A),(B=s.querySelector("#btn-cancel-banner"))==null||B.addEventListener("click",A),P==null||P.addEventListener("submit",async L=>{if(L.preventDefault(),v){window.showToast("Please wait for image upload to complete.","warning");return}if(!u){_("Banner image is required. Please upload an image first.","error"),window.showToast("Please upload a banner image before saving.","error");return}const T=s.querySelector("#banner-id").value,D={title:s.querySelector("#banner-title").value.trim(),image_url:u,image_public_id:l,sort_order:parseInt(s.querySelector("#banner-order").value)||0,is_active:s.querySelector("#banner-status").value==="true"};e&&(D.hotel_id=e.id);const O=H.textContent;H.textContent="Saving...",H.disabled=!0;try{T?(await x.put(`/hotel-admin/banners/${T}`,D),window.showToast("Banner updated successfully","success")):(await x.post("/hotel-admin/banners",D),window.showToast("Banner created successfully","success")),A(),p()}catch(F){window.showToast(F.message,"error"),_(F.message,"error")}finally{H.textContent=O,H.disabled=!1}})}c.addEventListener("click",()=>h()),p()}async function DM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading room inventory...</p>
@@ -10011,7 +10041,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="room-modal-root"></div>
-    `,o(r.id),window.lucide&&window.lucide.createIcons()}function o(r){var c;(c=i.querySelector("#btn-add-room"))==null||c.addEventListener("click",()=>{n(r,null)}),i.querySelectorAll(".btn-edit-room").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-room-id"),h=e[0].rooms.find(v=>v.id===p);n(r,h)})})}function n(r,c){var E,D,B;const s=i.querySelector("#room-modal-root"),p=!!c;let h=c&&c.photos&&c.photos[0]?c.photos[0]:"",v=c&&c.photo_public_id?c.photo_public_id:null,u=!1;s.innerHTML=`
+    `,o(r.id),window.lucide&&window.lucide.createIcons()}function o(r){var c;(c=i.querySelector("#btn-add-room"))==null||c.addEventListener("click",()=>{n(r,null)}),i.querySelectorAll(".btn-edit-room").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-room-id"),h=e[0].rooms.find(m=>m.id===p);n(r,h)})})}function n(r,c){var C,V,z;const s=i.querySelector("#room-modal-root"),p=!!c;let h=c&&c.photos&&c.photos[0]?c.photos[0]:"",m=c&&c.photo_public_id?c.photo_public_id:null,y=!1;s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
@@ -10124,12 +10154,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const m=s.querySelector("#room-photo-file-input"),l=s.querySelector("#room-photo-dropzone"),g=s.querySelector("#upload-progress-box"),y=s.querySelector("#upload-progress-fill"),S=s.querySelector("#upload-progress-percent"),b=s.querySelector("#upload-progress-label"),f=s.querySelector("#upload-status-box"),M=s.querySelector("#btn-submit-room");function w(L,T="info"){f&&(f.className=`upload-status-msg ${T}`,f.innerHTML=`
-        <i data-lucide="${T==="error"?"alert-triangle":T==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-        <span>${L}</span>
-      `,f.style.display="flex",window.lucide&&window.lucide.createIcons())}function k(){f&&(f.style.display="none",f.innerHTML="")}function H(L){h=L,l.className="upload-dropzone has-preview",l.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const u=s.querySelector("#room-photo-file-input"),l=s.querySelector("#room-photo-dropzone"),v=s.querySelector("#upload-progress-box"),g=s.querySelector("#upload-progress-fill"),b=s.querySelector("#upload-progress-percent"),S=s.querySelector("#upload-progress-label"),w=s.querySelector("#upload-status-box"),M=s.querySelector("#btn-submit-room");function f(A,$="info"){w&&(w.className=`upload-status-msg ${$}`,w.innerHTML=`
+        <i data-lucide="${$==="error"?"alert-triangle":$==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+        <span>${A}</span>
+      `,w.style.display="flex",window.lucide&&window.lucide.createIcons())}function k(){w&&(w.style.display="none",w.innerHTML="")}function H(A){h=A,l.className="upload-dropzone has-preview",l.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container">
-          <img src="${L}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
+          <img src="${A}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
           <div class="upload-preview-badge">
             <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
           </div>
@@ -10142,7 +10172,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),C()}function _(){h="",v=null,l.className="upload-dropzone",l.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),E()}function P(){h="",m=null,l.className="upload-dropzone",l.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 24px; height: 24px;"></i>
@@ -10153,18 +10183,18 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),q()}async function $(L){if(!L)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(L.type.toLowerCase())){w("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const z=5*1024*1024;if(L.size>z){w(`File size exceeds 5 MB limit (${(L.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}k(),u=!0,M&&(M.disabled=!0),g.style.display="flex",y.style.width="0%",S.textContent="0%",b.textContent=`Uploading ${L.name}...`;try{const A=await x.uploadRoomImage(L,r,P=>{y.style.width=`${P}%`,S.textContent=`${P}%`});h=A.secure_url,v=A.public_id||null,H(h),w("Image uploaded securely to Cloudinary!","success")}catch(A){console.error("Room image upload failed:",A),w(A.message||"Image upload failed. Please check your network or Cloudinary configuration.","error")}finally{u=!1,g.style.display="none",M&&(M.disabled=!1),m&&(m.value="")}}function q(){const L=l.querySelector("#btn-browse-trigger");L==null||L.addEventListener("click",T=>{T.stopPropagation(),m==null||m.click()})}function C(){var L,T;(L=l.querySelector("#btn-replace-image"))==null||L.addEventListener("click",z=>{z.stopPropagation(),m==null||m.click()}),(T=l.querySelector("#btn-remove-image"))==null||T.addEventListener("click",z=>{z.stopPropagation(),_(),k()})}l.addEventListener("click",()=>{!h&&!u&&(m==null||m.click())}),m==null||m.addEventListener("change",L=>{L.target.files&&L.target.files[0]&&$(L.target.files[0])}),["dragenter","dragover"].forEach(L=>{l.addEventListener(L,T=>{T.preventDefault(),T.stopPropagation(),l.classList.add("drag-over")})}),["dragleave","drop"].forEach(L=>{l.addEventListener(L,T=>{T.preventDefault(),T.stopPropagation(),l.classList.remove("drag-over")})}),l.addEventListener("drop",L=>{var z;if(u)return;const T=(z=L.dataTransfer)==null?void 0:z.files;T&&T.length>0&&$(T[0])}),h?C():q();const V=()=>{s.innerHTML=""};(E=s.querySelector("#modal-close"))==null||E.addEventListener("click",V),(D=s.querySelector("#modal-close-action"))==null||D.addEventListener("click",V),(B=s.querySelector("#room-form"))==null||B.addEventListener("submit",async L=>{if(L.preventDefault(),u){window.showToast("Please wait for image upload to complete.","warning");return}if(!h){w("Please upload a room photo before proceeding.","error"),window.showToast("Room photo is required.","error");return}const T={hotel_id:r,room_name:s.querySelector("#room-name").value.trim(),room_type:s.querySelector("#room-type").value,max_guests:Number(s.querySelector("#room-capacity").value),price_per_night:Number(s.querySelector("#room-price").value),total_inventory:Number(s.querySelector("#room-inventory").value),description:s.querySelector("#room-desc").value.trim(),photos:[h],photo_public_id:v};try{p?(await x.updateRoom(c.id,T),window.showToast("Room category updated successfully.","success")):(await x.createRoom(T),window.showToast("New room category created successfully.","success")),V(),a()}catch(z){window.showToast(z.message,"error")}})}a()}async function RM(i){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),q()}async function _(A){if(!A)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(A.type.toLowerCase())){f("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const B=5*1024*1024;if(A.size>B){f(`File size exceeds 5 MB limit (${(A.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}k(),y=!0,M&&(M.disabled=!0),v.style.display="flex",g.style.width="0%",b.textContent="0%",S.textContent=`Uploading ${A.name}...`;try{const L=await x.uploadRoomImage(A,r,T=>{g.style.width=`${T}%`,b.textContent=`${T}%`});h=L.secure_url,m=L.public_id||null,H(h),f("Image uploaded securely to Cloudinary!","success")}catch(L){console.error("Room image upload failed:",L),f(L.message||"Image upload failed. Please check your network or Cloudinary configuration.","error")}finally{y=!1,v.style.display="none",M&&(M.disabled=!1),u&&(u.value="")}}function q(){const A=l.querySelector("#btn-browse-trigger");A==null||A.addEventListener("click",$=>{$.stopPropagation(),u==null||u.click()})}function E(){var A,$;(A=l.querySelector("#btn-replace-image"))==null||A.addEventListener("click",B=>{B.stopPropagation(),u==null||u.click()}),($=l.querySelector("#btn-remove-image"))==null||$.addEventListener("click",B=>{B.stopPropagation(),P(),k()})}l.addEventListener("click",()=>{!h&&!y&&(u==null||u.click())}),u==null||u.addEventListener("change",A=>{A.target.files&&A.target.files[0]&&_(A.target.files[0])}),["dragenter","dragover"].forEach(A=>{l.addEventListener(A,$=>{$.preventDefault(),$.stopPropagation(),l.classList.add("drag-over")})}),["dragleave","drop"].forEach(A=>{l.addEventListener(A,$=>{$.preventDefault(),$.stopPropagation(),l.classList.remove("drag-over")})}),l.addEventListener("drop",A=>{var B;if(y)return;const $=(B=A.dataTransfer)==null?void 0:B.files;$&&$.length>0&&_($[0])}),h?E():q();const R=()=>{s.innerHTML=""};(C=s.querySelector("#modal-close"))==null||C.addEventListener("click",R),(V=s.querySelector("#modal-close-action"))==null||V.addEventListener("click",R),(z=s.querySelector("#room-form"))==null||z.addEventListener("submit",async A=>{if(A.preventDefault(),y){window.showToast("Please wait for image upload to complete.","warning");return}if(!h){f("Please upload a room photo before proceeding.","error"),window.showToast("Room photo is required.","error");return}const $={hotel_id:r,room_name:s.querySelector("#room-name").value.trim(),room_type:s.querySelector("#room-type").value,max_guests:Number(s.querySelector("#room-capacity").value),price_per_night:Number(s.querySelector("#room-price").value),total_inventory:Number(s.querySelector("#room-inventory").value),description:s.querySelector("#room-desc").value.trim(),photos:[h],photo_public_id:m};try{p?(await x.updateRoom(c.id,$),window.showToast("Room category updated successfully.","success")):(await x.createRoom($),window.showToast("New room category created successfully.","success")),R(),a()}catch(B){window.showToast(B.message,"error")}})}a()}async function RM(i){i.innerHTML=`
     <div style="text-align: center; padding: 60px 20px;">
       <i data-lucide="loader-2" style="width: 36px; height: 36px; color: var(--color-primary); animation: spin 1s linear infinite; margin-bottom: 12px; display: inline-block;"></i>
       <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Loading availability matrix & room inventory...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{let c=function(s){var y,S,b,f,M;const p=i.querySelector("#avail-modal-mount");if(!p)return;const h=s.date.split("-"),u=new Date(Number(h[0]),Number(h[1])-1,Number(h[2])).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});p.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{let c=function(s){var g,b,S,w,M;const p=i.querySelector("#avail-modal-mount");if(!p)return;const h=s.date.split("-"),y=new Date(Number(h[0]),Number(h[1])-1,Number(h[2])).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});p.innerHTML=`
         <div class="avail-modal-overlay" id="modal-overlay">
           <div class="avail-modal-card">
             <div class="modal-header">
               <div>
                 <h3 class="modal-title" style="font-size: 1.05rem;">Manage Inventory Block</h3>
-                <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0;">${s.roomName} • ${u}</p>
+                <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0;">${s.roomName} • ${y}</p>
               </div>
               <button class="modal-close-btn" id="btn-close-block-modal" aria-label="Close">
                 <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -10230,7 +10260,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </form>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons();const m=()=>{p.innerHTML=""};(y=p.querySelector("#btn-close-block-modal"))==null||y.addEventListener("click",m),(S=p.querySelector("#btn-modal-cancel"))==null||S.addEventListener("click",m),(b=p.querySelector("#modal-overlay"))==null||b.addEventListener("click",w=>{w.target.id==="modal-overlay"&&m()}),(f=p.querySelector("#btn-modal-clear-block"))==null||f.addEventListener("click",async()=>{window.confirm(`Set blocked rooms to 0 for ${s.date}?`)&&await g(0)}),(M=p.querySelector("#form-manage-block"))==null||M.addEventListener("submit",async w=>{w.preventDefault();const k=Number(p.querySelector("#input-blocked-count").value);if(isNaN(k)||k<0){l("Please enter a valid non-negative number.");return}if(k>s.maxBlockable){l(`Cannot block ${k} rooms. Maximum available to block is ${s.maxBlockable} rooms (${s.booked} already booked).`);return}const H=k===0?`Confirm unblocking all rooms for ${s.date}?`:`Confirm blocking ${k} rooms for ${s.date}? These rooms will not be available for guests to book.`;window.confirm(H)&&await g(k)});function l(w){const k=p.querySelector("#modal-error-box");k&&(k.textContent=w,k.style.display="block")}async function g(w){const k=p.querySelector("#btn-modal-save");k&&(k.disabled=!0,k.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons());try{await x.blockAvailability(s.roomId,s.date,w),m(),window.showToast&&window.showToast(w===0?`Unblocked rooms for ${s.date}.`:`Blocked ${w} rooms for ${s.date}.`,"success"),await r()}catch(H){k&&(k.disabled=!1,k.innerHTML="Save Changes"),l(H.message||"Failed to update room availability.")}}};var e=c;let a=[],d="";try{const s=await x.getOwnerHotels();if(s&&s.hotels&&s.hotels.length>0){const p=s.hotels[0];d=p.name||"Hotel Property",a=(p.rooms||[]).filter(h=>h.is_active!==!1)}}catch(s){console.warn("Owner hotels fetch error, falling back to hotel admin rooms:",s)}if(a.length===0)try{const s=await x.getHotelAdminRooms();s&&s.rooms&&s.rooms.length>0&&(a=s.rooms.filter(p=>p.is_active!==!1))}catch(s){console.warn("Hotel admin rooms fetch error:",s)}if(a.length===0){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons();const u=()=>{p.innerHTML=""};(g=p.querySelector("#btn-close-block-modal"))==null||g.addEventListener("click",u),(b=p.querySelector("#btn-modal-cancel"))==null||b.addEventListener("click",u),(S=p.querySelector("#modal-overlay"))==null||S.addEventListener("click",f=>{f.target.id==="modal-overlay"&&u()}),(w=p.querySelector("#btn-modal-clear-block"))==null||w.addEventListener("click",async()=>{window.confirm(`Set blocked rooms to 0 for ${s.date}?`)&&await v(0)}),(M=p.querySelector("#form-manage-block"))==null||M.addEventListener("submit",async f=>{f.preventDefault();const k=Number(p.querySelector("#input-blocked-count").value);if(isNaN(k)||k<0){l("Please enter a valid non-negative number.");return}if(k>s.maxBlockable){l(`Cannot block ${k} rooms. Maximum available to block is ${s.maxBlockable} rooms (${s.booked} already booked).`);return}const H=k===0?`Confirm unblocking all rooms for ${s.date}?`:`Confirm blocking ${k} rooms for ${s.date}? These rooms will not be available for guests to book.`;window.confirm(H)&&await v(k)});function l(f){const k=p.querySelector("#modal-error-box");k&&(k.textContent=f,k.style.display="block")}async function v(f){const k=p.querySelector("#btn-modal-save");k&&(k.disabled=!0,k.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons());try{await x.blockAvailability(s.roomId,s.date,f),u(),window.showToast&&window.showToast(f===0?`Unblocked rooms for ${s.date}.`:`Blocked ${f} rooms for ${s.date}.`,"success"),await r()}catch(H){k&&(k.disabled=!1,k.innerHTML="Save Changes"),l(H.message||"Failed to update room availability.")}}};var e=c;let a=[],d="";try{const s=await x.getOwnerHotels();if(s&&s.hotels&&s.hotels.length>0){const p=s.hotels[0];d=p.name||"Hotel Property",a=(p.rooms||[]).filter(h=>h.is_active!==!1)}}catch(s){console.warn("Owner hotels fetch error, falling back to hotel admin rooms:",s)}if(a.length===0)try{const s=await x.getHotelAdminRooms();s&&s.rooms&&s.rooms.length>0&&(a=s.rooms.filter(p=>p.is_active!==!1))}catch(s){console.warn("Hotel admin rooms fetch error:",s)}if(a.length===0){i.innerHTML=`
         <div class="panel-card" style="text-align: center; padding: 48px 24px;">
           <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-surface-secondary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid var(--border-light);">
             <i data-lucide="bed-double" style="width: 28px; height: 28px; color: var(--text-muted);"></i>
@@ -10243,7 +10273,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="plus"></i> Go to Room Categories
           </a>
         </div>
-      `,window.lucide&&window.lucide.createIcons();return}let o=a[0].id;const n=s=>{const p=s.getFullYear(),h=String(s.getMonth()+1).padStart(2,"0"),v=String(s.getDate()).padStart(2,"0");return`${p}-${h}-${v}`};async function r(){var b,f;const s=new Date,p=n(s),h=new Date(s.getFullYear(),s.getMonth(),s.getDate()+14),v=n(h),u=a.find(M=>M.id===o)||a[0];let m=[],l=null;try{const M=await x.getRoomAvailability(o,p,v);if(M&&Array.isArray(M.matrix))m=M.matrix;else throw new Error("Unexpected response format from availability endpoint.")}catch(M){l=M.message||"Failed to load availability data."}const g=m.reduce((M,w)=>M+(w.booked_count||0),0),y=m.reduce((M,w)=>M+(w.blocked_count||0),0),S=m.filter(M=>M.available_count===0).length;i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons();return}let o=a[0].id;const n=s=>{const p=s.getFullYear(),h=String(s.getMonth()+1).padStart(2,"0"),m=String(s.getDate()).padStart(2,"0");return`${p}-${h}-${m}`};async function r(){var S,w;const s=new Date,p=n(s),h=new Date(s.getFullYear(),s.getMonth(),s.getDate()+14),m=n(h),y=a.find(M=>M.id===o)||a[0];let u=[],l=null;try{const M=await x.getRoomAvailability(o,p,m);if(M&&Array.isArray(M.matrix))u=M.matrix;else throw new Error("Unexpected response format from availability endpoint.")}catch(M){l=M.message||"Failed to load availability data."}const v=u.reduce((M,f)=>M+(f.booked_count||0),0),g=u.reduce((M,f)=>M+(f.blocked_count||0),0),b=u.filter(M=>M.available_count===0).length;i.innerHTML=`
         <style>
           .avail-matrix-header {
             display: flex;
@@ -10414,7 +10444,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                   ${d||"Property"}
                 </span>
                 <span style="font-size: 0.76rem; color: var(--text-muted);">
-                  Formula: Available = Total (${u.total_inventory}) − Booked − Blocked
+                  Formula: Available = Total (${y.total_inventory}) − Booked − Blocked
                 </span>
               </div>
               <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0;">
@@ -10445,26 +10475,26 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div class="avail-summary-chip">
               <span class="avail-chip-label">Room Category</span>
               <span class="avail-chip-value" style="font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${u.room_name||u.name}
+                ${y.room_name||y.name}
               </span>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">₹${u.price_per_night||u.base_price||0} / night</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">₹${y.price_per_night||y.base_price||0} / night</span>
             </div>
             <div class="avail-summary-chip">
               <span class="avail-chip-label">Total Room Inventory</span>
-              <span class="avail-chip-value" style="color: var(--color-primary);">${u.total_inventory||1} Rooms</span>
+              <span class="avail-chip-value" style="color: var(--color-primary);">${y.total_inventory||1} Rooms</span>
               <span style="font-size: 0.72rem; color: var(--text-muted);">Physical capacity per day</span>
             </div>
             <div class="avail-summary-chip">
               <span class="avail-chip-label">14-Day Booked Units</span>
-              <span class="avail-chip-value" style="color: #2563EB;">${g} Booked</span>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">${y} Units Blocked / Blackout</span>
+              <span class="avail-chip-value" style="color: #2563EB;">${v} Booked</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${g} Units Blocked / Blackout</span>
             </div>
             <div class="avail-summary-chip">
               <span class="avail-chip-label">Full Capacity Days</span>
-              <span class="avail-chip-value" style="color: ${S>0?"var(--status-danger)":"var(--status-success)"};">
-                ${S} / 14 Days
+              <span class="avail-chip-value" style="color: ${b>0?"var(--status-danger)":"var(--status-success)"};">
+                ${b} / 14 Days
               </span>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">${14-S} Days with Open Slots</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${14-b} Days with Open Slots</span>
             </div>
           </div>
 
@@ -10500,26 +10530,26 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
           <!-- 14-Day Calendar Matrix Cards -->
           <div class="avail-grid-scroll">
-            ${m.map(M=>{const w=M.date.split("-"),k=new Date(Number(w[0]),Number(w[1])-1,Number(w[2])),H=k.toLocaleDateString("en-US",{weekday:"short"}),_=k.toLocaleDateString("en-US",{month:"short",day:"numeric"}),$=M.date===p,q=M.available_count===0,C=M.total_inventory||u.total_inventory||1,V=Math.round(M.booked_count/C*100),E=Math.round(M.blocked_count/C*100),D=Math.max(0,100-V-E);return`
-                <div class="avail-card ${$?"is-today":""} ${q?"is-zero":""}" data-date="${M.date}">
+            ${u.map(M=>{const f=M.date.split("-"),k=new Date(Number(f[0]),Number(f[1])-1,Number(f[2])),H=k.toLocaleDateString("en-US",{weekday:"short"}),P=k.toLocaleDateString("en-US",{month:"short",day:"numeric"}),_=M.date===p,q=M.available_count===0,E=M.total_inventory||y.total_inventory||1,R=Math.round(M.booked_count/E*100),C=Math.round(M.blocked_count/E*100),V=Math.max(0,100-R-C);return`
+                <div class="avail-card ${_?"is-today":""} ${q?"is-zero":""}" data-date="${M.date}">
                   <div>
                     <div class="avail-card-date">
                       <span>${H}</span>
-                      ${$?'<span class="badge" style="background: var(--color-primary); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">TODAY</span>':""}
-                      ${q&&!$?'<span class="badge" style="background: var(--status-danger); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">FULL</span>':""}
+                      ${_?'<span class="badge" style="background: var(--color-primary); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">TODAY</span>':""}
+                      ${q&&!_?'<span class="badge" style="background: var(--status-danger); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">FULL</span>':""}
                     </div>
-                    <div class="avail-card-subdate">${_}</div>
+                    <div class="avail-card-subdate">${P}</div>
 
                     <div class="avail-count-badge">
                       <span class="avail-count-big">${M.available_count}</span>
-                      <span class="avail-count-unit">open / ${C}</span>
+                      <span class="avail-count-unit">open / ${E}</span>
                     </div>
 
                     <!-- Visual Segmented Bar -->
                     <div class="avail-breakdown-bar" title="Booked: ${M.booked_count}, Blocked: ${M.blocked_count}, Available: ${M.available_count}">
-                      <div class="avail-bar-booked" style="width: ${V}%;"></div>
-                      <div class="avail-bar-blocked" style="width: ${E}%;"></div>
-                      <div class="avail-bar-free" style="width: ${D}%;"></div>
+                      <div class="avail-bar-booked" style="width: ${R}%;"></div>
+                      <div class="avail-bar-blocked" style="width: ${C}%;"></div>
+                      <div class="avail-bar-free" style="width: ${V}%;"></div>
                     </div>
 
                     <div class="avail-breakdown-text">
@@ -10550,7 +10580,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                       data-available="${M.available_count}"
                       data-booked="${M.booked_count}"
                       data-blocked="${M.blocked_count}"
-                      data-total="${C}"
+                      data-total="${E}"
                       style="width: 100%; font-size: 0.72rem; padding: 4px 6px;">
                       <i data-lucide="sliders-horizontal" style="width: 12px; height: 12px;"></i> ${M.blocked_count>0?"Edit Block":"Block Rooms"}
                     </button>
@@ -10562,7 +10592,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
         <!-- Block Inventory Modal Mount Point -->
         <div id="avail-modal-mount"></div>
-      `,window.lucide&&window.lucide.createIcons(),(b=i.querySelector("#btn-retry-matrix"))==null||b.addEventListener("click",()=>{r()}),(f=i.querySelector("#select-room-matrix"))==null||f.addEventListener("change",M=>{o=M.target.value,r()}),i.querySelectorAll(".btn-unblock-direct").forEach(M=>{M.addEventListener("click",async w=>{w.stopPropagation();const k=M.getAttribute("data-date");if(window.confirm(`Are you sure you want to unblock all rooms for ${k}? This will restore available inventory for guests.`)){M.disabled=!0,M.innerHTML='<i data-lucide="loader-2" style="width: 12px; height: 12px; animation: spin 1s linear infinite;"></i> Unblocking...',window.lucide&&window.lucide.createIcons();try{await x.blockAvailability(o,k,0),window.showToast&&window.showToast(`Successfully unblocked rooms for ${k}.`,"success"),await r()}catch(_){M.disabled=!1,M.innerHTML='<i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Unblock',window.lucide&&window.lucide.createIcons(),window.showToast?window.showToast(_.message||"Failed to unblock rooms.","error"):alert(`Error: ${_.message}`)}}})}),i.querySelectorAll(".btn-open-block-modal").forEach(M=>{M.addEventListener("click",()=>{const w=M.getAttribute("data-date"),k=Number(M.getAttribute("data-available")),H=Number(M.getAttribute("data-booked")),_=Number(M.getAttribute("data-blocked")),$=Number(M.getAttribute("data-total")),q=Math.max(0,$-H);c({roomId:o,roomName:u.room_name||u.name,date:w,available:k,booked:H,currentBlocked:_,total:$,maxBlockable:q})})})}await r()}catch(a){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),(S=i.querySelector("#btn-retry-matrix"))==null||S.addEventListener("click",()=>{r()}),(w=i.querySelector("#select-room-matrix"))==null||w.addEventListener("change",M=>{o=M.target.value,r()}),i.querySelectorAll(".btn-unblock-direct").forEach(M=>{M.addEventListener("click",async f=>{f.stopPropagation();const k=M.getAttribute("data-date");if(window.confirm(`Are you sure you want to unblock all rooms for ${k}? This will restore available inventory for guests.`)){M.disabled=!0,M.innerHTML='<i data-lucide="loader-2" style="width: 12px; height: 12px; animation: spin 1s linear infinite;"></i> Unblocking...',window.lucide&&window.lucide.createIcons();try{await x.blockAvailability(o,k,0),window.showToast&&window.showToast(`Successfully unblocked rooms for ${k}.`,"success"),await r()}catch(P){M.disabled=!1,M.innerHTML='<i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Unblock',window.lucide&&window.lucide.createIcons(),window.showToast?window.showToast(P.message||"Failed to unblock rooms.","error"):alert(`Error: ${P.message}`)}}})}),i.querySelectorAll(".btn-open-block-modal").forEach(M=>{M.addEventListener("click",()=>{const f=M.getAttribute("data-date"),k=Number(M.getAttribute("data-available")),H=Number(M.getAttribute("data-booked")),P=Number(M.getAttribute("data-blocked")),_=Number(M.getAttribute("data-total")),q=Math.max(0,_-H);c({roomId:o,roomName:y.room_name||y.name,date:f,available:k,booked:H,currentBlocked:P,total:_,maxBlockable:q})})})}await r()}catch(a){i.innerHTML=`
       <div class="panel-card" style="color: var(--status-danger); padding: 30px; text-align: center;">
         <i data-lucide="alert-circle" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
         <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Failed to initialize availability manager</h3>
@@ -10819,12 +10849,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading pickup services & requests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{if(a=(await x.getOwnerHotels()).hotels||[],a.length>0){const l=a[0],[g,y]=await Promise.all([x.getPickups({hotel_id:l.id}),x.getHotelPickupSettings(l.id)]);d=g.pickups||[],o=y}c()}catch(m){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickup data: ${m.message}</div>`}}function c(){if(a.length===0){i.innerHTML='<div class="panel-card">Please register an active hotel first to manage pickup services.</div>';return}const m=a[0],l=o?o.pickup_service_enabled!==!1:!0,g=(o==null?void 0:o.all_locations)||m.pickup_locations||[],y=(o==null?void 0:o.all_vehicles)||m.pickup_vehicles||[],S=d.filter(b=>n==="all"?!0:b.pickup&&b.pickup.status===n);i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{if(a=(await x.getOwnerHotels()).hotels||[],a.length>0){const l=a[0],[v,g]=await Promise.all([x.getPickups({hotel_id:l.id}),x.getHotelPickupSettings(l.id)]);d=v.pickups||[],o=g}c()}catch(u){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickup data: ${u.message}</div>`}}function c(){if(a.length===0){i.innerHTML='<div class="panel-card">Please register an active hotel first to manage pickup services.</div>';return}const u=a[0],l=o?o.pickup_service_enabled!==!1:!0,v=(o==null?void 0:o.all_locations)||u.pickup_locations||[],g=(o==null?void 0:o.all_vehicles)||u.pickup_vehicles||[],b=d.filter(S=>n==="all"?!0:S.pickup&&S.pickup.status===n);i.innerHTML=`
       <!-- TOP STATUS BAR & GLOBAL TOGGLE -->
       <div class="panel-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
         <div>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);">${m.name}</h2>
+            <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);">${u.name}</h2>
             <span class="status-pill ${l?"active":"inactive"}">
               ${l?"Pickup Service LIVE":"Pickup Service DISABLED"}
             </span>
@@ -10848,10 +10878,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <i data-lucide="calendar-check"></i> Pickup Requests (${d.length})
         </button>
         <button class="btn btn-sm ${e==="vehicles"?"btn-primary":"btn-secondary"}" id="tab-btn-vehicles">
-          <i data-lucide="car"></i> Vehicle Fleet (${y.length})
+          <i data-lucide="car"></i> Vehicle Fleet (${g.length})
         </button>
         <button class="btn btn-sm ${e==="locations"?"btn-primary":"btn-secondary"}" id="tab-btn-locations">
-          <i data-lucide="map-pin"></i> Pickup Locations (${g.length})
+          <i data-lucide="map-pin"></i> Pickup Locations (${v.length})
         </button>
       </div>
 
@@ -10890,40 +10920,40 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </tr>
               </thead>
               <tbody>
-                ${S.length===0?`
+                ${b.length===0?`
                   <tr><td colspan="9" style="text-align: center; padding: 36px; color: var(--text-muted);">No pickup requests found for this filter.</td></tr>
-                `:S.map(b=>{const f=b.pickup||{},M=f.driver||{},w=M.name&&M.name.trim()!=="";return`
+                `:b.map(S=>{const w=S.pickup||{},M=w.driver||{},f=M.name&&M.name.trim()!=="";return`
                     <tr>
                       <td>
-                        <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${b.booking_code}</span>
+                        <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${S.booking_code}</span>
                       </td>
                       <td>
-                        <div style="font-weight: 700;">${b.customer_name}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${b.customer_phone||b.customer_email}</div>
+                        <div style="font-weight: 700;">${S.customer_name}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${S.customer_phone||S.customer_email}</div>
                       </td>
                       <td>
                         <div style="font-weight: 700; color: var(--color-primary-dark); text-transform: capitalize;">
-                          ${f.type==="airport"?"✈️ Airport":f.type==="railway"?"🚆 Railway":f.type==="bus"?"🚌 Bus":"📍 Custom"}
+                          ${w.type==="airport"?"✈️ Airport":w.type==="railway"?"🚆 Railway":w.type==="bus"?"🚌 Bus":"📍 Custom"}
                         </div>
                         <div style="font-size: 0.75rem; color: var(--text-dark); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                          ${f.location_name||"Designated Point"}
+                          ${w.location_name||"Designated Point"}
                         </div>
-                        ${f.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${f.flight_number}</div>`:""}
-                        ${f.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${f.train_number}</div>`:""}
+                        ${w.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${w.flight_number}</div>`:""}
+                        ${w.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${w.train_number}</div>`:""}
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${f.pickup_time||"10:30 AM"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${f.pickup_date||b.check_in_date}</div>
+                        <div style="font-weight: 600;">${w.pickup_time||"10:30 AM"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${w.pickup_date||S.check_in_date}</div>
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${f.location_name||"Station Transfer"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${f.pickup_time||"10:30 AM"}</div>
+                        <div style="font-weight: 600;">${w.location_name||"Station Transfer"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${w.pickup_time||"10:30 AM"}</div>
                       </td>
                       <td>
-                        <strong style="color: #2E7D32; font-size: 0.95rem;">${f.pickup_charge===0||f.pickup_service==="FREE"||f.service==="FREE"?"FREE (₹0)":`₹${(f.pickup_charge||0).toLocaleString("en-IN")}`}</strong>
+                        <strong style="color: #2E7D32; font-size: 0.95rem;">${w.pickup_charge===0||w.pickup_service==="FREE"||w.service==="FREE"?"FREE (₹0)":`₹${(w.pickup_charge||0).toLocaleString("en-IN")}`}</strong>
                       </td>
                       <td>
-                        ${w?`
+                        ${f?`
                           <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${M.name}</div>
                           <div style="font-size: 0.7rem; color: var(--text-muted);">${M.phone?"📞 "+M.phone:""} ${M.vehicle_number?`(${M.vehicle_number})`:""}</div>
                         `:`
@@ -10931,14 +10961,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                         `}
                       </td>
                       <td>
-                        <span class="status-pill ${f.status||"confirmed"}">${(f.status||"confirmed").replace("_"," ")}</span>
+                        <span class="status-pill ${w.status||"confirmed"}">${(w.status||"confirmed").replace("_"," ")}</span>
                       </td>
                       <td>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                          <button class="btn btn-secondary btn-sm btn-assign-driver" data-booking-id="${b.booking_id}">
+                          <button class="btn btn-secondary btn-sm btn-assign-driver" data-booking-id="${S.booking_id}">
                             <i data-lucide="user-check"></i> Driver
                           </button>
-                          <button class="btn btn-primary btn-sm btn-update-status" data-booking-id="${b.booking_id}">
+                          <button class="btn btn-primary btn-sm btn-update-status" data-booking-id="${S.booking_id}">
                             <i data-lucide="refresh-cw"></i> Status
                           </button>
                         </div>
@@ -10954,7 +10984,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <!-- TAB 2: VEHICLE FLEET MANAGEMENT -->
       ${e==="vehicles"?`
         <div class="filter-bar" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 1rem; font-weight: 700;">Configured Vehicles (${y.length})</h3>
+          <h3 style="font-size: 1rem; font-weight: 700;">Configured Vehicles (${g.length})</h3>
           <button class="btn btn-primary btn-sm" id="btn-add-vehicle">
             <i data-lucide="plus"></i> Add Vehicle
           </button>
@@ -10974,24 +11004,24 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </tr>
               </thead>
               <tbody>
-                ${y.length===0?`
+                ${g.length===0?`
                   <tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">No vehicles configured yet.</td></tr>
-                `:y.map(b=>`
+                `:g.map(S=>`
                   <tr>
                     <td>
-                      <div style="font-weight: 700; color: var(--text-dark);">${b.name}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${b.type||"Sedan"}</div>
+                      <div style="font-weight: 700; color: var(--text-dark);">${S.name}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${S.type||"Sedan"}</div>
                     </td>
-                    <td><strong>${b.capacity} Passengers max</strong></td>
-                    <td><strong style="color: var(--status-success); font-size: 0.95rem;">₹${(b.price||800).toLocaleString("en-IN")}</strong></td>
-                    <td><span style="font-family: monospace; font-size: 0.8rem; font-weight: 600;">${b.vehicle_number||"N/A"}</span></td>
-                    <td><span class="status-pill ${b.active!==!1?"active":"inactive"}">${b.active!==!1?"Active":"Inactive"}</span></td>
+                    <td><strong>${S.capacity} Passengers max</strong></td>
+                    <td><strong style="color: var(--status-success); font-size: 0.95rem;">₹${(S.price||800).toLocaleString("en-IN")}</strong></td>
+                    <td><span style="font-family: monospace; font-size: 0.8rem; font-weight: 600;">${S.vehicle_number||"N/A"}</span></td>
+                    <td><span class="status-pill ${S.active!==!1?"active":"inactive"}">${S.active!==!1?"Active":"Inactive"}</span></td>
                     <td>
                       <div style="display: flex; gap: 6px;">
-                        <button class="btn btn-secondary btn-sm btn-edit-vehicle" data-vehicle-id="${b.id}">
+                        <button class="btn btn-secondary btn-sm btn-edit-vehicle" data-vehicle-id="${S.id}">
                           <i data-lucide="edit-3"></i> Edit
                         </button>
-                        <button class="btn btn-secondary btn-sm btn-delete-vehicle" data-vehicle-id="${b.id}" style="color: var(--status-danger);">
+                        <button class="btn btn-secondary btn-sm btn-delete-vehicle" data-vehicle-id="${S.id}" style="color: var(--status-danger);">
                           <i data-lucide="trash-2"></i> Delete
                         </button>
                       </div>
@@ -11007,7 +11037,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <!-- TAB 3: PICKUP LOCATIONS MANAGEMENT -->
       ${e==="locations"?`
         <div class="filter-bar" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 1rem; font-weight: 700;">Configured Pickup Locations (${g.length})</h3>
+          <h3 style="font-size: 1rem; font-weight: 700;">Configured Pickup Locations (${v.length})</h3>
           <button class="btn btn-primary btn-sm" id="btn-add-location">
             <i data-lucide="plus"></i> Add Location
           </button>
@@ -11026,20 +11056,20 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </tr>
               </thead>
               <tbody>
-                ${g.length===0?`
+                ${v.length===0?`
                   <tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No locations configured yet.</td></tr>
-                `:g.map(b=>`
+                `:v.map(S=>`
                   <tr>
-                    <td><strong style="color: var(--text-dark);">${b.name}</strong></td>
-                    <td><span style="text-transform: capitalize; font-weight: 600; color: var(--color-primary);">${b.type||"Custom"}</span></td>
-                    <td><span style="font-size: 0.8rem; color: var(--text-muted);">${b.address||"N/A"}</span></td>
-                    <td><span class="status-pill ${b.active!==!1?"active":"inactive"}">${b.active!==!1?"Active":"Inactive"}</span></td>
+                    <td><strong style="color: var(--text-dark);">${S.name}</strong></td>
+                    <td><span style="text-transform: capitalize; font-weight: 600; color: var(--color-primary);">${S.type||"Custom"}</span></td>
+                    <td><span style="font-size: 0.8rem; color: var(--text-muted);">${S.address||"N/A"}</span></td>
+                    <td><span class="status-pill ${S.active!==!1?"active":"inactive"}">${S.active!==!1?"Active":"Inactive"}</span></td>
                     <td>
                       <div style="display: flex; gap: 6px;">
-                        <button class="btn btn-secondary btn-sm btn-edit-location" data-location-id="${b.id}">
+                        <button class="btn btn-secondary btn-sm btn-edit-location" data-location-id="${S.id}">
                           <i data-lucide="edit-3"></i> Edit
                         </button>
-                        <button class="btn btn-secondary btn-sm btn-delete-location" data-location-id="${b.id}" style="color: var(--status-danger);">
+                        <button class="btn btn-secondary btn-sm btn-delete-location" data-location-id="${S.id}" style="color: var(--status-danger);">
                           <i data-lucide="trash-2"></i> Delete
                         </button>
                       </div>
@@ -11054,7 +11084,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       <!-- MODAL CONTAINER -->
       <div id="pickup-modal-root"></div>
-    `,s(m.id),window.lucide&&window.lucide.createIcons()}function s(m){var l,g,y,S,b,f,M;(l=i.querySelector("#tab-btn-requests"))==null||l.addEventListener("click",()=>{e="requests",c()}),(g=i.querySelector("#tab-btn-vehicles"))==null||g.addEventListener("click",()=>{e="vehicles",c()}),(y=i.querySelector("#tab-btn-locations"))==null||y.addEventListener("click",()=>{e="locations",c()}),(S=i.querySelector("#btn-toggle-service"))==null||S.addEventListener("click",async()=>{const w=o?o.pickup_service_enabled!==!1:!0;try{await x.updateHotelPickupSettings(m,!w),window.showToast(`Pickup service ${w?"disabled":"enabled"} for ${a[0].name}.`,"success"),r()}catch(k){window.showToast(k.message,"error")}}),(b=i.querySelector("#status-filter-select"))==null||b.addEventListener("change",w=>{n=w.target.value,c()}),i.querySelectorAll(".btn-assign-driver").forEach(w=>{w.addEventListener("click",()=>{const k=w.getAttribute("data-booking-id"),H=d.find(_=>_.booking_id===k);p(k,H)})}),i.querySelectorAll(".btn-update-status").forEach(w=>{w.addEventListener("click",()=>{const k=w.getAttribute("data-booking-id"),H=d.find(_=>_.booking_id===k);h(k,H)})}),(f=i.querySelector("#btn-add-vehicle"))==null||f.addEventListener("click",()=>{v(m,null)}),i.querySelectorAll(".btn-edit-vehicle").forEach(w=>{w.addEventListener("click",()=>{const k=w.getAttribute("data-vehicle-id"),H=((o==null?void 0:o.all_vehicles)||a[0].pickup_vehicles||[]).find(_=>_.id===k);v(m,H)})}),i.querySelectorAll(".btn-delete-vehicle").forEach(w=>{w.addEventListener("click",async()=>{const k=w.getAttribute("data-vehicle-id");if(confirm("Are you sure you want to remove this vehicle from your fleet?"))try{await x.deletePickupVehicle(m,k),window.showToast("Vehicle removed from fleet.","success"),r()}catch(H){window.showToast(H.message,"error")}})}),(M=i.querySelector("#btn-add-location"))==null||M.addEventListener("click",()=>{u(m,null)}),i.querySelectorAll(".btn-edit-location").forEach(w=>{w.addEventListener("click",()=>{const k=w.getAttribute("data-location-id"),H=((o==null?void 0:o.all_locations)||a[0].pickup_locations||[]).find(_=>_.id===k);u(m,H)})}),i.querySelectorAll(".btn-delete-location").forEach(w=>{w.addEventListener("click",async()=>{const k=w.getAttribute("data-location-id");if(confirm("Are you sure you want to remove this pickup point?"))try{await x.deletePickupLocation(m,k),window.showToast("Pickup point removed.","success"),r()}catch(H){window.showToast(H.message,"error")}})})}function p(m,l){var b,f;const g=i.querySelector("#pickup-modal-root"),y=((b=l==null?void 0:l.pickup)==null?void 0:b.driver)||{};g.innerHTML=`
+    `,s(u.id),window.lucide&&window.lucide.createIcons()}function s(u){var l,v,g,b,S,w,M;(l=i.querySelector("#tab-btn-requests"))==null||l.addEventListener("click",()=>{e="requests",c()}),(v=i.querySelector("#tab-btn-vehicles"))==null||v.addEventListener("click",()=>{e="vehicles",c()}),(g=i.querySelector("#tab-btn-locations"))==null||g.addEventListener("click",()=>{e="locations",c()}),(b=i.querySelector("#btn-toggle-service"))==null||b.addEventListener("click",async()=>{const f=o?o.pickup_service_enabled!==!1:!0;try{await x.updateHotelPickupSettings(u,!f),window.showToast(`Pickup service ${f?"disabled":"enabled"} for ${a[0].name}.`,"success"),r()}catch(k){window.showToast(k.message,"error")}}),(S=i.querySelector("#status-filter-select"))==null||S.addEventListener("change",f=>{n=f.target.value,c()}),i.querySelectorAll(".btn-assign-driver").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-booking-id"),H=d.find(P=>P.booking_id===k);p(k,H)})}),i.querySelectorAll(".btn-update-status").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-booking-id"),H=d.find(P=>P.booking_id===k);h(k,H)})}),(w=i.querySelector("#btn-add-vehicle"))==null||w.addEventListener("click",()=>{m(u,null)}),i.querySelectorAll(".btn-edit-vehicle").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-vehicle-id"),H=((o==null?void 0:o.all_vehicles)||a[0].pickup_vehicles||[]).find(P=>P.id===k);m(u,H)})}),i.querySelectorAll(".btn-delete-vehicle").forEach(f=>{f.addEventListener("click",async()=>{const k=f.getAttribute("data-vehicle-id");if(confirm("Are you sure you want to remove this vehicle from your fleet?"))try{await x.deletePickupVehicle(u,k),window.showToast("Vehicle removed from fleet.","success"),r()}catch(H){window.showToast(H.message,"error")}})}),(M=i.querySelector("#btn-add-location"))==null||M.addEventListener("click",()=>{y(u,null)}),i.querySelectorAll(".btn-edit-location").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-location-id"),H=((o==null?void 0:o.all_locations)||a[0].pickup_locations||[]).find(P=>P.id===k);y(u,H)})}),i.querySelectorAll(".btn-delete-location").forEach(f=>{f.addEventListener("click",async()=>{const k=f.getAttribute("data-location-id");if(confirm("Are you sure you want to remove this pickup point?"))try{await x.deletePickupLocation(u,k),window.showToast("Pickup point removed.","success"),r()}catch(H){window.showToast(H.message,"error")}})})}function p(u,l){var S,w;const v=i.querySelector("#pickup-modal-root"),g=((S=l==null?void 0:l.pickup)==null?void 0:S.driver)||{};v.innerHTML=`
       <div class="modal-backdrop active" id="assign-driver-backdrop">
         <div class="modal-card" style="max-width: 480px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -11068,17 +11098,17 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <form id="form-assign-driver">
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Driver Full Name *</label>
-              <input type="text" id="driver-name" class="form-control" value="${y.name||""}" placeholder="e.g. Ramesh Chandra" required>
+              <input type="text" id="driver-name" class="form-control" value="${g.name||""}" placeholder="e.g. Ramesh Chandra" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Driver Phone / WhatsApp *</label>
-              <input type="text" id="driver-phone" class="form-control" value="${y.phone||""}" placeholder="e.g. +91 98300 12345" required>
+              <input type="text" id="driver-phone" class="form-control" value="${g.phone||""}" placeholder="e.g. +91 98300 12345" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Model & Plate Number</label>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <input type="text" id="driver-vehicle" class="form-control" value="${y.vehicle||((f=l==null?void 0:l.pickup)==null?void 0:f.vehicle_name)||"Executive Sedan"}" placeholder="e.g. Toyota Etios">
-                <input type="text" id="driver-vehicle-num" class="form-control" value="${y.vehicle_number||""}" placeholder="e.g. WB-30-AB-1290">
+                <input type="text" id="driver-vehicle" class="form-control" value="${g.vehicle||((w=l==null?void 0:l.pickup)==null?void 0:w.vehicle_name)||"Executive Sedan"}" placeholder="e.g. Toyota Etios">
+                <input type="text" id="driver-vehicle-num" class="form-control" value="${g.vehicle_number||""}" placeholder="e.g. WB-30-AB-1290">
               </div>
             </div>
 
@@ -11089,7 +11119,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const S=()=>{g.innerHTML=""};g.querySelector("#btn-close-assign-modal").addEventListener("click",S),g.querySelector("#btn-cancel-assign").addEventListener("click",S),g.querySelector("#form-assign-driver").addEventListener("submit",async M=>{M.preventDefault();const w={driver_name:g.querySelector("#driver-name").value.trim(),driver_phone:g.querySelector("#driver-phone").value.trim(),vehicle:g.querySelector("#driver-vehicle").value.trim(),vehicle_number:g.querySelector("#driver-vehicle-num").value.trim()};try{await x.assignPickupDriver(m,w),window.showToast("Driver assigned successfully.","success"),S(),r()}catch(k){window.showToast(k.message,"error")}})}function h(m,l){var b;const g=i.querySelector("#pickup-modal-root"),y=((b=l==null?void 0:l.pickup)==null?void 0:b.status)||"confirmed";g.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const b=()=>{v.innerHTML=""};v.querySelector("#btn-close-assign-modal").addEventListener("click",b),v.querySelector("#btn-cancel-assign").addEventListener("click",b),v.querySelector("#form-assign-driver").addEventListener("submit",async M=>{M.preventDefault();const f={driver_name:v.querySelector("#driver-name").value.trim(),driver_phone:v.querySelector("#driver-phone").value.trim(),vehicle:v.querySelector("#driver-vehicle").value.trim(),vehicle_number:v.querySelector("#driver-vehicle-num").value.trim()};try{await x.assignPickupDriver(u,f),window.showToast("Driver assigned successfully.","success"),b(),r()}catch(k){window.showToast(k.message,"error")}})}function h(u,l){var S;const v=i.querySelector("#pickup-modal-root"),g=((S=l==null?void 0:l.pickup)==null?void 0:S.status)||"confirmed";v.innerHTML=`
       <div class="modal-backdrop active" id="update-status-backdrop">
         <div class="modal-card" style="max-width: 440px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -11104,14 +11134,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label">Pickup Service Status</label>
               <select id="pickup-new-status" class="form-control">
-                <option value="requested" ${y==="requested"?"selected":""}>Requested (Pending review)</option>
-                <option value="confirmed" ${y==="confirmed"?"selected":""}>Confirmed (Accepted)</option>
-                <option value="assigned" ${y==="assigned"?"selected":""}>Vehicle/Driver Assigned</option>
-                <option value="driver_on_way" ${y==="driver_on_way"?"selected":""}>Driver On Way</option>
-                <option value="arrived" ${y==="arrived"?"selected":""}>Driver Arrived at Station/Airport</option>
-                <option value="completed" ${y==="completed"?"selected":""}>Completed (Guest Dropped at Hotel)</option>
-                <option value="rejected" ${y==="rejected"?"selected":""}>Rejected</option>
-                <option value="cancelled" ${y==="cancelled"?"selected":""}>Cancelled</option>
+                <option value="requested" ${g==="requested"?"selected":""}>Requested (Pending review)</option>
+                <option value="confirmed" ${g==="confirmed"?"selected":""}>Confirmed (Accepted)</option>
+                <option value="assigned" ${g==="assigned"?"selected":""}>Vehicle/Driver Assigned</option>
+                <option value="driver_on_way" ${g==="driver_on_way"?"selected":""}>Driver On Way</option>
+                <option value="arrived" ${g==="arrived"?"selected":""}>Driver Arrived at Station/Airport</option>
+                <option value="completed" ${g==="completed"?"selected":""}>Completed (Guest Dropped at Hotel)</option>
+                <option value="rejected" ${g==="rejected"?"selected":""}>Rejected</option>
+                <option value="cancelled" ${g==="cancelled"?"selected":""}>Cancelled</option>
               </select>
             </div>
 
@@ -11127,11 +11157,11 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const S=()=>{g.innerHTML=""};g.querySelector("#btn-close-status-modal").addEventListener("click",S),g.querySelector("#btn-cancel-status").addEventListener("click",S),g.querySelector("#form-update-status").addEventListener("submit",async f=>{f.preventDefault();const M=g.querySelector("#pickup-new-status").value,w=g.querySelector("#status-notes").value.trim();try{await x.updatePickupStatus(m,M,w),window.showToast(`Pickup status updated to ${M.toUpperCase()}.`,"success"),S(),r()}catch(k){window.showToast(k.message,"error")}})}function v(m,l){const g=!!l,y=i.querySelector("#pickup-modal-root");y.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const b=()=>{v.innerHTML=""};v.querySelector("#btn-close-status-modal").addEventListener("click",b),v.querySelector("#btn-cancel-status").addEventListener("click",b),v.querySelector("#form-update-status").addEventListener("submit",async w=>{w.preventDefault();const M=v.querySelector("#pickup-new-status").value,f=v.querySelector("#status-notes").value.trim();try{await x.updatePickupStatus(u,M,f),window.showToast(`Pickup status updated to ${M.toUpperCase()}.`,"success"),b(),r()}catch(k){window.showToast(k.message,"error")}})}function m(u,l){const v=!!l,g=i.querySelector("#pickup-modal-root");g.innerHTML=`
       <div class="modal-backdrop active">
         <div class="modal-card" style="max-width: 460px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="font-size: 1.1rem; font-weight: 800;">${g?"Edit Vehicle":"Add New Vehicle"}</h3>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">${v?"Edit Vehicle":"Add New Vehicle"}</h3>
             <button class="btn btn-secondary btn-sm" id="btn-close-veh-modal">✕</button>
           </div>
 
@@ -11172,16 +11202,16 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" id="btn-cancel-veh">Cancel</button>
-              <button type="submit" class="btn btn-primary">${g?"Save Changes":"Add Vehicle"}</button>
+              <button type="submit" class="btn btn-primary">${v?"Save Changes":"Add Vehicle"}</button>
             </div>
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const S=()=>{y.innerHTML=""};y.querySelector("#btn-close-veh-modal").addEventListener("click",S),y.querySelector("#btn-cancel-veh").addEventListener("click",S),y.querySelector("#form-vehicle-manage").addEventListener("submit",async b=>{b.preventDefault();const f={name:y.querySelector("#veh-name").value.trim(),type:y.querySelector("#veh-type").value,capacity:Number(y.querySelector("#veh-capacity").value),price:Number(y.querySelector("#veh-price").value),vehicle_number:y.querySelector("#veh-plate").value.trim(),active:y.querySelector("#veh-active").checked};try{g?(await x.updatePickupVehicle(m,l.id,f),window.showToast("Vehicle updated successfully.","success")):(await x.addPickupVehicle(m,f),window.showToast("Vehicle added to fleet.","success")),S(),r()}catch(M){window.showToast(M.message,"error")}})}function u(m,l){const g=!!l,y=i.querySelector("#pickup-modal-root");y.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const b=()=>{g.innerHTML=""};g.querySelector("#btn-close-veh-modal").addEventListener("click",b),g.querySelector("#btn-cancel-veh").addEventListener("click",b),g.querySelector("#form-vehicle-manage").addEventListener("submit",async S=>{S.preventDefault();const w={name:g.querySelector("#veh-name").value.trim(),type:g.querySelector("#veh-type").value,capacity:Number(g.querySelector("#veh-capacity").value),price:Number(g.querySelector("#veh-price").value),vehicle_number:g.querySelector("#veh-plate").value.trim(),active:g.querySelector("#veh-active").checked};try{v?(await x.updatePickupVehicle(u,l.id,w),window.showToast("Vehicle updated successfully.","success")):(await x.addPickupVehicle(u,w),window.showToast("Vehicle added to fleet.","success")),b(),r()}catch(M){window.showToast(M.message,"error")}})}function y(u,l){const v=!!l,g=i.querySelector("#pickup-modal-root");g.innerHTML=`
       <div class="modal-backdrop active">
         <div class="modal-card" style="max-width: 460px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="font-size: 1.1rem; font-weight: 800;">${g?"Edit Pickup Point":"Add Pickup Point"}</h3>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">${v?"Edit Pickup Point":"Add Pickup Point"}</h3>
             <button class="btn btn-secondary btn-sm" id="btn-close-loc-modal">✕</button>
           </div>
 
@@ -11212,12 +11242,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
               <button type="button" class="btn btn-secondary" id="btn-cancel-loc">Cancel</button>
-              <button type="submit" class="btn btn-primary">${g?"Save Changes":"Add Location"}</button>
+              <button type="submit" class="btn btn-primary">${v?"Save Changes":"Add Location"}</button>
             </div>
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const S=()=>{y.innerHTML=""};y.querySelector("#btn-close-loc-modal").addEventListener("click",S),y.querySelector("#btn-cancel-loc").addEventListener("click",S),y.querySelector("#form-location-manage").addEventListener("submit",async b=>{b.preventDefault();const f={name:y.querySelector("#loc-name").value.trim(),type:y.querySelector("#loc-type").value,address:y.querySelector("#loc-address").value.trim(),active:y.querySelector("#loc-active").checked};try{g?(await x.updatePickupLocation(m,l.id,f),window.showToast("Pickup point updated.","success")):(await x.addPickupLocation(m,f),window.showToast("Pickup point added.","success")),S(),r()}catch(M){window.showToast(M.message,"error")}})}r()}async function UM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const b=()=>{g.innerHTML=""};g.querySelector("#btn-close-loc-modal").addEventListener("click",b),g.querySelector("#btn-cancel-loc").addEventListener("click",b),g.querySelector("#form-location-manage").addEventListener("submit",async S=>{S.preventDefault();const w={name:g.querySelector("#loc-name").value.trim(),type:g.querySelector("#loc-type").value,address:g.querySelector("#loc-address").value.trim(),active:g.querySelector("#loc-active").checked};try{v?(await x.updatePickupLocation(u,l.id,w),window.showToast("Pickup point updated.","success")):(await x.addPickupLocation(u,w),window.showToast("Pickup point added.","success")),b(),r()}catch(M){window.showToast(M.message,"error")}})}r()}async function UM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading support tickets...</p>
@@ -11275,7 +11305,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="support-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var c;(c=i.querySelector("#btn-raise-ticket"))==null||c.addEventListener("click",()=>{n()}),i.querySelectorAll(".btn-open-thread").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-ticket-id");r(p)})})}function n(){var p,h,v;const c=i.querySelector("#support-modal-root");c.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var c;(c=i.querySelector("#btn-raise-ticket"))==null||c.addEventListener("click",()=>{n()}),i.querySelectorAll(".btn-open-thread").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-ticket-id");r(p)})})}function n(){var p,h,m;const c=i.querySelector("#support-modal-root");c.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 540px;">
           <div class="modal-header">
@@ -11313,7 +11343,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const s=()=>{c.innerHTML=""};(p=c.querySelector("#modal-close"))==null||p.addEventListener("click",s),(h=c.querySelector("#modal-close-action"))==null||h.addEventListener("click",s),(v=c.querySelector("#new-ticket-form"))==null||v.addEventListener("submit",async u=>{u.preventDefault();try{await x.createSupportTicket({subject:c.querySelector("#ticket-subject").value,category:c.querySelector("#ticket-category").value,message:c.querySelector("#ticket-message").value}),window.showToast("Support ticket dispatched to platform administrator.","success"),s(),a()}catch(m){window.showToast(m.message,"error")}})}function r(c){var v,u,m;const s=e.find(l=>l.id===c);if(!s)return;const p=i.querySelector("#support-modal-root");p.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const s=()=>{c.innerHTML=""};(p=c.querySelector("#modal-close"))==null||p.addEventListener("click",s),(h=c.querySelector("#modal-close-action"))==null||h.addEventListener("click",s),(m=c.querySelector("#new-ticket-form"))==null||m.addEventListener("submit",async y=>{y.preventDefault();try{await x.createSupportTicket({subject:c.querySelector("#ticket-subject").value,category:c.querySelector("#ticket-category").value,message:c.querySelector("#ticket-message").value}),window.showToast("Support ticket dispatched to platform administrator.","success"),s(),a()}catch(u){window.showToast(u.message,"error")}})}function r(c){var m,y,u;const s=e.find(l=>l.id===c);if(!s)return;const p=i.querySelector("#support-modal-root");p.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 600px;">
           <div class="modal-header">
@@ -11345,7 +11375,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const h=()=>{p.innerHTML=""};(v=p.querySelector("#modal-close"))==null||v.addEventListener("click",h),(u=p.querySelector("#modal-close-action"))==null||u.addEventListener("click",h),(m=p.querySelector("#btn-send-reply"))==null||m.addEventListener("click",async()=>{const l=p.querySelector("#reply-input").value.trim();if(!l)return;await x.replySupportTicket(c,l),window.showToast("Reply added.","success"),e=(await x.getSupportTickets()).tickets,r(c)})}a()}function jM(i){let e=1;const a={name:"",hotel_type:"Boutique Hotel",description:"",phone:"",email:"",address:"",city:"",state:"",country:"India",postal_code:"",cover_image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",initial_rooms:[{room_name:"Executive Deluxe Suite",room_type:"Suite",description:"Spacious suite with king bed and city skyline view.",max_guests:2,total_inventory:10,price_per_night:6500}]};function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const h=()=>{p.innerHTML=""};(m=p.querySelector("#modal-close"))==null||m.addEventListener("click",h),(y=p.querySelector("#modal-close-action"))==null||y.addEventListener("click",h),(u=p.querySelector("#btn-send-reply"))==null||u.addEventListener("click",async()=>{const l=p.querySelector("#reply-input").value.trim();if(!l)return;await x.replySupportTicket(c,l),window.showToast("Reply added.","success"),e=(await x.getSupportTickets()).tickets,r(c)})}a()}function jM(i){let e=1;const a={name:"",hotel_type:"Boutique Hotel",description:"",phone:"",email:"",address:"",city:"",state:"",country:"India",postal_code:"",cover_image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",initial_rooms:[{room_name:"Executive Deluxe Suite",room_type:"Suite",description:"Spacious suite with king bed and city skyline view.",max_guests:2,total_inventory:10,price_per_night:6500}]};function d(){i.innerHTML=`
       <div style="max-width: 820px; margin: 0 auto;">
         
         <!-- Multi-Step Header Wizard -->
@@ -11515,7 +11545,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <i data-lucide="info" style="width: 14px; height: 14px; display: inline; margin-right: 4px;"></i>
           Upon submission, your hotel will enter <strong>PENDING VERIFICATION</strong> state. Once the Administrator verifies your documents, your hotel will become immediately discoverable on the Customer Mobile App.
         </div>
-      `}function n(){var c,s,p;(c=i.querySelector("#btn-wizard-next"))==null||c.addEventListener("click",()=>{r(),e+=1,d()}),(s=i.querySelector("#btn-wizard-prev"))==null||s.addEventListener("click",()=>{r(),e-=1,d()}),(p=i.querySelector("#btn-wizard-submit"))==null||p.addEventListener("click",async()=>{try{await x.onboardHotel(a),window.showToast("Hotel submitted for Administrator Verification!","success"),window.navigateTo?window.navigateTo("/owner/dashboard"):window.location.hash="#/owner/dashboard"}catch(h){window.showToast(h.message,"error")}})}function r(){var c,s,p,h,v,u,m,l,g,y,S,b,f;e===1?(a.name=((c=i.querySelector("#inp-name"))==null?void 0:c.value)||a.name,a.hotel_type=((s=i.querySelector("#inp-type"))==null?void 0:s.value)||a.hotel_type,a.description=((p=i.querySelector("#inp-desc"))==null?void 0:p.value)||a.description,a.phone=((h=i.querySelector("#inp-phone"))==null?void 0:h.value)||a.phone,a.email=((v=i.querySelector("#inp-email"))==null?void 0:v.value)||a.email):e===2?(a.address=((u=i.querySelector("#inp-address"))==null?void 0:u.value)||a.address,a.city=((m=i.querySelector("#inp-city"))==null?void 0:m.value)||a.city,a.state=((l=i.querySelector("#inp-state"))==null?void 0:l.value)||a.state,a.postal_code=((g=i.querySelector("#inp-postal"))==null?void 0:g.value)||a.postal_code):e===3?a.cover_image=((y=i.querySelector("#inp-cover"))==null?void 0:y.value)||a.cover_image:e===4&&(a.initial_rooms[0].room_name=((S=i.querySelector("#inp-room-name"))==null?void 0:S.value)||a.initial_rooms[0].room_name,a.initial_rooms[0].price_per_night=Number((b=i.querySelector("#inp-room-price"))==null?void 0:b.value)||a.initial_rooms[0].price_per_night,a.initial_rooms[0].total_inventory=Number((f=i.querySelector("#inp-room-inv"))==null?void 0:f.value)||a.initial_rooms[0].total_inventory)}d()}async function GM(i){i.innerHTML=`
+      `}function n(){var c,s,p;(c=i.querySelector("#btn-wizard-next"))==null||c.addEventListener("click",()=>{r(),e+=1,d()}),(s=i.querySelector("#btn-wizard-prev"))==null||s.addEventListener("click",()=>{r(),e-=1,d()}),(p=i.querySelector("#btn-wizard-submit"))==null||p.addEventListener("click",async()=>{try{await x.onboardHotel(a),window.showToast("Hotel submitted for Administrator Verification!","success"),window.navigateTo?window.navigateTo("/owner/dashboard"):window.location.hash="#/owner/dashboard"}catch(h){window.showToast(h.message,"error")}})}function r(){var c,s,p,h,m,y,u,l,v,g,b,S,w;e===1?(a.name=((c=i.querySelector("#inp-name"))==null?void 0:c.value)||a.name,a.hotel_type=((s=i.querySelector("#inp-type"))==null?void 0:s.value)||a.hotel_type,a.description=((p=i.querySelector("#inp-desc"))==null?void 0:p.value)||a.description,a.phone=((h=i.querySelector("#inp-phone"))==null?void 0:h.value)||a.phone,a.email=((m=i.querySelector("#inp-email"))==null?void 0:m.value)||a.email):e===2?(a.address=((y=i.querySelector("#inp-address"))==null?void 0:y.value)||a.address,a.city=((u=i.querySelector("#inp-city"))==null?void 0:u.value)||a.city,a.state=((l=i.querySelector("#inp-state"))==null?void 0:l.value)||a.state,a.postal_code=((v=i.querySelector("#inp-postal"))==null?void 0:v.value)||a.postal_code):e===3?a.cover_image=((g=i.querySelector("#inp-cover"))==null?void 0:g.value)||a.cover_image:e===4&&(a.initial_rooms[0].room_name=((b=i.querySelector("#inp-room-name"))==null?void 0:b.value)||a.initial_rooms[0].room_name,a.initial_rooms[0].price_per_night=Number((S=i.querySelector("#inp-room-price"))==null?void 0:S.value)||a.initial_rooms[0].price_per_night,a.initial_rooms[0].total_inventory=Number((w=i.querySelector("#inp-room-inv"))==null?void 0:w.value)||a.initial_rooms[0].total_inventory)}d()}async function GM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner profile...</p>
@@ -11573,12 +11603,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
     `,window.lucide&&window.lucide.createIcons()}catch(e){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${e.message}</div>`}}window.lucide={createIcons:(i={})=>{try{yM({icons:s1,...i})}catch(e){console.warn("Lucide icon render warning:",e.message)}},icons:s1};const WM=new Set(["super_admin","admin","support_admin","finance_admin"]),KM=new Set(["hotel_admin","owner"]);window.showToast=function(i,e="info"){const a=document.getElementById("toast-root");if(!a)return;const d=document.createElement("div");d.className=`toast ${e}`,d.innerHTML=`
     <i data-lucide="${e==="success"?"check-circle":e==="error"?"alert-circle":"info"}" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
     <span style="font-size: 0.84rem; font-weight: 500;">${i}</span>
-  `,a.appendChild(d),window.lucide&&window.lucide.createIcons(),setTimeout(()=>{d.style.opacity="0",d.style.transform="translateY(10px)",d.style.transition="all 0.3s ease",setTimeout(()=>d.remove(),300)},3500)};window.handleSignOut=function(){x.clearSession(),window.showToast("Signed out successfully.","info"),window.navigateTo("/login")};const j="hotelhub_theme";function U(i=localStorage.getItem(j)||"light"){const e=i==="dark"||i==="light"?i:"light";document.body.setAttribute("data-theme",e);const a=document.getElementById("header-theme-toggle"),d=document.getElementById("header-theme-icon");if(a&&d){const o=e==="dark";d.textContent=o?"☀️":"🌙",a.setAttribute("aria-label",o?"Switch to light mode":"Switch to dark mode"),a.setAttribute("title",o?"Switch to light mode":"Switch to dark mode")}}window.toggleAdminTheme=function(){const e=(document.body.getAttribute("data-theme")==="dark"?"dark":"light")==="dark"?"light":"dark";localStorage.setItem(j,e),U(e)};window.addEventListener("DOMContentLoaded",()=>{const i=localStorage.getItem(j);if(i==="dark"||i==="light"){U(i);return}const e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;U(e?"dark":"light")});window.addEventListener("storage",i=>{i.key===j&&(i.newValue==="dark"||i.newValue==="light")&&U(i.newValue)});const d1=document.getElementById("header-theme-toggle");d1&&d1.addEventListener("click",window.toggleAdminTheme);window.navigateTo=function(i){const e=i.startsWith("#")?i:`#${i.startsWith("/")?i:"/"+i}`;window.location.hash!==e?window.location.hash=e:K()};function JM(){let i=window.location.hash;return!i&&window.location.pathname&&window.location.pathname!=="/"&&window.location.pathname!=="/index.html"&&(i="#"+window.location.pathname),i||(i="#/login"),i.includes("?")&&(i=i.split("?")[0]),i.includes("&")&&(i=i.split("&")[0]),i.startsWith("#/")||(i.startsWith("#")?i="#/"+i.slice(1):i="#/"+i),i}function K(){const i=JM();window.location.hash!==i&&history.replaceState(null,"",i);const e=document.getElementById("app-sidebar"),a=document.getElementById("sidebar-backdrop");e&&e.classList.remove("open"),a&&a.classList.remove("active");const d=document.getElementById("view-content-area"),o=document.getElementById("header-view-title"),n=document.getElementById("header-view-subtitle"),r=document.getElementById("sidebar-nav-root"),c=document.getElementById("user-role-badge"),s=document.getElementById("user-name-display"),p=document.getElementById("sidebar-user-avatar"),h=document.getElementById("user-role-display"),v=document.getElementById("header-user-avatar"),u=document.getElementById("header-user-name"),m=document.getElementById("header-user-role"),l=document.querySelector(".top-header");if(!d)return;const g=x.currentUser,y=!!(x.token&&g),S=g&&WM.has(g.role),b=g&&KM.has(g.role),f=g&&g.role==="super_admin",M=g?g.role:null;if(["#/login","#/admin/login","#/hotel-admin/login","#/owner/login","#/","#",""].includes(i)){if(e&&(e.style.display="none"),l&&(l.style.display="none"),y){if(S){window.navigateTo("/admin/dashboard");return}else if(b){window.navigateTo("/hotel-admin/dashboard");return}}MM(d);return}if(i==="#/register"){e&&(e.style.display="none"),l&&(l.style.display="none"),xM(d);return}e&&(e.style.display="flex"),l&&(l.style.display="flex");const k=i.startsWith("#/admin"),H=i.startsWith("#/hotel-admin")||i.startsWith("#/owner");if(k){if(!y){window.navigateTo("/login");return}if(!S){if(b){window.showToast("Redirected: Hotel Admin workspace","info"),window.navigateTo("/hotel-admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(H){if(!y){window.navigateTo("/login");return}if(!b){if(S){window.showToast("Redirected: Platform Admin workspace","info"),window.navigateTo("/admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(g){const _=g.name||"Administrator",$=(g.role||"ADMIN").replace("_"," ").toUpperCase(),q=(_.split(" ").map(C=>C[0]).join("")||"AD").slice(0,2).toUpperCase();s&&(s.textContent=_),h&&(h.textContent=$),p&&(p.textContent=q),v&&(v.textContent=q),u&&(u.textContent=_),m&&(m.textContent=$)}if(k){const _=(g==null?void 0:g.role)==="super_admin"?"SUPER ADMIN":`${((g==null?void 0:g.role)||"ADMIN").replace("_"," ").toUpperCase()}`;c&&(c.textContent=_);let $=`
+  `,a.appendChild(d),window.lucide&&window.lucide.createIcons(),setTimeout(()=>{d.style.opacity="0",d.style.transform="translateY(10px)",d.style.transition="all 0.3s ease",setTimeout(()=>d.remove(),300)},3500)};window.handleSignOut=function(){x.clearSession(),window.showToast("Signed out successfully.","info"),window.navigateTo("/login")};const j="hotelhub_theme";function U(i=localStorage.getItem(j)||"light"){const e=i==="dark"||i==="light"?i:"light";document.body.setAttribute("data-theme",e);const a=document.getElementById("header-theme-toggle"),d=document.getElementById("header-theme-icon");if(a&&d){const o=e==="dark";d.textContent=o?"☀️":"🌙",a.setAttribute("aria-label",o?"Switch to light mode":"Switch to dark mode"),a.setAttribute("title",o?"Switch to light mode":"Switch to dark mode")}}window.toggleAdminTheme=function(){const e=(document.body.getAttribute("data-theme")==="dark"?"dark":"light")==="dark"?"light":"dark";localStorage.setItem(j,e),U(e)};window.addEventListener("DOMContentLoaded",()=>{const i=localStorage.getItem(j);if(i==="dark"||i==="light"){U(i);return}const e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;U(e?"dark":"light")});window.addEventListener("storage",i=>{i.key===j&&(i.newValue==="dark"||i.newValue==="light")&&U(i.newValue)});const d1=document.getElementById("header-theme-toggle");d1&&d1.addEventListener("click",window.toggleAdminTheme);window.navigateTo=function(i){const e=i.startsWith("#")?i:`#${i.startsWith("/")?i:"/"+i}`;window.location.hash!==e?window.location.hash=e:K()};function JM(){let i=window.location.hash;return!i&&window.location.pathname&&window.location.pathname!=="/"&&window.location.pathname!=="/index.html"&&(i="#"+window.location.pathname),i||(i="#/login"),i.includes("?")&&(i=i.split("?")[0]),i.includes("&")&&(i=i.split("&")[0]),i.startsWith("#/")||(i.startsWith("#")?i="#/"+i.slice(1):i="#/"+i),i}function K(){const i=JM();window.location.hash!==i&&history.replaceState(null,"",i);const e=document.getElementById("app-sidebar"),a=document.getElementById("sidebar-backdrop");e&&e.classList.remove("open"),a&&a.classList.remove("active");const d=document.getElementById("view-content-area"),o=document.getElementById("header-view-title"),n=document.getElementById("header-view-subtitle"),r=document.getElementById("sidebar-nav-root"),c=document.getElementById("user-role-badge"),s=document.getElementById("user-name-display"),p=document.getElementById("sidebar-user-avatar"),h=document.getElementById("user-role-display"),m=document.getElementById("header-user-avatar"),y=document.getElementById("header-user-name"),u=document.getElementById("header-user-role"),l=document.querySelector(".top-header");if(!d)return;const v=x.currentUser,g=!!(x.token&&v),b=v&&WM.has(v.role),S=v&&KM.has(v.role),w=v&&v.role==="super_admin",M=v?v.role:null;if(["#/login","#/admin/login","#/hotel-admin/login","#/owner/login","#/","#",""].includes(i)){if(e&&(e.style.display="none"),l&&(l.style.display="none"),g){if(b){window.navigateTo("/admin/dashboard");return}else if(S){window.navigateTo("/hotel-admin/dashboard");return}}MM(d);return}if(i==="#/register"){e&&(e.style.display="none"),l&&(l.style.display="none"),xM(d);return}e&&(e.style.display="flex"),l&&(l.style.display="flex");const k=i.startsWith("#/admin"),H=i.startsWith("#/hotel-admin")||i.startsWith("#/owner");if(k){if(!g){window.navigateTo("/login");return}if(!b){if(S){window.showToast("Redirected: Hotel Admin workspace","info"),window.navigateTo("/hotel-admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(H){if(!g){window.navigateTo("/login");return}if(!S){if(b){window.showToast("Redirected: Platform Admin workspace","info"),window.navigateTo("/admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(v){const P=v.name||"Administrator",_=(v.role||"ADMIN").replace("_"," ").toUpperCase(),q=(P.split(" ").map(E=>E[0]).join("")||"AD").slice(0,2).toUpperCase();s&&(s.textContent=P),h&&(h.textContent=_),p&&(p.textContent=q),m&&(m.textContent=q),y&&(y.textContent=P),u&&(u.textContent=_)}if(k){const P=(v==null?void 0:v.role)==="super_admin"?"SUPER ADMIN":`${((v==null?void 0:v.role)||"ADMIN").replace("_"," ").toUpperCase()}`;c&&(c.textContent=P);let _=`
       <div class="nav-section-label">Core Executive</div>
       <a href="#/admin/dashboard" class="nav-item ${i==="#/admin/dashboard"?"active":""}">
         <div class="nav-item-left"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
       </a>
-    `;(f||M==="admin")&&($+=`
+    `;(w||M==="admin")&&(_+=`
         <div class="nav-section-label">Hotel Ecosystem</div>
         <a href="#/admin/hotels" class="nav-item ${i==="#/admin/hotels"?"active":""}">
           <div class="nav-item-left"><i data-lucide="building-2"></i><span>Hotels</span></div>
@@ -11586,7 +11616,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/owners" class="nav-item ${i==="#/admin/owners"?"active":""}">
           <div class="nav-item-left"><i data-lucide="shield-check"></i><span>Owner KYC</span></div>
         </a>
-      `),$+=`
+      `),_+=`
       <div class="nav-section-label">Operations</div>
       <a href="#/admin/bookings" class="nav-item ${i==="#/admin/bookings"?"active":""}">
         <div class="nav-item-left"><i data-lucide="calendar-check"></i><span>Bookings</span></div>
@@ -11594,7 +11624,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="#/admin/pickups" class="nav-item ${i==="#/admin/pickups"?"active":""}">
         <div class="nav-item-left"><i data-lucide="car"></i><span>Pickups Activity</span></div>
       </a>
-    `,(f||M==="admin"||M==="finance_admin")&&($+=`
+    `,(w||M==="admin"||M==="finance_admin")&&(_+=`
         <div class="nav-section-label">Financial Accounting</div>
         <a href="#/admin/payments" class="nav-item ${i==="#/admin/payments"?"active":""}">
           <div class="nav-item-left"><i data-lucide="credit-card"></i><span>Payments</span></div>
@@ -11608,7 +11638,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/reports" class="nav-item ${i==="#/admin/reports"||i==="#/admin/statements"?"active":""}">
           <div class="nav-item-left"><i data-lucide="file-bar-chart-2"></i><span>Statements</span></div>
         </a>
-      `),(f||M==="admin"||M==="support_admin")&&($+=`
+      `),(w||M==="admin"||M==="support_admin")&&(_+=`
         <div class="nav-section-label">Guest Experience</div>
         <a href="#/admin/customers" class="nav-item ${i==="#/admin/customers"?"active":""}">
           <div class="nav-item-left"><i data-lucide="users"></i><span>Customers</span></div>
@@ -11616,7 +11646,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/support" class="nav-item ${i==="#/admin/support"?"active":""}">
           <div class="nav-item-left"><i data-lucide="life-buoy"></i><span>Support Desk</span></div>
         </a>
-      `),f?$+=`
+      `),w?_+=`
         <div class="nav-section-label">System</div>
         <a href="#/admin/admins" class="nav-item ${i.startsWith("#/admin/admins")?"active":""}">
           <div class="nav-item-left"><i data-lucide="user-cog"></i><span>Admin Users</span></div>
@@ -11624,12 +11654,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/settings" class="nav-item ${i==="#/admin/settings"?"active":""}">
           <div class="nav-item-left"><i data-lucide="sliders"></i><span>Settings</span></div>
         </a>
-      `:M==="admin"&&($+=`
+      `:M==="admin"&&(_+=`
         <div class="nav-section-label">System</div>
         <a href="#/admin/settings" class="nav-item ${i==="#/admin/settings"?"active":""}">
           <div class="nav-item-left"><i data-lucide="sliders"></i><span>Settings</span></div>
         </a>
-      `),$+=`
+      `),_+=`
       <div class="nav-section-label">Account</div>
       <a href="#/admin/profile" class="nav-item ${i==="#/admin/profile"?"active":""}">
         <div class="nav-item-left"><i data-lucide="user"></i><span>Profile</span></div>
@@ -11637,7 +11667,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="javascript:void(0)" onclick="window.handleSignOut()" class="nav-item" style="color: #EF4444;">
         <div class="nav-item-left"><i data-lucide="log-out"></i><span>Sign Out</span></div>
       </a>
-    `,r.innerHTML=$}else H&&(c&&(c.textContent="HOTEL ADMIN"),r.innerHTML=`
+    `,r.innerHTML=_}else H&&(c&&(c.textContent="HOTEL ADMIN"),r.innerHTML=`
       <div class="nav-section-label">HOTEL MANAGEMENT</div>
       <a href="#/hotel-admin/dashboard" class="nav-item ${i==="#/hotel-admin/dashboard"||i==="#/owner/dashboard"?"active":""}">
         <div class="nav-item-left"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
@@ -11684,4 +11714,4 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="javascript:void(0)" onclick="window.handleSignOut()" class="nav-item" style="color: #EF4444;">
         <div class="nav-item-left"><i data-lucide="log-out"></i><span>Sign Out</span></div>
       </a>
-    `);switch(i){case"#/admin/dashboard":o.textContent="Executive Control Center",n.textContent="Live centralized overview of properties, bookings & financial settlements",fM(d);break;case"#/admin/hotels":o.textContent="Hotel Directory & Governance",n.textContent="Inspect properties, verify compliance documents, and control active status",bM(d);break;case"#/admin/owners":o.textContent="Hotel Owner Verification (KYC)",n.textContent="Review business registration, PAN/GSTIN documentation, and bank settlement details",wM(d);break;case"#/admin/bookings":o.textContent="Centralized Booking Ledger",n.textContent="Audit all guest reservations, stay dates, and digital invoice breakdowns",kM(d);break;case"#/admin/pickups":o.textContent="Centralized Transfer Logistics",n.textContent="Platform-wide pickup requests, hotel vehicle fleets, and transfer logs",zM(d);break;case"#/admin/payments":if(!f&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Payment Transaction Logs",n.textContent="Real-time gateway settlements, UPI/Card transaction records, and status",SM(d);break;case"#/admin/refunds":if(!f&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Cancellation Refund Queue",n.textContent="Process guest cancellation claims with policy fee deduction and bank settlement",HM(d);break;case"#/admin/commissions":if(!f&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Commission Engine & Rules",n.textContent="Manage platform take-rate percentage and review auditable cut ledger",CM(d);break;case"#/admin/customers":if(!f&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Customer Accounts Directory",n.textContent="Registered mobile app guests, lifetime reservations, and contact records",AM(d);break;case"#/admin/support":if(!f&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Centralized Support Desk",n.textContent="Two-way resolution hub for customer and hotel partner inquiries",LM(d);break;case"#/admin/reports":case"#/admin/statements":if(!f&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Financial Income Statements",n.textContent="Daily and monthly revenue accounting with auditable CSV export",$M(d);break;case"#/admin/settings":if(!f&&M!=="admin"){I(d,"Super Administrator");break}o.textContent="Platform Global Settings",n.textContent="Configure live maintenance modes, payment gateways, and policies",VM(d);break;case"#/admin/admins":case"#/admin/users":if(!f){I(d,"Super Administrator");break}o.textContent="Administrator Security & Roles",n.textContent="Manage administrator accounts, assign role permissions, and view audit trail",_M(d);break;case"#/admin/admins/create":if(!f){I(d,"Super Administrator");break}o.textContent="Provision New Administrator",n.textContent="Grant controlled administrative authority and assign granular operational permissions",TM(d);break;case"#/admin/profile":o.textContent="Administrator Profile & Security",n.textContent="Manage personal administrative credentials and update password",PM(d);break;case"#/admin/access-denied":o.textContent="Access Restricted",n.textContent="You do not have the required permissions to view this administrative page",I(d);break;case"#/hotel-admin/dashboard":case"#/owner/dashboard":o.textContent="Hotel Management Dashboard",n.textContent="Track room inventory, today’s arrivals, departures, and net earnings",qM(d);break;case"#/hotel-admin/property":case"#/hotel-admin/hotel":case"#/owner/hotel":o.textContent="Property Details & Media",n.textContent="Edit hotel details, address, amenities, and high-resolution photo gallery",EM(d);break;case"#/hotel-admin/banners":case"#/owner/banners":o.textContent="Customer App Banners",n.textContent="Add, arrange, and manage the promotional hero sliders shown on the app",BM(d);break;case"#/hotel-admin/rooms":case"#/owner/rooms":o.textContent="Room Categories & Inventory",n.textContent="Add room categories, set nightly tariffs, capacity, and manage available units",DM(d);break;case"#/hotel-admin/availability":case"#/owner/availability":o.textContent="Availability Matrix",n.textContent="Real-time room occupancy grid with single-click blackout date blocking",RM(d);break;case"#/hotel-admin/bookings":case"#/owner/bookings":o.textContent="Reservations Management",n.textContent="Full list of guest bookings with stay dates, guest contact, and payout details",IM(d);break;case"#/hotel-admin/pickups":case"#/owner/pickups":o.textContent="Pickup Service & Fleet Logistics",n.textContent="Manage guest transfer requests, driver allocations, and vehicle fleets",ZM(d);break;case"#/hotel-admin/check-in":case"#/owner/check-in":o.textContent="Front Desk Check-In",n.textContent="Search by Booking ID to verify guest identity and confirm check-in",OM(d);break;case"#/hotel-admin/check-out":case"#/owner/check-out":o.textContent="Front Desk Check-Out",n.textContent="Check out guests, finalize billing, and release rooms back to active inventory",NM(d);break;case"#/hotel-admin/earnings":case"#/owner/earnings":o.textContent="Net Earnings & Settlements",n.textContent="Traceable 85% net earnings per reservation with platform fee deductions",FM(d);break;case"#/hotel-admin/onboard":case"#/owner/onboard":o.textContent="Register New Property",n.textContent="5-step onboarding wizard to submit new hotels for platform review",jM(d);break;case"#/hotel-admin/profile":case"#/owner/profile":o.textContent="Owner KYC & Business Profile",n.textContent="Commercial registration, PAN, GSTIN, and bank settlement details",GM(d);break;case"#/hotel-admin/support":case"#/owner/support":o.textContent="Partner Concierge & Support",n.textContent="Direct priority messaging channel with HotelHub platform administrators",UM(d);break;default:k?window.navigateTo("/admin/dashboard"):H?window.navigateTo("/hotel-admin/dashboard"):window.navigateTo("/admin/dashboard");break}window.lucide&&window.lucide.createIcons()}function YM(){const i=document.getElementById("btn-mobile-sidebar-toggle"),e=document.getElementById("btn-close-sidebar"),a=document.getElementById("sidebar-backdrop"),d=document.getElementById("app-sidebar");i&&d&&a&&i.addEventListener("click",o=>{o.stopPropagation(),d.classList.add("open"),a.classList.add("active")}),e&&d&&a&&e.addEventListener("click",o=>{o.stopPropagation(),d.classList.remove("open"),a.classList.remove("active")}),a&&d&&a.addEventListener("click",()=>{d.classList.remove("open"),a.classList.remove("active")})}window.addEventListener("hashchange",K);window.addEventListener("DOMContentLoaded",()=>{YM(),K()});
+    `);switch(i){case"#/admin/dashboard":o.textContent="Executive Control Center",n.textContent="Live centralized overview of properties, bookings & financial settlements",fM(d);break;case"#/admin/hotels":o.textContent="Hotel Directory & Governance",n.textContent="Inspect properties, verify compliance documents, and control active status",bM(d);break;case"#/admin/owners":o.textContent="Hotel Owner Verification (KYC)",n.textContent="Review business registration, PAN/GSTIN documentation, and bank settlement details",wM(d);break;case"#/admin/bookings":o.textContent="Centralized Booking Ledger",n.textContent="Audit all guest reservations, stay dates, and digital invoice breakdowns",kM(d);break;case"#/admin/pickups":o.textContent="Centralized Transfer Logistics",n.textContent="Platform-wide pickup requests, hotel vehicle fleets, and transfer logs",zM(d);break;case"#/admin/payments":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Payment Transaction Logs",n.textContent="Real-time gateway settlements, UPI/Card transaction records, and status",SM(d);break;case"#/admin/refunds":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Cancellation Refund Queue",n.textContent="Process guest cancellation claims with policy fee deduction and bank settlement",HM(d);break;case"#/admin/commissions":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Commission Engine & Rules",n.textContent="Manage platform take-rate percentage and review auditable cut ledger",CM(d);break;case"#/admin/customers":if(!w&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Customer Accounts Directory",n.textContent="Registered mobile app guests, lifetime reservations, and contact records",AM(d);break;case"#/admin/support":if(!w&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Centralized Support Desk",n.textContent="Two-way resolution hub for customer and hotel partner inquiries",LM(d);break;case"#/admin/reports":case"#/admin/statements":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Financial Income Statements",n.textContent="Daily and monthly revenue accounting with auditable CSV export",$M(d);break;case"#/admin/settings":if(!w&&M!=="admin"){I(d,"Super Administrator");break}o.textContent="Platform Global Settings",n.textContent="Configure live maintenance modes, payment gateways, and policies",VM(d);break;case"#/admin/admins":case"#/admin/users":if(!w){I(d,"Super Administrator");break}o.textContent="Administrator Security & Roles",n.textContent="Manage administrator accounts, assign role permissions, and view audit trail",_M(d);break;case"#/admin/admins/create":if(!w){I(d,"Super Administrator");break}o.textContent="Provision New Administrator",n.textContent="Grant controlled administrative authority and assign granular operational permissions",TM(d);break;case"#/admin/profile":o.textContent="Administrator Profile & Security",n.textContent="Manage personal administrative credentials and update password",PM(d);break;case"#/admin/access-denied":o.textContent="Access Restricted",n.textContent="You do not have the required permissions to view this administrative page",I(d);break;case"#/hotel-admin/dashboard":case"#/owner/dashboard":o.textContent="Hotel Management Dashboard",n.textContent="Track room inventory, today’s arrivals, departures, and net earnings",qM(d);break;case"#/hotel-admin/property":case"#/hotel-admin/hotel":case"#/owner/hotel":o.textContent="Property Details & Media",n.textContent="Edit hotel details, address, amenities, and high-resolution photo gallery",EM(d);break;case"#/hotel-admin/banners":case"#/owner/banners":o.textContent="Customer App Banners",n.textContent="Add, arrange, and manage the promotional hero sliders shown on the app",BM(d);break;case"#/hotel-admin/rooms":case"#/owner/rooms":o.textContent="Room Categories & Inventory",n.textContent="Add room categories, set nightly tariffs, capacity, and manage available units",DM(d);break;case"#/hotel-admin/availability":case"#/owner/availability":o.textContent="Availability Matrix",n.textContent="Real-time room occupancy grid with single-click blackout date blocking",RM(d);break;case"#/hotel-admin/bookings":case"#/owner/bookings":o.textContent="Reservations Management",n.textContent="Full list of guest bookings with stay dates, guest contact, and payout details",IM(d);break;case"#/hotel-admin/pickups":case"#/owner/pickups":o.textContent="Pickup Service & Fleet Logistics",n.textContent="Manage guest transfer requests, driver allocations, and vehicle fleets",ZM(d);break;case"#/hotel-admin/check-in":case"#/owner/check-in":o.textContent="Front Desk Check-In",n.textContent="Search by Booking ID to verify guest identity and confirm check-in",OM(d);break;case"#/hotel-admin/check-out":case"#/owner/check-out":o.textContent="Front Desk Check-Out",n.textContent="Check out guests, finalize billing, and release rooms back to active inventory",NM(d);break;case"#/hotel-admin/earnings":case"#/owner/earnings":o.textContent="Net Earnings & Settlements",n.textContent="Traceable 85% net earnings per reservation with platform fee deductions",FM(d);break;case"#/hotel-admin/onboard":case"#/owner/onboard":o.textContent="Register New Property",n.textContent="5-step onboarding wizard to submit new hotels for platform review",jM(d);break;case"#/hotel-admin/profile":case"#/owner/profile":o.textContent="Owner KYC & Business Profile",n.textContent="Commercial registration, PAN, GSTIN, and bank settlement details",GM(d);break;case"#/hotel-admin/support":case"#/owner/support":o.textContent="Partner Concierge & Support",n.textContent="Direct priority messaging channel with HotelHub platform administrators",UM(d);break;default:k?window.navigateTo("/admin/dashboard"):H?window.navigateTo("/hotel-admin/dashboard"):window.navigateTo("/admin/dashboard");break}window.lucide&&window.lucide.createIcons()}function YM(){const i=document.getElementById("btn-mobile-sidebar-toggle"),e=document.getElementById("btn-close-sidebar"),a=document.getElementById("sidebar-backdrop"),d=document.getElementById("app-sidebar");i&&d&&a&&i.addEventListener("click",o=>{o.stopPropagation(),d.classList.add("open"),a.classList.add("active")}),e&&d&&a&&e.addEventListener("click",o=>{o.stopPropagation(),d.classList.remove("open"),a.classList.remove("active")}),a&&d&&a.addEventListener("click",()=>{d.classList.remove("open"),a.classList.remove("active")})}window.addEventListener("hashchange",K);window.addEventListener("DOMContentLoaded",()=>{YM(),K()});

@@ -21,11 +21,15 @@ export default function HotelBannerCarousel({ banners, onBannerPress }) {
   const flatListRef = useRef(null);
   const timerRef = useRef(null);
 
-  // Filter only active banners and sort by sort_order
+  // Filter only active banners and sort by sort_order (tie-broken by creation order)
   const validBanners = Array.isArray(banners)
     ? banners
         .filter(b => b && b.is_active !== false)
-        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .sort((a, b) => {
+          const orderDiff = (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0);
+          if (orderDiff !== 0) return orderDiff;
+          return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+        })
     : [];
 
   useEffect(() => {

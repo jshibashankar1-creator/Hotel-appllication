@@ -90,7 +90,9 @@ router.get('/kpis', handleDashboard);
 const handleGetHotel = (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
-  return res.json({ success: true, hotel, property: hotel });
+  db.syncHotelCoverFromBanners(hotel.id);
+  const refreshed = db.getHotelById(hotel.id) || hotel;
+  return res.json({ success: true, hotel: refreshed, property: refreshed });
 };
 router.get('/hotel', handleGetHotel);
 router.get('/property', handleGetHotel);
@@ -116,6 +118,9 @@ const handleUpdateHotel = (req, res) => {
     if (amenities !== undefined) target.amenities = amenities;
     if (cover_image !== undefined) target.cover_image = cover_image;
     if (gallery !== undefined) target.gallery = gallery;
+
+    // Defined priority rule: active first banner is source of truth
+    db.syncHotelCoverFromBanners(hotel.id, data);
 
     return target;
   });
@@ -507,6 +512,7 @@ router.post('/banners', requireRole('hotel_admin', 'owner', 'super_admin', 'admi
     } else {
       data.banners.push(newBanner);
     }
+    db.syncHotelCoverFromBanners(hotel.id, data);
   });
 
   return res.status(201).json({ success: true, message: 'Banner saved successfully.', banner: createdBanner });
@@ -541,6 +547,7 @@ router.put('/banners/:id', requireRole('hotel_admin', 'owner', 'super_admin', 'a
     if (is_active !== undefined) target.is_active = is_active;
     target.updated_at = new Date().toISOString();
 
+    db.syncHotelCoverFromBanners(hotel.id, data);
     return target;
   });
 
@@ -569,6 +576,8 @@ router.patch('/banners/:id/status', requireRole('hotel_admin', 'owner', 'super_a
 
     target.is_active = is_active;
     target.updated_at = new Date().toISOString();
+
+    db.syncHotelCoverFromBanners(hotel.id, data);
     return target;
   });
 
@@ -593,6 +602,7 @@ router.delete('/banners/:id', requireRole('hotel_admin', 'owner', 'super_admin',
     if (idx !== -1) {
       data.banners.splice(idx, 1);
       deleted = true;
+      db.syncHotelCoverFromBanners(hotel.id, data);
     }
   });
 

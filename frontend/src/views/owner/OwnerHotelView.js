@@ -29,6 +29,29 @@ export async function renderOwnerHotelView(container) {
     const hotel = hotels[0]; // Active property
     let currentCoverUrl = hotel.cover_image || '';
     let isUploading = false;
+    let hasActiveBanners = false;
+    let primaryBanner = null;
+
+    try {
+      const bannerRes = await api.get('/hotel-admin/banners');
+      if (bannerRes && Array.isArray(bannerRes.banners)) {
+        const activeBanners = bannerRes.banners
+          .filter(b => b.is_active !== false && (b.image_url || b.cover_image))
+          .sort((a, b) => {
+            const orderDiff = (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0);
+            if (orderDiff !== 0) return orderDiff;
+            return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+          });
+        if (activeBanners.length > 0) {
+          hasActiveBanners = true;
+          primaryBanner = activeBanners[0];
+          const syncImage = primaryBanner.image_url || primaryBanner.cover_image;
+          if (syncImage) currentCoverUrl = syncImage;
+        }
+      }
+    } catch (e) {
+      // Continue gracefully with current hotel cover
+    }
 
     container.innerHTML = `
       <div style="max-width: 820px;">
@@ -82,6 +105,22 @@ export async function renderOwnerHotelView(container) {
                 <label class="form-label" style="margin-bottom: 0;">Property Cover Photo</label>
                 <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">Max 5 MB • JPG, PNG, WEBP</span>
               </div>
+
+              ${hasActiveBanners ? `
+                <div style="background: rgba(128, 0, 32, 0.05); border: 1px solid rgba(128, 0, 32, 0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+                  <i data-lucide="info" style="width: 16px; height: 16px; color: #800020; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div style="font-size: 0.78rem; color: #4a1525; line-height: 1.45;">
+                    <strong>Synchronized with First Active Banner:</strong> Your lowest sort-order active promotional banner (Display Order: <strong>${primaryBanner?.sort_order ?? 0}</strong>) is the active source of truth for your property's public cover photo. Any manual upload will be safely preserved as fallback when no banners are active.
+                  </div>
+                </div>
+              ` : `
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+                  <i data-lucide="check-circle" style="width: 16px; height: 16px; color: #059669; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div style="font-size: 0.78rem; color: #065f46; line-height: 1.45;">
+                    <strong>Direct Cover Photo Active:</strong> No active promotional banners found. This image serves as your public property cover photo.
+                  </div>
+                </div>
+              `}
 
               <div class="room-photo-uploader" id="hotel-cover-uploader">
                 <!-- Hidden Native File Input -->

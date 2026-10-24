@@ -73,6 +73,12 @@ async function runTests() {
     assert(badDateRes.status === 400, 'startDate=14 is rejected with 400 Bad Request');
     assert(badDateData.success === false, 'Error response has success: false');
 
+    // 3b. Validation: startDate='invalid-date' is rejected with 400
+    const strDateRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=invalid-date&endDate=2026-11-07`);
+    const strDateData = await strDateRes.json();
+    assert(strDateRes.status === 400, 'startDate=invalid-date is rejected with 400 Bad Request');
+    assert(strDateData.message.includes('Invalid startDate'), 'Error message explains invalid startDate format');
+
     // 4. Missing endDate defaults to 14 days
     const noEndRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=${startStr}`);
     const noEndData = await noEndRes.json();

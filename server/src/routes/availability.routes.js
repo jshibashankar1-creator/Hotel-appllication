@@ -21,8 +21,8 @@ function handleRoomAvailability(req, res) {
   const { startDate, endDate, days } = req.query;
 
   // Validate startDate if provided
-  if (startDate !== undefined && startDate !== null && startDate !== '') {
-    if (typeof startDate === 'string' && (startDate.length < 10 || isNaN(Date.parse(startDate)))) {
+  if (startDate !== undefined && startDate !== null && startDate !== '' && startDate !== 'undefined') {
+    if (typeof startDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || isNaN(Date.parse(startDate))) {
       return res.status(400).json({
         success: false,
         message: 'Invalid startDate. Please provide a valid date in YYYY-MM-DD format.'
@@ -32,7 +32,7 @@ function handleRoomAvailability(req, res) {
 
   // Validate endDate if provided
   if (endDate !== undefined && endDate !== null && endDate !== '' && endDate !== 'undefined') {
-    if (typeof endDate === 'string' && (endDate.length < 10 || isNaN(Date.parse(endDate)))) {
+    if (typeof endDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(endDate) || isNaN(Date.parse(endDate))) {
       return res.status(400).json({
         success: false,
         message: 'Invalid endDate. Please provide a valid date in YYYY-MM-DD format.'
@@ -119,7 +119,7 @@ router.post('/block', authenticate, requireRole('owner', 'super_admin', 'admin',
     return res.status(400).json({ success: false, message: 'room_id and date are required.' });
   }
 
-  if (typeof date === 'string' && (date.length < 10 || isNaN(Date.parse(date)))) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
     return res.status(400).json({ success: false, message: 'Invalid date format. Expected YYYY-MM-DD.' });
   }
 

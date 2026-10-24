@@ -240,7 +240,19 @@ class MobileApiService {
 
   // --- PLATFORM SETTINGS & HOME HERO (Super Admin managed) ---
   async getHomeHero() {
-    return this.request('/settings/home-hero');
+    try {
+      return await this.request('/settings/home-hero');
+    } catch (err) {
+      try {
+        const res = await this.request('/settings');
+        return {
+          success: true,
+          image_url: res?.settings?.home_hero_bg_image || null,
+          hero_image: res?.settings?.home_hero_bg_image || null
+        };
+      } catch (_) {}
+      throw err;
+    }
   }
 }
 

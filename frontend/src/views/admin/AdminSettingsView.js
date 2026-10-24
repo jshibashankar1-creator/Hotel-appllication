@@ -1,9 +1,24 @@
 import { api } from '../../services/api.js';
 
+function getAuthUser() {
+  if (api.currentUser) return api.currentUser;
+  try {
+    const raw = localStorage.getItem('hotelhub_current_user');
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return null;
+}
+
+function isUserSuperAdmin() {
+  const user = getAuthUser();
+  if (!user || !user.role) return false;
+  const role = String(user.role).trim().toLowerCase();
+  return role === 'super_admin' || role === 'superadmin';
+}
+
 export async function renderAdminSettingsView(container) {
   let settings = null;
   let heroImage = null;
-  const isSuperAdmin = api.currentUser?.role === 'super_admin';
 
   async function loadData() {
     container.innerHTML = `
@@ -14,13 +29,20 @@ export async function renderAdminSettingsView(container) {
     `;
     if (window.lucide) window.lucide.createIcons();
 
+    // Verify and refresh current user profile if needed
+    if (!api.currentUser && api.token) {
+      try {
+        await api.getMe();
+      } catch (_) {}
+    }
+
     try {
       const [res, heroRes] = await Promise.all([
-        api.getSettings(),
+        api.getSettings().catch(() => ({ settings: {} })),
         api.getHomeHero().catch(() => ({ image_url: null }))
       ]);
-      settings = res.settings;
-      heroImage = heroRes.image_url || settings.home_hero_bg_image || null;
+      settings = res.settings || {};
+      heroImage = heroRes?.image_url || heroRes?.hero_image || settings.home_hero_bg_image || null;
       render();
     } catch (err) {
       container.innerHTML = `<div class="panel-card" style="color: var(--status-danger);">Error: ${err.message}</div>`;
@@ -28,9 +50,13 @@ export async function renderAdminSettingsView(container) {
   }
 
   function render() {
+    const isSuperAdmin = isUserSuperAdmin();
+    const currentUser = getAuthUser();
+    const userRole = currentUser?.role || 'admin';
+
     container.innerHTML = `
       <div style="max-width: 760px; display: flex; flex-direction: column; gap: 24px;">
-        <!-- Super Admin Home Hero Background Management Card -->
+        <!-- Prominent Customer App Home Hero Background Management Card -->
         <div class="panel-card" id="hero-settings-card">
           <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
             <div class="card-title-group">
@@ -41,7 +67,7 @@ export async function renderAdminSettingsView(container) {
                 </span>
               </div>
               <p style="margin-top: 4px; color: var(--text-muted); font-size: 0.85rem;">
-                Hero background image displayed behind "Find Your Perfect Stay" on the customer mobile app home screen.
+                Manage the hero background image displayed behind "Find Your Perfect Stay" on the customer mobile app home screen.
               </p>
             </div>
           </div>
@@ -49,58 +75,54 @@ export async function renderAdminSettingsView(container) {
           ${!isSuperAdmin ? `
             <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: var(--radius-md); padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; gap: 10px; color: #b45309; font-size: 0.85rem;">
               <i data-lucide="shield-alert" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
-              <span>You are logged in as <strong>${api.currentUser?.role || 'admin'}</strong>. Only <strong>Super Admin</strong> can upload, replace, or remove the customer app home hero background.</span>
+              <span>You are logged in as <strong>${userRole}</strong>. Only <strong>Super Admin</strong> can upload, replace, or remove the customer app home hero background.</span>
             </div>
-          ` : ''}
+          ` : `
+            <div style="margin-top: 18px;">
+              <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
 
-          <div style="margin-top: 18px;">
-            <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;" ${!isSuperAdmin ? 'disabled' : ''}>
-
-            <div class="upload-dropzone ${heroImage ? 'has-preview' : ''}" id="hero-dropzone" style="${!isSuperAdmin ? 'cursor: not-allowed; opacity: 0.7;' : ''}">
-              ${heroImage ? `
-                <div class="upload-preview-wrapper" style="position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; max-height: 260px;">
-                  <img src="${heroImage}" alt="Customer App Hero Background" id="hero-preview-img" style="width: 100%; height: 240px; object-fit: cover; display: block; border-radius: var(--radius-md);" />
-                  <div class="upload-preview-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity 0.2s ease;">
-                    ${isSuperAdmin ? `
+              <div class="upload-dropzone ${heroImage ? 'has-preview' : ''}" id="hero-dropzone">
+                ${heroImage ? `
+                  <div class="upload-preview-wrapper" style="position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; max-height: 260px;">
+                    <img src="${heroImage}" alt="Customer App Hero Background" id="hero-preview-img" style="width: 100%; height: 240px; object-fit: cover; display: block; border-radius: var(--radius-md);" />
+                    <div class="upload-preview-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity 0.2s ease;">
                       <button type="button" class="btn btn-secondary btn-sm" id="btn-change-hero" style="color: #fff; border-color: rgba(255,255,255,0.6); background: rgba(0,0,0,0.4);">
                         <i data-lucide="camera" style="width: 14px; height: 14px;"></i> Change Photo
                       </button>
                       <button type="button" class="btn btn-danger btn-sm" id="btn-remove-hero" style="background: #dc2626; border-color: #dc2626; color: #fff;">
                         <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Remove Photo
                       </button>
-                    ` : ''}
+                    </div>
                   </div>
-                </div>
-              ` : `
-                <div class="upload-dropzone-content" id="hero-empty-content">
-                  <div class="upload-dropzone-icon">
-                    <i data-lucide="image" style="width: 28px; height: 28px;"></i>
-                  </div>
-                  <div class="upload-dropzone-text" style="font-weight: 600; margin-top: 8px;">Drag & drop home hero background image here</div>
-                  <div class="upload-dropzone-subtext" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Supports JPG, JPEG, PNG, and WebP (Max 5 MB)</div>
-                  ${isSuperAdmin ? `
+                ` : `
+                  <div class="upload-dropzone-content" id="hero-empty-content">
+                    <div class="upload-dropzone-icon">
+                      <i data-lucide="image" style="width: 28px; height: 28px;"></i>
+                    </div>
+                    <div class="upload-dropzone-text" style="font-weight: 600; margin-top: 8px;">Drag & drop home hero background image here</div>
+                    <div class="upload-dropzone-subtext" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Supports JPG, JPEG, PNG, and WebP (Max 5 MB)</div>
                     <button type="button" class="upload-btn-trigger" id="btn-upload-hero-trigger">
                       <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Hero Image
                     </button>
-                  ` : ''}
+                  </div>
+                `}
+              </div>
+
+              <!-- Upload Progress Bar -->
+              <div class="upload-progress-container" id="hero-progress-box" style="display: none; margin-top: 12px;">
+                <div class="upload-progress-info" style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+                  <span id="hero-progress-label">Uploading to Cloudinary...</span>
+                  <span id="hero-progress-percent" style="font-weight: 600;">0%</span>
                 </div>
-              `}
-            </div>
-
-            <!-- Upload Progress Bar -->
-            <div class="upload-progress-container" id="hero-progress-box" style="display: none; margin-top: 12px;">
-              <div class="upload-progress-info" style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
-                <span id="hero-progress-label">Uploading to Cloudinary...</span>
-                <span id="hero-progress-percent" style="font-weight: 600;">0%</span>
+                <div class="upload-progress-bar-bg" style="width: 100%; height: 6px; background: var(--bg-surface-secondary); border-radius: 999px; overflow: hidden;">
+                  <div class="upload-progress-bar-fill" id="hero-progress-fill" style="width: 0%; height: 100%; background: var(--color-primary); transition: width 0.2s ease;"></div>
+                </div>
               </div>
-              <div class="upload-progress-bar-bg" style="width: 100%; height: 6px; background: var(--bg-surface-secondary); border-radius: 999px; overflow: hidden;">
-                <div class="upload-progress-bar-fill" id="hero-progress-fill" style="width: 0%; height: 100%; background: var(--color-primary); transition: width 0.2s ease;"></div>
-              </div>
-            </div>
 
-            <!-- Status / Alert Message Container -->
-            <div id="hero-status-box" style="display: none; margin-top: 12px; font-size: 0.85rem; padding: 10px 14px; border-radius: var(--radius-sm); align-items: center; gap: 8px;"></div>
-          </div>
+              <!-- Status / Alert Message Container -->
+              <div id="hero-status-box" style="display: none; margin-top: 12px; font-size: 0.85rem; padding: 10px 14px; border-radius: var(--radius-sm); align-items: center; gap: 8px;"></div>
+            </div>
+          `}
         </div>
 
         <!-- Platform & App Configurations Form -->
@@ -134,24 +156,24 @@ export async function renderAdminSettingsView(container) {
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">Default Platform Commission Take-Rate (%)</label>
-                <input type="number" class="form-input" id="setting-commission-rate" value="${settings.commission_rate}" min="1" max="50">
+                <input type="number" class="form-input" id="setting-commission-rate" value="${settings.commission_rate ?? 15}" min="1" max="50">
               </div>
 
               <div class="form-group">
                 <label class="form-label">Standard Cancellation Processing Fee (%)</label>
-                <input type="number" class="form-input" id="setting-cancel-fee" value="${settings.cancel_fee_pct}" min="0" max="50">
+                <input type="number" class="form-input" id="setting-cancel-fee" value="${settings.cancel_fee_pct ?? 10}" min="0" max="50">
               </div>
             </div>
 
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">Helpdesk Support Email</label>
-                <input type="email" class="form-input" id="setting-support-email" value="${settings.support_email}">
+                <input type="email" class="form-input" id="setting-support-email" value="${settings.support_email || 'support@hotelhub.com'}">
               </div>
 
               <div class="form-group">
                 <label class="form-label">Helpdesk Support Phone</label>
-                <input type="text" class="form-input" id="setting-support-phone" value="${settings.support_phone}">
+                <input type="text" class="form-input" id="setting-support-phone" value="${settings.support_phone || '+91 1800 200 8899'}">
               </div>
             </div>
 
@@ -166,7 +188,9 @@ export async function renderAdminSettingsView(container) {
     `;
 
     bindEvents();
-    bindHeroEvents();
+    if (isSuperAdmin) {
+      bindHeroEvents();
+    }
     if (window.lucide) window.lucide.createIcons();
   }
 
@@ -209,9 +233,9 @@ export async function renderAdminSettingsView(container) {
       }
     }
 
-    if (!isSuperAdmin || !dropzone) return;
+    if (!dropzone) return;
 
-    // Trigger browse
+    // Trigger browse button
     const triggerBtn = dropzone.querySelector('#btn-upload-hero-trigger');
     if (triggerBtn) {
       triggerBtn.onclick = (e) => {
@@ -220,7 +244,7 @@ export async function renderAdminSettingsView(container) {
       };
     }
 
-    // Change photo
+    // Change photo button
     const changeBtn = dropzone.querySelector('#btn-change-hero');
     if (changeBtn) {
       changeBtn.onclick = (e) => {
@@ -229,7 +253,7 @@ export async function renderAdminSettingsView(container) {
       };
     }
 
-    // Remove photo
+    // Remove photo button
     const removeBtn = dropzone.querySelector('#btn-remove-hero');
     if (removeBtn) {
       removeBtn.onclick = async (e) => {
@@ -240,7 +264,7 @@ export async function renderAdminSettingsView(container) {
           heroImage = null;
           showStatus('Hero background image removed successfully.', 'success');
           window.showToast?.('Hero image removed.', 'success');
-          setTimeout(() => render(), 800);
+          setTimeout(() => render(), 700);
         } catch (err) {
           showStatus(err.message || 'Failed to remove hero image.', 'error');
         }
@@ -303,26 +327,26 @@ export async function renderAdminSettingsView(container) {
       }
 
       clearStatus();
-      progressBox.style.display = 'block';
-      progressFill.style.width = '0%';
-      progressPercent.textContent = '0%';
-      progressLabel.textContent = `Uploading ${file.name} to Cloudinary...`;
+      if (progressBox) progressBox.style.display = 'block';
+      if (progressFill) progressFill.style.width = '0%';
+      if (progressPercent) progressPercent.textContent = '0%';
+      if (progressLabel) progressLabel.textContent = `Uploading ${file.name} to Cloudinary...`;
 
       try {
         const uploadResult = await api.uploadHeroImage(file, (percent) => {
-          progressFill.style.width = `${percent}%`;
-          progressPercent.textContent = `${percent}%`;
+          if (progressFill) progressFill.style.width = `${percent}%`;
+          if (progressPercent) progressPercent.textContent = `${percent}%`;
         });
 
         heroImage = uploadResult.secure_url || uploadResult.url;
         showStatus('Home hero background uploaded and saved successfully!', 'success');
         window.showToast?.('Hero background updated successfully.', 'success');
-        setTimeout(() => render(), 800);
+        setTimeout(() => render(), 700);
       } catch (err) {
         console.error('Hero background upload failed:', err);
         showStatus(err.message || 'Hero background upload failed. Please verify Cloudinary configuration.', 'error');
       } finally {
-        progressBox.style.display = 'none';
+        if (progressBox) progressBox.style.display = 'none';
         if (fileInput) fileInput.value = '';
       }
     }
@@ -352,4 +376,3 @@ export async function renderAdminSettingsView(container) {
 
   loadData();
 }
-

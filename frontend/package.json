@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build && node -e \"import('fs').then(fs => { fs.copyFileSync('public/_redirects', 'dist/_redirects'); fs.rmSync('frontend/dist', {recursive: true, force: true}); fs.mkdirSync('frontend/dist', {recursive: true}); fs.cpSync('dist', 'frontend/dist', {recursive: true}); })\"",
+    "build": "vite build && node -e \"import('fs').then(fs => { fs.copyFileSync('public/_redirects', 'dist/_redirects'); fs.rmSync('frontend/dist', {recursive: true, force: true}); fs.mkdirSync('frontend/dist', {recursive: true}); fs.cpSync('dist', 'frontend/dist', {recursive: true}); if (fs.existsSync('../dist')) { fs.rmSync('../dist', {recursive: true, force: true}); fs.mkdirSync('../dist', {recursive: true}); fs.cpSync('dist', '../dist', {recursive: true}); } })\"",
     "preview": "vite preview"
   },
   "dependencies": {

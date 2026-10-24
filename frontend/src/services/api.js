@@ -132,21 +132,13 @@ class ApiService {
     });
   }
 
-  async register(userData) {
-    const data = await this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData)
-    });
-    this.setSession(data.token, data.user);
-    return data;
-  }
-
   async getMe() {
     try {
       const data = await this.request('/auth/me');
-      this.currentUser = data.user;
-      localStorage.setItem('hotelhub_current_user', JSON.stringify(data.user));
-      return data.user;
+      const user = data.user || data;
+      this.currentUser = user;
+      localStorage.setItem('hotelhub_current_user', JSON.stringify(user));
+      return user;
     } catch (err) {
       this.clearSession();
       throw err;
@@ -459,49 +451,65 @@ class ApiService {
 
   // --- SUPER ADMIN HOME HERO BACKGROUND UPLOAD ---
   async uploadHeroImage(file, onProgress = null) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE_URL}/uploads/hero-image`);
+    const uploadWithUrl = (url) => {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
 
-      if (this.token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${this.token}`);
-      }
+        if (this.token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${this.token}`);
+        }
 
-      if (xhr.upload && typeof onProgress === 'function') {
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            onProgress(percent);
+        if (xhr.upload && typeof onProgress === 'function') {
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percent = Math.round((event.loaded / event.total) * 100);
+              onProgress(percent);
+            }
+          };
+        }
+
+        xhr.onload = () => {
+          let resData = {};
+          try {
+            resData = JSON.parse(xhr.responseText || '{}');
+          } catch (e) {
+            resData = { message: xhr.responseText || 'Upload failed' };
+          }
+
+          if (xhr.status >= 200 && xhr.status < 300 && resData.success) {
+            resolve(resData);
+          } else {
+            const err = new Error(resData.message || `Upload failed with HTTP ${xhr.status}`);
+            err.status = xhr.status;
+            err.data = resData;
+            reject(err);
           }
         };
+
+        xhr.onerror = () => {
+          reject(new Error('Network error during hero image upload to server.'));
+        };
+
+        const formData = new FormData();
+        formData.append('image', file);
+        xhr.send(formData);
+      });
+    };
+
+    try {
+      return await uploadWithUrl(`${API_BASE_URL}/uploads/hero-image`);
+    } catch (err) {
+      // If deployed backend has not yet rebooted with /uploads/hero-image (HTTP 404), seamlessly fallback to /uploads/room-image
+      if (err.status === 404) {
+        console.warn('POST /api/uploads/hero-image not deployed yet; falling back to /api/uploads/room-image');
+        const fallbackRes = await uploadWithUrl(`${API_BASE_URL}/uploads/room-image`);
+        const heroUrl = fallbackRes.secure_url || fallbackRes.url;
+        await this.updateHomeHero(heroUrl, fallbackRes.public_id).catch(() => {});
+        return fallbackRes;
       }
-
-      xhr.onload = () => {
-        let resData = {};
-        try {
-          resData = JSON.parse(xhr.responseText || '{}');
-        } catch (e) {
-          resData = { message: xhr.responseText || 'Upload failed' };
-        }
-
-        if (xhr.status >= 200 && xhr.status < 300 && resData.success) {
-          resolve(resData);
-        } else {
-          const err = new Error(resData.message || `Upload failed with HTTP ${xhr.status}`);
-          err.status = xhr.status;
-          err.data = resData;
-          reject(err);
-        }
-      };
-
-      xhr.onerror = () => {
-        reject(new Error('Network error during hero image upload to server.'));
-      };
-
-      const formData = new FormData();
-      formData.append('image', file);
-      xhr.send(formData);
-    });
+      throw err;
+    }
   }
 
   // --- AVAILABILITY ---
@@ -695,10 +703,6 @@ class ApiService {
   }
 
   // --- HOTEL ADMIN API ---
-  async getMe() {
-    return this.request('/auth/me');
-  }
-
   async getHotelAdminDashboard() {
     return this.request('/hotel-admin/dashboard');
   }
@@ -961,20 +965,55 @@ class ApiService {
 
   // --- HOME HERO BACKGROUND (Super Admin Only) ---
   async getHomeHero() {
-    return this.request('/settings/home-hero');
+    try {
+      return await this.request('/settings/home-hero');
+    } catch (err) {
+      if (err.status === 404) {
+        const res = await this.request('/settings');
+        const heroUrl = res?.settings?.home_hero_bg_image || null;
+        return {
+          success: true,
+          image_url: heroUrl,
+          hero_image: heroUrl,
+          public_id: res?.settings?.home_hero_bg_public_id || null,
+          updated_at: res?.settings?.home_hero_bg_updated_at || null
+        };
+      }
+      throw err;
+    }
   }
 
   async updateHomeHero(imageUrl, publicId = null) {
-    return this.request('/settings/home-hero', {
-      method: 'PUT',
-      body: JSON.stringify({ image_url: imageUrl, public_id: publicId })
-    });
+    try {
+      return await this.request('/settings/home-hero', {
+        method: 'PUT',
+        body: JSON.stringify({ image_url: imageUrl, public_id: publicId })
+      });
+    } catch (err) {
+      if (err.status === 404) {
+        return await this.request('/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ home_hero_bg_image: imageUrl })
+        });
+      }
+      throw err;
+    }
   }
 
   async removeHomeHero() {
-    return this.request('/settings/home-hero', {
-      method: 'DELETE'
-    });
+    try {
+      return await this.request('/settings/home-hero', {
+        method: 'DELETE'
+      });
+    } catch (err) {
+      if (err.status === 404) {
+        return await this.request('/settings', {
+          method: 'PUT',
+          body: JSON.stringify({ home_hero_bg_image: null })
+        });
+      }
+      throw err;
+    }
   }
 
   // --- PICKUP SERVICE ---

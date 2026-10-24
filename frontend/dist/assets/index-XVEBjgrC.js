@@ -9818,14 +9818,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <div id="room-modal-root"></div>
     `,s(d.id),window.lucide&&window.lucide.createIcons()}function s(d){var n;(n=i.querySelector("#btn-add-room"))==null||n.addEventListener("click",()=>{r(d,null)}),i.querySelectorAll(".btn-edit-room").forEach(p=>{p.addEventListener("click",()=>{const h=p.getAttribute("data-room-id"),l=e[0].rooms.find(v=>v.id===h);r(d,l)})})}function r(d,n){var N,Z,F;const p=i.querySelector("#room-modal-root"),h=!!n;let l=n&&n.photos&&n.photos[0]?n.photos[0]:"",v=n&&n.photo_public_id?n.photo_public_id:null,g=!1;p.innerHTML=`
       <div class="modal-overlay active">
-        <div class="modal-container" style="max-width: 580px;">
+        <div class="modal-container" style="max-width: 580px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
             <h2 class="modal-title">${h?"Edit Room Category":"Add New Room Category"}</h2>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
-          <form id="room-form">
-            <div class="modal-body">
+          <form id="room-form" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; margin: 0;">
+            <div class="modal-body" style="overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 20px;">
               <div class="form-group">
                 <label class="form-label">Room Category Name</label>
                 <input type="text" class="form-input" id="room-name" required value="${n?n.room_name:""}" placeholder="e.g. Executive Club Suite">
@@ -9922,7 +9922,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </div>
             </div>
 
-            <div class="modal-footer">
+            <div class="modal-footer" style="flex-shrink: 0; background: var(--bg-surface-secondary); border-top: 1px solid var(--border-light); padding: 14px 20px; z-index: 10;">
               <button type="button" class="btn btn-secondary" id="modal-close-action">Cancel</button>
               <button type="submit" class="btn btn-primary" id="btn-submit-room">${h?"Update Room":"Create Room"}</button>
             </div>

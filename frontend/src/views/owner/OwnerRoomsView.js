@@ -113,14 +113,14 @@ export async function renderOwnerRoomsView(container) {
 
     modalRoot.innerHTML = `
       <div class="modal-overlay active">
-        <div class="modal-container" style="max-width: 580px;">
+        <div class="modal-container" style="max-width: 580px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
             <h2 class="modal-title">${isEdit ? 'Edit Room Category' : 'Add New Room Category'}</h2>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
-          <form id="room-form">
-            <div class="modal-body">
+          <form id="room-form" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; margin: 0;">
+            <div class="modal-body" style="overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 20px;">
               <div class="form-group">
                 <label class="form-label">Room Category Name</label>
                 <input type="text" class="form-input" id="room-name" required value="${existingRoom ? existingRoom.room_name : ''}" placeholder="e.g. Executive Club Suite">
@@ -217,7 +217,7 @@ export async function renderOwnerRoomsView(container) {
               </div>
             </div>
 
-            <div class="modal-footer">
+            <div class="modal-footer" style="flex-shrink: 0; background: var(--bg-surface-secondary); border-top: 1px solid var(--border-light); padding: 14px 20px; z-index: 10;">
               <button type="button" class="btn btn-secondary" id="modal-close-action">Cancel</button>
               <button type="submit" class="btn btn-primary" id="btn-submit-room">${isEdit ? 'Update Room' : 'Create Room'}</button>
             </div>

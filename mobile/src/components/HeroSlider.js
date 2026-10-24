@@ -330,35 +330,28 @@ export default function HeroSlider({ data, navigation, loading }) {
       </View>
 
       {items.length > 1 && (
-        <View style={[styles.paginationRow, { width: containerWidth }]}>
-          <View style={styles.dotsContainer}>
-            {items.map((_, i) => (
-              <TouchableOpacity
-                key={`dot-${i}`}
-                onPress={() => {
-                  handleInteractionStart();
-                  goToSlide(i, true);
-                  handleInteractionEnd();
-                }}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
-                accessibilityRole="button"
-                accessibilityLabel={`Go to slide ${i + 1}`}
-              >
-                <View
-                  style={[
-                    styles.dot,
-                    i === currentIndex ? styles.activeDot : styles.inactiveDot
-                  ]}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.paginationContainer}>
-            <Text style={styles.paginationText}>
-              {currentIndex + 1}/{items.length}
-            </Text>
-          </View>
+        <View style={styles.paginationRow}>
+          {items.map((_, i) => (
+            <TouchableOpacity
+              key={`dot-${i}`}
+              onPress={() => {
+                handleInteractionStart();
+                goToSlide(i, true);
+                handleInteractionEnd();
+              }}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
+              accessibilityRole="button"
+              accessibilityLabel={`Go to slide ${i + 1}`}
+            >
+              <View
+                style={[
+                  styles.dot,
+                  i === currentIndex ? styles.activeDot : styles.inactiveDot
+                ]}
+              />
+            </TouchableOpacity>
+          ))}
         </View>
       )}
     </View>
@@ -521,36 +514,21 @@ const styles = StyleSheet.create({
   paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    marginTop: 10,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: 12,
   },
   dot: {
     height: 6,
     borderRadius: 3,
-    marginRight: 6,
+    marginHorizontal: 4,
   },
   activeDot: {
-    width: 20,
+    width: 22,
     backgroundColor: '#D4AF37',
   },
   inactiveDot: {
     width: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  paginationContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  paginationText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
   },
 });

@@ -16,6 +16,7 @@ const BANNER_HEIGHT = 220;
 
 export default function HeroSlider({ data, navigation, loading }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [failedImages, setFailedImages] = useState({});
   const flatListRef = useRef(null);
   const timerRef = useRef(null);
 
@@ -64,14 +65,23 @@ export default function HeroSlider({ data, navigation, loading }) {
     );
   }
 
-  if (!data || data.length === 0) {
+  // Filter for active banners and sort by sort_order
+  const validBanners = Array.isArray(data)
+    ? data
+        .filter(item => item && item.is_active !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    : [];
+
+  if (validBanners.length === 0) {
     return null;
   }
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const hotel = item.hotel || {};
     const hotelId = item.hotel_id || hotel.id || hotel._id || item.id;
-    const imageUrl = item.image_url || item.cover_image || item.coverImage || hotel.cover_image;
+    const bannerKey = item.id || `banner-${index}`;
+    const rawImageUrl = item.image_url || item.cover_image || item.coverImage || hotel.cover_image;
+    const imageUrl = failedImages[bannerKey] ? null : rawImageUrl;
     const title = item.title || hotel.name || 'Featured Luxury Stay';
     const city = hotel.city || item.city || '';
     const rating = hotel.rating || item.rating || 0;
@@ -99,9 +109,18 @@ export default function HeroSlider({ data, navigation, loading }) {
         onPressOut={startAutoSlide}
       >
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            onError={() => {
+              console.warn('[HeroSlider] Image failed to load for banner:', bannerKey, imageUrl);
+              setFailedImages(prev => ({ ...prev, [bannerKey]: true }));
+            }}
+          />
         ) : (
-          <View style={[styles.image, { backgroundColor: '#0B1733' }]} />
+          <View style={[styles.image, { backgroundColor: '#0B1733', justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ fontSize: 40 }}>🏨</Text>
+          </View>
         )}
         <View style={styles.gradientOverlay} />
 
@@ -161,7 +180,7 @@ export default function HeroSlider({ data, navigation, loading }) {
     <View style={styles.container}>
       <FlatList
         ref={flatListRef}
-        data={data}
+        data={validBanners}
         renderItem={renderItem}
         keyExtractor={(item) => item.id || item._id || Math.random().toString()}
         horizontal
@@ -176,11 +195,24 @@ export default function HeroSlider({ data, navigation, loading }) {
         decelerationRate="fast"
         contentContainerStyle={{ paddingHorizontal: 20 }}
       />
-      {data.length > 1 && (
-        <View style={styles.paginationContainer}>
-          <Text style={styles.paginationText}>
-            {currentIndex + 1}/{data.length}
-          </Text>
+      {validBanners.length > 1 && (
+        <View style={styles.paginationRow}>
+          <View style={styles.dotsContainer}>
+            {validBanners.map((_, i) => (
+              <View
+                key={`dot-${i}`}
+                style={[
+                  styles.dot,
+                  i === currentIndex ? styles.activeDot : styles.inactiveDot
+                ]}
+              />
+            ))}
+          </View>
+          <View style={styles.paginationContainer}>
+            <Text style={styles.paginationText}>
+              {currentIndex + 1}/{validBanners.length}
+            </Text>
+          </View>
         </View>
       )}
     </View>
@@ -323,13 +355,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  paginationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 28,
+    marginTop: 8,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dot: {
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  activeDot: {
+    width: 20,
+    backgroundColor: '#D4AF37',
+  },
+  inactiveDot: {
+    width: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
   paginationContainer: {
-    position: 'absolute',
-    bottom: 12,
-    right: 25,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 12,
   },
   paginationText: {

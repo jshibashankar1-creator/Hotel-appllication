@@ -102,13 +102,11 @@ export default function HomeScreen({ navigation }) {
     try {
       setBannersLoading(true);
       const data = await mobileApi.getBanners();
-      if (data && Array.isArray(data.banners)) {
-        setBanners(data.banners);
-      } else if (data && Array.isArray(data.data)) {
-        setBanners(data.data);
-      } else {
-        setBanners([]);
-      }
+      const bannerList = (data && (Array.isArray(data.banners) ? data.banners : (Array.isArray(data.data) ? data.data : []))) || [];
+      const activeBanners = bannerList
+        .filter(b => b && b.is_active !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      setBanners(activeBanners);
     } catch (err) {
       console.error('[HOME] Error fetching banners:', err.message);
       setBanners([]);

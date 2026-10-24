@@ -1470,3 +1470,211 @@ button {
     font-size: 1.2rem;
   }
 }
+
+/* ==========================================================================
+   ROOM PHOTO UPLOADER (CLOUDINARY)
+   ========================================================================== */
+.room-photo-uploader {
+  margin-top: 6px;
+}
+
+.upload-dropzone {
+  position: relative;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-surface-secondary, #faf9f7);
+  padding: 24px 16px;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.drag-over {
+  border-color: var(--primary, #5A1635);
+  background: rgba(90, 22, 53, 0.04);
+}
+
+.upload-dropzone.has-preview {
+  padding: 12px;
+  background: var(--bg-card, #ffffff);
+}
+
+.upload-dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-dropzone-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(90, 22, 53, 0.08);
+  color: var(--primary, #5A1635);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.upload-dropzone-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main, #171717);
+}
+
+.upload-dropzone-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted, #8A8A8A);
+}
+
+.upload-btn-trigger {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--primary, #5A1635);
+  color: #ffffff;
+  pointer-events: auto;
+}
+
+.upload-btn-trigger:hover {
+  background: var(--primary-hover, #431126);
+}
+
+/* Upload Preview */
+.upload-preview-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-sm, 6px);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: #000;
+}
+
+.upload-preview-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.upload-preview-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(16, 185, 129, 0.9);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.upload-preview-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+}
+
+.upload-preview-btn {
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px 10px;
+  border-radius: var(--radius-xs, 4px);
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s ease;
+  backdrop-filter: blur(4px);
+}
+
+.upload-preview-btn:hover {
+  background: rgba(15, 23, 42, 1);
+}
+
+.upload-preview-btn.btn-remove {
+  background: rgba(239, 68, 68, 0.9);
+  border-color: transparent;
+}
+
+.upload-preview-btn.btn-remove:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
+/* Upload Progress Bar */
+.upload-progress-container {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upload-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666666);
+  font-weight: 600;
+}
+
+.upload-progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--border-color, #E8E5E2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.upload-progress-bar-fill {
+  height: 100%;
+  background: var(--primary, #5A1635);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.15s ease-in-out;
+}
+
+/* Upload Status Message */
+.upload-status-msg {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 6px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-status-msg.error {
+  background: var(--danger-light, rgba(239, 68, 68, 0.12));
+  color: var(--danger, #ef4444);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.upload-status-msg.success {
+  background: var(--success-light, rgba(16, 185, 129, 0.12));
+  color: var(--success, #10b981);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.upload-status-msg.info {
+  background: var(--primary-light, rgba(90, 22, 53, 0.08));
+  color: var(--primary, #5A1635);
+  border: 1px solid rgba(90, 22, 53, 0.2);
+}

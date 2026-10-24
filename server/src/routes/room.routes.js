@@ -14,9 +14,9 @@ router.get('/:id', (req, res) => {
   return res.json({ success: true, room: { ...room, hotel_name: hotel ? hotel.name : '' } });
 });
 
-// POST /api/rooms (Hotel Admin adds room to their hotel)
-router.post('/', authenticate, requireRole('hotel_admin'), (req, res) => {
-  const { hotel_id, room_name, room_type, description, max_guests, total_inventory, price_per_night, photos } = req.body;
+// POST /api/rooms (Hotel Admin / Owner adds room to their hotel)
+router.post('/', authenticate, requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
+  const { hotel_id, room_name, room_type, description, max_guests, total_inventory, price_per_night, photos, photo_public_id } = req.body;
 
   if (!hotel_id || !room_name || !price_per_night) {
     return res.status(400).json({ success: false, message: 'Hotel ID, room name, and price per night are required.' });
@@ -27,7 +27,12 @@ router.post('/', authenticate, requireRole('hotel_admin'), (req, res) => {
     return res.status(404).json({ success: false, message: 'Hotel not found.' });
   }
 
-  const isHotelAuthorized = hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id;
+  const isHotelAuthorized =
+    req.user.role === 'super_admin' ||
+    req.user.role === 'admin' ||
+    hotel.owner_id === req.user.id ||
+    hotel.hotel_admin_id === req.user.id ||
+    hotel.id === req.user.hotel_id;
 
   if (!isHotelAuthorized) {
     return res.status(403).json({ success: false, message: 'You are not authorized to manage rooms for this hotel.' });
@@ -46,6 +51,7 @@ router.post('/', authenticate, requireRole('hotel_admin'), (req, res) => {
       total_inventory: Number(total_inventory) || 10,
       price_per_night: Number(price_per_night),
       photos: Array.isArray(photos) && photos.length > 0 ? photos : [hotel.cover_image],
+      photo_public_id: photo_public_id || null,
       is_active: true
     };
     data.rooms.push(roomObj);
@@ -55,15 +61,18 @@ router.post('/', authenticate, requireRole('hotel_admin'), (req, res) => {
   return res.status(201).json({ success: true, message: 'Room created successfully.', room: newRoom });
 });
 
-// PUT /api/rooms/:id (Hotel Admin updates room)
-router.put('/:id', authenticate, requireRole('hotel_admin'), (req, res) => {
+// PUT /api/rooms/:id (Hotel Admin / Owner updates room)
+router.put('/:id', authenticate, requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const room = db.getRoomById(req.params.id);
   if (!room) {
     return res.status(404).json({ success: false, message: 'Room not found.' });
   }
 
   const hotel = db.getHotelById(room.hotel_id);
-  const isHotelAuthorized = hotel && (hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id);
+  const isHotelAuthorized =
+    req.user.role === 'super_admin' ||
+    req.user.role === 'admin' ||
+    (hotel && (hotel.owner_id === req.user.id || hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id));
 
   if (!isHotelAuthorized) {
     return res.status(403).json({ success: false, message: 'You are not authorized to manage rooms for this hotel.' });
@@ -86,15 +95,18 @@ router.put('/:id', authenticate, requireRole('hotel_admin'), (req, res) => {
   return res.json({ success: true, message: 'Room updated successfully.', room: updatedRoom });
 });
 
-// DELETE /api/rooms/:id (Hotel Admin disables room)
-router.delete('/:id', authenticate, requireRole('hotel_admin'), (req, res) => {
+// DELETE /api/rooms/:id (Hotel Admin / Owner disables room)
+router.delete('/:id', authenticate, requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const room = db.getRoomById(req.params.id);
   if (!room) {
     return res.status(404).json({ success: false, message: 'Room not found.' });
   }
 
   const hotel = db.getHotelById(room.hotel_id);
-  const isHotelAuthorized = hotel && (hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id);
+  const isHotelAuthorized =
+    req.user.role === 'super_admin' ||
+    req.user.role === 'admin' ||
+    (hotel && (hotel.owner_id === req.user.id || hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id));
 
   if (!isHotelAuthorized) {
     return res.status(403).json({ success: false, message: 'You are not authorized to manage rooms for this hotel.' });

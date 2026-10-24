@@ -10,6 +10,7 @@ const RoomSchema = new mongoose.Schema({
   total_inventory: { type: Number, required: true, default: 10 },
   price_per_night: { type: Number, required: true, index: true },
   photos: [{ type: String }],
+  photo_public_id: { type: String, default: null },
   is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 

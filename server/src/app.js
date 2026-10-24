@@ -19,6 +19,7 @@ import pickupRoutes from './routes/pickup.routes.js';
 import customerRoutes from './routes/customer.routes.js';
 import bannerRoutes from './routes/banner.routes.js';
 import foodRoutes from './routes/food.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.use('/api', pickupRoutes);
 app.use('/api', customerRoutes);
 app.use('/api/banners', bannerRoutes);
 app.use('/api/food', foodRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // 404 Handler
 app.use((req, res) => {

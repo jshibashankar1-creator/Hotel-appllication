@@ -106,6 +106,11 @@ export async function renderOwnerRoomsView(container) {
     const modalRoot = container.querySelector('#room-modal-root');
     const isEdit = !!existingRoom;
 
+    // Track active image state
+    let activeImageUrl = existingRoom && existingRoom.photos && existingRoom.photos[0] ? existingRoom.photos[0] : '';
+    let activePublicId = existingRoom && existingRoom.photo_public_id ? existingRoom.photo_public_id : null;
+    let isUploading = false;
+
     modalRoot.innerHTML = `
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px;">
@@ -153,15 +158,68 @@ export async function renderOwnerRoomsView(container) {
                 <textarea class="form-textarea" id="room-desc" placeholder="Details of bed type, square footage, bathroom amenities...">${existingRoom ? existingRoom.description : ''}</textarea>
               </div>
 
+              <!-- Professional Cloudinary Room Photo Upload Area -->
               <div class="form-group">
-                <label class="form-label">Photo URL</label>
-                <input type="url" class="form-input" id="room-photo" value="${existingRoom && existingRoom.photos ? existingRoom.photos[0] : 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80'}">
+                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Room Photo <span style="color: var(--danger, #ef4444);">*</span></span>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">Max 5 MB • JPG, PNG, WEBP</span>
+                </label>
+
+                <div class="room-photo-uploader">
+                  <!-- Hidden Native File Input -->
+                  <input type="file" id="room-photo-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
+
+                  <!-- Dropzone / Preview Area -->
+                  <div class="upload-dropzone ${activeImageUrl ? 'has-preview' : ''}" id="room-photo-dropzone">
+                    ${activeImageUrl ? `
+                      <div class="upload-preview-wrapper" id="upload-preview-container">
+                        <img src="${activeImageUrl}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
+                        <div class="upload-preview-badge">
+                          <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
+                        </div>
+                        <div class="upload-preview-actions">
+                          <button type="button" class="upload-preview-btn" id="btn-replace-image">
+                            <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Replace
+                          </button>
+                          <button type="button" class="upload-preview-btn btn-remove" id="btn-remove-image">
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    ` : `
+                      <div class="upload-dropzone-content" id="upload-empty-content">
+                        <div class="upload-dropzone-icon">
+                          <i data-lucide="cloud-upload" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div class="upload-dropzone-text">Drag & drop room image here</div>
+                        <div class="upload-dropzone-subtext">or click to browse from your device</div>
+                        <button type="button" class="upload-btn-trigger" id="btn-browse-trigger">
+                          <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
+                        </button>
+                      </div>
+                    `}
+                  </div>
+
+                  <!-- Upload Progress Bar (hidden by default) -->
+                  <div class="upload-progress-container" id="upload-progress-box" style="display: none;">
+                    <div class="upload-progress-info">
+                      <span id="upload-progress-label">Uploading to Cloudinary...</span>
+                      <span id="upload-progress-percent">0%</span>
+                    </div>
+                    <div class="upload-progress-bar-bg">
+                      <div class="upload-progress-bar-fill" id="upload-progress-fill"></div>
+                    </div>
+                  </div>
+
+                  <!-- Status / Alert Message Container -->
+                  <div id="upload-status-box" style="display: none;"></div>
+                </div>
               </div>
             </div>
 
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" id="modal-close-action">Cancel</button>
-              <button type="submit" class="btn btn-primary">${isEdit ? 'Update Room' : 'Create Room'}</button>
+              <button type="submit" class="btn btn-primary" id="btn-submit-room">${isEdit ? 'Update Room' : 'Create Room'}</button>
             </div>
           </form>
         </div>
@@ -169,6 +227,192 @@ export async function renderOwnerRoomsView(container) {
     `;
 
     if (window.lucide) window.lucide.createIcons();
+
+    const fileInput = modalRoot.querySelector('#room-photo-file-input');
+    const dropzone = modalRoot.querySelector('#room-photo-dropzone');
+    const progressBox = modalRoot.querySelector('#upload-progress-box');
+    const progressFill = modalRoot.querySelector('#upload-progress-fill');
+    const progressPercent = modalRoot.querySelector('#upload-progress-percent');
+    const progressLabel = modalRoot.querySelector('#upload-progress-label');
+    const statusBox = modalRoot.querySelector('#upload-status-box');
+    const submitBtn = modalRoot.querySelector('#btn-submit-room');
+
+    function showStatus(message, type = 'info') {
+      if (!statusBox) return;
+      statusBox.className = `upload-status-msg ${type}`;
+      statusBox.innerHTML = `
+        <i data-lucide="${type === 'error' ? 'alert-triangle' : (type === 'success' ? 'check-circle-2' : 'info')}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+        <span>${message}</span>
+      `;
+      statusBox.style.display = 'flex';
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function clearStatus() {
+      if (statusBox) {
+        statusBox.style.display = 'none';
+        statusBox.innerHTML = '';
+      }
+    }
+
+    function renderPreview(url) {
+      activeImageUrl = url;
+      dropzone.className = 'upload-dropzone has-preview';
+      dropzone.innerHTML = `
+        <div class="upload-preview-wrapper" id="upload-preview-container">
+          <img src="${url}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
+          <div class="upload-preview-badge">
+            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
+          </div>
+          <div class="upload-preview-actions">
+            <button type="button" class="upload-preview-btn" id="btn-replace-image">
+              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Replace
+            </button>
+            <button type="button" class="upload-preview-btn btn-remove" id="btn-remove-image">
+              <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Remove
+            </button>
+          </div>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+      bindPreviewEvents();
+    }
+
+    function renderEmptyDropzone() {
+      activeImageUrl = '';
+      activePublicId = null;
+      dropzone.className = 'upload-dropzone';
+      dropzone.innerHTML = `
+        <div class="upload-dropzone-content" id="upload-empty-content">
+          <div class="upload-dropzone-icon">
+            <i data-lucide="cloud-upload" style="width: 24px; height: 24px;"></i>
+          </div>
+          <div class="upload-dropzone-text">Drag & drop room image here</div>
+          <div class="upload-dropzone-subtext">or click to browse from your device</div>
+          <button type="button" class="upload-btn-trigger" id="btn-browse-trigger">
+            <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
+          </button>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+      bindEmptyEvents();
+    }
+
+    async function handleFileSelection(file) {
+      if (!file) return;
+
+      // File type validation (JPG, JPEG, PNG, WEBP)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        showStatus('Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.', 'error');
+        return;
+      }
+
+      // Max file size: 5 MB
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        showStatus(`File size exceeds 5 MB limit (${(file.size / (1024 * 1024)).toFixed(2)} MB). Please select a smaller file.`, 'error');
+        return;
+      }
+
+      clearStatus();
+      isUploading = true;
+      if (submitBtn) submitBtn.disabled = true;
+
+      // Show Progress bar
+      progressBox.style.display = 'flex';
+      progressFill.style.width = '0%';
+      progressPercent.textContent = '0%';
+      progressLabel.textContent = `Uploading ${file.name}...`;
+
+      try {
+        const uploadResult = await api.uploadRoomImage(file, hotelId, (percent) => {
+          progressFill.style.width = `${percent}%`;
+          progressPercent.textContent = `${percent}%`;
+        });
+
+        // Cloudinary upload success
+        activeImageUrl = uploadResult.secure_url;
+        activePublicId = uploadResult.public_id || null;
+        renderPreview(activeImageUrl);
+        showStatus('Image uploaded securely to Cloudinary!', 'success');
+      } catch (err) {
+        console.error('Room image upload failed:', err);
+        showStatus(err.message || 'Image upload failed. Please check your network or Cloudinary configuration.', 'error');
+      } finally {
+        isUploading = false;
+        progressBox.style.display = 'none';
+        if (submitBtn) submitBtn.disabled = false;
+        if (fileInput) fileInput.value = '';
+      }
+    }
+
+    function bindEmptyEvents() {
+      const browseBtn = dropzone.querySelector('#btn-browse-trigger');
+      browseBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput?.click();
+      });
+    }
+
+    function bindPreviewEvents() {
+      dropzone.querySelector('#btn-replace-image')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput?.click();
+      });
+
+      dropzone.querySelector('#btn-remove-image')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderEmptyDropzone();
+        clearStatus();
+      });
+    }
+
+    // Trigger file chooser when clicking anywhere on dropzone when empty
+    dropzone.addEventListener('click', () => {
+      if (!activeImageUrl && !isUploading) {
+        fileInput?.click();
+      }
+    });
+
+    // Native file input change
+    fileInput?.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    // Drag-and-drop support
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('drag-over');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      if (isUploading) return;
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        handleFileSelection(files[0]);
+      }
+    });
+
+    if (activeImageUrl) {
+      bindPreviewEvents();
+    } else {
+      bindEmptyEvents();
+    }
+
     const closeModal = () => { modalRoot.innerHTML = ''; };
 
     modalRoot.querySelector('#modal-close')?.addEventListener('click', closeModal);
@@ -176,24 +420,37 @@ export async function renderOwnerRoomsView(container) {
 
     modalRoot.querySelector('#room-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      if (isUploading) {
+        window.showToast('Please wait for image upload to complete.', 'warning');
+        return;
+      }
+
+      if (!activeImageUrl) {
+        showStatus('Please upload a room photo before proceeding.', 'error');
+        window.showToast('Room photo is required.', 'error');
+        return;
+      }
+
       const payload = {
         hotel_id: hotelId,
-        room_name: modalRoot.querySelector('#room-name').value,
+        room_name: modalRoot.querySelector('#room-name').value.trim(),
         room_type: modalRoot.querySelector('#room-type').value,
         max_guests: Number(modalRoot.querySelector('#room-capacity').value),
         price_per_night: Number(modalRoot.querySelector('#room-price').value),
         total_inventory: Number(modalRoot.querySelector('#room-inventory').value),
-        description: modalRoot.querySelector('#room-desc').value,
-        photos: [modalRoot.querySelector('#room-photo').value]
+        description: modalRoot.querySelector('#room-desc').value.trim(),
+        photos: [activeImageUrl],
+        photo_public_id: activePublicId
       };
 
       try {
         if (isEdit) {
           await api.updateRoom(existingRoom.id, payload);
-          window.showToast('Room category updated.', 'success');
+          window.showToast('Room category updated successfully.', 'success');
         } else {
           await api.createRoom(payload);
-          window.showToast('New room category created.', 'success');
+          window.showToast('New room category created successfully.', 'success');
         }
         closeModal();
         loadData();

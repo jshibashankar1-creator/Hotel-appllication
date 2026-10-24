@@ -49,7 +49,6 @@ import { renderOwnerPickupsView } from './views/owner/OwnerPickupsView.js';
 import { renderOwnerSupportView } from './views/owner/OwnerSupportView.js';
 import { renderOwnerOnboardView } from './views/owner/OwnerOnboardView.js';
 import { renderOwnerProfileView } from './views/owner/OwnerProfileView.js';
-import { renderOwnerBannersView } from './views/owner/OwnerBannersView.js';
 
 const ADMIN_ROLES = new Set(['super_admin', 'admin', 'support_admin', 'finance_admin']);
 const HOTEL_ADMIN_ROLES = new Set(['hotel_admin', 'owner']);

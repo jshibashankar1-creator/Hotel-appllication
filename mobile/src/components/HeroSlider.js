@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 import { BlurView } from 'expo-blur';
 
 const BANNER_HEIGHT = 220;
-const AUTOPLAY_INTERVAL = 4000; // 4 seconds auto-slide
+const AUTOPLAY_INTERVAL = 4500; // 4.5 seconds auto-slide
 const RESUME_DELAY = 2000; // 2 seconds resume delay after manual interaction
 
 export default function HeroSlider({ data, navigation, loading }) {
@@ -21,98 +21,135 @@ export default function HeroSlider({ data, navigation, loading }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [failedImages, setFailedImages] = useState({});
 
+  // Parse and filter initial items
+  const initialItems = useMemo(() => {
+    if (!Array.isArray(data)) return [];
+    return data
+      .filter(item => item && item.is_active !== false)
+      .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
+  }, []);
+
+  const [items, setItems] = useState(initialItems);
+
   const flatListRef = useRef(null);
   const autoPlayTimerRef = useRef(null);
   const resumeTimerRef = useRef(null);
   const isInteractingRef = useRef(false);
   const currentIndexRef = useRef(0);
+  const itemsRef = useRef(items);
+  const containerWidthRef = useRef(260);
 
-  // Sync ref with state
+  // Sync itemsRef with state
+  itemsRef.current = items;
   currentIndexRef.current = currentIndex;
 
   // Responsive slide width: exactly matches the carousel viewport width
-  // Default to window width minus 40px (20px horizontal padding on left & right)
   const containerWidth = measuredWidth > 0 ? measuredWidth : Math.max(Math.round(windowWidth - 40), 260);
+  containerWidthRef.current = containerWidth;
 
-  // Filter for active banners and sort by sort_order
-  const validBanners = useMemo(() => {
-    if (!Array.isArray(data)) return [];
-    return data
+  // Programmatic scroll to specific slide
+  const goToSlide = (index, animated = true) => {
+    const list = itemsRef.current;
+    if (!flatListRef.current || !list || list.length === 0) return;
+    const safeIndex = Math.max(0, Math.min(index, list.length - 1));
+    const width = containerWidthRef.current;
+    try {
+      flatListRef.current.scrollToOffset({
+        offset: safeIndex * width,
+        animated,
+      });
+      currentIndexRef.current = safeIndex;
+      setCurrentIndex(safeIndex);
+    } catch (e) {
+      console.warn('[HeroSlider] Scroll error:', e.message);
+    }
+  };
+
+  // Synchronize data updates, preserve current slide if hotel exists, retain last valid list on failure
+  useEffect(() => {
+    if (!Array.isArray(data)) return;
+    const filtered = data
       .filter(item => item && item.is_active !== false)
       .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
+
+    if (filtered.length > 0) {
+      const prevItems = itemsRef.current;
+      const currentItem = prevItems[currentIndexRef.current];
+      const currentHotelId = currentItem
+        ? (currentItem.hotel_id || currentItem.id || (currentItem.hotel && currentItem.hotel.id))
+        : null;
+
+      let nextIndex = 0;
+      if (currentHotelId) {
+        const foundIdx = filtered.findIndex(
+          b => (b.hotel_id || b.id || (b.hotel && b.hotel.id)) === currentHotelId
+        );
+        if (foundIdx >= 0) {
+          nextIndex = foundIdx;
+        } else {
+          nextIndex = Math.min(currentIndexRef.current, filtered.length - 1);
+        }
+      }
+
+      setItems(filtered);
+      itemsRef.current = filtered;
+      currentIndexRef.current = nextIndex;
+      setCurrentIndex(nextIndex);
+
+      if (nextIndex > 0 && flatListRef.current) {
+        setTimeout(() => {
+          try {
+            flatListRef.current?.scrollToOffset({
+              offset: nextIndex * containerWidthRef.current,
+              animated: false,
+            });
+          } catch (err) {}
+        }, 50);
+      }
+    }
+    // If incoming data is empty (e.g. failed API), retain previous valid items
   }, [data]);
 
-  // Clean stop of all timers
-  const stopTimers = useCallback(() => {
-    if (autoPlayTimerRef.current) {
-      clearInterval(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = null;
-    }
+  // One single managed timer created on mount, cleaned up on unmount
+  useEffect(() => {
+    autoPlayTimerRef.current = setInterval(() => {
+      if (isInteractingRef.current) return;
+      const list = itemsRef.current;
+      if (!list || list.length <= 1) return;
+
+      const next = (currentIndexRef.current + 1) % list.length;
+      goToSlide(next, true);
+    }, AUTOPLAY_INTERVAL);
+
+    return () => {
+      if (autoPlayTimerRef.current) {
+        clearInterval(autoPlayTimerRef.current);
+        autoPlayTimerRef.current = null;
+      }
+      if (resumeTimerRef.current) {
+        clearTimeout(resumeTimerRef.current);
+        resumeTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Pause autoplay while user interacts, resume after 2 seconds
+  const handleInteractionStart = () => {
+    isInteractingRef.current = true;
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current);
       resumeTimerRef.current = null;
     }
-  }, []);
+  };
 
-  // Programmatic scroll to specific slide with offset
-  const goToSlide = useCallback((index, animated = true) => {
-    if (!flatListRef.current || index < 0 || index >= validBanners.length) return;
-    try {
-      flatListRef.current.scrollToOffset({
-        offset: index * containerWidth,
-        animated,
-      });
-      currentIndexRef.current = index;
-      setCurrentIndex(index);
-    } catch (e) {
-      console.warn('[HeroSlider] Scroll error:', e.message);
-    }
-  }, [containerWidth, validBanners.length]);
-
-  // Start 4-second auto-slide interval with loop
-  const startAutoPlay = useCallback(() => {
-    stopTimers();
-    if (validBanners.length <= 1) return;
-
-    autoPlayTimerRef.current = setInterval(() => {
-      if (isInteractingRef.current) return;
-      const count = validBanners.length;
-      if (count <= 1) return;
-      // Loop continuously: last banner slides back to first banner
-      const nextIndex = (currentIndexRef.current + 1) % count;
-      goToSlide(nextIndex, true);
-    }, AUTOPLAY_INTERVAL);
-  }, [validBanners.length, stopTimers, goToSlide]);
-
-  // Resume autoplay 2 seconds after manual interaction stops
-  const scheduleResume = useCallback(() => {
+  const handleInteractionEnd = () => {
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current);
     }
     resumeTimerRef.current = setTimeout(() => {
       isInteractingRef.current = false;
-      startAutoPlay();
     }, RESUME_DELAY);
-  }, [startAutoPlay]);
-
-  const handleInteractionStart = useCallback(() => {
-    isInteractingRef.current = true;
-    stopTimers();
-  }, [stopTimers]);
-
-  const handleInteractionEnd = useCallback(() => {
-    scheduleResume();
-  }, [scheduleResume]);
-
-  // Lifecycle: handle banners update and unmount cleanup
-  useEffect(() => {
-    currentIndexRef.current = 0;
-    setCurrentIndex(0);
-    startAutoPlay();
-    return () => {
-      stopTimers();
-    };
-  }, [validBanners.length, startAutoPlay, stopTimers]);
+  };
 
   // Dynamic layout measurement to ensure 100% viewport match across screen sizes
   const handleLayout = (event) => {
@@ -125,9 +162,11 @@ export default function HeroSlider({ data, navigation, loading }) {
   // Scroll position synchronization for dots and index
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    if (containerWidth > 0) {
-      const index = Math.round(scrollPosition / containerWidth);
-      if (index >= 0 && index < validBanners.length && index !== currentIndexRef.current) {
+    const width = containerWidthRef.current;
+    const list = itemsRef.current;
+    if (width > 0 && list && list.length > 0) {
+      const index = Math.round(scrollPosition / width);
+      if (index >= 0 && index < list.length && index !== currentIndexRef.current) {
         currentIndexRef.current = index;
         setCurrentIndex(index);
       }
@@ -135,18 +174,11 @@ export default function HeroSlider({ data, navigation, loading }) {
   };
 
   const handleMomentumScrollEnd = (event) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    if (containerWidth > 0) {
-      const index = Math.round(scrollPosition / containerWidth);
-      if (index >= 0 && index < validBanners.length) {
-        currentIndexRef.current = index;
-        setCurrentIndex(index);
-      }
-    }
+    handleScroll(event);
     handleInteractionEnd();
   };
 
-  if (loading) {
+  if (loading && items.length === 0) {
     return (
       <View style={styles.container}>
         <View style={[styles.carouselViewport, { width: containerWidth }]}>
@@ -156,7 +188,7 @@ export default function HeroSlider({ data, navigation, loading }) {
     );
   }
 
-  if (validBanners.length === 0) {
+  if (items.length === 0) {
     return null;
   }
 
@@ -273,7 +305,7 @@ export default function HeroSlider({ data, navigation, loading }) {
       >
         <FlatList
           ref={flatListRef}
-          data={validBanners}
+          data={items}
           renderItem={renderItem}
           keyExtractor={(item, index) => String(item.id || item._id || index)}
           horizontal
@@ -297,15 +329,21 @@ export default function HeroSlider({ data, navigation, loading }) {
         />
       </View>
 
-      {validBanners.length > 1 && (
+      {items.length > 1 && (
         <View style={[styles.paginationRow, { width: containerWidth }]}>
           <View style={styles.dotsContainer}>
-            {validBanners.map((_, i) => (
+            {items.map((_, i) => (
               <TouchableOpacity
                 key={`dot-${i}`}
-                onPress={() => goToSlide(i, true)}
+                onPress={() => {
+                  handleInteractionStart();
+                  goToSlide(i, true);
+                  handleInteractionEnd();
+                }}
                 activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                accessibilityRole="button"
+                accessibilityLabel={`Go to slide ${i + 1}`}
               >
                 <View
                   style={[
@@ -318,7 +356,7 @@ export default function HeroSlider({ data, navigation, loading }) {
           </View>
           <View style={styles.paginationContainer}>
             <Text style={styles.paginationText}>
-              {currentIndex + 1}/{validBanners.length}
+              {currentIndex + 1}/{items.length}
             </Text>
           </View>
         </View>

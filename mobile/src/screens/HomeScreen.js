@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -143,10 +143,12 @@ export default function HomeScreen({ navigation }) {
       const activeBanners = bannerList
         .filter(b => b && b.is_active !== false)
         .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-      setBanners(activeBanners);
+      if (activeBanners.length > 0) {
+        setBanners(activeBanners);
+      }
     } catch (err) {
       console.error('[HOME] Error fetching banners:', err.message);
-      setBanners([]);
+      // Retain last valid banners to avoid freezing carousel on network error
     } finally {
       setBannersLoading(false);
     }
@@ -225,6 +227,26 @@ export default function HomeScreen({ navigation }) {
     setSelectedFood(food);
     setFoodModalVisible(true);
   };
+
+  // Dynamic carousel items: preferentially use active banners, with fallback to active hotels
+  const carouselHotels = useMemo(() => {
+    if (banners && banners.length > 0) {
+      return banners;
+    }
+    if (hotels && hotels.length > 0) {
+      return hotels
+        .filter(h => h.coverImage || h.cover_image)
+        .map(h => ({
+          id: `carousel-${h.id}`,
+          hotel_id: h.id,
+          title: h.name,
+          image_url: h.coverImage || h.cover_image,
+          cover_image: h.coverImage || h.cover_image,
+          hotel: h,
+        }));
+    }
+    return [];
+  }, [banners, hotels]);
 
   const styles = StyleSheet.create({
     container: {
@@ -444,9 +466,9 @@ export default function HomeScreen({ navigation }) {
 
           {/* Hero Slider */}
           <HeroSlider 
-            data={banners} 
+            data={carouselHotels} 
             navigation={navigation} 
-            loading={bannersLoading}
+            loading={bannersLoading && hotels.length === 0}
           />
 
           {/* Search Glass Box */}

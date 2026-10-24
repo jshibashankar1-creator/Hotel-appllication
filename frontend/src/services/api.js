@@ -427,7 +427,7 @@ class ApiService {
     const qs = params.toString();
     const primaryEndpoint = `/availability/room/${encodeURIComponent(roomId)}${qs ? `?${qs}` : ''}`;
     try {
-      return await this.request(primaryEndpoint);
+      return await this.request(primaryEndpoint, { silent: true });
     } catch (err) {
       if (err.status === 404) {
         // Fallback to direct route /availability/:roomId for backwards/active deployment compatibility

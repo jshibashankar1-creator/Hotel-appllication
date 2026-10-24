@@ -49,8 +49,8 @@ app.get('/api/health', (req, res) => {
     service: 'hotelhub-api',
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.2',
-    commit: '1618f41'
+    version: '1.0.3',
+    commit: 'efb0e58'
   });
 });
 

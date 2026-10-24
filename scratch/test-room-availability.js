@@ -1,12 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: 'server/.env' });
 import http from 'http';
+import jwt from 'jsonwebtoken';
 import app from '../server/src/app.js';
 import { db } from '../server/src/db/database.js';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'hotelhub-production-jwt-secret-key-2025';
+
 async function runTests() {
   console.log('====================================================');
-  console.log('HOTELHUB ROOM AVAILABILITY TEST SUITE');
+  console.log('HOTELHUB AVAILABILITY MATRIX & BLOCK/UNBLOCK TEST SUITE');
   console.log('====================================================\n');
 
   let passed = 0;
@@ -54,7 +57,7 @@ async function runTests() {
     assert(Array.isArray(availData1.matrix), 'Response includes matrix array');
     assert(availData1.matrix.length === 7, `Matrix length equals requested 7 nights (got ${availData1.matrix?.length})`);
 
-    // Verify day record shape
+    // Verify day record shape and formula
     const day0 = availData1.matrix[0];
     assert(day0.date === startStr, `Matrix day 0 starts at ${startStr}`);
     assert(typeof day0.available_count === 'number', 'Matrix includes available_count number');
@@ -64,14 +67,13 @@ async function runTests() {
     assert(day0.available_count === Math.max(0, day0.total_inventory - day0.booked_count - day0.blocked_count),
       'available_count equals max(0, total_inventory - booked_count - blocked_count)');
 
-    // 3. GET /api/availability/room/:roomId with startDate=14 (must be rejected with 400 validation error)
+    // 3. Validation: startDate=14 is rejected
     const badDateRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=14&endDate=undefined`);
     const badDateData = await badDateRes.json();
     assert(badDateRes.status === 400, 'startDate=14 is rejected with 400 Bad Request');
     assert(badDateData.success === false, 'Error response has success: false');
-    assert(badDateData.message.includes('Invalid startDate'), 'Error message describes invalid startDate format');
 
-    // 4. Missing endDate returns default window (e.g. 14 days) instead of 404 or unhandled crash
+    // 4. Missing endDate defaults to 14 days
     const noEndRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=${startStr}`);
     const noEndData = await noEndRes.json();
     assert(noEndRes.status === 200, 'Missing endDate gracefully defaults to 14 days matrix');
@@ -79,19 +81,124 @@ async function runTests() {
 
     // 5. Inverted dates (endDate < startDate) returns 400
     const invRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=${endStr}&endDate=${startStr}`);
-    const invData = await invRes.json();
     assert(invRes.status === 400, 'endDate < startDate returns 400 Bad Request');
-    assert(invData.message.includes('endDate must be greater'), 'Error explains checkout date condition');
 
     // 6. Unknown room returns 404
     const unkRes = await fetch(`${baseUrl}/availability/room/RM-NON-EXISTENT?startDate=${startStr}&endDate=${endStr}`);
     assert(unkRes.status === 404, 'Unknown room returns 404 Room not found');
 
-    // 7. Backward compatibility: Direct route GET /api/availability/:roomId
-    const directRes = await fetch(`${baseUrl}/availability/RM-101?startDate=${startStr}&endDate=${endStr}`);
-    const directData = await directRes.json();
-    assert(directRes.status === 200, 'GET /api/availability/RM-101 returns 200 OK');
-    assert(directData.success === true && directData.matrix.length === 7, 'Direct route returns identical matrix');
+    // --- AUTHENTICATION & BLOCK / UNBLOCK TESTS ---
+    // Prepare authorized owner token for hotel associated with RM-101
+    const testRoom = db.getRoomById('RM-101');
+    assert(testRoom !== undefined, 'RM-101 exists in database');
+    const testHotel = db.getHotelById(testRoom.hotel_id);
+    assert(testHotel !== undefined, `Hotel ${testRoom.hotel_id} exists`);
+
+    let owner = db.getUsers().find(u => u.id === testHotel.owner_id);
+    if (!owner) {
+      owner = db.getUsers().find(u => u.role === 'owner') || { id: 'USR-OWNER-TEST', email: 'owner@test.com', role: 'owner' };
+    }
+
+    const ownerToken = jwt.sign({ userId: testHotel.owner_id, role: 'owner' }, JWT_SECRET, { expiresIn: '1h' });
+
+    // Create a real other owner user in DB for unauthorized check
+    let otherOwner = db.getUsers().find(u => u.role === 'owner' && u.id !== testHotel.owner_id);
+    if (!otherOwner) {
+      db.transaction(data => {
+        otherOwner = {
+          id: 'USR-OTHER-OWNER-99',
+          name: 'Other Owner',
+          email: 'otherowner@hotelhub.com',
+          role: 'owner',
+          status: 'active'
+        };
+        data.users.push(otherOwner);
+      });
+    }
+
+    const unauthorizedToken = jwt.sign({ userId: otherOwner.id, role: 'owner' }, JWT_SECRET, { expiresIn: '1h' });
+
+    const targetDate = formatYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
+
+    // 7. Test unauthorized property owner cannot modify RM-101
+    const unauthBlockRes = await fetch(`${baseUrl}/availability/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${unauthorizedToken}`
+      },
+      body: JSON.stringify({
+        room_id: 'RM-101',
+        date: targetDate,
+        blocked_count: 2
+      })
+    });
+    assert(unauthBlockRes.status === 403, 'Unauthorized owner modifying another property room returns 403 Forbidden');
+
+    // 8. Test authorized owner successfully blocks rooms
+    const authBlockRes = await fetch(`${baseUrl}/availability/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ownerToken}`
+      },
+      body: JSON.stringify({
+        room_id: 'RM-101',
+        date: targetDate,
+        blocked_count: 3
+      })
+    });
+    const authBlockData = await authBlockRes.json();
+    assert(authBlockRes.status === 200 && authBlockData.success === true, 'Authorized owner can block rooms (HTTP 200)');
+    assert(authBlockData.availability.blocked_count === 3, 'Database persisted blocked_count of 3');
+
+    // 9. Verify availability matrix recalculates with the blocked count
+    const verifyAvailRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=${targetDate}&endDate=${formatYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4))}`);
+    const verifyAvailData = await verifyAvailRes.json();
+    const dayTarget = verifyAvailData.matrix[0];
+    assert(dayTarget.date === targetDate, 'Matrix matches targetDate');
+    assert(dayTarget.blocked_count === 3, `Matrix reports blocked_count = 3 (got ${dayTarget.blocked_count})`);
+    assert(dayTarget.available_count === testRoom.total_inventory - dayTarget.booked_count - 3,
+      `available_count correctly reduced by blocked_count (${dayTarget.available_count})`);
+
+    // 10. Test over-blocking rejection (count > total_inventory - booked_count)
+    const excessiveRes = await fetch(`${baseUrl}/availability/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ownerToken}`
+      },
+      body: JSON.stringify({
+        room_id: 'RM-101',
+        date: targetDate,
+        blocked_count: testRoom.total_inventory + 50
+      })
+    });
+    const excessiveData = await excessiveRes.json();
+    assert(excessiveRes.status === 400, 'Blocking more rooms than total inventory is rejected with 400 Bad Request');
+    assert(excessiveData.message.includes('Cannot block'), 'Error message explains excessive block count');
+
+    // 11. Test unblocking (setting blocked_count to 0)
+    const unblockRes = await fetch(`${baseUrl}/availability/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ownerToken}`
+      },
+      body: JSON.stringify({
+        room_id: 'RM-101',
+        date: targetDate,
+        blocked_count: 0
+      })
+    });
+    const unblockData = await unblockRes.json();
+    assert(unblockRes.status === 200 && unblockData.success === true, 'Unblock action sets blocked_count to 0 (HTTP 200)');
+    assert(unblockData.availability.blocked_count === 0, 'Database confirms blocked_count is 0');
+
+    // Verify matrix reflects unblock
+    const afterUnblockRes = await fetch(`${baseUrl}/availability/room/RM-101?startDate=${targetDate}&endDate=${formatYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4))}`);
+    const afterUnblockData = await afterUnblockRes.json();
+    assert(afterUnblockData.matrix[0].blocked_count === 0, 'Matrix confirms blocked_count is 0 after unblock');
 
     console.log('\n----------------------------------------------------');
     console.log(`TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);

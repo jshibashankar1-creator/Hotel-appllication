@@ -40,27 +40,33 @@ function handleRoomAvailability(req, res) {
     }
   }
 
-  // Determine start date
-  let start;
+  // Determine start date components
+  let startYear, startMonth, startDay;
   if (startDate && startDate !== 'undefined') {
-    start = new Date(startDate);
+    const parts = startDate.split('-').map(Number);
+    startYear = parts[0];
+    startMonth = parts[1] - 1;
+    startDay = parts[2];
   } else {
-    // Default to current date in UTC/local ISO format YYYY-MM-DD
     const today = new Date();
-    start = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    startYear = today.getFullYear();
+    startMonth = today.getMonth();
+    startDay = today.getDate();
   }
 
   // Determine number of days
   let numDays = 14;
   if (endDate && endDate !== 'undefined') {
-    const end = new Date(endDate);
-    if (end < start) {
+    const endParts = endDate.split('-').map(Number);
+    const endUtc = Date.UTC(endParts[0], endParts[1] - 1, endParts[2]);
+    const startUtc = Date.UTC(startYear, startMonth, startDay);
+    if (endUtc < startUtc) {
       return res.status(400).json({
         success: false,
         message: 'endDate must be greater than or equal to startDate.'
       });
     }
-    const diffTime = end.getTime() - start.getTime();
+    const diffTime = endUtc - startUtc;
     numDays = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)));
   } else if (days) {
     const parsedDays = parseInt(days, 10);
@@ -71,13 +77,12 @@ function handleRoomAvailability(req, res) {
 
   const matrix = [];
   for (let i = 0; i < numDays; i++) {
-    const d = new Date(start);
-    d.setUTCDate(d.getUTCDate() + i);
+    const d = new Date(Date.UTC(startYear, startMonth, startDay + i));
     const dateStr = d.toISOString().slice(0, 10);
 
     const record = db.getAvailability(room.id, dateStr);
-    const booked = record ? record.booked_count : 0;
-    const blocked = record ? record.blocked_count : 0;
+    const booked = record ? Number(record.booked_count || 0) : 0;
+    const blocked = record ? Number(record.blocked_count || 0) : 0;
     const available = Math.max(0, room.total_inventory - booked - blocked);
 
     matrix.push({
@@ -106,14 +111,21 @@ router.get('/room/:roomId', handleRoomAvailability);
 // GET /api/availability/:roomId (alias path for direct ID access)
 router.get('/:roomId', handleRoomAvailability);
 
-// POST /api/availability/block (Owner blocks or unblocks inventory for specific dates)
+// POST /api/availability/block (Hotel Admin & Owner blocks or unblocks inventory for specific dates)
 router.post('/block', authenticate, requireRole('owner', 'super_admin', 'admin', 'hotel_admin'), (req, res) => {
   const { room_id, date, blocked_count, is_blocked } = req.body;
 
-  const count = blocked_count !== undefined ? Number(blocked_count) : (is_blocked ? 1 : 0);
-
   if (!room_id || !date) {
     return res.status(400).json({ success: false, message: 'room_id and date are required.' });
+  }
+
+  if (typeof date === 'string' && (date.length < 10 || isNaN(Date.parse(date)))) {
+    return res.status(400).json({ success: false, message: 'Invalid date format. Expected YYYY-MM-DD.' });
+  }
+
+  const count = blocked_count !== undefined ? Number(blocked_count) : (is_blocked ? 1 : 0);
+  if (isNaN(count) || count < 0) {
+    return res.status(400).json({ success: false, message: 'blocked_count must be a non-negative number.' });
   }
 
   const room = db.getRoomById(room_id);
@@ -122,9 +134,23 @@ router.post('/block', authenticate, requireRole('owner', 'super_admin', 'admin',
   }
 
   const hotel = db.getHotelById(room.hotel_id);
-  const isAdmin = ['super_admin', 'admin', 'hotel_admin'].includes(req.user.role);
-  if (!isAdmin && hotel && hotel.owner_id !== req.user.id) {
-    return res.status(403).json({ success: false, message: 'You do not own this hotel.' });
+  const isAuthorized =
+    req.user.role === 'super_admin' ||
+    req.user.role === 'admin' ||
+    (hotel && (hotel.owner_id === req.user.id || hotel.hotel_admin_id === req.user.id || hotel.id === req.user.hotel_id));
+
+  if (!isAuthorized) {
+    return res.status(403).json({ success: false, message: 'You are not authorized to modify availability for this property.' });
+  }
+
+  // Check current booked count to prevent blocking more rooms than available
+  const existingRecord = db.getAvailability(room.id, date);
+  const bookedCount = existingRecord ? Number(existingRecord.booked_count || 0) : 0;
+  if (count + bookedCount > room.total_inventory) {
+    return res.status(400).json({
+      success: false,
+      message: `Cannot block ${count} rooms on ${date}. Total inventory is ${room.total_inventory} and ${bookedCount} rooms are already booked.`
+    });
   }
 
   const record = db.transaction((data) => {
@@ -144,7 +170,15 @@ router.post('/block', authenticate, requireRole('owner', 'super_admin', 'admin',
     return avail;
   });
 
-  return res.json({ success: true, message: 'Availability matrix updated.', availability: record, record });
+  const availableCount = Math.max(0, room.total_inventory - (record.booked_count || 0) - (record.blocked_count || 0));
+
+  return res.json({
+    success: true,
+    message: count > 0 ? `Successfully blocked ${count} rooms for ${date}.` : `Successfully unblocked rooms for ${date}.`,
+    availability: record,
+    available_count: availableCount,
+    record
+  });
 });
 
 export default router;

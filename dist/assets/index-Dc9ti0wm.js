@@ -1,14 +1,14 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))d(s);new MutationObserver(s=>{for(const r of s)if(r.type==="childList")for(const o of r.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&d(o)}).observe(document,{childList:!0,subtree:!0});function a(s){const r={};return s.integrity&&(r.integrity=s.integrity),s.referrerPolicy&&(r.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?r.credentials="include":s.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function d(s){if(s.ep)return;s.ep=!0;const r=a(s);fetch(s.href,r)}})();const j="https://hotel-appllication.onrender.com/api",Z=j.replace(/\/$/,"").endsWith("/api")?j.replace(/\/$/,""):`${j.replace(/\/$/,"")}/api`;class n1{constructor(){this.token=localStorage.getItem("hotelhub_auth_token")||null,this.currentUser=JSON.parse(localStorage.getItem("hotelhub_current_user")||"null")}setSession(e,a){this.token=e,this.currentUser=a,e?(localStorage.setItem("hotelhub_auth_token",e),localStorage.setItem("hotelhub_current_user",JSON.stringify(a))):(localStorage.removeItem("hotelhub_auth_token"),localStorage.removeItem("hotelhub_current_user"))}clearSession(){this.setSession(null,null)}async request(e,a={}){const d={"Content-Type":"application/json",...a.headers};this.token&&(d.Authorization=`Bearer ${this.token}`);try{const s=await fetch(`${Z}${e}`,{...a,headers:d}),r=await s.json().catch(()=>({}));if(!s.ok){const o=new Error(r.message||`API request failed with status ${s.status}`);throw o.status=s.status,o.data=r,o}return r}catch(s){throw a.silent||console.error(`API Error on ${e}:`,s.message),s}}async get(e,a={}){return this.request(e,{...a,method:"GET"})}async post(e,a={},d={}){return this.request(e,{...d,method:"POST",body:JSON.stringify(a)})}async put(e,a={},d={}){return this.request(e,{...d,method:"PUT",body:JSON.stringify(a)})}async patch(e,a={},d={}){return this.request(e,{...d,method:"PATCH",body:JSON.stringify(a)})}async delete(e,a={}){return this.request(e,{...a,method:"DELETE"})}async login(e,a,d=null){const s=await this.request("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:a,requiredRole:d})});return this.setSession(s.token,s.user),s}async adminLogin(e,a){return this.login(e,a)}async hotelAdminLogin(e,a){return this.login(e,a)}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return a.token&&a.user&&a.user.status==="active"&&this.setSession(a.token,a.user),a}async adminSetup(e,a,d,s){const r=await this.request("/auth/admin/setup",{method:"POST",body:JSON.stringify({name:e,email:a,password:d,phone:s})});return this.setSession(r.token,r.user),r}async adminCreate(e){return this.request("/auth/admin/create",{method:"POST",body:JSON.stringify(e)})}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return this.setSession(a.token,a.user),a}async getMe(){try{const e=await this.request("/auth/me");return this.currentUser=e.user,localStorage.setItem("hotelhub_current_user",JSON.stringify(e.user)),e.user}catch(e){throw this.clearSession(),e}}logout(){return this.clearSession(),this.request("/auth/logout",{method:"POST"}).catch(()=>{})}async getAdminProfile(){return this.request("/admin/profile")}async updateAdminProfile(e,a){const d=await this.request("/admin/profile",{method:"PUT",body:JSON.stringify({name:e,phone:a})});return d.user&&(this.currentUser={...this.currentUser,...d.user},localStorage.setItem("hotelhub_current_user",JSON.stringify(this.currentUser))),d}async changeAdminPassword(e,a){return this.request("/admin/change-password",{method:"PUT",body:JSON.stringify({currentPassword:e,newPassword:a})})}async getAdminUsers(){return this.request("/admin/users")}async getAdminUser(e){return this.request(`/admin/users/${e}`)}async updateAdminUserStatus(e,a){return this.request(`/admin/users/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateAdminUserRole(e,a,d){return this.request(`/admin/users/${e}/role`,{method:"PUT",body:JSON.stringify({role:a,permissions:d})})}async deleteAdminUser(e){return this.request(`/admin/users/${e}`,{method:"DELETE"})}async getAuditLogs(){return this.request("/admin/audit-logs")}async getHotels(e={}){const a=new URLSearchParams(e).toString();return this.request(`/hotels${a?`?${a}`:""}`)}async getAdminHotels(){return this.request("/hotels/admin")}async getOwnerHotels(){return this.request("/hotels/owner")}async getHotelById(e){return this.request(`/hotels/${e}`)}async onboardHotel(e){return this.request("/hotels/onboard",{method:"POST",body:JSON.stringify(e)})}async updateHotel(e,a){return this.request(`/hotels/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelStatus(e,a){return this.request(`/hotels/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async getRoomsByHotel(e){return this.request(`/rooms/hotel/${e}`)}async createRoom(e){return this.request("/rooms",{method:"POST",body:JSON.stringify(e)})}async updateRoom(e,a){return this.request(`/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteRoom(e){return this.request(`/rooms/${e}`,{method:"DELETE"})}async uploadRoomImage(e,a=null,d=null){return new Promise((s,r)=>{const o=new XMLHttpRequest;o.open("POST",`${Z}/uploads/room-image`),this.token&&o.setRequestHeader("Authorization",`Bearer ${this.token}`),o.upload&&typeof d=="function"&&(o.upload.onprogress=l=>{if(l.lengthComputable){const v=Math.round(l.loaded/l.total*100);d(v)}}),o.onload=()=>{let l={};try{l=JSON.parse(o.responseText||"{}")}catch{l={message:o.responseText||"Upload failed"}}if(o.status>=200&&o.status<300&&l.success)s(l);else{const v=new Error(l.message||`Upload failed with HTTP ${o.status}`);v.status=o.status,v.data=l,r(v)}},o.onerror=()=>{r(new Error("Network error during image upload to server."))};const c=new FormData;c.append("image",e),a&&c.append("hotel_id",a),o.send(c)})}async uploadBannerImage(e,a=null,d=null){const s=r=>new Promise((o,c)=>{const l=new XMLHttpRequest;l.open("POST",r),this.token&&l.setRequestHeader("Authorization",`Bearer ${this.token}`),l.upload&&typeof d=="function"&&(l.upload.onprogress=h=>{if(h.lengthComputable){const p=Math.round(h.loaded/h.total*100);d(p)}}),l.onload=()=>{let h={};try{h=JSON.parse(l.responseText||"{}")}catch{h={message:l.responseText||"Upload failed"}}if(l.status>=200&&l.status<300&&h.success)o(h);else{const p=new Error(h.message||`Upload failed with HTTP ${l.status}`);p.status=l.status,p.data=h,c(p)}},l.onerror=()=>{c(new Error("Network error during image upload to server."))};const v=new FormData;v.append("image",e),a&&v.append("hotel_id",a),l.send(v)});try{return await s(`${Z}/uploads/banner-image`)}catch(r){if(r.status===404)return console.warn("POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image"),await s(`${Z}/uploads/room-image`);throw r}}async getRoomAvailability(e,a,d){let s=a,r=d;const o=h=>{if(!h)return null;if(typeof h=="string"&&/^\d{4}-\d{2}-\d{2}$/.test(h))return h;const p=new Date(h);if(isNaN(p.getTime()))return null;const y=p.getFullYear(),m=String(p.getMonth()+1).padStart(2,"0"),n=String(p.getDate()).padStart(2,"0");return`${y}-${m}-${n}`};if(typeof a=="number"||typeof a=="string"&&!isNaN(Number(a))&&a.length<5){const h=Number(a)||14,p=new Date;s=o(p);const y=new Date(p.getFullYear(),p.getMonth(),p.getDate()+h);r=o(y)}else s=o(a),r=o(d);const c=new URLSearchParams;s&&c.append("startDate",s),r&&c.append("endDate",r);const l=c.toString(),v=`/availability/room/${encodeURIComponent(e)}${l?`?${l}`:""}`;try{return await this.request(v)}catch(h){if(h.status===404){const p=`/availability/${encodeURIComponent(e)}${l?`?${l}`:""}`;return await this.request(p)}throw h}}async blockAvailability(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,blocked_count:d})})}async toggleBlackoutDate(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,is_blocked:d})})}async createBooking(e){return this.request("/bookings/create",{method:"POST",body:JSON.stringify(e)})}async getMyBookings(){return this.request("/bookings/my")}async getOwnerBookings(){return this.request("/bookings/owner")}async getAdminBookings(){return this.request("/bookings/admin")}async getBookingById(e){return this.request(`/bookings/${e}`)}async checkInBooking(e){return this.request(`/bookings/${e}/checkin`,{method:"PUT"})}async checkInGuest(e){return this.checkInBooking(e)}async checkOutBooking(e){return this.request(`/bookings/${e}/checkout`,{method:"PUT"})}async checkOutGuest(e){return this.checkOutBooking(e)}async cancelBooking(e,a){return this.request(`/bookings/${e}/cancel`,{method:"POST",body:JSON.stringify({reason:a})})}async getAdminPayments(){return this.request("/payments/admin")}async getAdminRefunds(){return this.request("/refunds/admin")}async processRefund(e,a,d){return this.request(`/refunds/${e}/process`,{method:"PUT",body:JSON.stringify({status:a,admin_notes:d})})}async getCommissionLedger(){return this.request("/commissions/ledger")}async getOwnerEarnings(){return this.request("/commissions/owner-earnings")}async updateCommissionRate(e){return this.request("/commissions/rate",{method:"PUT",body:JSON.stringify({rate:e})})}async getReviews(e){return this.request(`/reviews/hotel/${e}`)}async submitReview(e){return this.request("/reviews",{method:"POST",body:JSON.stringify(e)})}async getSupportTickets(){return this.request("/support/tickets")}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateSupportTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateTicketStatus(e,a){return this.updateSupportTicketStatus(e,a)}async getMe(){return this.request("/auth/me")}async getHotelAdminDashboard(){return this.request("/hotel-admin/dashboard")}async getHotelAdminKpis(){return this.request("/hotel-admin/dashboard")}async getHotelAdminHotel(){return this.request("/hotel-admin/hotel")}async getHotelAdminProperty(){return this.request("/hotel-admin/property")}async updateHotelAdminHotel(e){return this.request("/hotel-admin/hotel",{method:"PUT",body:JSON.stringify(e)})}async updateHotelAdminProperty(e){return this.request("/hotel-admin/property",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminRooms(){return this.request("/hotel-admin/rooms")}async createHotelAdminRoom(e){return this.request("/hotel-admin/rooms",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminRoom(e,a){return this.request(`/hotel-admin/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteHotelAdminRoom(e){return this.request(`/hotel-admin/rooms/${e}`,{method:"DELETE"})}async getHotelAdminAvailability(){return this.request("/hotel-admin/availability")}async updateHotelAdminAvailability(e){return this.request("/hotel-admin/availability",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBookings(){return this.request("/hotel-admin/bookings")}async getHotelAdminCheckIns(){return this.request("/hotel-admin/check-ins")}async hotelAdminCheckIn(e){return this.request("/hotel-admin/check-in",{method:"POST",body:JSON.stringify({bookingId:e})})}async hotelAdminCheckOut(e){return this.request("/hotel-admin/check-out",{method:"POST",body:JSON.stringify({bookingId:e})})}async getHotelAdminEarnings(){return this.request("/hotel-admin/earnings")}async getHotelAdminSupport(){return this.request("/hotel-admin/support")}async getHotelAdminProfile(){return this.request("/hotel-admin/profile")}async updateHotelAdminProfile(e){return this.request("/hotel-admin/profile",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBanners(){return this.request("/hotel-admin/banners")}async createHotelAdminBanner(e){return this.request("/hotel-admin/banners",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminBanner(e,a){return this.request(`/hotel-admin/banners/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelAdminBannerStatus(e,a){return this.request(`/hotel-admin/banners/${e}/status`,{method:"PATCH",body:JSON.stringify({is_active:a})})}async deleteHotelAdminBanner(e){return this.request(`/hotel-admin/banners/${e}`,{method:"DELETE"})}async getOwnerKYCList(){return this.request("/owners/kyc")}async getOwnersKyc(){return this.request("/owners/kyc")}async updateOwnerKYCStatus(e,a,d=null){return this.request(`/owners/${e}/kyc`,{method:"PUT",body:JSON.stringify({status:a,reason:d})})}async updateOwnerKyc(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async updateOwnerKYC(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async getAdminKpis(){let e;try{e=await this.request("/reports/admin-kpis")}catch{try{e=await this.request("/admin/kpis")}catch{try{e=await this.request("/admin/dashboard")}catch{e={success:!0,data:{},kpis:{}}}}}const a=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{},d=a.total_hotels??a.totalHotels??0,s=a.verified_hotels??a.verifiedHotels??0,r=a.pending_hotels??a.underReviewHotels??0,o=a.total_bookings??a.totalBookings??0,c=a.todays_bookings??a.todayBookings??0,l=a.upcoming_checkins_count??a.upcomingCheckIns??0,v=a.total_gmv??a.grossPlatformVolume??0,h=a.platform_revenue??a.netPlatformCommission??a.platformCommission??0,p=a.active_in_house_stays??a.checked_in_bookings_count??a.activeInHouseStays??0,y=a.upcoming_checkouts_count??a.upcomingCheckOuts??0,m=a.cancelled_bookings_count??a.cancelledRefunded??0;return{success:!0,data:{totalHotels:d,verifiedHotels:s,underReviewHotels:r,totalBookings:o,todayBookings:c,upcomingCheckIns:l,grossPlatformVolume:v,netPlatformCommission:h,activeInHouseStays:p,upcomingCheckOuts:y,cancelledRefunded:m,pendingKYC:a.pending_kyc_count??a.pendingKYC??0,pendingRefunds:a.pending_refunds_count??a.pendingRefunds??0},kpis:{total_hotels:d,verified_hotels:s,pending_hotels:r,total_bookings:o,todays_bookings:c,total_gmv:v,platform_revenue:h,active_in_house_stays:p,checked_in_bookings_count:p,upcoming_checkins_count:l,upcoming_checkouts_count:y,cancelled_bookings_count:m,pending_refunds_count:a.pending_refunds_count??a.pendingRefunds??0,pending_kyc_count:a.pending_kyc_count??a.pendingKYC??0}}}async getAdminKPIs(){return this.getAdminKpis()}async getOwnerKPIs(){return this.request("/reports/owner-kpis")}async getOwnerKpis(){return this.request("/reports/owner-kpis")}async getDailyReport(){return this.request("/reports/daily")}async getMonthlyReport(){return this.request("/reports/monthly")}async getSettings(){return this.request("/settings")}async updateSettings(e){return this.request("/settings",{method:"PUT",body:JSON.stringify(e)})}async getHotelPickupSettings(e){return this.request(`/hotels/${e}/pickup-settings`)}async updateHotelPickupSettings(e,a){return this.request(`/hotels/${e}/pickup-settings`,{method:"PUT",body:JSON.stringify({pickup_service_enabled:a})})}async addPickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations`,{method:"POST",body:JSON.stringify(a)})}async updatePickupLocation(e,a,d){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"DELETE"})}async addPickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles`,{method:"POST",body:JSON.stringify(a)})}async updatePickupVehicle(e,a,d){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"DELETE"})}async getPickups(e={}){const a=new URLSearchParams(e).toString();return this.request(`/pickups?${a}`)}async getPickupDetails(e){return this.request(`/pickups/${e}`)}async updatePickupStatus(e,a,d=""){return this.request(`/pickups/${e}/status`,{method:"PATCH",body:JSON.stringify({status:a,notes:d})})}async assignPickupDriver(e,a){return this.request(`/pickups/${e}/assign-driver`,{method:"POST",body:JSON.stringify(a)})}async getSupportTickets(e=null){const a=e?`/support/tickets?user_id=${e}`:"/support/tickets";return this.request(a)}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}}const M=new n1;/**
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))d(s);new MutationObserver(s=>{for(const n of s)if(n.type==="childList")for(const r of n.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&d(r)}).observe(document,{childList:!0,subtree:!0});function a(s){const n={};return s.integrity&&(n.integrity=s.integrity),s.referrerPolicy&&(n.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?n.credentials="include":s.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function d(s){if(s.ep)return;s.ep=!0;const n=a(s);fetch(s.href,n)}})();const G="https://hotel-appllication.onrender.com/api",F=G.replace(/\/$/,"").endsWith("/api")?G.replace(/\/$/,""):`${G.replace(/\/$/,"")}/api`;class n1{constructor(){this.token=localStorage.getItem("hotelhub_auth_token")||null,this.currentUser=JSON.parse(localStorage.getItem("hotelhub_current_user")||"null")}setSession(e,a){this.token=e,this.currentUser=a,e?(localStorage.setItem("hotelhub_auth_token",e),localStorage.setItem("hotelhub_current_user",JSON.stringify(a))):(localStorage.removeItem("hotelhub_auth_token"),localStorage.removeItem("hotelhub_current_user"))}clearSession(){this.setSession(null,null)}async request(e,a={}){const d={"Content-Type":"application/json",...a.headers};this.token&&(d.Authorization=`Bearer ${this.token}`);try{const s=await fetch(`${F}${e}`,{...a,headers:d}),n=await s.json().catch(()=>({}));if(!s.ok){const r=new Error(n.message||`API request failed with status ${s.status}`);throw r.status=s.status,r.data=n,r}return n}catch(s){throw a.silent||console.error(`API Error on ${e}:`,s.message),s}}async get(e,a={}){return this.request(e,{...a,method:"GET"})}async post(e,a={},d={}){return this.request(e,{...d,method:"POST",body:JSON.stringify(a)})}async put(e,a={},d={}){return this.request(e,{...d,method:"PUT",body:JSON.stringify(a)})}async patch(e,a={},d={}){return this.request(e,{...d,method:"PATCH",body:JSON.stringify(a)})}async delete(e,a={}){return this.request(e,{...a,method:"DELETE"})}async login(e,a,d=null){const s=await this.request("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:a,requiredRole:d})});return this.setSession(s.token,s.user),s}async adminLogin(e,a){return this.login(e,a)}async hotelAdminLogin(e,a){return this.login(e,a)}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return a.token&&a.user&&a.user.status==="active"&&this.setSession(a.token,a.user),a}async adminSetup(e,a,d,s){const n=await this.request("/auth/admin/setup",{method:"POST",body:JSON.stringify({name:e,email:a,password:d,phone:s})});return this.setSession(n.token,n.user),n}async adminCreate(e){return this.request("/auth/admin/create",{method:"POST",body:JSON.stringify(e)})}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return this.setSession(a.token,a.user),a}async getMe(){try{const e=await this.request("/auth/me");return this.currentUser=e.user,localStorage.setItem("hotelhub_current_user",JSON.stringify(e.user)),e.user}catch(e){throw this.clearSession(),e}}logout(){return this.clearSession(),this.request("/auth/logout",{method:"POST"}).catch(()=>{})}async getAdminProfile(){return this.request("/admin/profile")}async updateAdminProfile(e,a){const d=await this.request("/admin/profile",{method:"PUT",body:JSON.stringify({name:e,phone:a})});return d.user&&(this.currentUser={...this.currentUser,...d.user},localStorage.setItem("hotelhub_current_user",JSON.stringify(this.currentUser))),d}async changeAdminPassword(e,a){return this.request("/admin/change-password",{method:"PUT",body:JSON.stringify({currentPassword:e,newPassword:a})})}async getAdminUsers(){return this.request("/admin/users")}async getAdminUser(e){return this.request(`/admin/users/${e}`)}async updateAdminUserStatus(e,a){return this.request(`/admin/users/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateAdminUserRole(e,a,d){return this.request(`/admin/users/${e}/role`,{method:"PUT",body:JSON.stringify({role:a,permissions:d})})}async deleteAdminUser(e){return this.request(`/admin/users/${e}`,{method:"DELETE"})}async getAuditLogs(){return this.request("/admin/audit-logs")}async getHotels(e={}){const a=new URLSearchParams(e).toString();return this.request(`/hotels${a?`?${a}`:""}`)}async getAdminHotels(){return this.request("/hotels/admin")}async getOwnerHotels(){return this.request("/hotels/owner")}async getHotelById(e){return this.request(`/hotels/${e}`)}async onboardHotel(e){return this.request("/hotels/onboard",{method:"POST",body:JSON.stringify(e)})}async updateHotel(e,a){return this.request(`/hotels/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelStatus(e,a){return this.request(`/hotels/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async getRoomsByHotel(e){return this.request(`/rooms/hotel/${e}`)}async createRoom(e){return this.request("/rooms",{method:"POST",body:JSON.stringify(e)})}async updateRoom(e,a){return this.request(`/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteRoom(e){return this.request(`/rooms/${e}`,{method:"DELETE"})}async uploadRoomImage(e,a=null,d=null){return new Promise((s,n)=>{const r=new XMLHttpRequest;r.open("POST",`${F}/uploads/room-image`),this.token&&r.setRequestHeader("Authorization",`Bearer ${this.token}`),r.upload&&typeof d=="function"&&(r.upload.onprogress=o=>{if(o.lengthComputable){const p=Math.round(o.loaded/o.total*100);d(p)}}),r.onload=()=>{let o={};try{o=JSON.parse(r.responseText||"{}")}catch{o={message:r.responseText||"Upload failed"}}if(r.status>=200&&r.status<300&&o.success)s(o);else{const p=new Error(o.message||`Upload failed with HTTP ${r.status}`);p.status=r.status,p.data=o,n(p)}},r.onerror=()=>{n(new Error("Network error during image upload to server."))};const c=new FormData;c.append("image",e),a&&c.append("hotel_id",a),r.send(c)})}async uploadBannerImage(e,a=null,d=null){const s=n=>new Promise((r,c)=>{const o=new XMLHttpRequest;o.open("POST",n),this.token&&o.setRequestHeader("Authorization",`Bearer ${this.token}`),o.upload&&typeof d=="function"&&(o.upload.onprogress=h=>{if(h.lengthComputable){const v=Math.round(h.loaded/h.total*100);d(v)}}),o.onload=()=>{let h={};try{h=JSON.parse(o.responseText||"{}")}catch{h={message:o.responseText||"Upload failed"}}if(o.status>=200&&o.status<300&&h.success)r(h);else{const v=new Error(h.message||`Upload failed with HTTP ${o.status}`);v.status=o.status,v.data=h,c(v)}},o.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),o.send(p)});try{return await s(`${F}/uploads/banner-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image"),await s(`${F}/uploads/room-image`);throw n}}async getRoomAvailability(e,a,d){let s=a,n=d;const r=h=>{if(!h)return null;if(typeof h=="string"&&/^\d{4}-\d{2}-\d{2}$/.test(h))return h;const v=new Date(h);if(isNaN(v.getTime()))return null;const u=v.getFullYear(),m=String(v.getMonth()+1).padStart(2,"0"),l=String(v.getDate()).padStart(2,"0");return`${u}-${m}-${l}`};if(typeof a=="number"||typeof a=="string"&&!isNaN(Number(a))&&a.length<5){const h=Number(a)||14,v=new Date;s=r(v);const u=new Date(v.getFullYear(),v.getMonth(),v.getDate()+h);n=r(u)}else s=r(a),n=r(d);const c=new URLSearchParams;s&&c.append("startDate",s),n&&c.append("endDate",n);const o=c.toString(),p=`/availability/room/${encodeURIComponent(e)}${o?`?${o}`:""}`;try{return await this.request(p)}catch(h){if(h.status===404){const v=`/availability/${encodeURIComponent(e)}${o?`?${o}`:""}`;return await this.request(v)}throw h}}async blockAvailability(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,blocked_count:d})})}async toggleBlackoutDate(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,is_blocked:d})})}async createBooking(e){return this.request("/bookings/create",{method:"POST",body:JSON.stringify(e)})}async getMyBookings(){return this.request("/bookings/my")}async getOwnerBookings(){return this.request("/bookings/owner")}async getAdminBookings(){return this.request("/bookings/admin")}async getBookingById(e){return this.request(`/bookings/${e}`)}async checkInBooking(e){return this.request(`/bookings/${e}/checkin`,{method:"PUT"})}async checkInGuest(e){return this.checkInBooking(e)}async checkOutBooking(e){return this.request(`/bookings/${e}/checkout`,{method:"PUT"})}async checkOutGuest(e){return this.checkOutBooking(e)}async cancelBooking(e,a){return this.request(`/bookings/${e}/cancel`,{method:"POST",body:JSON.stringify({reason:a})})}async getAdminPayments(){return this.request("/payments/admin")}async getAdminRefunds(){return this.request("/refunds/admin")}async processRefund(e,a,d){return this.request(`/refunds/${e}/process`,{method:"PUT",body:JSON.stringify({status:a,admin_notes:d})})}async getCommissionLedger(){return this.request("/commissions/ledger")}async getOwnerEarnings(){return this.request("/commissions/owner-earnings")}async updateCommissionRate(e){return this.request("/commissions/rate",{method:"PUT",body:JSON.stringify({rate:e})})}async getReviews(e){return this.request(`/reviews/hotel/${e}`)}async submitReview(e){return this.request("/reviews",{method:"POST",body:JSON.stringify(e)})}async getSupportTickets(){return this.request("/support/tickets")}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateSupportTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateTicketStatus(e,a){return this.updateSupportTicketStatus(e,a)}async getMe(){return this.request("/auth/me")}async getHotelAdminDashboard(){return this.request("/hotel-admin/dashboard")}async getHotelAdminKpis(){return this.request("/hotel-admin/dashboard")}async getHotelAdminHotel(){return this.request("/hotel-admin/hotel")}async getHotelAdminProperty(){return this.request("/hotel-admin/property")}async updateHotelAdminHotel(e){return this.request("/hotel-admin/hotel",{method:"PUT",body:JSON.stringify(e)})}async updateHotelAdminProperty(e){return this.request("/hotel-admin/property",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminRooms(){return this.request("/hotel-admin/rooms")}async createHotelAdminRoom(e){return this.request("/hotel-admin/rooms",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminRoom(e,a){return this.request(`/hotel-admin/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteHotelAdminRoom(e){return this.request(`/hotel-admin/rooms/${e}`,{method:"DELETE"})}async getHotelAdminAvailability(){return this.request("/hotel-admin/availability")}async updateHotelAdminAvailability(e){return this.request("/hotel-admin/availability",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBookings(){return this.request("/hotel-admin/bookings")}async getHotelAdminCheckIns(){return this.request("/hotel-admin/check-ins")}async hotelAdminCheckIn(e){return this.request("/hotel-admin/check-in",{method:"POST",body:JSON.stringify({bookingId:e})})}async hotelAdminCheckOut(e){return this.request("/hotel-admin/check-out",{method:"POST",body:JSON.stringify({bookingId:e})})}async getHotelAdminEarnings(){return this.request("/hotel-admin/earnings")}async getHotelAdminSupport(){return this.request("/hotel-admin/support")}async getHotelAdminProfile(){return this.request("/hotel-admin/profile")}async updateHotelAdminProfile(e){return this.request("/hotel-admin/profile",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBanners(){return this.request("/hotel-admin/banners")}async createHotelAdminBanner(e){return this.request("/hotel-admin/banners",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminBanner(e,a){return this.request(`/hotel-admin/banners/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelAdminBannerStatus(e,a){return this.request(`/hotel-admin/banners/${e}/status`,{method:"PATCH",body:JSON.stringify({is_active:a})})}async deleteHotelAdminBanner(e){return this.request(`/hotel-admin/banners/${e}`,{method:"DELETE"})}async getOwnerKYCList(){return this.request("/owners/kyc")}async getOwnersKyc(){return this.request("/owners/kyc")}async updateOwnerKYCStatus(e,a,d=null){return this.request(`/owners/${e}/kyc`,{method:"PUT",body:JSON.stringify({status:a,reason:d})})}async updateOwnerKyc(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async updateOwnerKYC(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async getAdminKpis(){let e;try{e=await this.request("/reports/admin-kpis")}catch{try{e=await this.request("/admin/kpis")}catch{try{e=await this.request("/admin/dashboard")}catch{e={success:!0,data:{},kpis:{}}}}}const a=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{},d=a.total_hotels??a.totalHotels??0,s=a.verified_hotels??a.verifiedHotels??0,n=a.pending_hotels??a.underReviewHotels??0,r=a.total_bookings??a.totalBookings??0,c=a.todays_bookings??a.todayBookings??0,o=a.upcoming_checkins_count??a.upcomingCheckIns??0,p=a.total_gmv??a.grossPlatformVolume??0,h=a.platform_revenue??a.netPlatformCommission??a.platformCommission??0,v=a.active_in_house_stays??a.checked_in_bookings_count??a.activeInHouseStays??0,u=a.upcoming_checkouts_count??a.upcomingCheckOuts??0,m=a.cancelled_bookings_count??a.cancelledRefunded??0;return{success:!0,data:{totalHotels:d,verifiedHotels:s,underReviewHotels:n,totalBookings:r,todayBookings:c,upcomingCheckIns:o,grossPlatformVolume:p,netPlatformCommission:h,activeInHouseStays:v,upcomingCheckOuts:u,cancelledRefunded:m,pendingKYC:a.pending_kyc_count??a.pendingKYC??0,pendingRefunds:a.pending_refunds_count??a.pendingRefunds??0},kpis:{total_hotels:d,verified_hotels:s,pending_hotels:n,total_bookings:r,todays_bookings:c,total_gmv:p,platform_revenue:h,active_in_house_stays:v,checked_in_bookings_count:v,upcoming_checkins_count:o,upcoming_checkouts_count:u,cancelled_bookings_count:m,pending_refunds_count:a.pending_refunds_count??a.pendingRefunds??0,pending_kyc_count:a.pending_kyc_count??a.pendingKYC??0}}}async getAdminKPIs(){return this.getAdminKpis()}async getOwnerKPIs(){return this.request("/reports/owner-kpis")}async getOwnerKpis(){return this.request("/reports/owner-kpis")}async getDailyReport(){return this.request("/reports/daily")}async getMonthlyReport(){return this.request("/reports/monthly")}async getSettings(){return this.request("/settings")}async updateSettings(e){return this.request("/settings",{method:"PUT",body:JSON.stringify(e)})}async getHotelPickupSettings(e){return this.request(`/hotels/${e}/pickup-settings`)}async updateHotelPickupSettings(e,a){return this.request(`/hotels/${e}/pickup-settings`,{method:"PUT",body:JSON.stringify({pickup_service_enabled:a})})}async addPickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations`,{method:"POST",body:JSON.stringify(a)})}async updatePickupLocation(e,a,d){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"DELETE"})}async addPickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles`,{method:"POST",body:JSON.stringify(a)})}async updatePickupVehicle(e,a,d){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"DELETE"})}async getPickups(e={}){const a=new URLSearchParams(e).toString();return this.request(`/pickups?${a}`)}async getPickupDetails(e){return this.request(`/pickups/${e}`)}async updatePickupStatus(e,a,d=""){return this.request(`/pickups/${e}/status`,{method:"PATCH",body:JSON.stringify({status:a,notes:d})})}async assignPickupDriver(e,a){return this.request(`/pickups/${e}/assign-driver`,{method:"POST",body:JSON.stringify(a)})}async getSupportTickets(e=null){const a=e?`/support/tickets?user_id=${e}`:"/support/tickets";return this.request(a)}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}}const x=new n1;/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const r1=(i,e,a=[])=>{const d=document.createElementNS("http://www.w3.org/2000/svg",i);return Object.keys(e).forEach(s=>{d.setAttribute(s,String(e[s]))}),a.length&&a.forEach(s=>{const r=r1(...s);d.appendChild(r)}),d};var c1=([i,e,a])=>r1(i,e,a);/**
+ */const r1=(i,e,a=[])=>{const d=document.createElementNS("http://www.w3.org/2000/svg",i);return Object.keys(e).forEach(s=>{d.setAttribute(s,String(e[s]))}),a.length&&a.forEach(s=>{const n=r1(...s);d.appendChild(n)}),d};var c1=([i,e,a])=>r1(i,e,a);/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l1=i=>Array.from(i.attributes).reduce((e,a)=>(e[a.name]=a.value,e),{}),h1=i=>typeof i=="string"?i:!i||!i.class?"":i.class&&typeof i.class=="string"?i.class.split(" "):i.class&&Array.isArray(i.class)?i.class:"",p1=i=>i.flatMap(h1).map(a=>a.trim()).filter(Boolean).filter((a,d,s)=>s.indexOf(a)===d).join(" "),v1=i=>i.replace(/(\w)(\w*)(_|-|\s*)/g,(e,a,d)=>a.toUpperCase()+d.toLowerCase()),J=(i,{nameAttr:e,icons:a,attrs:d})=>{var n;const s=i.getAttribute(e);if(s==null)return;const r=v1(s),o=a[r];if(!o)return console.warn(`${i.outerHTML} icon name was not found in the provided icons object.`);const c=l1(i),[l,v,h]=o,p={...v,"data-lucide":s,...d,...c},y=p1(["lucide",`lucide-${s}`,c,d]);y&&Object.assign(p,{class:y});const m=c1([l,p,h]);return(n=i.parentNode)==null?void 0:n.replaceChild(m,i)};/**
+ */const l1=i=>Array.from(i.attributes).reduce((e,a)=>(e[a.name]=a.value,e),{}),h1=i=>typeof i=="string"?i:!i||!i.class?"":i.class&&typeof i.class=="string"?i.class.split(" "):i.class&&Array.isArray(i.class)?i.class:"",p1=i=>i.flatMap(h1).map(a=>a.trim()).filter(Boolean).filter((a,d,s)=>s.indexOf(a)===d).join(" "),v1=i=>i.replace(/(\w)(\w*)(_|-|\s*)/g,(e,a,d)=>a.toUpperCase()+d.toLowerCase()),J=(i,{nameAttr:e,icons:a,attrs:d})=>{var l;const s=i.getAttribute(e);if(s==null)return;const n=v1(s),r=a[n];if(!r)return console.warn(`${i.outerHTML} icon name was not found in the provided icons object.`);const c=l1(i),[o,p,h]=r,v={...p,"data-lucide":s,...d,...c},u=p1(["lucide",`lucide-${s}`,c,d]);u&&Object.assign(v,{class:u});const m=c1([o,v,h]);return(l=i.parentNode)==null?void 0:l.replaceChild(m,i)};/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -83,12 +83,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H1=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["polyline",{points:"11 3 11 11 14 8 17 11 17 3"}]]];/**
+ */const S1=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["polyline",{points:"11 3 11 11 14 8 17 11 17 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S1=["svg",t,[["path",{d:"M2 12h20"}],["path",{d:"M10 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"}],["path",{d:"M10 8V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v4"}],["path",{d:"M20 16v1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1"}],["path",{d:"M14 8V7c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v1"}]]];/**
+ */const H1=["svg",t,[["path",{d:"M2 12h20"}],["path",{d:"M10 16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"}],["path",{d:"M10 8V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v4"}],["path",{d:"M20 16v1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1"}],["path",{d:"M14 8V7c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -108,12 +108,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V1=["svg",t,[["rect",{width:"16",height:"6",x:"2",y:"4",rx:"2"}],["rect",{width:"9",height:"6",x:"9",y:"14",rx:"2"}],["path",{d:"M22 22V2"}]]];/**
+ */const $1=["svg",t,[["rect",{width:"16",height:"6",x:"2",y:"4",rx:"2"}],["rect",{width:"9",height:"6",x:"9",y:"14",rx:"2"}],["path",{d:"M22 22V2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $1=["svg",t,[["rect",{width:"6",height:"14",x:"4",y:"5",rx:"2"}],["rect",{width:"6",height:"10",x:"14",y:"7",rx:"2"}],["path",{d:"M17 22v-5"}],["path",{d:"M17 7V2"}],["path",{d:"M7 22v-3"}],["path",{d:"M7 5V2"}]]];/**
+ */const V1=["svg",t,[["rect",{width:"6",height:"14",x:"4",y:"5",rx:"2"}],["rect",{width:"6",height:"10",x:"14",y:"7",rx:"2"}],["path",{d:"M17 22v-5"}],["path",{d:"M17 7V2"}],["path",{d:"M7 22v-3"}],["path",{d:"M7 5V2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -178,12 +178,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z1=["svg",t,[["path",{d:"M22 17h-3"}],["path",{d:"M22 7h-5"}],["path",{d:"M5 17H2"}],["path",{d:"M7 7H2"}],["rect",{x:"5",y:"14",width:"14",height:"6",rx:"2"}],["rect",{x:"7",y:"4",width:"10",height:"6",rx:"2"}]]];/**
+ */const F1=["svg",t,[["path",{d:"M22 17h-3"}],["path",{d:"M22 7h-5"}],["path",{d:"M5 17H2"}],["path",{d:"M7 7H2"}],["rect",{x:"5",y:"14",width:"14",height:"6",rx:"2"}],["rect",{x:"7",y:"4",width:"10",height:"6",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"14",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"4",rx:"2"}],["path",{d:"M2 20h20"}],["path",{d:"M2 10h20"}]]];/**
+ */const Z1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"14",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"4",rx:"2"}],["path",{d:"M2 20h20"}],["path",{d:"M2 10h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -193,12 +193,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"16",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"2",rx:"2"}],["path",{d:"M2 12h20"}]]];/**
+ */const j1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"16",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"2",rx:"2"}],["path",{d:"M2 12h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"12",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"2",rx:"2"}],["path",{d:"M2 22h20"}]]];/**
+ */const G1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"12",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"2",rx:"2"}],["path",{d:"M2 22h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -258,12 +258,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d2=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m14.31 8 5.74 9.94"}],["path",{d:"M9.69 8h11.48"}],["path",{d:"m7.38 12 5.74-9.94"}],["path",{d:"M9.69 16 3.95 6.06"}],["path",{d:"M14.31 16H2.83"}],["path",{d:"m16.62 12-5.74 9.94"}]]];/**
+ */const o2=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m14.31 8 5.74 9.94"}],["path",{d:"M9.69 8h11.48"}],["path",{d:"m7.38 12 5.74-9.94"}],["path",{d:"M9.69 16 3.95 6.06"}],["path",{d:"M14.31 16H2.83"}],["path",{d:"m16.62 12-5.74 9.94"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o2=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 8h.01"}],["path",{d:"M10 8h.01"}],["path",{d:"M14 8h.01"}]]];/**
+ */const d2=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 8h.01"}],["path",{d:"M10 8h.01"}],["path",{d:"M14 8h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -358,12 +358,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H2=["svg",t,[["path",{d:"M19 3H5"}],["path",{d:"M12 21V7"}],["path",{d:"m6 15 6 6 6-6"}]]];/**
+ */const S2=["svg",t,[["path",{d:"M19 3H5"}],["path",{d:"M12 21V7"}],["path",{d:"m6 15 6 6 6-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S2=["svg",t,[["path",{d:"M17 7 7 17"}],["path",{d:"M17 17H7V7"}]]];/**
+ */const H2=["svg",t,[["path",{d:"M17 7 7 17"}],["path",{d:"M17 17H7V7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -383,12 +383,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V2=["svg",t,[["path",{d:"M12 17V3"}],["path",{d:"m6 11 6 6 6-6"}],["path",{d:"M19 21H5"}]]];/**
+ */const $2=["svg",t,[["path",{d:"M12 17V3"}],["path",{d:"m6 11 6 6 6-6"}],["path",{d:"M19 21H5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $2=["svg",t,[["path",{d:"m3 16 4 4 4-4"}],["path",{d:"M7 20V4"}],["path",{d:"m21 8-4-4-4 4"}],["path",{d:"M17 4v16"}]]];/**
+ */const V2=["svg",t,[["path",{d:"m3 16 4 4 4-4"}],["path",{d:"M7 20V4"}],["path",{d:"m21 8-4-4-4 4"}],["path",{d:"M17 4v16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -468,12 +468,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z2=["svg",t,[["path",{d:"m5 9 7-7 7 7"}],["path",{d:"M12 16V2"}],["circle",{cx:"12",cy:"21",r:"1"}]]];/**
+ */const F2=["svg",t,[["path",{d:"m5 9 7-7 7 7"}],["path",{d:"M12 16V2"}],["circle",{cx:"12",cy:"21",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F2=["svg",t,[["path",{d:"m18 9-6-6-6 6"}],["path",{d:"M12 3v14"}],["path",{d:"M5 21h14"}]]];/**
+ */const Z2=["svg",t,[["path",{d:"m18 9-6-6-6 6"}],["path",{d:"M12 3v14"}],["path",{d:"M5 21h14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -488,12 +488,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G2=["svg",t,[["path",{d:"M7 7h10v10"}],["path",{d:"M7 17 17 7"}]]];/**
+ */const j2=["svg",t,[["path",{d:"M7 7h10v10"}],["path",{d:"M7 17 17 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j2=["svg",t,[["path",{d:"M5 3h14"}],["path",{d:"m18 13-6-6-6 6"}],["path",{d:"M12 7v14"}]]];/**
+ */const G2=["svg",t,[["path",{d:"M5 3h14"}],["path",{d:"m18 13-6-6-6 6"}],["path",{d:"M12 7v14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -503,7 +503,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dt=["svg",t,[["path",{d:"m3 8 4-4 4 4"}],["path",{d:"M7 4v16"}],["path",{d:"M15 4h5l-5 6h5"}],["path",{d:"M15 20v-3.5a2.5 2.5 0 0 1 5 0V20"}],["path",{d:"M20 18h-5"}]]];/**
+ */const ot=["svg",t,[["path",{d:"m3 8 4-4 4 4"}],["path",{d:"M7 4v16"}],["path",{d:"M15 4h5l-5 6h5"}],["path",{d:"M15 20v-3.5a2.5 2.5 0 0 1 5 0V20"}],["path",{d:"M20 18h-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -553,7 +553,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ot=["svg",t,[["path",{d:"M4 4v16h16"}],["path",{d:"m4 20 7-7"}]]];/**
+ */const dt=["svg",t,[["path",{d:"M4 4v16h16"}],["path",{d:"m4 20 7-7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -563,12 +563,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const di=["svg",t,[["path",{d:"M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"}],["path",{d:"M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"}],["path",{d:"M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"}],["path",{d:"M8 10h8"}],["path",{d:"M8 18h8"}]]];/**
+ */const oi=["svg",t,[["path",{d:"M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"}],["path",{d:"M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"}],["path",{d:"M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"}],["path",{d:"M8 10h8"}],["path",{d:"M8 18h8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oi=["svg",t,[["path",{d:"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"}],["line",{x1:"12",x2:"12",y1:"8",y2:"12"}],["line",{x1:"12",x2:"12.01",y1:"16",y2:"16"}]]];/**
+ */const di=["svg",t,[["path",{d:"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"}],["line",{x1:"12",x2:"12",y1:"8",y2:"12"}],["line",{x1:"12",x2:"12.01",y1:"16",y2:"16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -663,12 +663,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hi=["svg",t,[["path",{d:"M4 13c3.5-2 8-2 10 2a5.5 5.5 0 0 1 8 5"}],["path",{d:"M5.15 17.89c5.52-1.52 8.65-6.89 7-12C11.55 4 11.5 2 13 2c3.22 0 5 5.5 5 8 0 6.5-4.2 12-10.49 12C5.11 22 2 22 2 20c0-1.5 1.14-1.55 3.15-2.11Z"}]]];/**
+ */const Si=["svg",t,[["path",{d:"M4 13c3.5-2 8-2 10 2a5.5 5.5 0 0 1 8 5"}],["path",{d:"M5.15 17.89c5.52-1.52 8.65-6.89 7-12C11.55 4 11.5 2 13 2c3.22 0 5 5.5 5 8 0 6.5-4.2 12-10.49 12C5.11 22 2 22 2 20c0-1.5 1.14-1.55 3.15-2.11Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Si=["svg",t,[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"2"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M6 12h.01M18 12h.01"}]]];/**
+ */const Hi=["svg",t,[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"2"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M6 12h.01M18 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -688,12 +688,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vi=["svg",t,[["path",{d:"M3 3v18h18"}],["rect",{width:"4",height:"7",x:"7",y:"10",rx:"1"}],["rect",{width:"4",height:"12",x:"15",y:"5",rx:"1"}]]];/**
+ */const $i=["svg",t,[["path",{d:"M3 3v18h18"}],["rect",{width:"4",height:"7",x:"7",y:"10",rx:"1"}],["rect",{width:"4",height:"12",x:"15",y:"5",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $i=["svg",t,[["path",{d:"M3 3v18h18"}],["rect",{width:"12",height:"4",x:"7",y:"5",rx:"1"}],["rect",{width:"7",height:"4",x:"7",y:"13",rx:"1"}]]];/**
+ */const Vi=["svg",t,[["path",{d:"M3 3v18h18"}],["rect",{width:"12",height:"4",x:"7",y:"5",rx:"1"}],["rect",{width:"7",height:"4",x:"7",y:"13",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -758,12 +758,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zi=["svg",t,[["path",{d:"M9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22a13.96 13.96 0 0 0 9.9-4.1"}],["path",{d:"M10.75 5.093A6 6 0 0 1 22 8c0 2.411-.61 4.68-1.683 6.66"}],["path",{d:"M5.341 10.62a4 4 0 0 0 6.487 1.208M10.62 5.341a4.015 4.015 0 0 1 2.039 2.04"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const Fi=["svg",t,[["path",{d:"M9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22a13.96 13.96 0 0 0 9.9-4.1"}],["path",{d:"M10.75 5.093A6 6 0 0 1 22 8c0 2.411-.61 4.68-1.683 6.66"}],["path",{d:"M5.341 10.62a4 4 0 0 0 6.487 1.208M10.62 5.341a4.015 4.015 0 0 1 2.039 2.04"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fi=["svg",t,[["path",{d:"M10.165 6.598C9.954 7.478 9.64 8.36 9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22c7.732 0 14-6.268 14-14a6 6 0 0 0-11.835-1.402Z"}],["path",{d:"M5.341 10.62a4 4 0 1 0 5.279-5.28"}]]];/**
+ */const Zi=["svg",t,[["path",{d:"M10.165 6.598C9.954 7.478 9.64 8.36 9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22c7.732 0 14-6.268 14-14a6 6 0 0 0-11.835-1.402Z"}],["path",{d:"M5.341 10.62a4 4 0 1 0 5.279-5.28"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -773,12 +773,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gi=["svg",t,[["path",{d:"M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"}],["path",{d:"M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"}],["path",{d:"M3 18h18"}]]];/**
+ */const ji=["svg",t,[["path",{d:"M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"}],["path",{d:"M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"}],["path",{d:"M3 18h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ji=["svg",t,[["path",{d:"M2 4v16"}],["path",{d:"M2 8h18a2 2 0 0 1 2 2v10"}],["path",{d:"M2 17h20"}],["path",{d:"M6 8v9"}]]];/**
+ */const Gi=["svg",t,[["path",{d:"M2 4v16"}],["path",{d:"M2 8h18a2 2 0 0 1 2 2v10"}],["path",{d:"M2 17h20"}],["path",{d:"M6 8v9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -848,12 +848,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ds=["svg",t,[["rect",{width:"7",height:"13",x:"3",y:"8",rx:"1"}],["path",{d:"m15 2-3 3-3-3"}],["rect",{width:"7",height:"13",x:"14",y:"8",rx:"1"}]]];/**
+ */const os=["svg",t,[["rect",{width:"7",height:"13",x:"3",y:"8",rx:"1"}],["path",{d:"m15 2-3 3-3-3"}],["rect",{width:"7",height:"13",x:"14",y:"8",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const os=["svg",t,[["path",{d:"M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"}],["path",{d:"M15 14a5 5 0 0 0-7.584 2"}],["path",{d:"M9.964 6.825C8.019 7.977 9.5 13 8 15"}]]];/**
+ */const ds=["svg",t,[["path",{d:"M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"}],["path",{d:"M15 14a5 5 0 0 0-7.584 2"}],["path",{d:"M9.964 6.825C8.019 7.977 9.5 13 8 15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -943,12 +943,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"M8 8v3"}],["path",{d:"M12 6v7"}],["path",{d:"M16 8v3"}]]];/**
+ */const Ss=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"M8 8v3"}],["path",{d:"M12 6v7"}],["path",{d:"M16 8v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ss=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"m9 9.5 2 2 4-4"}]]];/**
+ */const Hs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"m9 9.5 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -973,12 +973,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"M16 8.2C16 7 15 6 13.8 6c-.8 0-1.4.3-1.8.9-.4-.6-1-.9-1.8-.9C9 6 8 7 8 8.2c0 .6.3 1.2.7 1.6C10 11.1 12 13 12 13s2-1.9 3.3-3.1c.4-.4.7-1 .7-1.7z"}]]];/**
+ */const $s=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"M16 8.2C16 7 15 6 13.8 6c-.8 0-1.4.3-1.8.9-.4-.6-1-.9-1.8-.9C9 6 8 7 8 8.2c0 .6.3 1.2.7 1.6C10 11.1 12 13 12 13s2-1.9 3.3-3.1c.4-.4.7-1 .7-1.7z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $s=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["circle",{cx:"10",cy:"8",r:"2"}],["path",{d:"m20 13.7-2.1-2.1c-.8-.8-2-.8-2.8 0L9.7 17"}]]];/**
+ */const Vs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["circle",{cx:"10",cy:"8",r:"2"}],["path",{d:"m20 13.7-2.1-2.1c-.8-.8-2-.8-2.8 0L9.7 17"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1043,12 +1043,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["circle",{cx:"12",cy:"8",r:"2"}],["path",{d:"M15 13a3 3 0 1 0-6 0"}]]];/**
+ */const Fs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["circle",{cx:"12",cy:"8",r:"2"}],["path",{d:"M15 13a3 3 0 1 0-6 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"m14.5 7-5 5"}],["path",{d:"m9.5 7 5 5"}]]];/**
+ */const Zs=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["path",{d:"m14.5 7-5 5"}],["path",{d:"m9.5 7 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1058,12 +1058,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gs=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"}],["path",{d:"m9 10 2 2 4-4"}]]];/**
+ */const js=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"}],["path",{d:"m9 10 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const js=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"}],["line",{x1:"15",x2:"9",y1:"10",y2:"10"}]]];/**
+ */const Gs=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"}],["line",{x1:"15",x2:"9",y1:"10",y2:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1098,22 +1098,22 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const td=["svg",t,[["path",{d:"M12 8V4H8"}],["rect",{width:"16",height:"12",x:"4",y:"8",rx:"2"}],["path",{d:"M2 14h2"}],["path",{d:"M20 14h2"}],["path",{d:"M15 13v2"}],["path",{d:"M9 13v2"}]]];/**
+ */const to=["svg",t,[["path",{d:"M12 8V4H8"}],["rect",{width:"16",height:"12",x:"4",y:"8",rx:"2"}],["path",{d:"M2 14h2"}],["path",{d:"M20 14h2"}],["path",{d:"M15 13v2"}],["path",{d:"M9 13v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ed=["svg",t,[["path",{d:"M5 3a2 2 0 0 0-2 2"}],["path",{d:"M19 3a2 2 0 0 1 2 2"}],["path",{d:"M21 19a2 2 0 0 1-2 2"}],["path",{d:"M5 21a2 2 0 0 1-2-2"}],["path",{d:"M9 3h1"}],["path",{d:"M9 21h1"}],["path",{d:"M14 3h1"}],["path",{d:"M14 21h1"}],["path",{d:"M3 9v1"}],["path",{d:"M21 9v1"}],["path",{d:"M3 14v1"}],["path",{d:"M21 14v1"}]]];/**
+ */const eo=["svg",t,[["path",{d:"M5 3a2 2 0 0 0-2 2"}],["path",{d:"M19 3a2 2 0 0 1 2 2"}],["path",{d:"M21 19a2 2 0 0 1-2 2"}],["path",{d:"M5 21a2 2 0 0 1-2-2"}],["path",{d:"M9 3h1"}],["path",{d:"M9 21h1"}],["path",{d:"M14 3h1"}],["path",{d:"M14 21h1"}],["path",{d:"M3 9v1"}],["path",{d:"M21 9v1"}],["path",{d:"M3 14v1"}],["path",{d:"M21 14v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ad=["svg",t,[["path",{d:"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"}],["path",{d:"m3.3 7 8.7 5 8.7-5"}],["path",{d:"M12 22V12"}]]];/**
+ */const ao=["svg",t,[["path",{d:"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"}],["path",{d:"m3.3 7 8.7 5 8.7-5"}],["path",{d:"M12 22V12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const id=["svg",t,[["path",{d:"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"}],["path",{d:"m7 16.5-4.74-2.85"}],["path",{d:"m7 16.5 5-3"}],["path",{d:"M7 16.5v5.17"}],["path",{d:"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"}],["path",{d:"m17 16.5-5-3"}],["path",{d:"m17 16.5 4.74-2.85"}],["path",{d:"M17 16.5v5.17"}],["path",{d:"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"}],["path",{d:"M12 8 7.26 5.15"}],["path",{d:"m12 8 4.74-2.85"}],["path",{d:"M12 13.5V8"}]]];/**
+ */const io=["svg",t,[["path",{d:"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"}],["path",{d:"m7 16.5-4.74-2.85"}],["path",{d:"m7 16.5 5-3"}],["path",{d:"M7 16.5v5.17"}],["path",{d:"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"}],["path",{d:"m17 16.5-5-3"}],["path",{d:"m17 16.5 4.74-2.85"}],["path",{d:"M17 16.5v5.17"}],["path",{d:"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"}],["path",{d:"M12 8 7.26 5.15"}],["path",{d:"m12 8 4.74-2.85"}],["path",{d:"M12 13.5V8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1123,237 +1123,237 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const sd=["svg",t,[["path",{d:"M16 3h3v18h-3"}],["path",{d:"M8 21H5V3h3"}]]];/**
+ */const so=["svg",t,[["path",{d:"M16 3h3v18h-3"}],["path",{d:"M8 21H5V3h3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dd=["svg",t,[["path",{d:"M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"}],["path",{d:"M9 13a4.5 4.5 0 0 0 3-4"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M12 13h4"}],["path",{d:"M12 18h6a2 2 0 0 1 2 2v1"}],["path",{d:"M12 8h8"}],["path",{d:"M16 8V5a2 2 0 0 1 2-2"}],["circle",{cx:"16",cy:"13",r:".5"}],["circle",{cx:"18",cy:"3",r:".5"}],["circle",{cx:"20",cy:"21",r:".5"}],["circle",{cx:"20",cy:"8",r:".5"}]]];/**
+ */const oo=["svg",t,[["path",{d:"M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"}],["path",{d:"M9 13a4.5 4.5 0 0 0 3-4"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M12 13h4"}],["path",{d:"M12 18h6a2 2 0 0 1 2 2v1"}],["path",{d:"M12 8h8"}],["path",{d:"M16 8V5a2 2 0 0 1 2-2"}],["circle",{cx:"16",cy:"13",r:".5"}],["circle",{cx:"18",cy:"3",r:".5"}],["circle",{cx:"20",cy:"21",r:".5"}],["circle",{cx:"20",cy:"8",r:".5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const od=["svg",t,[["path",{d:"M12 5a3 3 0 1 0-5.997.142 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588 4 4 0 0 0 7.636 2.106 3.2 3.2 0 0 0 .164-.546c.028-.13.306-.13.335 0a3.2 3.2 0 0 0 .163.546 4 4 0 0 0 7.636-2.106 4 4 0 0 0 .556-6.588 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5"}],["path",{d:"M17.599 6.5a3 3 0 0 0 .399-1.375"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M19.938 10.5a4 4 0 0 1 .585.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M19.967 17.484A4 4 0 0 1 18 18"}],["circle",{cx:"12",cy:"12",r:"3"}],["path",{d:"m15.7 10.4-.9.4"}],["path",{d:"m9.2 13.2-.9.4"}],["path",{d:"m13.6 15.7-.4-.9"}],["path",{d:"m10.8 9.2-.4-.9"}],["path",{d:"m15.7 13.5-.9-.4"}],["path",{d:"m9.2 10.9-.9-.4"}],["path",{d:"m10.5 15.7.4-.9"}],["path",{d:"m13.1 9.2.4-.9"}]]];/**
+ */const ro=["svg",t,[["path",{d:"M12 5a3 3 0 1 0-5.997.142 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588 4 4 0 0 0 7.636 2.106 3.2 3.2 0 0 0 .164-.546c.028-.13.306-.13.335 0a3.2 3.2 0 0 0 .163.546 4 4 0 0 0 7.636-2.106 4 4 0 0 0 .556-6.588 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5"}],["path",{d:"M17.599 6.5a3 3 0 0 0 .399-1.375"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M19.938 10.5a4 4 0 0 1 .585.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M19.967 17.484A4 4 0 0 1 18 18"}],["circle",{cx:"12",cy:"12",r:"3"}],["path",{d:"m15.7 10.4-.9.4"}],["path",{d:"m9.2 13.2-.9.4"}],["path",{d:"m13.6 15.7-.4-.9"}],["path",{d:"m10.8 9.2-.4-.9"}],["path",{d:"m15.7 13.5-.9-.4"}],["path",{d:"m9.2 10.9-.9-.4"}],["path",{d:"m10.5 15.7.4-.9"}],["path",{d:"m13.1 9.2.4-.9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const rd=["svg",t,[["path",{d:"M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"}],["path",{d:"M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"}],["path",{d:"M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"}],["path",{d:"M17.599 6.5a3 3 0 0 0 .399-1.375"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M19.938 10.5a4 4 0 0 1 .585.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M19.967 17.484A4 4 0 0 1 18 18"}]]];/**
+ */const no=["svg",t,[["path",{d:"M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"}],["path",{d:"M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"}],["path",{d:"M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"}],["path",{d:"M17.599 6.5a3 3 0 0 0 .399-1.375"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M19.938 10.5a4 4 0 0 1 .585.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M19.967 17.484A4 4 0 0 1 18 18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const nd=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 9v6"}],["path",{d:"M16 15v6"}],["path",{d:"M16 3v6"}],["path",{d:"M3 15h18"}],["path",{d:"M3 9h18"}],["path",{d:"M8 15v6"}],["path",{d:"M8 3v6"}]]];/**
+ */const co=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 9v6"}],["path",{d:"M16 15v6"}],["path",{d:"M16 3v6"}],["path",{d:"M3 15h18"}],["path",{d:"M3 9h18"}],["path",{d:"M8 15v6"}],["path",{d:"M8 3v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const cd=["svg",t,[["path",{d:"M12 12h.01"}],["path",{d:"M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"}],["path",{d:"M22 13a18.15 18.15 0 0 1-20 0"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]];/**
+ */const lo=["svg",t,[["path",{d:"M12 12h.01"}],["path",{d:"M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"}],["path",{d:"M22 13a18.15 18.15 0 0 1-20 0"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ld=["svg",t,[["path",{d:"M12 11v4"}],["path",{d:"M14 13h-4"}],["path",{d:"M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"}],["path",{d:"M18 6v14"}],["path",{d:"M6 6v14"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]];/**
+ */const ho=["svg",t,[["path",{d:"M12 11v4"}],["path",{d:"M14 13h-4"}],["path",{d:"M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"}],["path",{d:"M18 6v14"}],["path",{d:"M6 6v14"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const hd=["svg",t,[["path",{d:"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]];/**
+ */const po=["svg",t,[["path",{d:"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const pd=["svg",t,[["rect",{x:"8",y:"8",width:"8",height:"8",rx:"2"}],["path",{d:"M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2"}],["path",{d:"M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2"}]]];/**
+ */const vo=["svg",t,[["rect",{x:"8",y:"8",width:"8",height:"8",rx:"2"}],["path",{d:"M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2"}],["path",{d:"M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const vd=["svg",t,[["path",{d:"m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"}],["path",{d:"M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"}]]];/**
+ */const mo=["svg",t,[["path",{d:"m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"}],["path",{d:"M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const md=["svg",t,[["path",{d:"M15 7.13V6a3 3 0 0 0-5.14-2.1L8 2"}],["path",{d:"M14.12 3.88 16 2"}],["path",{d:"M22 13h-4v-2a4 4 0 0 0-4-4h-1.3"}],["path",{d:"M20.97 5c0 2.1-1.6 3.8-3.5 4"}],["path",{d:"m2 2 20 20"}],["path",{d:"M7.7 7.7A4 4 0 0 0 6 11v3a6 6 0 0 0 11.13 3.13"}],["path",{d:"M12 20v-8"}],["path",{d:"M6 13H2"}],["path",{d:"M3 21c0-2.1 1.7-3.9 3.8-4"}]]];/**
+ */const go=["svg",t,[["path",{d:"M15 7.13V6a3 3 0 0 0-5.14-2.1L8 2"}],["path",{d:"M14.12 3.88 16 2"}],["path",{d:"M22 13h-4v-2a4 4 0 0 0-4-4h-1.3"}],["path",{d:"M20.97 5c0 2.1-1.6 3.8-3.5 4"}],["path",{d:"m2 2 20 20"}],["path",{d:"M7.7 7.7A4 4 0 0 0 6 11v3a6 6 0 0 0 11.13 3.13"}],["path",{d:"M12 20v-8"}],["path",{d:"M6 13H2"}],["path",{d:"M3 21c0-2.1 1.7-3.9 3.8-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const gd=["svg",t,[["path",{d:"M12.765 21.522a.5.5 0 0 1-.765-.424v-8.196a.5.5 0 0 1 .765-.424l5.878 3.674a1 1 0 0 1 0 1.696z"}],["path",{d:"M14.12 3.88 16 2"}],["path",{d:"M18 11a4 4 0 0 0-4-4h-4a4 4 0 0 0-4 4v3a6.1 6.1 0 0 0 2 4.5"}],["path",{d:"M20.97 5c0 2.1-1.6 3.8-3.5 4"}],["path",{d:"M3 21c0-2.1 1.7-3.9 3.8-4"}],["path",{d:"M6 13H2"}],["path",{d:"M6.53 9C4.6 8.8 3 7.1 3 5"}],["path",{d:"m8 2 1.88 1.88"}],["path",{d:"M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"}]]];/**
+ */const uo=["svg",t,[["path",{d:"M12.765 21.522a.5.5 0 0 1-.765-.424v-8.196a.5.5 0 0 1 .765-.424l5.878 3.674a1 1 0 0 1 0 1.696z"}],["path",{d:"M14.12 3.88 16 2"}],["path",{d:"M18 11a4 4 0 0 0-4-4h-4a4 4 0 0 0-4 4v3a6.1 6.1 0 0 0 2 4.5"}],["path",{d:"M20.97 5c0 2.1-1.6 3.8-3.5 4"}],["path",{d:"M3 21c0-2.1 1.7-3.9 3.8-4"}],["path",{d:"M6 13H2"}],["path",{d:"M6.53 9C4.6 8.8 3 7.1 3 5"}],["path",{d:"m8 2 1.88 1.88"}],["path",{d:"M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ud=["svg",t,[["path",{d:"m8 2 1.88 1.88"}],["path",{d:"M14.12 3.88 16 2"}],["path",{d:"M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"}],["path",{d:"M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"}],["path",{d:"M12 20v-9"}],["path",{d:"M6.53 9C4.6 8.8 3 7.1 3 5"}],["path",{d:"M6 13H2"}],["path",{d:"M3 21c0-2.1 1.7-3.9 3.8-4"}],["path",{d:"M20.97 5c0 2.1-1.6 3.8-3.5 4"}],["path",{d:"M22 13h-4"}],["path",{d:"M17.2 17c2.1.1 3.8 1.9 3.8 4"}]]];/**
+ */const yo=["svg",t,[["path",{d:"m8 2 1.88 1.88"}],["path",{d:"M14.12 3.88 16 2"}],["path",{d:"M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"}],["path",{d:"M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"}],["path",{d:"M12 20v-9"}],["path",{d:"M6.53 9C4.6 8.8 3 7.1 3 5"}],["path",{d:"M6 13H2"}],["path",{d:"M3 21c0-2.1 1.7-3.9 3.8-4"}],["path",{d:"M20.97 5c0 2.1-1.6 3.8-3.5 4"}],["path",{d:"M22 13h-4"}],["path",{d:"M17.2 17c2.1.1 3.8 1.9 3.8 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const yd=["svg",t,[["path",{d:"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"}],["path",{d:"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"}],["path",{d:"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"}],["path",{d:"M10 6h4"}],["path",{d:"M10 10h4"}],["path",{d:"M10 14h4"}],["path",{d:"M10 18h4"}]]];/**
+ */const Mo=["svg",t,[["path",{d:"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"}],["path",{d:"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"}],["path",{d:"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"}],["path",{d:"M10 6h4"}],["path",{d:"M10 10h4"}],["path",{d:"M10 14h4"}],["path",{d:"M10 18h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Md=["svg",t,[["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2",ry:"2"}],["path",{d:"M9 22v-4h6v4"}],["path",{d:"M8 6h.01"}],["path",{d:"M16 6h.01"}],["path",{d:"M12 6h.01"}],["path",{d:"M12 10h.01"}],["path",{d:"M12 14h.01"}],["path",{d:"M16 10h.01"}],["path",{d:"M16 14h.01"}],["path",{d:"M8 10h.01"}],["path",{d:"M8 14h.01"}]]];/**
+ */const xo=["svg",t,[["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2",ry:"2"}],["path",{d:"M9 22v-4h6v4"}],["path",{d:"M8 6h.01"}],["path",{d:"M16 6h.01"}],["path",{d:"M12 6h.01"}],["path",{d:"M12 10h.01"}],["path",{d:"M12 14h.01"}],["path",{d:"M16 10h.01"}],["path",{d:"M16 14h.01"}],["path",{d:"M8 10h.01"}],["path",{d:"M8 14h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const xd=["svg",t,[["path",{d:"M4 6 2 7"}],["path",{d:"M10 6h4"}],["path",{d:"m22 7-2-1"}],["rect",{width:"16",height:"16",x:"4",y:"3",rx:"2"}],["path",{d:"M4 11h16"}],["path",{d:"M8 15h.01"}],["path",{d:"M16 15h.01"}],["path",{d:"M6 19v2"}],["path",{d:"M18 21v-2"}]]];/**
+ */const fo=["svg",t,[["path",{d:"M4 6 2 7"}],["path",{d:"M10 6h4"}],["path",{d:"m22 7-2-1"}],["rect",{width:"16",height:"16",x:"4",y:"3",rx:"2"}],["path",{d:"M4 11h16"}],["path",{d:"M8 15h.01"}],["path",{d:"M16 15h.01"}],["path",{d:"M6 19v2"}],["path",{d:"M18 21v-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const fd=["svg",t,[["path",{d:"M8 6v6"}],["path",{d:"M15 6v6"}],["path",{d:"M2 12h19.6"}],["path",{d:"M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"}],["circle",{cx:"7",cy:"18",r:"2"}],["path",{d:"M9 18h5"}],["circle",{cx:"16",cy:"18",r:"2"}]]];/**
+ */const bo=["svg",t,[["path",{d:"M8 6v6"}],["path",{d:"M15 6v6"}],["path",{d:"M2 12h19.6"}],["path",{d:"M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"}],["circle",{cx:"7",cy:"18",r:"2"}],["path",{d:"M9 18h5"}],["circle",{cx:"16",cy:"18",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const bd=["svg",t,[["path",{d:"M10 3h.01"}],["path",{d:"M14 2h.01"}],["path",{d:"m2 9 20-5"}],["path",{d:"M12 12V6.5"}],["rect",{width:"16",height:"10",x:"4",y:"12",rx:"3"}],["path",{d:"M9 12v5"}],["path",{d:"M15 12v5"}],["path",{d:"M4 17h16"}]]];/**
+ */const wo=["svg",t,[["path",{d:"M10 3h.01"}],["path",{d:"M14 2h.01"}],["path",{d:"m2 9 20-5"}],["path",{d:"M12 12V6.5"}],["rect",{width:"16",height:"10",x:"4",y:"12",rx:"3"}],["path",{d:"M9 12v5"}],["path",{d:"M15 12v5"}],["path",{d:"M4 17h16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const wd=["svg",t,[["path",{d:"M17 21v-2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1"}],["path",{d:"M19 15V6.5a1 1 0 0 0-7 0v11a1 1 0 0 1-7 0V9"}],["path",{d:"M21 21v-2h-4"}],["path",{d:"M3 5h4V3"}],["path",{d:"M7 5a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1V3"}]]];/**
+ */const ko=["svg",t,[["path",{d:"M17 21v-2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1"}],["path",{d:"M19 15V6.5a1 1 0 0 0-7 0v11a1 1 0 0 1-7 0V9"}],["path",{d:"M21 21v-2h-4"}],["path",{d:"M3 5h4V3"}],["path",{d:"M7 5a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1V3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const kd=["svg",t,[["circle",{cx:"9",cy:"7",r:"2"}],["path",{d:"M7.2 7.9 3 11v9c0 .6.4 1 1 1h16c.6 0 1-.4 1-1v-9c0-2-3-6-7-8l-3.6 2.6"}],["path",{d:"M16 13H3"}],["path",{d:"M16 17H3"}]]];/**
+ */const So=["svg",t,[["circle",{cx:"9",cy:"7",r:"2"}],["path",{d:"M7.2 7.9 3 11v9c0 .6.4 1 1 1h16c.6 0 1-.4 1-1v-9c0-2-3-6-7-8l-3.6 2.6"}],["path",{d:"M16 13H3"}],["path",{d:"M16 17H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hd=["svg",t,[["path",{d:"M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"}],["path",{d:"M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"}],["path",{d:"M2 21h20"}],["path",{d:"M7 8v3"}],["path",{d:"M12 8v3"}],["path",{d:"M17 8v3"}],["path",{d:"M7 4h.01"}],["path",{d:"M12 4h.01"}],["path",{d:"M17 4h.01"}]]];/**
+ */const Ho=["svg",t,[["path",{d:"M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"}],["path",{d:"M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"}],["path",{d:"M2 21h20"}],["path",{d:"M7 8v3"}],["path",{d:"M12 8v3"}],["path",{d:"M17 8v3"}],["path",{d:"M7 4h.01"}],["path",{d:"M12 4h.01"}],["path",{d:"M17 4h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sd=["svg",t,[["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["line",{x1:"8",x2:"16",y1:"6",y2:"6"}],["line",{x1:"16",x2:"16",y1:"14",y2:"18"}],["path",{d:"M16 10h.01"}],["path",{d:"M12 10h.01"}],["path",{d:"M8 10h.01"}],["path",{d:"M12 14h.01"}],["path",{d:"M8 14h.01"}],["path",{d:"M12 18h.01"}],["path",{d:"M8 18h.01"}]]];/**
+ */const Co=["svg",t,[["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["line",{x1:"8",x2:"16",y1:"6",y2:"6"}],["line",{x1:"16",x2:"16",y1:"14",y2:"18"}],["path",{d:"M16 10h.01"}],["path",{d:"M12 10h.01"}],["path",{d:"M8 10h.01"}],["path",{d:"M12 14h.01"}],["path",{d:"M8 14h.01"}],["path",{d:"M12 18h.01"}],["path",{d:"M8 18h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Cd=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"m16 20 2 2 4-4"}]]];/**
+ */const Ao=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"m16 20 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ad=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"m9 16 2 2 4-4"}]]];/**
+ */const Lo=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"m9 16 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ld=["svg",t,[["path",{d:"M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"}],["path",{d:"M16 2v4"}],["path",{d:"M8 2v4"}],["path",{d:"M3 10h5"}],["path",{d:"M17.5 17.5 16 16.3V14"}],["circle",{cx:"16",cy:"16",r:"6"}]]];/**
+ */const $o=["svg",t,[["path",{d:"M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"}],["path",{d:"M16 2v4"}],["path",{d:"M8 2v4"}],["path",{d:"M3 10h5"}],["path",{d:"M17.5 17.5 16 16.3V14"}],["circle",{cx:"16",cy:"16",r:"6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vd=["svg",t,[["path",{d:"m15.2 16.9-.9-.4"}],["path",{d:"m15.2 19.1-.9.4"}],["path",{d:"M16 2v4"}],["path",{d:"m16.9 15.2-.4-.9"}],["path",{d:"m16.9 20.8-.4.9"}],["path",{d:"m19.5 14.3-.4.9"}],["path",{d:"m19.5 21.7-.4-.9"}],["path",{d:"M21 10.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"}],["path",{d:"m21.7 16.5-.9.4"}],["path",{d:"m21.7 19.5-.9-.4"}],["path",{d:"M3 10h18"}],["path",{d:"M8 2v4"}],["circle",{cx:"18",cy:"18",r:"3"}]]];/**
+ */const Vo=["svg",t,[["path",{d:"m15.2 16.9-.9-.4"}],["path",{d:"m15.2 19.1-.9.4"}],["path",{d:"M16 2v4"}],["path",{d:"m16.9 15.2-.4-.9"}],["path",{d:"m16.9 20.8-.4.9"}],["path",{d:"m19.5 14.3-.4.9"}],["path",{d:"m19.5 21.7-.4-.9"}],["path",{d:"M21 10.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"}],["path",{d:"m21.7 16.5-.9.4"}],["path",{d:"m21.7 19.5-.9-.4"}],["path",{d:"M3 10h18"}],["path",{d:"M8 2v4"}],["circle",{cx:"18",cy:"18",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $d=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"M8 14h.01"}],["path",{d:"M12 14h.01"}],["path",{d:"M16 14h.01"}],["path",{d:"M8 18h.01"}],["path",{d:"M12 18h.01"}],["path",{d:"M16 18h.01"}]]];/**
+ */const _o=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"M8 14h.01"}],["path",{d:"M12 14h.01"}],["path",{d:"M16 14h.01"}],["path",{d:"M8 18h.01"}],["path",{d:"M12 18h.01"}],["path",{d:"M16 18h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _d=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 17V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11Z"}],["path",{d:"M3 10h18"}],["path",{d:"M15 22v-4a2 2 0 0 1 2-2h4"}]]];/**
+ */const To=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 17V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11Z"}],["path",{d:"M3 10h18"}],["path",{d:"M15 22v-4a2 2 0 0 1 2-2h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Td=["svg",t,[["path",{d:"M3 10h18V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"}],["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21.29 14.7a2.43 2.43 0 0 0-2.65-.52c-.3.12-.57.3-.8.53l-.34.34-.35-.34a2.43 2.43 0 0 0-2.65-.53c-.3.12-.56.3-.79.53-.95.94-1 2.53.2 3.74L17.5 22l3.6-3.55c1.2-1.21 1.14-2.8.19-3.74Z"}]]];/**
+ */const Po=["svg",t,[["path",{d:"M3 10h18V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"}],["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21.29 14.7a2.43 2.43 0 0 0-2.65-.52c-.3.12-.57.3-.8.53l-.34.34-.35-.34a2.43 2.43 0 0 0-2.65-.53c-.3.12-.56.3-.79.53-.95.94-1 2.53.2 3.74L17.5 22l3.6-3.55c1.2-1.21 1.14-2.8.19-3.74Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pd=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"M10 16h4"}]]];/**
+ */const zo=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"M10 16h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const zd=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"M16 19h6"}]]];/**
+ */const qo=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"M16 19h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const qd=["svg",t,[["path",{d:"M4.2 4.2A2 2 0 0 0 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.82-1.18"}],["path",{d:"M21 15.5V6a2 2 0 0 0-2-2H9.5"}],["path",{d:"M16 2v4"}],["path",{d:"M3 10h7"}],["path",{d:"M21 10h-5.5"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const Eo=["svg",t,[["path",{d:"M4.2 4.2A2 2 0 0 0 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.82-1.18"}],["path",{d:"M21 15.5V6a2 2 0 0 0-2-2H9.5"}],["path",{d:"M16 2v4"}],["path",{d:"M3 10h7"}],["path",{d:"M21 10h-5.5"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ed=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"M10 16h4"}],["path",{d:"M12 14v4"}]]];/**
+ */const Bo=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"M10 16h4"}],["path",{d:"M12 14v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Bd=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"M16 19h6"}],["path",{d:"M19 16v6"}]]];/**
+ */const Do=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"M16 19h6"}],["path",{d:"M19 16v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Dd=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M16 2v4"}],["path",{d:"M3 10h18"}],["path",{d:"M8 2v4"}],["path",{d:"M17 14h-6"}],["path",{d:"M13 18H7"}],["path",{d:"M7 14h.01"}],["path",{d:"M17 18h.01"}]]];/**
+ */const Ro=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M16 2v4"}],["path",{d:"M3 10h18"}],["path",{d:"M8 2v4"}],["path",{d:"M17 14h-6"}],["path",{d:"M13 18H7"}],["path",{d:"M7 14h.01"}],["path",{d:"M17 18h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Rd=["svg",t,[["path",{d:"M21 12V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"}],["path",{d:"M16 2v4"}],["path",{d:"M8 2v4"}],["path",{d:"M3 10h18"}],["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"m22 22-1.5-1.5"}]]];/**
+ */const Io=["svg",t,[["path",{d:"M21 12V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"}],["path",{d:"M16 2v4"}],["path",{d:"M8 2v4"}],["path",{d:"M3 10h18"}],["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"m22 22-1.5-1.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Id=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"m17 22 5-5"}],["path",{d:"m17 17 5 5"}]]];/**
+ */const Oo=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"}],["path",{d:"M3 10h18"}],["path",{d:"m17 22 5-5"}],["path",{d:"m17 17 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Od=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"m14 14-4 4"}],["path",{d:"m10 14 4 4"}]]];/**
+ */const No=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}],["path",{d:"m14 14-4 4"}],["path",{d:"m10 14 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Nd=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}]]];/**
+ */const Fo=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zd=["svg",t,[["line",{x1:"2",x2:"22",y1:"2",y2:"22"}],["path",{d:"M7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16"}],["path",{d:"M9.5 4h5L17 7h3a2 2 0 0 1 2 2v7.5"}],["path",{d:"M14.121 15.121A3 3 0 1 1 9.88 10.88"}]]];/**
+ */const Zo=["svg",t,[["line",{x1:"2",x2:"22",y1:"2",y2:"22"}],["path",{d:"M7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16"}],["path",{d:"M9.5 4h5L17 7h3a2 2 0 0 1 2 2v7.5"}],["path",{d:"M14.121 15.121A3 3 0 1 1 9.88 10.88"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fd=["svg",t,[["path",{d:"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"}],["circle",{cx:"12",cy:"13",r:"3"}]]];/**
+ */const Uo=["svg",t,[["path",{d:"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"}],["circle",{cx:"12",cy:"13",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ud=["svg",t,[["path",{d:"M9 5v4"}],["rect",{width:"4",height:"6",x:"7",y:"9",rx:"1"}],["path",{d:"M9 15v2"}],["path",{d:"M17 3v2"}],["rect",{width:"4",height:"8",x:"15",y:"5",rx:"1"}],["path",{d:"M17 13v3"}],["path",{d:"M3 3v18h18"}]]];/**
+ */const jo=["svg",t,[["path",{d:"M9 5v4"}],["rect",{width:"4",height:"6",x:"7",y:"9",rx:"1"}],["path",{d:"M9 15v2"}],["path",{d:"M17 3v2"}],["rect",{width:"4",height:"8",x:"15",y:"5",rx:"1"}],["path",{d:"M17 13v3"}],["path",{d:"M3 3v18h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gd=["svg",t,[["path",{d:"M5.7 21a2 2 0 0 1-3.5-2l8.6-14a6 6 0 0 1 10.4 6 2 2 0 1 1-3.464-2 2 2 0 1 0-3.464-2Z"}],["path",{d:"M17.75 7 15 2.1"}],["path",{d:"M10.9 4.8 13 9"}],["path",{d:"m7.9 9.7 2 4.4"}],["path",{d:"M4.9 14.7 7 18.9"}]]];/**
+ */const Go=["svg",t,[["path",{d:"M5.7 21a2 2 0 0 1-3.5-2l8.6-14a6 6 0 0 1 10.4 6 2 2 0 1 1-3.464-2 2 2 0 1 0-3.464-2Z"}],["path",{d:"M17.75 7 15 2.1"}],["path",{d:"M10.9 4.8 13 9"}],["path",{d:"m7.9 9.7 2 4.4"}],["path",{d:"M4.9 14.7 7 18.9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jd=["svg",t,[["path",{d:"m8.5 8.5-1 1a4.95 4.95 0 0 0 7 7l1-1"}],["path",{d:"M11.843 6.187A4.947 4.947 0 0 1 16.5 7.5a4.947 4.947 0 0 1 1.313 4.657"}],["path",{d:"M14 16.5V14"}],["path",{d:"M14 6.5v1.843"}],["path",{d:"M10 10v7.5"}],["path",{d:"m16 7 1-5 1.367.683A3 3 0 0 0 19.708 3H21v1.292a3 3 0 0 0 .317 1.341L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.367-.683A3 3 0 0 0 4.292 21H3v-1.292a3 3 0 0 0-.317-1.341L2 17l5-1"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const Ko=["svg",t,[["path",{d:"m8.5 8.5-1 1a4.95 4.95 0 0 0 7 7l1-1"}],["path",{d:"M11.843 6.187A4.947 4.947 0 0 1 16.5 7.5a4.947 4.947 0 0 1 1.313 4.657"}],["path",{d:"M14 16.5V14"}],["path",{d:"M14 6.5v1.843"}],["path",{d:"M10 10v7.5"}],["path",{d:"m16 7 1-5 1.367.683A3 3 0 0 0 19.708 3H21v1.292a3 3 0 0 0 .317 1.341L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.367-.683A3 3 0 0 0 4.292 21H3v-1.292a3 3 0 0 0-.317-1.341L2 17l5-1"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kd=["svg",t,[["path",{d:"m9.5 7.5-2 2a4.95 4.95 0 1 0 7 7l2-2a4.95 4.95 0 1 0-7-7Z"}],["path",{d:"M14 6.5v10"}],["path",{d:"M10 7.5v10"}],["path",{d:"m16 7 1-5 1.37.68A3 3 0 0 0 19.7 3H21v1.3c0 .46.1.92.32 1.33L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.37-.68A3 3 0 0 0 4.3 21H3v-1.3a3 3 0 0 0-.32-1.33L2 17l5-1"}]]];/**
+ */const Wo=["svg",t,[["path",{d:"m9.5 7.5-2 2a4.95 4.95 0 1 0 7 7l2-2a4.95 4.95 0 1 0-7-7Z"}],["path",{d:"M14 6.5v10"}],["path",{d:"M10 7.5v10"}],["path",{d:"m16 7 1-5 1.37.68A3 3 0 0 0 19.7 3H21v1.3c0 .46.1.92.32 1.33L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.37-.68A3 3 0 0 0 4.3 21H3v-1.3a3 3 0 0 0-.32-1.33L2 17l5-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wd=["svg",t,[["path",{d:"M12 22v-4"}],["path",{d:"M7 12c-1.5 0-4.5 1.5-5 3 3.5 1.5 6 1 6 1-1.5 1.5-2 3.5-2 5 2.5 0 4.5-1.5 6-3 1.5 1.5 3.5 3 6 3 0-1.5-.5-3.5-2-5 0 0 2.5.5 6-1-.5-1.5-3.5-3-5-3 1.5-1 4-4 4-6-2.5 0-5.5 1.5-7 3 0-2.5-.5-5-2-7-1.5 2-2 4.5-2 7-1.5-1.5-4.5-3-7-3 0 2 2.5 5 4 6"}]]];/**
+ */const Jo=["svg",t,[["path",{d:"M12 22v-4"}],["path",{d:"M7 12c-1.5 0-4.5 1.5-5 3 3.5 1.5 6 1 6 1-1.5 1.5-2 3.5-2 5 2.5 0 4.5-1.5 6-3 1.5 1.5 3.5 3 6 3 0-1.5-.5-3.5-2-5 0 0 2.5.5 6-1-.5-1.5-3.5-3-5-3 1.5-1 4-4 4-6-2.5 0-5.5 1.5-7 3 0-2.5-.5-5-2-7-1.5 2-2 4.5-2 7-1.5-1.5-4.5-3-7-3 0 2 2.5 5 4 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jd=["svg",t,[["path",{d:"M10.5 5H19a2 2 0 0 1 2 2v8.5"}],["path",{d:"M17 11h-.5"}],["path",{d:"M19 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2"}],["path",{d:"m2 2 20 20"}],["path",{d:"M7 11h4"}],["path",{d:"M7 15h2.5"}]]];/**
+ */const Yo=["svg",t,[["path",{d:"M10.5 5H19a2 2 0 0 1 2 2v8.5"}],["path",{d:"M17 11h-.5"}],["path",{d:"M19 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2"}],["path",{d:"m2 2 20 20"}],["path",{d:"M7 11h4"}],["path",{d:"M7 15h2.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1363,177 +1363,177 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Yd=["svg",t,[["path",{d:"m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"}],["path",{d:"M7 14h.01"}],["path",{d:"M17 14h.01"}],["rect",{width:"18",height:"8",x:"3",y:"10",rx:"2"}],["path",{d:"M5 18v2"}],["path",{d:"M19 18v2"}]]];/**
+ */const Xo=["svg",t,[["path",{d:"m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"}],["path",{d:"M7 14h.01"}],["path",{d:"M17 14h.01"}],["rect",{width:"18",height:"8",x:"3",y:"10",rx:"2"}],["path",{d:"M5 18v2"}],["path",{d:"M19 18v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Xd=["svg",t,[["path",{d:"M10 2h4"}],["path",{d:"m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"}],["path",{d:"M7 14h.01"}],["path",{d:"M17 14h.01"}],["rect",{width:"18",height:"8",x:"3",y:"10",rx:"2"}],["path",{d:"M5 18v2"}],["path",{d:"M19 18v2"}]]];/**
+ */const Qo=["svg",t,[["path",{d:"M10 2h4"}],["path",{d:"m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"}],["path",{d:"M7 14h.01"}],["path",{d:"M17 14h.01"}],["rect",{width:"18",height:"8",x:"3",y:"10",rx:"2"}],["path",{d:"M5 18v2"}],["path",{d:"M19 18v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Qd=["svg",t,[["path",{d:"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"}],["circle",{cx:"7",cy:"17",r:"2"}],["path",{d:"M9 17h6"}],["circle",{cx:"17",cy:"17",r:"2"}]]];/**
+ */const td=["svg",t,[["path",{d:"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"}],["circle",{cx:"7",cy:"17",r:"2"}],["path",{d:"M9 17h6"}],["circle",{cx:"17",cy:"17",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const to=["svg",t,[["rect",{width:"4",height:"4",x:"2",y:"9"}],["rect",{width:"4",height:"10",x:"10",y:"9"}],["path",{d:"M18 19V9a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v8a2 2 0 0 0 2 2h2"}],["circle",{cx:"8",cy:"19",r:"2"}],["path",{d:"M10 19h12v-2"}]]];/**
+ */const ed=["svg",t,[["rect",{width:"4",height:"4",x:"2",y:"9"}],["rect",{width:"4",height:"10",x:"10",y:"9"}],["path",{d:"M18 19V9a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v8a2 2 0 0 0 2 2h2"}],["circle",{cx:"8",cy:"19",r:"2"}],["path",{d:"M10 19h12v-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const eo=["svg",t,[["path",{d:"M2.27 21.7s9.87-3.5 12.73-6.36a4.5 4.5 0 0 0-6.36-6.37C5.77 11.84 2.27 21.7 2.27 21.7zM8.64 14l-2.05-2.04M15.34 15l-2.46-2.46"}],["path",{d:"M22 9s-1.33-2-3.5-2C16.86 7 15 9 15 9s1.33 2 3.5 2S22 9 22 9z"}],["path",{d:"M15 2s-2 1.33-2 3.5S15 9 15 9s2-1.84 2-3.5C17 3.33 15 2 15 2z"}]]];/**
+ */const ad=["svg",t,[["path",{d:"M2.27 21.7s9.87-3.5 12.73-6.36a4.5 4.5 0 0 0-6.36-6.37C5.77 11.84 2.27 21.7 2.27 21.7zM8.64 14l-2.05-2.04M15.34 15l-2.46-2.46"}],["path",{d:"M22 9s-1.33-2-3.5-2C16.86 7 15 9 15 9s1.33 2 3.5 2S22 9 22 9z"}],["path",{d:"M15 2s-2 1.33-2 3.5S15 9 15 9s2-1.84 2-3.5C17 3.33 15 2 15 2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ao=["svg",t,[["circle",{cx:"7",cy:"12",r:"3"}],["path",{d:"M10 9v6"}],["circle",{cx:"17",cy:"12",r:"3"}],["path",{d:"M14 7v8"}]]];/**
+ */const id=["svg",t,[["circle",{cx:"7",cy:"12",r:"3"}],["path",{d:"M10 9v6"}],["circle",{cx:"17",cy:"12",r:"3"}],["path",{d:"M14 7v8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const io=["svg",t,[["path",{d:"m3 15 4-8 4 8"}],["path",{d:"M4 13h6"}],["circle",{cx:"18",cy:"12",r:"3"}],["path",{d:"M21 9v6"}]]];/**
+ */const sd=["svg",t,[["path",{d:"m3 15 4-8 4 8"}],["path",{d:"M4 13h6"}],["circle",{cx:"18",cy:"12",r:"3"}],["path",{d:"M21 9v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const so=["svg",t,[["path",{d:"m3 15 4-8 4 8"}],["path",{d:"M4 13h6"}],["path",{d:"M15 11h4.5a2 2 0 0 1 0 4H15V7h4a2 2 0 0 1 0 4"}]]];/**
+ */const od=["svg",t,[["path",{d:"m3 15 4-8 4 8"}],["path",{d:"M4 13h6"}],["path",{d:"M15 11h4.5a2 2 0 0 1 0 4H15V7h4a2 2 0 0 1 0 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oo=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["circle",{cx:"8",cy:"10",r:"2"}],["path",{d:"M8 12h8"}],["circle",{cx:"16",cy:"10",r:"2"}],["path",{d:"m6 20 .7-2.9A1.4 1.4 0 0 1 8.1 16h7.8a1.4 1.4 0 0 1 1.4 1l.7 3"}]]];/**
+ */const dd=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["circle",{cx:"8",cy:"10",r:"2"}],["path",{d:"M8 12h8"}],["circle",{cx:"16",cy:"10",r:"2"}],["path",{d:"m6 20 .7-2.9A1.4 1.4 0 0 1 8.1 16h7.8a1.4 1.4 0 0 1 1.4 1l.7 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ro=["svg",t,[["path",{d:"M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"}],["path",{d:"M2 12a9 9 0 0 1 8 8"}],["path",{d:"M2 16a5 5 0 0 1 4 4"}],["line",{x1:"2",x2:"2.01",y1:"20",y2:"20"}]]];/**
+ */const rd=["svg",t,[["path",{d:"M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"}],["path",{d:"M2 12a9 9 0 0 1 8 8"}],["path",{d:"M2 16a5 5 0 0 1 4 4"}],["line",{x1:"2",x2:"2.01",y1:"20",y2:"20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const no=["svg",t,[["path",{d:"M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z"}],["path",{d:"M18 11V4H6v7"}],["path",{d:"M15 22v-4a3 3 0 0 0-3-3a3 3 0 0 0-3 3v4"}],["path",{d:"M22 11V9"}],["path",{d:"M2 11V9"}],["path",{d:"M6 4V2"}],["path",{d:"M18 4V2"}],["path",{d:"M10 4V2"}],["path",{d:"M14 4V2"}]]];/**
+ */const nd=["svg",t,[["path",{d:"M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z"}],["path",{d:"M18 11V4H6v7"}],["path",{d:"M15 22v-4a3 3 0 0 0-3-3a3 3 0 0 0-3 3v4"}],["path",{d:"M22 11V9"}],["path",{d:"M2 11V9"}],["path",{d:"M6 4V2"}],["path",{d:"M18 4V2"}],["path",{d:"M10 4V2"}],["path",{d:"M14 4V2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const co=["svg",t,[["path",{d:"M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"}],["path",{d:"M8 14v.5"}],["path",{d:"M16 14v.5"}],["path",{d:"M11.25 16.25h1.5L12 17l-.75-.75Z"}]]];/**
+ */const cd=["svg",t,[["path",{d:"M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"}],["path",{d:"M8 14v.5"}],["path",{d:"M16 14v.5"}],["path",{d:"M11.25 16.25h1.5L12 17l-.75-.75Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const lo=["svg",t,[["path",{d:"M16.75 12h3.632a1 1 0 0 1 .894 1.447l-2.034 4.069a1 1 0 0 1-1.708.134l-2.124-2.97"}],["path",{d:"M17.106 9.053a1 1 0 0 1 .447 1.341l-3.106 6.211a1 1 0 0 1-1.342.447L3.61 12.3a2.92 2.92 0 0 1-1.3-3.91L3.69 5.6a2.92 2.92 0 0 1 3.92-1.3z"}],["path",{d:"M2 19h3.76a2 2 0 0 0 1.8-1.1L9 15"}],["path",{d:"M2 21v-4"}],["path",{d:"M7 9h.01"}]]];/**
+ */const ld=["svg",t,[["path",{d:"M16.75 12h3.632a1 1 0 0 1 .894 1.447l-2.034 4.069a1 1 0 0 1-1.708.134l-2.124-2.97"}],["path",{d:"M17.106 9.053a1 1 0 0 1 .447 1.341l-3.106 6.211a1 1 0 0 1-1.342.447L3.61 12.3a2.92 2.92 0 0 1-1.3-3.91L3.69 5.6a2.92 2.92 0 0 1 3.92-1.3z"}],["path",{d:"M2 19h3.76a2 2 0 0 0 1.8-1.1L9 15"}],["path",{d:"M2 21v-4"}],["path",{d:"M7 9h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ho=["svg",t,[["path",{d:"M18 6 7 17l-5-5"}],["path",{d:"m22 10-7.5 7.5L13 16"}]]];/**
+ */const hd=["svg",t,[["path",{d:"M18 6 7 17l-5-5"}],["path",{d:"m22 10-7.5 7.5L13 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const po=["svg",t,[["path",{d:"M20 6 9 17l-5-5"}]]];/**
+ */const pd=["svg",t,[["path",{d:"M20 6 9 17l-5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const vo=["svg",t,[["path",{d:"M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"}],["path",{d:"M6 17h12"}]]];/**
+ */const vd=["svg",t,[["path",{d:"M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"}],["path",{d:"M6 17h12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const mo=["svg",t,[["path",{d:"M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"}],["path",{d:"M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"}],["path",{d:"M7 14c3.22-2.91 4.29-8.75 5-12 1.66 2.38 4.94 9 5 12"}],["path",{d:"M22 9c-4.29 0-7.14-2.33-10-7 5.71 0 10 4.67 10 7Z"}]]];/**
+ */const md=["svg",t,[["path",{d:"M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"}],["path",{d:"M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"}],["path",{d:"M7 14c3.22-2.91 4.29-8.75 5-12 1.66 2.38 4.94 9 5 12"}],["path",{d:"M22 9c-4.29 0-7.14-2.33-10-7 5.71 0 10 4.67 10 7Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const go=["svg",t,[["path",{d:"m6 9 6 6 6-6"}]]];/**
+ */const gd=["svg",t,[["path",{d:"m6 9 6 6 6-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const uo=["svg",t,[["path",{d:"m17 18-6-6 6-6"}],["path",{d:"M7 6v12"}]]];/**
+ */const ud=["svg",t,[["path",{d:"m17 18-6-6 6-6"}],["path",{d:"M7 6v12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const yo=["svg",t,[["path",{d:"m7 18 6-6-6-6"}],["path",{d:"M17 6v12"}]]];/**
+ */const yd=["svg",t,[["path",{d:"m7 18 6-6-6-6"}],["path",{d:"M17 6v12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Mo=["svg",t,[["path",{d:"m15 18-6-6 6-6"}]]];/**
+ */const Md=["svg",t,[["path",{d:"m15 18-6-6 6-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const xo=["svg",t,[["path",{d:"m9 18 6-6-6-6"}]]];/**
+ */const xd=["svg",t,[["path",{d:"m9 18 6-6-6-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const fo=["svg",t,[["path",{d:"m18 15-6-6-6 6"}]]];/**
+ */const fd=["svg",t,[["path",{d:"m18 15-6-6-6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const bo=["svg",t,[["path",{d:"m7 20 5-5 5 5"}],["path",{d:"m7 4 5 5 5-5"}]]];/**
+ */const bd=["svg",t,[["path",{d:"m7 20 5-5 5 5"}],["path",{d:"m7 4 5 5 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const wo=["svg",t,[["path",{d:"m7 6 5 5 5-5"}],["path",{d:"m7 13 5 5 5-5"}]]];/**
+ */const wd=["svg",t,[["path",{d:"m7 6 5 5 5-5"}],["path",{d:"m7 13 5 5 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ko=["svg",t,[["path",{d:"m9 7-5 5 5 5"}],["path",{d:"m15 7 5 5-5 5"}]]];/**
+ */const kd=["svg",t,[["path",{d:"m9 7-5 5 5 5"}],["path",{d:"m15 7 5 5-5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ho=["svg",t,[["path",{d:"m11 17-5-5 5-5"}],["path",{d:"m18 17-5-5 5-5"}]]];/**
+ */const Sd=["svg",t,[["path",{d:"m11 17-5-5 5-5"}],["path",{d:"m18 17-5-5 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const So=["svg",t,[["path",{d:"m20 17-5-5 5-5"}],["path",{d:"m4 17 5-5-5-5"}]]];/**
+ */const Hd=["svg",t,[["path",{d:"m20 17-5-5 5-5"}],["path",{d:"m4 17 5-5-5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Co=["svg",t,[["path",{d:"m6 17 5-5-5-5"}],["path",{d:"m13 17 5-5-5-5"}]]];/**
+ */const Cd=["svg",t,[["path",{d:"m6 17 5-5-5-5"}],["path",{d:"m13 17 5-5-5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ao=["svg",t,[["path",{d:"m7 15 5 5 5-5"}],["path",{d:"m7 9 5-5 5 5"}]]];/**
+ */const Ad=["svg",t,[["path",{d:"m7 15 5 5 5-5"}],["path",{d:"m7 9 5-5 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Lo=["svg",t,[["path",{d:"m17 11-5-5-5 5"}],["path",{d:"m17 18-5-5-5 5"}]]];/**
+ */const Ld=["svg",t,[["path",{d:"m17 11-5-5-5 5"}],["path",{d:"m17 18-5-5-5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vo=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"4"}],["line",{x1:"21.17",x2:"12",y1:"8",y2:"8"}],["line",{x1:"3.95",x2:"8.54",y1:"6.06",y2:"14"}],["line",{x1:"10.88",x2:"15.46",y1:"21.94",y2:"14"}]]];/**
+ */const $d=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"4"}],["line",{x1:"21.17",x2:"12",y1:"8",y2:"8"}],["line",{x1:"3.95",x2:"8.54",y1:"6.06",y2:"14"}],["line",{x1:"10.88",x2:"15.46",y1:"21.94",y2:"14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $o=["svg",t,[["path",{d:"m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2"}],["path",{d:"M14 22v-4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"}],["path",{d:"M18 22V5l-6-3-6 3v17"}],["path",{d:"M12 7v5"}],["path",{d:"M10 9h4"}]]];/**
+ */const Vd=["svg",t,[["path",{d:"m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2"}],["path",{d:"M14 22v-4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"}],["path",{d:"M18 22V5l-6-3-6 3v17"}],["path",{d:"M12 7v5"}],["path",{d:"M10 9h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _o=["svg",t,[["line",{x1:"2",x2:"22",y1:"2",y2:"22"}],["path",{d:"M12 12H2v4h14"}],["path",{d:"M22 12v4"}],["path",{d:"M18 12h-.5"}],["path",{d:"M7 12v4"}],["path",{d:"M18 8c0-2.5-2-2.5-2-5"}],["path",{d:"M22 8c0-2.5-2-2.5-2-5"}]]];/**
+ */const _d=["svg",t,[["line",{x1:"2",x2:"22",y1:"2",y2:"22"}],["path",{d:"M12 12H2v4h14"}],["path",{d:"M22 12v4"}],["path",{d:"M18 12h-.5"}],["path",{d:"M7 12v4"}],["path",{d:"M18 8c0-2.5-2-2.5-2-5"}],["path",{d:"M22 8c0-2.5-2-2.5-2-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const To=["svg",t,[["path",{d:"M18 12H2v4h16"}],["path",{d:"M22 12v4"}],["path",{d:"M7 12v4"}],["path",{d:"M18 8c0-2.5-2-2.5-2-5"}],["path",{d:"M22 8c0-2.5-2-2.5-2-5"}]]];/**
+ */const Td=["svg",t,[["path",{d:"M18 12H2v4h16"}],["path",{d:"M22 12v4"}],["path",{d:"M7 12v4"}],["path",{d:"M18 8c0-2.5-2-2.5-2-5"}],["path",{d:"M22 8c0-2.5-2-2.5-2-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1593,12 +1593,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ht=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m16 10-4 4-4-4"}]]];/**
+ */const St=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m16 10-4 4-4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const St=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m14 16-4-4 4-4"}]]];/**
+ */const Ht=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m14 16-4-4 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1613,7 +1613,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Po=["svg",t,[["path",{d:"M10.1 2.182a10 10 0 0 1 3.8 0"}],["path",{d:"M13.9 21.818a10 10 0 0 1-3.8 0"}],["path",{d:"M17.609 3.721a10 10 0 0 1 2.69 2.7"}],["path",{d:"M2.182 13.9a10 10 0 0 1 0-3.8"}],["path",{d:"M20.279 17.609a10 10 0 0 1-2.7 2.69"}],["path",{d:"M21.818 10.1a10 10 0 0 1 0 3.8"}],["path",{d:"M3.721 6.391a10 10 0 0 1 2.7-2.69"}],["path",{d:"M6.391 20.279a10 10 0 0 1-2.69-2.7"}]]];/**
+ */const Pd=["svg",t,[["path",{d:"M10.1 2.182a10 10 0 0 1 3.8 0"}],["path",{d:"M13.9 21.818a10 10 0 0 1-3.8 0"}],["path",{d:"M17.609 3.721a10 10 0 0 1 2.69 2.7"}],["path",{d:"M2.182 13.9a10 10 0 0 1 0-3.8"}],["path",{d:"M20.279 17.609a10 10 0 0 1-2.7 2.69"}],["path",{d:"M21.818 10.1a10 10 0 0 1 0 3.8"}],["path",{d:"M3.721 6.391a10 10 0 0 1 2.7-2.69"}],["path",{d:"M6.391 20.279a10 10 0 0 1-2.69-2.7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1623,42 +1623,42 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const zo=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"}],["path",{d:"M12 18V6"}]]];/**
+ */const zd=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"}],["path",{d:"M12 18V6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const qo=["svg",t,[["path",{d:"M10.1 2.18a9.93 9.93 0 0 1 3.8 0"}],["path",{d:"M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7"}],["path",{d:"M21.82 10.1a9.93 9.93 0 0 1 0 3.8"}],["path",{d:"M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69"}],["path",{d:"M13.9 21.82a9.94 9.94 0 0 1-3.8 0"}],["path",{d:"M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7"}],["path",{d:"M2.18 13.9a9.93 9.93 0 0 1 0-3.8"}],["path",{d:"M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69"}],["circle",{cx:"12",cy:"12",r:"1"}]]];/**
+ */const qd=["svg",t,[["path",{d:"M10.1 2.18a9.93 9.93 0 0 1 3.8 0"}],["path",{d:"M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7"}],["path",{d:"M21.82 10.1a9.93 9.93 0 0 1 0 3.8"}],["path",{d:"M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69"}],["path",{d:"M13.9 21.82a9.94 9.94 0 0 1-3.8 0"}],["path",{d:"M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7"}],["path",{d:"M2.18 13.9a9.93 9.93 0 0 1 0-3.8"}],["path",{d:"M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69"}],["circle",{cx:"12",cy:"12",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Eo=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"1"}]]];/**
+ */const Ed=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Bo=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M17 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M7 12h.01"}]]];/**
+ */const Bd=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M17 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M7 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Do=["svg",t,[["path",{d:"M7 10h10"}],["path",{d:"M7 14h10"}],["circle",{cx:"12",cy:"12",r:"10"}]]];/**
+ */const Dd=["svg",t,[["path",{d:"M7 10h10"}],["path",{d:"M7 14h10"}],["circle",{cx:"12",cy:"12",r:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ro=["svg",t,[["path",{d:"M12 2a10 10 0 0 1 7.38 16.75"}],["path",{d:"M12 8v8"}],["path",{d:"M16 12H8"}],["path",{d:"M2.5 8.875a10 10 0 0 0-.5 3"}],["path",{d:"M2.83 16a10 10 0 0 0 2.43 3.4"}],["path",{d:"M4.636 5.235a10 10 0 0 1 .891-.857"}],["path",{d:"M8.644 21.42a10 10 0 0 0 7.631-.38"}]]];/**
+ */const Rd=["svg",t,[["path",{d:"M12 2a10 10 0 0 1 7.38 16.75"}],["path",{d:"M12 8v8"}],["path",{d:"M16 12H8"}],["path",{d:"M2.5 8.875a10 10 0 0 0-.5 3"}],["path",{d:"M2.83 16a10 10 0 0 0 2.43 3.4"}],["path",{d:"M4.636 5.235a10 10 0 0 1 .891-.857"}],["path",{d:"M8.644 21.42a10 10 0 0 0 7.631-.38"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vt=["svg",t,[["path",{d:"M15.6 2.7a10 10 0 1 0 5.7 5.7"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M13.4 10.6 19 5"}]]];/**
+ */const $t=["svg",t,[["path",{d:"M15.6 2.7a10 10 0 1 0 5.7 5.7"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M13.4 10.6 19 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $t=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"}],["path",{d:"M12 17h.01"}]]];/**
+ */const Vt=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"}],["path",{d:"M12 17h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1668,7 +1668,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Io=["svg",t,[["path",{d:"m2 2 20 20"}],["path",{d:"M8.35 2.69A10 10 0 0 1 21.3 15.65"}],["path",{d:"M19.08 19.08A10 10 0 1 1 4.92 4.92"}]]];/**
+ */const Id=["svg",t,[["path",{d:"m2 2 20 20"}],["path",{d:"M8.35 2.69A10 10 0 0 1 21.3 15.65"}],["path",{d:"M19.08 19.08A10 10 0 1 1 4.92 4.92"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1713,7 +1713,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Oo=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"9",x2:"15",y1:"15",y2:"9"}]]];/**
+ */const Od=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"9",x2:"15",y1:"15",y2:"9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1733,57 +1733,57 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zt=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m15 9-6 6"}],["path",{d:"m9 9 6 6"}]]];/**
+ */const Ft=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m15 9-6 6"}],["path",{d:"m9 9 6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const No=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}]]];/**
+ */const Nd=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zo=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M11 9h4a2 2 0 0 0 2-2V3"}],["circle",{cx:"9",cy:"9",r:"2"}],["path",{d:"M7 21v-4a2 2 0 0 1 2-2h4"}],["circle",{cx:"15",cy:"15",r:"2"}]]];/**
+ */const Fd=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M11 9h4a2 2 0 0 0 2-2V3"}],["circle",{cx:"9",cy:"9",r:"2"}],["path",{d:"M7 21v-4a2 2 0 0 1 2-2h4"}],["circle",{cx:"15",cy:"15",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fo=["svg",t,[["path",{d:"M21.66 17.67a1.08 1.08 0 0 1-.04 1.6A12 12 0 0 1 4.73 2.38a1.1 1.1 0 0 1 1.61-.04z"}],["path",{d:"M19.65 15.66A8 8 0 0 1 8.35 4.34"}],["path",{d:"m14 10-5.5 5.5"}],["path",{d:"M14 17.85V10H6.15"}]]];/**
+ */const Zd=["svg",t,[["path",{d:"M21.66 17.67a1.08 1.08 0 0 1-.04 1.6A12 12 0 0 1 4.73 2.38a1.1 1.1 0 0 1 1.61-.04z"}],["path",{d:"M19.65 15.66A8 8 0 0 1 8.35 4.34"}],["path",{d:"m14 10-5.5 5.5"}],["path",{d:"M14 17.85V10H6.15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Uo=["svg",t,[["path",{d:"M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"}],["path",{d:"m6.2 5.3 3.1 3.9"}],["path",{d:"m12.4 3.4 3.1 4"}],["path",{d:"M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"}]]];/**
+ */const Ud=["svg",t,[["path",{d:"M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"}],["path",{d:"m6.2 5.3 3.1 3.9"}],["path",{d:"m12.4 3.4 3.1 4"}],["path",{d:"M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Go=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"m9 14 2 2 4-4"}]]];/**
+ */const jd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"m9 14 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jo=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v4"}],["path",{d:"M21 14H11"}],["path",{d:"m15 10-4 4 4 4"}]]];/**
+ */const Gd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v4"}],["path",{d:"M21 14H11"}],["path",{d:"m15 10-4 4 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ko=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M12 11h4"}],["path",{d:"M12 16h4"}],["path",{d:"M8 11h.01"}],["path",{d:"M8 16h.01"}]]];/**
+ */const Kd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M12 11h4"}],["path",{d:"M12 16h4"}],["path",{d:"M8 11h.01"}],["path",{d:"M8 16h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wo=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 14h6"}]]];/**
+ */const Wd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 14h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jo=["svg",t,[["path",{d:"M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1Z"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M16 4h2a2 2 0 0 1 2 2v2M11 14h10"}],["path",{d:"m17 10 4 4-4 4"}]]];/**
+ */const Jd=["svg",t,[["path",{d:"M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1Z"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M16 4h2a2 2 0 0 1 2 2v2M11 14h10"}],["path",{d:"m17 10 4 4-4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ft=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.5"}],["path",{d:"M16 4h2a2 2 0 0 1 1.73 1"}],["path",{d:"M8 18h1"}],["path",{d:"M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"}]]];/**
+ */const Zt=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-.5"}],["path",{d:"M16 4h2a2 2 0 0 1 1.73 1"}],["path",{d:"M8 18h1"}],["path",{d:"M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1793,17 +1793,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Yo=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 14h6"}],["path",{d:"M12 17v-6"}]]];/**
+ */const Yd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 14h6"}],["path",{d:"M12 17v-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Xo=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 12v-1h6v1"}],["path",{d:"M11 17h2"}],["path",{d:"M12 11v6"}]]];/**
+ */const Xd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 12v-1h6v1"}],["path",{d:"M11 17h2"}],["path",{d:"M12 11v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Qo=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"m15 11-6 6"}],["path",{d:"m9 11 6 6"}]]];/**
+ */const Qd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"m15 11-6 6"}],["path",{d:"m9 11 6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1833,12 +1833,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["polyline",{points:"12 6 12 12 16 10"}]]];/**
+ */const o0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["polyline",{points:"12 6 12 12 16 10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["polyline",{points:"12 6 12 12 16.5 12"}]]];/**
+ */const d0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["polyline",{points:"12 6 12 12 16.5 12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1883,7 +1883,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gt=["svg",t,[["path",{d:"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"}],["path",{d:"M12 12v9"}],["path",{d:"m8 17 4 4 4-4"}]]];/**
+ */const jt=["svg",t,[["path",{d:"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"}],["path",{d:"M12 12v9"}],["path",{d:"m8 17 4 4 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1933,12 +1933,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H0=["svg",t,[["path",{d:"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"}],["path",{d:"M8 15h.01"}],["path",{d:"M8 19h.01"}],["path",{d:"M12 17h.01"}],["path",{d:"M12 21h.01"}],["path",{d:"M16 15h.01"}],["path",{d:"M16 19h.01"}]]];/**
+ */const S0=["svg",t,[["path",{d:"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"}],["path",{d:"M8 15h.01"}],["path",{d:"M8 19h.01"}],["path",{d:"M12 17h.01"}],["path",{d:"M12 21h.01"}],["path",{d:"M16 15h.01"}],["path",{d:"M16 19h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S0=["svg",t,[["path",{d:"M12 2v2"}],["path",{d:"m4.93 4.93 1.41 1.41"}],["path",{d:"M20 12h2"}],["path",{d:"m19.07 4.93-1.41 1.41"}],["path",{d:"M15.947 12.65a4 4 0 0 0-5.925-4.128"}],["path",{d:"M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"}],["path",{d:"M11 20v2"}],["path",{d:"M7 19v2"}]]];/**
+ */const H0=["svg",t,[["path",{d:"M12 2v2"}],["path",{d:"m4.93 4.93 1.41 1.41"}],["path",{d:"M20 12h2"}],["path",{d:"m19.07 4.93-1.41 1.41"}],["path",{d:"M15.947 12.65a4 4 0 0 0-5.925-4.128"}],["path",{d:"M3 20a5 5 0 1 1 8.9-4H13a3 3 0 0 1 2 5.24"}],["path",{d:"M11 20v2"}],["path",{d:"M7 19v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1948,7 +1948,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jt=["svg",t,[["path",{d:"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"}],["path",{d:"M12 12v9"}],["path",{d:"m16 16-4-4-4 4"}]]];/**
+ */const Gt=["svg",t,[["path",{d:"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"}],["path",{d:"M12 12v9"}],["path",{d:"m16 16-4-4-4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1963,12 +1963,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V0=["svg",t,[["path",{d:"M16.17 7.83 2 22"}],["path",{d:"M4.02 12a2.827 2.827 0 1 1 3.81-4.17A2.827 2.827 0 1 1 12 4.02a2.827 2.827 0 1 1 4.17 3.81A2.827 2.827 0 1 1 19.98 12a2.827 2.827 0 1 1-3.81 4.17A2.827 2.827 0 1 1 12 19.98a2.827 2.827 0 1 1-4.17-3.81A1 1 0 1 1 4 12"}],["path",{d:"m7.83 7.83 8.34 8.34"}]]];/**
+ */const $0=["svg",t,[["path",{d:"M16.17 7.83 2 22"}],["path",{d:"M4.02 12a2.827 2.827 0 1 1 3.81-4.17A2.827 2.827 0 1 1 12 4.02a2.827 2.827 0 1 1 4.17 3.81A2.827 2.827 0 1 1 19.98 12a2.827 2.827 0 1 1-3.81 4.17A2.827 2.827 0 1 1 12 19.98a2.827 2.827 0 1 1-4.17-3.81A1 1 0 1 1 4 12"}],["path",{d:"m7.83 7.83 8.34 8.34"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $0=["svg",t,[["path",{d:"M17.28 9.05a5.5 5.5 0 1 0-10.56 0A5.5 5.5 0 1 0 12 17.66a5.5 5.5 0 1 0 5.28-8.6Z"}],["path",{d:"M12 17.66L12 22"}]]];/**
+ */const V0=["svg",t,[["path",{d:"M17.28 9.05a5.5 5.5 0 1 0-10.56 0A5.5 5.5 0 1 0 12 17.66a5.5 5.5 0 1 0 5.28-8.6Z"}],["path",{d:"M12 17.66L12 22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2048,12 +2048,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z0=["svg",t,[["path",{d:"M3 20a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1Z"}],["path",{d:"M20 16a8 8 0 1 0-16 0"}],["path",{d:"M12 4v4"}],["path",{d:"M10 4h4"}]]];/**
+ */const F0=["svg",t,[["path",{d:"M3 20a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1Z"}],["path",{d:"M20 16a8 8 0 1 0-16 0"}],["path",{d:"M12 4v4"}],["path",{d:"M10 4h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F0=["svg",t,[["path",{d:"m20.9 18.55-8-15.98a1 1 0 0 0-1.8 0l-8 15.98"}],["ellipse",{cx:"12",cy:"19",rx:"9",ry:"3"}]]];/**
+ */const Z0=["svg",t,[["path",{d:"m20.9 18.55-8-15.98a1 1 0 0 0-1.8 0l-8 15.98"}],["ellipse",{cx:"12",cy:"19",rx:"9",ry:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2068,12 +2068,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G0=["svg",t,[["path",{d:"M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["circle",{cx:"12",cy:"10",r:"2"}],["line",{x1:"8",x2:"8",y1:"2",y2:"4"}],["line",{x1:"16",x2:"16",y1:"2",y2:"4"}]]];/**
+ */const j0=["svg",t,[["path",{d:"M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["circle",{cx:"12",cy:"10",r:"2"}],["line",{x1:"8",x2:"8",y1:"2",y2:"4"}],["line",{x1:"16",x2:"16",y1:"2",y2:"4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j0=["svg",t,[["path",{d:"M22 7.7c0-.6-.4-1.2-.8-1.5l-6.3-3.9a1.72 1.72 0 0 0-1.7 0l-10.3 6c-.5.2-.9.8-.9 1.4v6.6c0 .5.4 1.2.8 1.5l6.3 3.9a1.72 1.72 0 0 0 1.7 0l10.3-6c.5-.3.9-1 .9-1.5Z"}],["path",{d:"M10 21.9V14L2.1 9.1"}],["path",{d:"m10 14 11.9-6.9"}],["path",{d:"M14 19.8v-8.1"}],["path",{d:"M18 17.5V9.4"}]]];/**
+ */const G0=["svg",t,[["path",{d:"M22 7.7c0-.6-.4-1.2-.8-1.5l-6.3-3.9a1.72 1.72 0 0 0-1.7 0l-10.3 6c-.5.2-.9.8-.9 1.4v6.6c0 .5.4 1.2.8 1.5l6.3 3.9a1.72 1.72 0 0 0 1.7 0l10.3-6c.5-.3.9-1 .9-1.5Z"}],["path",{d:"M10 21.9V14L2.1 9.1"}],["path",{d:"m10 14 11.9-6.9"}],["path",{d:"M14 19.8v-8.1"}],["path",{d:"M18 17.5V9.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2133,12 +2133,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dr=["svg",t,[["polyline",{points:"9 10 4 15 9 20"}],["path",{d:"M20 4v7a4 4 0 0 1-4 4H4"}]]];/**
+ */const or=["svg",t,[["polyline",{points:"9 10 4 15 9 20"}],["path",{d:"M20 4v7a4 4 0 0 1-4 4H4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const or=["svg",t,[["polyline",{points:"15 10 20 15 15 20"}],["path",{d:"M4 4v7a4 4 0 0 0 4 4h12"}]]];/**
+ */const dr=["svg",t,[["polyline",{points:"15 10 20 15 15 20"}],["path",{d:"M4 4v7a4 4 0 0 0 4 4h12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2228,12 +2228,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hr=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5v14a9 3 0 0 0 18 0V5"}]]];/**
+ */const Sr=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5v14a9 3 0 0 0 18 0V5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sr=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 12a9 3 0 0 0 5 2.69"}],["path",{d:"M21 9.3V5"}],["path",{d:"M3 5v14a9 3 0 0 0 6.47 2.88"}],["path",{d:"M12 12v4h4"}],["path",{d:"M13 20a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L12 16"}]]];/**
+ */const Hr=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 12a9 3 0 0 0 5 2.69"}],["path",{d:"M21 9.3V5"}],["path",{d:"M3 5v14a9 3 0 0 0 6.47 2.88"}],["path",{d:"M12 12v4h4"}],["path",{d:"M13 20a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L12 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2253,12 +2253,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vr=["svg",t,[["circle",{cx:"12",cy:"4",r:"2"}],["path",{d:"M10.2 3.2C5.5 4 2 8.1 2 13a2 2 0 0 0 4 0v-1a2 2 0 0 1 4 0v4a2 2 0 0 0 4 0v-4a2 2 0 0 1 4 0v1a2 2 0 0 0 4 0c0-4.9-3.5-9-8.2-9.8"}],["path",{d:"M3.2 14.8a9 9 0 0 0 17.6 0"}]]];/**
+ */const $r=["svg",t,[["circle",{cx:"12",cy:"4",r:"2"}],["path",{d:"M10.2 3.2C5.5 4 2 8.1 2 13a2 2 0 0 0 4 0v-1a2 2 0 0 1 4 0v4a2 2 0 0 0 4 0v-4a2 2 0 0 1 4 0v1a2 2 0 0 0 4 0c0-4.9-3.5-9-8.2-9.8"}],["path",{d:"M3.2 14.8a9 9 0 0 0 17.6 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $r=["svg",t,[["circle",{cx:"19",cy:"19",r:"2"}],["circle",{cx:"5",cy:"5",r:"2"}],["path",{d:"M6.48 3.66a10 10 0 0 1 13.86 13.86"}],["path",{d:"m6.41 6.41 11.18 11.18"}],["path",{d:"M3.66 6.48a10 10 0 0 0 13.86 13.86"}]]];/**
+ */const Vr=["svg",t,[["circle",{cx:"19",cy:"19",r:"2"}],["circle",{cx:"5",cy:"5",r:"2"}],["path",{d:"M6.48 3.66a10 10 0 0 1 13.86 13.86"}],["path",{d:"m6.41 6.41 11.18 11.18"}],["path",{d:"M3.66 6.48a10 10 0 0 0 13.86 13.86"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2328,12 +2328,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zr=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M6 12c0-1.7.7-3.2 1.8-4.2"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M18 12c0 1.7-.7 3.2-1.8 4.2"}]]];/**
+ */const Fr=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M6 12c0-1.7.7-3.2 1.8-4.2"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M18 12c0 1.7-.7 3.2-1.8 4.2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fr=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["circle",{cx:"12",cy:"12",r:"5"}],["path",{d:"M12 12h.01"}]]];/**
+ */const Zr=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["circle",{cx:"12",cy:"12",r:"5"}],["path",{d:"M12 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2343,12 +2343,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gr=["svg",t,[["circle",{cx:"12",cy:"6",r:"1"}],["line",{x1:"5",x2:"19",y1:"12",y2:"12"}],["circle",{cx:"12",cy:"18",r:"1"}]]];/**
+ */const jr=["svg",t,[["circle",{cx:"12",cy:"6",r:"1"}],["line",{x1:"5",x2:"19",y1:"12",y2:"12"}],["circle",{cx:"12",cy:"18",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jr=["svg",t,[["path",{d:"M15 2c-1.35 1.5-2.092 3-2.5 4.5L14 8"}],["path",{d:"m17 6-2.891-2.891"}],["path",{d:"M2 15c3.333-3 6.667-3 10-3"}],["path",{d:"m2 2 20 20"}],["path",{d:"m20 9 .891.891"}],["path",{d:"M22 9c-1.5 1.35-3 2.092-4.5 2.5l-1-1"}],["path",{d:"M3.109 14.109 4 15"}],["path",{d:"m6.5 12.5 1 1"}],["path",{d:"m7 18 2.891 2.891"}],["path",{d:"M9 22c1.35-1.5 2.092-3 2.5-4.5L10 16"}]]];/**
+ */const Gr=["svg",t,[["path",{d:"M15 2c-1.35 1.5-2.092 3-2.5 4.5L14 8"}],["path",{d:"m17 6-2.891-2.891"}],["path",{d:"M2 15c3.333-3 6.667-3 10-3"}],["path",{d:"m2 2 20 20"}],["path",{d:"m20 9 .891.891"}],["path",{d:"M22 9c-1.5 1.35-3 2.092-4.5 2.5l-1-1"}],["path",{d:"M3.109 14.109 4 15"}],["path",{d:"m6.5 12.5 1 1"}],["path",{d:"m7 18 2.891 2.891"}],["path",{d:"M9 22c1.35-1.5 2.092-3 2.5-4.5L10 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2403,12 +2403,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dn=["svg",t,[["path",{d:"M10 11h.01"}],["path",{d:"M14 6h.01"}],["path",{d:"M18 6h.01"}],["path",{d:"M6.5 13.1h.01"}],["path",{d:"M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"}],["path",{d:"M17.4 9.9c-.8.8-2 .8-2.8 0"}],["path",{d:"M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"}],["path",{d:"M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"}]]];/**
+ */const on=["svg",t,[["path",{d:"M10 11h.01"}],["path",{d:"M14 6h.01"}],["path",{d:"M18 6h.01"}],["path",{d:"M6.5 13.1h.01"}],["path",{d:"M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"}],["path",{d:"M17.4 9.9c-.8.8-2 .8-2.8 0"}],["path",{d:"M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"}],["path",{d:"M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const on=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M19.13 5.09C15.22 9.14 10 10.44 2.25 10.94"}],["path",{d:"M21.75 12.84c-6.62-1.41-12.14 1-16.38 6.32"}],["path",{d:"M8.56 2.75c4.37 6 6 9.42 8 17.72"}]]];/**
+ */const dn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M19.13 5.09C15.22 9.14 10 10.44 2.25 10.94"}],["path",{d:"M21.75 12.84c-6.62-1.41-12.14 1-16.38 6.32"}],["path",{d:"M8.56 2.75c4.37 6 6 9.42 8 17.72"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2513,12 +2513,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hn=["svg",t,[["path",{d:"m21 21-6-6m6 6v-4.8m0 4.8h-4.8"}],["path",{d:"M3 16.2V21m0 0h4.8M3 21l6-6"}],["path",{d:"M21 7.8V3m0 0h-4.8M21 3l-6 6"}],["path",{d:"M3 7.8V3m0 0h4.8M3 3l6 6"}]]];/**
+ */const Sn=["svg",t,[["path",{d:"m21 21-6-6m6 6v-4.8m0 4.8h-4.8"}],["path",{d:"M3 16.2V21m0 0h4.8M3 21l6-6"}],["path",{d:"M21 7.8V3m0 0h-4.8M21 3l-6 6"}],["path",{d:"M3 7.8V3m0 0h4.8M3 3l6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sn=["svg",t,[["path",{d:"M15 3h6v6"}],["path",{d:"M10 14 21 3"}],["path",{d:"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"}]]];/**
+ */const Hn=["svg",t,[["path",{d:"M15 3h6v6"}],["path",{d:"M10 14 21 3"}],["path",{d:"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2538,12 +2538,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vn=["svg",t,[["path",{d:"M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M17 18h1"}],["path",{d:"M12 18h1"}],["path",{d:"M7 18h1"}]]];/**
+ */const $n=["svg",t,[["path",{d:"M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M17 18h1"}],["path",{d:"M12 18h1"}],["path",{d:"M7 18h1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $n=["svg",t,[["path",{d:"M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"}],["path",{d:"M12 12v.01"}]]];/**
+ */const Vn=["svg",t,[["path",{d:"M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"}],["path",{d:"M12 12v.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2613,12 +2613,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zn=["svg",t,[["path",{d:"M14.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M3 13.1a2 2 0 0 0-1 1.76v3.24a2 2 0 0 0 .97 1.78L6 21.7a2 2 0 0 0 2.03.01L11 19.9a2 2 0 0 0 1-1.76V14.9a2 2 0 0 0-.97-1.78L8 11.3a2 2 0 0 0-2.03-.01Z"}],["path",{d:"M7 17v5"}],["path",{d:"M11.7 14.2 7 17l-4.7-2.8"}]]];/**
+ */const Fn=["svg",t,[["path",{d:"M14.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M3 13.1a2 2 0 0 0-1 1.76v3.24a2 2 0 0 0 .97 1.78L6 21.7a2 2 0 0 0 2.03.01L11 19.9a2 2 0 0 0 1-1.76V14.9a2 2 0 0 0-.97-1.78L8 11.3a2 2 0 0 0-2.03-.01Z"}],["path",{d:"M7 17v5"}],["path",{d:"M11.7 14.2 7 17l-4.7-2.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m3 15 2 2 4-4"}]]];/**
+ */const Zn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m3 15 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2628,12 +2628,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gn=["svg",t,[["path",{d:"M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"8",cy:"16",r:"6"}],["path",{d:"M9.5 17.5 8 16.25V14"}]]];/**
+ */const jn=["svg",t,[["path",{d:"M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"8",cy:"16",r:"6"}],["path",{d:"M9.5 17.5 8 16.25V14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m5 12-3 3 3 3"}],["path",{d:"m9 18 3-3-3-3"}]]];/**
+ */const Gn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m5 12-3 3 3 3"}],["path",{d:"m9 18 3-3-3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2698,12 +2698,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m16 13-3.5 3.5-2-2L8 17"}]]];/**
+ */const oc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m16 13-3.5 3.5-2-2L8 17"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oc=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v1"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["rect",{width:"8",height:"5",x:"2",y:"13",rx:"1"}],["path",{d:"M8 13v-2a2 2 0 1 0-4 0v2"}]]];/**
+ */const dc=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v1"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["rect",{width:"8",height:"5",x:"2",y:"13",rx:"1"}],["path",{d:"M8 13v-2a2 2 0 1 0-4 0v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2738,7 +2738,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const de=["svg",t,[["path",{d:"M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"}]]];/**
+ */const oe=["svg",t,[["path",{d:"M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2803,12 +2803,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M10 9H8"}],["path",{d:"M16 13H8"}],["path",{d:"M16 17H8"}]]];/**
+ */const Sc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M10 9H8"}],["path",{d:"M16 13H8"}],["path",{d:"M16 17H8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sc=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M2 13v-1h6v1"}],["path",{d:"M5 12v6"}],["path",{d:"M4 18h2"}]]];/**
+ */const Hc=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M2 13v-1h6v1"}],["path",{d:"M5 12v6"}],["path",{d:"M4 18h2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2828,12 +2828,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m10 11 5 3-5 3v-6Z"}]]];/**
+ */const $c=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m10 11 5 3-5 3v-6Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $c=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 15h.01"}],["path",{d:"M11.5 13.5a2.5 2.5 0 0 1 0 3"}],["path",{d:"M15 12a5 5 0 0 1 0 6"}]]];/**
+ */const Vc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 15h.01"}],["path",{d:"M11.5 13.5a2.5 2.5 0 0 1 0 3"}],["path",{d:"M15 12a5 5 0 0 1 0 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2898,12 +2898,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zc=["svg",t,[["path",{d:"M2 16s9-15 20-4C11 23 2 8 2 8"}]]];/**
+ */const Fc=["svg",t,[["path",{d:"M2 16s9-15 20-4C11 23 2 8 2 8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fc=["svg",t,[["path",{d:"M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"}],["path",{d:"M18 12v.5"}],["path",{d:"M16 17.93a9.77 9.77 0 0 1 0-11.86"}],["path",{d:"M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"}],["path",{d:"M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"}],["path",{d:"m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98"}]]];/**
+ */const Zc=["svg",t,[["path",{d:"M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"}],["path",{d:"M18 12v.5"}],["path",{d:"M16 17.93a9.77 9.77 0 0 1 0-11.86"}],["path",{d:"M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"}],["path",{d:"M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"}],["path",{d:"m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2913,12 +2913,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gc=["svg",t,[["path",{d:"M17 22V2L7 7l10 5"}]]];/**
+ */const jc=["svg",t,[["path",{d:"M17 22V2L7 7l10 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jc=["svg",t,[["path",{d:"M7 22V2l10 5-10 5"}]]];/**
+ */const Gc=["svg",t,[["path",{d:"M7 22V2l10 5-10 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2978,12 +2978,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dl=["svg",t,[["path",{d:"M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"}],["path",{d:"M21 16v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3"}],["path",{d:"M4 12H2"}],["path",{d:"M10 12H8"}],["path",{d:"M16 12h-2"}],["path",{d:"M22 12h-2"}]]];/**
+ */const ol=["svg",t,[["path",{d:"M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"}],["path",{d:"M21 16v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3"}],["path",{d:"M4 12H2"}],["path",{d:"M10 12H8"}],["path",{d:"M16 12h-2"}],["path",{d:"M22 12h-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ol=["svg",t,[["path",{d:"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"}],["circle",{cx:"12",cy:"8",r:"2"}],["path",{d:"M12 10v12"}],["path",{d:"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"}],["path",{d:"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"}]]];/**
+ */const dl=["svg",t,[["path",{d:"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"}],["circle",{cx:"12",cy:"8",r:"2"}],["path",{d:"M12 10v12"}],["path",{d:"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"}],["path",{d:"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3028,7 +3028,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oe=["svg",t,[["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"M10.3 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v3.3"}],["path",{d:"m21.7 19.4-.9-.3"}],["path",{d:"m15.2 16.9-.9-.3"}],["path",{d:"m16.6 21.7.3-.9"}],["path",{d:"m19.1 15.2.3-.9"}],["path",{d:"m19.6 21.7-.4-1"}],["path",{d:"m16.8 15.3-.4-1"}],["path",{d:"m14.3 19.6 1-.4"}],["path",{d:"m20.7 16.8 1-.4"}]]];/**
+ */const de=["svg",t,[["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"M10.3 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v3.3"}],["path",{d:"m21.7 19.4-.9-.3"}],["path",{d:"m15.2 16.9-.9-.3"}],["path",{d:"m16.6 21.7.3-.9"}],["path",{d:"m19.1 15.2.3-.9"}],["path",{d:"m19.6 21.7-.4-1"}],["path",{d:"m16.8 15.3-.4-1"}],["path",{d:"m14.3 19.6 1-.4"}],["path",{d:"m20.7 16.8 1-.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3078,12 +3078,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hl=["svg",t,[["path",{d:"M9 13h6"}],["path",{d:"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"}]]];/**
+ */const Sl=["svg",t,[["path",{d:"M9 13h6"}],["path",{d:"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sl=["svg",t,[["path",{d:"m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"}],["circle",{cx:"14",cy:"15",r:"1"}]]];/**
+ */const Hl=["svg",t,[["path",{d:"m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"}],["circle",{cx:"14",cy:"15",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3108,12 +3108,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vl=["svg",t,[["path",{d:"M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"}],["circle",{cx:"12",cy:"13",r:"2"}],["path",{d:"M12 15v5"}]]];/**
+ */const $l=["svg",t,[["path",{d:"M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"}],["circle",{cx:"12",cy:"13",r:"2"}],["path",{d:"M12 15v5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $l=["svg",t,[["circle",{cx:"11.5",cy:"12.5",r:"2.5"}],["path",{d:"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"}],["path",{d:"M13.3 14.3 15 16"}]]];/**
+ */const Vl=["svg",t,[["circle",{cx:"11.5",cy:"12.5",r:"2.5"}],["path",{d:"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"}],["path",{d:"M13.3 14.3 15 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3178,12 +3178,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zl=["svg",t,[["path",{d:"M5 16V9h14V2H5l14 14h-7m-7 0 7 7v-7m-7 0h7"}]]];/**
+ */const Fl=["svg",t,[["path",{d:"M5 16V9h14V2H5l14 14h-7m-7 0 7 7v-7m-7 0h7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fl=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M16 16s-1.5-2-4-2-4 2-4 2"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
+ */const Zl=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M16 16s-1.5-2-4-2-4 2-4 2"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3193,12 +3193,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gl=["svg",t,[["path",{d:"M3 7V5a2 2 0 0 1 2-2h2"}],["path",{d:"M17 3h2a2 2 0 0 1 2 2v2"}],["path",{d:"M21 17v2a2 2 0 0 1-2 2h-2"}],["path",{d:"M7 21H5a2 2 0 0 1-2-2v-2"}],["rect",{width:"10",height:"8",x:"7",y:"8",rx:"1"}]]];/**
+ */const jl=["svg",t,[["path",{d:"M3 7V5a2 2 0 0 1 2-2h2"}],["path",{d:"M17 3h2a2 2 0 0 1 2 2v2"}],["path",{d:"M21 17v2a2 2 0 0 1-2 2h-2"}],["path",{d:"M7 21H5a2 2 0 0 1-2-2v-2"}],["rect",{width:"10",height:"8",x:"7",y:"8",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jl=["svg",t,[["path",{d:"M2 7v10"}],["path",{d:"M6 5v14"}],["rect",{width:"12",height:"18",x:"10",y:"3",rx:"2"}]]];/**
+ */const Gl=["svg",t,[["path",{d:"M2 7v10"}],["path",{d:"M6 5v14"}],["rect",{width:"12",height:"18",x:"10",y:"3",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3258,12 +3258,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dh=["svg",t,[["rect",{x:"3",y:"8",width:"18",height:"4",rx:"1"}],["path",{d:"M12 8v13"}],["path",{d:"M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"}],["path",{d:"M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"}]]];/**
+ */const oh=["svg",t,[["rect",{x:"3",y:"8",width:"18",height:"4",rx:"1"}],["path",{d:"M12 8v13"}],["path",{d:"M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"}],["path",{d:"M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oh=["svg",t,[["path",{d:"M6 3v12"}],["path",{d:"M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"}],["path",{d:"M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"}],["path",{d:"M15 6a9 9 0 0 0-9 9"}],["path",{d:"M18 15v6"}],["path",{d:"M21 18h-6"}]]];/**
+ */const dh=["svg",t,[["path",{d:"M6 3v12"}],["path",{d:"M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"}],["path",{d:"M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"}],["path",{d:"M15 6a9 9 0 0 0-9 9"}],["path",{d:"M18 15v6"}],["path",{d:"M21 18h-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3358,12 +3358,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hh=["svg",t,[["path",{d:"M15.686 15A14.5 14.5 0 0 1 12 22a14.5 14.5 0 0 1 0-20 10 10 0 1 0 9.542 13"}],["path",{d:"M2 12h8.5"}],["path",{d:"M20 6V4a2 2 0 1 0-4 0v2"}],["rect",{width:"8",height:"5",x:"14",y:"6",rx:"1"}]]];/**
+ */const Sh=["svg",t,[["path",{d:"M15.686 15A14.5 14.5 0 0 1 12 22a14.5 14.5 0 0 1 0-20 10 10 0 1 0 9.542 13"}],["path",{d:"M2 12h8.5"}],["path",{d:"M20 6V4a2 2 0 1 0-4 0v2"}],["rect",{width:"8",height:"5",x:"14",y:"6",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sh=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"}],["path",{d:"M2 12h20"}]]];/**
+ */const Hh=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"}],["path",{d:"M2 12h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3383,12 +3383,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vh=["svg",t,[["path",{d:"M22 5V2l-5.89 5.89"}],["circle",{cx:"16.6",cy:"15.89",r:"3"}],["circle",{cx:"8.11",cy:"7.4",r:"3"}],["circle",{cx:"12.35",cy:"11.65",r:"3"}],["circle",{cx:"13.91",cy:"5.85",r:"3"}],["circle",{cx:"18.15",cy:"10.09",r:"3"}],["circle",{cx:"6.56",cy:"13.2",r:"3"}],["circle",{cx:"10.8",cy:"17.44",r:"3"}],["circle",{cx:"5",cy:"19",r:"3"}]]];/**
+ */const $h=["svg",t,[["path",{d:"M22 5V2l-5.89 5.89"}],["circle",{cx:"16.6",cy:"15.89",r:"3"}],["circle",{cx:"8.11",cy:"7.4",r:"3"}],["circle",{cx:"12.35",cy:"11.65",r:"3"}],["circle",{cx:"13.91",cy:"5.85",r:"3"}],["circle",{cx:"18.15",cy:"10.09",r:"3"}],["circle",{cx:"6.56",cy:"13.2",r:"3"}],["circle",{cx:"10.8",cy:"17.44",r:"3"}],["circle",{cx:"5",cy:"19",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $h=["svg",t,[["path",{d:"M12 3v17a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1H3"}],["path",{d:"m16 19 2 2 4-4"}]]];/**
+ */const Vh=["svg",t,[["path",{d:"M12 3v17a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1H3"}],["path",{d:"m16 19 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3468,12 +3468,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zh=["svg",t,[["path",{d:"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"}],["path",{d:"M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"}],["path",{d:"M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"}],["path",{d:"M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"}]]];/**
+ */const Fh=["svg",t,[["path",{d:"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"}],["path",{d:"M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"}],["path",{d:"M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"}],["path",{d:"M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fh=["svg",t,[["path",{d:"m11 17 2 2a1 1 0 1 0 3-3"}],["path",{d:"m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"}],["path",{d:"m21 3 1 11h-2"}],["path",{d:"M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"}],["path",{d:"M3 4h8"}]]];/**
+ */const Zh=["svg",t,[["path",{d:"m11 17 2 2a1 1 0 1 0 3-3"}],["path",{d:"m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"}],["path",{d:"m21 3 1 11h-2"}],["path",{d:"M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"}],["path",{d:"M3 4h8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3483,12 +3483,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gh=["svg",t,[["path",{d:"m16 6-4-4-4 4"}],["path",{d:"M12 2v8"}],["rect",{width:"20",height:"8",x:"2",y:"14",rx:"2"}],["path",{d:"M6 18h.01"}],["path",{d:"M10 18h.01"}]]];/**
+ */const jh=["svg",t,[["path",{d:"m16 6-4-4-4 4"}],["path",{d:"M12 2v8"}],["rect",{width:"20",height:"8",x:"2",y:"14",rx:"2"}],["path",{d:"M6 18h.01"}],["path",{d:"M10 18h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jh=["svg",t,[["line",{x1:"22",x2:"2",y1:"12",y2:"12"}],["path",{d:"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"}],["line",{x1:"6",x2:"6.01",y1:"16",y2:"16"}],["line",{x1:"10",x2:"10.01",y1:"16",y2:"16"}]]];/**
+ */const Gh=["svg",t,[["line",{x1:"22",x2:"2",y1:"12",y2:"12"}],["path",{d:"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"}],["line",{x1:"6",x2:"6.01",y1:"16",y2:"16"}],["line",{x1:"10",x2:"10.01",y1:"16",y2:"16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3548,12 +3548,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dp=["svg",t,[["path",{d:"M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"}]]];/**
+ */const op=["svg",t,[["path",{d:"M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const op=["svg",t,[["path",{d:"M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"}],["path",{d:"M21 16v2a4 4 0 0 1-4 4h-5"}]]];/**
+ */const dp=["svg",t,[["path",{d:"M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"}],["path",{d:"M21 16v2a4 4 0 0 1-4 4h-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3653,12 +3653,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hp=["svg",t,[["line",{x1:"2",x2:"22",y1:"2",y2:"22"}],["path",{d:"M10.41 10.41a2 2 0 1 1-2.83-2.83"}],["line",{x1:"13.5",x2:"6",y1:"13.5",y2:"21"}],["line",{x1:"18",x2:"21",y1:"12",y2:"15"}],["path",{d:"M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"}],["path",{d:"M21 15V5a2 2 0 0 0-2-2H9"}]]];/**
+ */const Sp=["svg",t,[["line",{x1:"2",x2:"22",y1:"2",y2:"22"}],["path",{d:"M10.41 10.41a2 2 0 1 1-2.83-2.83"}],["line",{x1:"13.5",x2:"6",y1:"13.5",y2:"21"}],["line",{x1:"18",x2:"21",y1:"12",y2:"15"}],["path",{d:"M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"}],["path",{d:"M21 15V5a2 2 0 0 0-2-2H9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sp=["svg",t,[["path",{d:"m11 16-5 5"}],["path",{d:"M11 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6.5"}],["path",{d:"M15.765 22a.5.5 0 0 1-.765-.424V13.38a.5.5 0 0 1 .765-.424l5.878 3.674a1 1 0 0 1 0 1.696z"}],["circle",{cx:"9",cy:"9",r:"2"}]]];/**
+ */const Hp=["svg",t,[["path",{d:"m11 16-5 5"}],["path",{d:"M11 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6.5"}],["path",{d:"M15.765 22a.5.5 0 0 1-.765-.424V13.38a.5.5 0 0 1 .765-.424l5.878 3.674a1 1 0 0 1 0 1.696z"}],["circle",{cx:"9",cy:"9",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3678,12 +3678,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vp=["svg",t,[["path",{d:"M18 22H4a2 2 0 0 1-2-2V6"}],["path",{d:"m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"}],["circle",{cx:"12",cy:"8",r:"2"}],["rect",{width:"16",height:"16",x:"6",y:"2",rx:"2"}]]];/**
+ */const $p=["svg",t,[["path",{d:"M18 22H4a2 2 0 0 1-2-2V6"}],["path",{d:"m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"}],["circle",{cx:"12",cy:"8",r:"2"}],["rect",{width:"16",height:"16",x:"6",y:"2",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $p=["svg",t,[["path",{d:"M12 3v12"}],["path",{d:"m8 11 4 4 4-4"}],["path",{d:"M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"}]]];/**
+ */const Vp=["svg",t,[["path",{d:"M12 3v12"}],["path",{d:"m8 11 4 4 4-4"}],["path",{d:"M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3758,12 +3758,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zp=["svg",t,[["path",{d:"M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"}],["circle",{cx:"16.5",cy:"7.5",r:".5",fill:"currentColor"}]]];/**
+ */const Fp=["svg",t,[["path",{d:"M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"}],["circle",{cx:"16.5",cy:"7.5",r:".5",fill:"currentColor"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fp=["svg",t,[["path",{d:"M12.4 2.7c.9-.9 2.5-.9 3.4 0l5.5 5.5c.9.9.9 2.5 0 3.4l-3.7 3.7c-.9.9-2.5.9-3.4 0L8.7 9.8c-.9-.9-.9-2.5 0-3.4Z"}],["path",{d:"m14 7 3 3"}],["path",{d:"M9.4 10.6 2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4"}]]];/**
+ */const Zp=["svg",t,[["path",{d:"M12.4 2.7c.9-.9 2.5-.9 3.4 0l5.5 5.5c.9.9.9 2.5 0 3.4l-3.7 3.7c-.9.9-2.5.9-3.4 0L8.7 9.8c-.9-.9-.9-2.5 0-3.4Z"}],["path",{d:"m14 7 3 3"}],["path",{d:"M9.4 10.6 2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3773,12 +3773,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gp=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 8h4"}],["path",{d:"M14 8h.01"}],["path",{d:"M18 8h.01"}],["path",{d:"M2 12h20"}],["path",{d:"M6 12v4"}],["path",{d:"M10 12v4"}],["path",{d:"M14 12v4"}],["path",{d:"M18 12v4"}]]];/**
+ */const jp=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 8h4"}],["path",{d:"M14 8h.01"}],["path",{d:"M18 8h.01"}],["path",{d:"M2 12h20"}],["path",{d:"M6 12v4"}],["path",{d:"M10 12v4"}],["path",{d:"M14 12v4"}],["path",{d:"M18 12v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jp=["svg",t,[["path",{d:"M 20 4 A2 2 0 0 1 22 6"}],["path",{d:"M 22 6 L 22 16.41"}],["path",{d:"M 7 16 L 16 16"}],["path",{d:"M 9.69 4 L 20 4"}],["path",{d:"M14 8h.01"}],["path",{d:"M18 8h.01"}],["path",{d:"m2 2 20 20"}],["path",{d:"M20 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"}],["path",{d:"M6 8h.01"}],["path",{d:"M8 12h.01"}]]];/**
+ */const Gp=["svg",t,[["path",{d:"M 20 4 A2 2 0 0 1 22 6"}],["path",{d:"M 22 6 L 22 16.41"}],["path",{d:"M 7 16 L 16 16"}],["path",{d:"M 9.69 4 L 20 4"}],["path",{d:"M14 8h.01"}],["path",{d:"M18 8h.01"}],["path",{d:"m2 2 20 20"}],["path",{d:"M20 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"}],["path",{d:"M6 8h.01"}],["path",{d:"M8 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3813,22 +3813,22 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const t4=["svg",t,[["path",{d:"M8 2h8l4 10H4L8 2Z"}],["path",{d:"M12 12v6"}],["path",{d:"M8 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H8Z"}]]];/**
+ */const tv=["svg",t,[["path",{d:"M8 2h8l4 10H4L8 2Z"}],["path",{d:"M12 12v6"}],["path",{d:"M8 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H8Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const e4=["svg",t,[["path",{d:"m12 8 6-3-6-3v10"}],["path",{d:"m8 11.99-5.5 3.14a1 1 0 0 0 0 1.74l8.5 4.86a2 2 0 0 0 2 0l8.5-4.86a1 1 0 0 0 0-1.74L16 12"}],["path",{d:"m6.49 12.85 11.02 6.3"}],["path",{d:"M17.51 12.85 6.5 19.15"}]]];/**
+ */const ev=["svg",t,[["path",{d:"m12 8 6-3-6-3v10"}],["path",{d:"m8 11.99-5.5 3.14a1 1 0 0 0 0 1.74l8.5 4.86a2 2 0 0 0 2 0l8.5-4.86a1 1 0 0 0 0-1.74L16 12"}],["path",{d:"m6.49 12.85 11.02 6.3"}],["path",{d:"M17.51 12.85 6.5 19.15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const a4=["svg",t,[["line",{x1:"3",x2:"21",y1:"22",y2:"22"}],["line",{x1:"6",x2:"6",y1:"18",y2:"11"}],["line",{x1:"10",x2:"10",y1:"18",y2:"11"}],["line",{x1:"14",x2:"14",y1:"18",y2:"11"}],["line",{x1:"18",x2:"18",y1:"18",y2:"11"}],["polygon",{points:"12 2 20 7 4 7"}]]];/**
+ */const av=["svg",t,[["line",{x1:"3",x2:"21",y1:"22",y2:"22"}],["line",{x1:"6",x2:"6",y1:"18",y2:"11"}],["line",{x1:"10",x2:"10",y1:"18",y2:"11"}],["line",{x1:"14",x2:"14",y1:"18",y2:"11"}],["line",{x1:"18",x2:"18",y1:"18",y2:"11"}],["polygon",{points:"12 2 20 7 4 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const i4=["svg",t,[["path",{d:"m5 8 6 6"}],["path",{d:"m4 14 6-6 2-3"}],["path",{d:"M2 5h12"}],["path",{d:"M7 2h1"}],["path",{d:"m22 22-5-10-5 10"}],["path",{d:"M14 18h6"}]]];/**
+ */const iv=["svg",t,[["path",{d:"m5 8 6 6"}],["path",{d:"m4 14 6-6 2-3"}],["path",{d:"M2 5h12"}],["path",{d:"M7 2h1"}],["path",{d:"m22 22-5-10-5 10"}],["path",{d:"M14 18h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3838,212 +3838,212 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const s4=["svg",t,[["path",{d:"M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"}]]];/**
+ */const sv=["svg",t,[["path",{d:"M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d4=["svg",t,[["path",{d:"M7 22a5 5 0 0 1-2-4"}],["path",{d:"M7 16.93c.96.43 1.96.74 2.99.91"}],["path",{d:"M3.34 14A6.8 6.8 0 0 1 2 10c0-4.42 4.48-8 10-8s10 3.58 10 8a7.19 7.19 0 0 1-.33 2"}],["path",{d:"M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"}],["path",{d:"M14.33 22h-.09a.35.35 0 0 1-.24-.32v-10a.34.34 0 0 1 .33-.34c.08 0 .15.03.21.08l7.34 6a.33.33 0 0 1-.21.59h-4.49l-2.57 3.85a.35.35 0 0 1-.28.14z"}]]];/**
+ */const ov=["svg",t,[["path",{d:"M7 22a5 5 0 0 1-2-4"}],["path",{d:"M7 16.93c.96.43 1.96.74 2.99.91"}],["path",{d:"M3.34 14A6.8 6.8 0 0 1 2 10c0-4.42 4.48-8 10-8s10 3.58 10 8a7.19 7.19 0 0 1-.33 2"}],["path",{d:"M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"}],["path",{d:"M14.33 22h-.09a.35.35 0 0 1-.24-.32v-10a.34.34 0 0 1 .33-.34c.08 0 .15.03.21.08l7.34 6a.33.33 0 0 1-.21.59h-4.49l-2.57 3.85a.35.35 0 0 1-.28.14z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o4=["svg",t,[["path",{d:"M7 22a5 5 0 0 1-2-4"}],["path",{d:"M3.3 14A6.8 6.8 0 0 1 2 10c0-4.4 4.5-8 10-8s10 3.6 10 8-4.5 8-10 8a12 12 0 0 1-5-1"}],["path",{d:"M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"}]]];/**
+ */const dv=["svg",t,[["path",{d:"M7 22a5 5 0 0 1-2-4"}],["path",{d:"M3.3 14A6.8 6.8 0 0 1 2 10c0-4.4 4.5-8 10-8s10 3.6 10 8-4.5 8-10 8a12 12 0 0 1-5-1"}],["path",{d:"M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const r4=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
+ */const rv=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const n4=["svg",t,[["path",{d:"m16.02 12 5.48 3.13a1 1 0 0 1 0 1.74L13 21.74a2 2 0 0 1-2 0l-8.5-4.87a1 1 0 0 1 0-1.74L7.98 12"}],["path",{d:"M13 13.74a2 2 0 0 1-2 0L2.5 8.87a1 1 0 0 1 0-1.74L11 2.26a2 2 0 0 1 2 0l8.5 4.87a1 1 0 0 1 0 1.74Z"}]]];/**
+ */const nv=["svg",t,[["path",{d:"m16.02 12 5.48 3.13a1 1 0 0 1 0 1.74L13 21.74a2 2 0 0 1-2 0l-8.5-4.87a1 1 0 0 1 0-1.74L7.98 12"}],["path",{d:"M13 13.74a2 2 0 0 1-2 0L2.5 8.87a1 1 0 0 1 0-1.74L11 2.26a2 2 0 0 1 2 0l8.5 4.87a1 1 0 0 1 0 1.74Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const c4=["svg",t,[["path",{d:"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"}],["path",{d:"m6.08 9.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59"}],["path",{d:"m6.08 14.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59"}]]];/**
+ */const cv=["svg",t,[["path",{d:"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"}],["path",{d:"m6.08 9.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59"}],["path",{d:"m6.08 14.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l4=["svg",t,[["path",{d:"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"}],["path",{d:"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"}],["path",{d:"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"}]]];/**
+ */const lv=["svg",t,[["path",{d:"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"}],["path",{d:"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"}],["path",{d:"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const h4=["svg",t,[["rect",{width:"7",height:"9",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"5",x:"14",y:"3",rx:"1"}],["rect",{width:"7",height:"9",x:"14",y:"12",rx:"1"}],["rect",{width:"7",height:"5",x:"3",y:"16",rx:"1"}]]];/**
+ */const hv=["svg",t,[["rect",{width:"7",height:"9",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"5",x:"14",y:"3",rx:"1"}],["rect",{width:"7",height:"9",x:"14",y:"12",rx:"1"}],["rect",{width:"7",height:"5",x:"3",y:"16",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const p4=["svg",t,[["rect",{width:"7",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"14",rx:"1"}],["rect",{width:"7",height:"7",x:"3",y:"14",rx:"1"}]]];/**
+ */const pv=["svg",t,[["rect",{width:"7",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"14",rx:"1"}],["rect",{width:"7",height:"7",x:"3",y:"14",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const v4=["svg",t,[["rect",{width:"7",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"3",y:"14",rx:"1"}],["path",{d:"M14 4h7"}],["path",{d:"M14 9h7"}],["path",{d:"M14 15h7"}],["path",{d:"M14 20h7"}]]];/**
+ */const vv=["svg",t,[["rect",{width:"7",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"3",y:"14",rx:"1"}],["path",{d:"M14 4h7"}],["path",{d:"M14 9h7"}],["path",{d:"M14 15h7"}],["path",{d:"M14 20h7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const m4=["svg",t,[["rect",{width:"7",height:"18",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"14",rx:"1"}]]];/**
+ */const mv=["svg",t,[["rect",{width:"7",height:"18",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"14",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const g4=["svg",t,[["rect",{width:"18",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"3",y:"14",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"14",rx:"1"}]]];/**
+ */const gv=["svg",t,[["rect",{width:"18",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"7",height:"7",x:"3",y:"14",rx:"1"}],["rect",{width:"7",height:"7",x:"14",y:"14",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const u4=["svg",t,[["rect",{width:"18",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"9",height:"7",x:"3",y:"14",rx:"1"}],["rect",{width:"5",height:"7",x:"16",y:"14",rx:"1"}]]];/**
+ */const uv=["svg",t,[["rect",{width:"18",height:"7",x:"3",y:"3",rx:"1"}],["rect",{width:"9",height:"7",x:"3",y:"14",rx:"1"}],["rect",{width:"5",height:"7",x:"16",y:"14",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const y4=["svg",t,[["path",{d:"M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"}],["path",{d:"M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"}]]];/**
+ */const yv=["svg",t,[["path",{d:"M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"}],["path",{d:"M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const M4=["svg",t,[["path",{d:"M2 22c1.25-.987 2.27-1.975 3.9-2.2a5.56 5.56 0 0 1 3.8 1.5 4 4 0 0 0 6.187-2.353 3.5 3.5 0 0 0 3.69-5.116A3.5 3.5 0 0 0 20.95 8 3.5 3.5 0 1 0 16 3.05a3.5 3.5 0 0 0-5.831 1.373 3.5 3.5 0 0 0-5.116 3.69 4 4 0 0 0-2.348 6.155C3.499 15.42 4.409 16.712 4.2 18.1 3.926 19.743 3.014 20.732 2 22"}],["path",{d:"M2 22 17 7"}]]];/**
+ */const Mv=["svg",t,[["path",{d:"M2 22c1.25-.987 2.27-1.975 3.9-2.2a5.56 5.56 0 0 1 3.8 1.5 4 4 0 0 0 6.187-2.353 3.5 3.5 0 0 0 3.69-5.116A3.5 3.5 0 0 0 20.95 8 3.5 3.5 0 1 0 16 3.05a3.5 3.5 0 0 0-5.831 1.373 3.5 3.5 0 0 0-5.116 3.69 4 4 0 0 0-2.348 6.155C3.499 15.42 4.409 16.712 4.2 18.1 3.926 19.743 3.014 20.732 2 22"}],["path",{d:"M2 22 17 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const x4=["svg",t,[["path",{d:"M16 12h3a2 2 0 0 0 1.902-1.38l1.056-3.333A1 1 0 0 0 21 6H3a1 1 0 0 0-.958 1.287l1.056 3.334A2 2 0 0 0 5 12h3"}],["path",{d:"M18 6V3a1 1 0 0 0-1-1h-3"}],["rect",{width:"8",height:"12",x:"8",y:"10",rx:"1"}]]];/**
+ */const xv=["svg",t,[["path",{d:"M16 12h3a2 2 0 0 0 1.902-1.38l1.056-3.333A1 1 0 0 0 21 6H3a1 1 0 0 0-.958 1.287l1.056 3.334A2 2 0 0 0 5 12h3"}],["path",{d:"M18 6V3a1 1 0 0 0-1-1h-3"}],["rect",{width:"8",height:"12",x:"8",y:"10",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const f4=["svg",t,[["rect",{width:"8",height:"18",x:"3",y:"3",rx:"1"}],["path",{d:"M7 3v18"}],["path",{d:"M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"}]]];/**
+ */const fv=["svg",t,[["rect",{width:"8",height:"18",x:"3",y:"3",rx:"1"}],["path",{d:"M7 3v18"}],["path",{d:"M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const b4=["svg",t,[["path",{d:"m16 6 4 14"}],["path",{d:"M12 6v14"}],["path",{d:"M8 8v12"}],["path",{d:"M4 4v16"}]]];/**
+ */const bv=["svg",t,[["path",{d:"m16 6 4 14"}],["path",{d:"M12 6v14"}],["path",{d:"M8 8v12"}],["path",{d:"M4 4v16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const w4=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m4.93 4.93 4.24 4.24"}],["path",{d:"m14.83 9.17 4.24-4.24"}],["path",{d:"m14.83 14.83 4.24 4.24"}],["path",{d:"m9.17 14.83-4.24 4.24"}],["circle",{cx:"12",cy:"12",r:"4"}]]];/**
+ */const wv=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m4.93 4.93 4.24 4.24"}],["path",{d:"m14.83 9.17 4.24-4.24"}],["path",{d:"m14.83 14.83 4.24 4.24"}],["path",{d:"m9.17 14.83-4.24 4.24"}],["circle",{cx:"12",cy:"12",r:"4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const k4=["svg",t,[["path",{d:"M8 20V8c0-2.2 1.8-4 4-4 1.5 0 2.8.8 3.5 2"}],["path",{d:"M6 12h4"}],["path",{d:"M14 12h2v8"}],["path",{d:"M6 20h4"}],["path",{d:"M14 20h4"}]]];/**
+ */const kv=["svg",t,[["path",{d:"M8 20V8c0-2.2 1.8-4 4-4 1.5 0 2.8.8 3.5 2"}],["path",{d:"M6 12h4"}],["path",{d:"M14 12h2v8"}],["path",{d:"M6 20h4"}],["path",{d:"M14 20h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H4=["svg",t,[["path",{d:"M16.8 11.2c.8-.9 1.2-2 1.2-3.2a6 6 0 0 0-9.3-5"}],["path",{d:"m2 2 20 20"}],["path",{d:"M6.3 6.3a4.67 4.67 0 0 0 1.2 5.2c.7.7 1.3 1.5 1.5 2.5"}],["path",{d:"M9 18h6"}],["path",{d:"M10 22h4"}]]];/**
+ */const Sv=["svg",t,[["path",{d:"M16.8 11.2c.8-.9 1.2-2 1.2-3.2a6 6 0 0 0-9.3-5"}],["path",{d:"m2 2 20 20"}],["path",{d:"M6.3 6.3a4.67 4.67 0 0 0 1.2 5.2c.7.7 1.3 1.5 1.5 2.5"}],["path",{d:"M9 18h6"}],["path",{d:"M10 22h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S4=["svg",t,[["path",{d:"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"}],["path",{d:"M9 18h6"}],["path",{d:"M10 22h4"}]]];/**
+ */const Hv=["svg",t,[["path",{d:"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"}],["path",{d:"M9 18h6"}],["path",{d:"M10 22h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const C4=["svg",t,[["path",{d:"M3 3v18h18"}],["path",{d:"m19 9-5 5-4-4-3 3"}]]];/**
+ */const Cv=["svg",t,[["path",{d:"M3 3v18h18"}],["path",{d:"m19 9-5 5-4-4-3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const A4=["svg",t,[["path",{d:"M9 17H7A5 5 0 0 1 7 7"}],["path",{d:"M15 7h2a5 5 0 0 1 4 8"}],["line",{x1:"8",x2:"12",y1:"12",y2:"12"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const Av=["svg",t,[["path",{d:"M9 17H7A5 5 0 0 1 7 7"}],["path",{d:"M15 7h2a5 5 0 0 1 4 8"}],["line",{x1:"8",x2:"12",y1:"12",y2:"12"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const L4=["svg",t,[["path",{d:"M9 17H7A5 5 0 0 1 7 7h2"}],["path",{d:"M15 7h2a5 5 0 1 1 0 10h-2"}],["line",{x1:"8",x2:"16",y1:"12",y2:"12"}]]];/**
+ */const Lv=["svg",t,[["path",{d:"M9 17H7A5 5 0 0 1 7 7h2"}],["path",{d:"M15 7h2a5 5 0 1 1 0 10h-2"}],["line",{x1:"8",x2:"16",y1:"12",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V4=["svg",t,[["path",{d:"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"}],["path",{d:"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"}]]];/**
+ */const $v=["svg",t,[["path",{d:"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"}],["path",{d:"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $4=["svg",t,[["path",{d:"M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"}],["rect",{width:"4",height:"12",x:"2",y:"9"}],["circle",{cx:"4",cy:"4",r:"2"}]]];/**
+ */const Vv=["svg",t,[["path",{d:"M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"}],["rect",{width:"4",height:"12",x:"2",y:"9"}],["circle",{cx:"4",cy:"4",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _4=["svg",t,[["path",{d:"m3 17 2 2 4-4"}],["path",{d:"m3 7 2 2 4-4"}],["path",{d:"M13 6h8"}],["path",{d:"M13 12h8"}],["path",{d:"M13 18h8"}]]];/**
+ */const _v=["svg",t,[["path",{d:"m3 17 2 2 4-4"}],["path",{d:"m3 7 2 2 4-4"}],["path",{d:"M13 6h8"}],["path",{d:"M13 12h8"}],["path",{d:"M13 18h8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T4=["svg",t,[["path",{d:"m3 10 2.5-2.5L3 5"}],["path",{d:"m3 19 2.5-2.5L3 14"}],["path",{d:"M10 6h11"}],["path",{d:"M10 12h11"}],["path",{d:"M10 18h11"}]]];/**
+ */const Tv=["svg",t,[["path",{d:"m3 10 2.5-2.5L3 5"}],["path",{d:"m3 19 2.5-2.5L3 14"}],["path",{d:"M10 6h11"}],["path",{d:"M10 12h11"}],["path",{d:"M10 18h11"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P4=["svg",t,[["path",{d:"M16 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M10 18H3"}],["path",{d:"M21 6v10a2 2 0 0 1-2 2h-5"}],["path",{d:"m16 16-2 2 2 2"}]]];/**
+ */const Pv=["svg",t,[["path",{d:"M16 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M10 18H3"}],["path",{d:"M21 6v10a2 2 0 0 1-2 2h-5"}],["path",{d:"m16 16-2 2 2 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const z4=["svg",t,[["path",{d:"M3 6h18"}],["path",{d:"M7 12h10"}],["path",{d:"M10 18h4"}]]];/**
+ */const zv=["svg",t,[["path",{d:"M3 6h18"}],["path",{d:"M7 12h10"}],["path",{d:"M10 18h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const q4=["svg",t,[["path",{d:"M11 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M16 18H3"}],["path",{d:"M21 12h-6"}]]];/**
+ */const qv=["svg",t,[["path",{d:"M11 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M16 18H3"}],["path",{d:"M21 12h-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const E4=["svg",t,[["path",{d:"M21 15V6"}],["path",{d:"M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"}],["path",{d:"M12 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M12 18H3"}]]];/**
+ */const Ev=["svg",t,[["path",{d:"M21 15V6"}],["path",{d:"M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"}],["path",{d:"M12 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M12 18H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const B4=["svg",t,[["line",{x1:"10",x2:"21",y1:"6",y2:"6"}],["line",{x1:"10",x2:"21",y1:"12",y2:"12"}],["line",{x1:"10",x2:"21",y1:"18",y2:"18"}],["path",{d:"M4 6h1v4"}],["path",{d:"M4 10h2"}],["path",{d:"M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"}]]];/**
+ */const Bv=["svg",t,[["line",{x1:"10",x2:"21",y1:"6",y2:"6"}],["line",{x1:"10",x2:"21",y1:"12",y2:"12"}],["line",{x1:"10",x2:"21",y1:"18",y2:"18"}],["path",{d:"M4 6h1v4"}],["path",{d:"M4 10h2"}],["path",{d:"M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const D4=["svg",t,[["path",{d:"M11 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M16 18H3"}],["path",{d:"M18 9v6"}],["path",{d:"M21 12h-6"}]]];/**
+ */const Dv=["svg",t,[["path",{d:"M11 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M16 18H3"}],["path",{d:"M18 9v6"}],["path",{d:"M21 12h-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const R4=["svg",t,[["path",{d:"M21 6H3"}],["path",{d:"M7 12H3"}],["path",{d:"M7 18H3"}],["path",{d:"M12 18a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L11 14"}],["path",{d:"M11 10v4h4"}]]];/**
+ */const Rv=["svg",t,[["path",{d:"M21 6H3"}],["path",{d:"M7 12H3"}],["path",{d:"M7 18H3"}],["path",{d:"M12 18a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L11 14"}],["path",{d:"M11 10v4h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const I4=["svg",t,[["path",{d:"M16 12H3"}],["path",{d:"M16 18H3"}],["path",{d:"M10 6H3"}],["path",{d:"M21 18V8a2 2 0 0 0-2-2h-5"}],["path",{d:"m16 8-2-2 2-2"}]]];/**
+ */const Iv=["svg",t,[["path",{d:"M16 12H3"}],["path",{d:"M16 18H3"}],["path",{d:"M10 6H3"}],["path",{d:"M21 18V8a2 2 0 0 0-2-2h-5"}],["path",{d:"m16 8-2-2 2-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const O4=["svg",t,[["rect",{x:"3",y:"5",width:"6",height:"6",rx:"1"}],["path",{d:"m3 17 2 2 4-4"}],["path",{d:"M13 6h8"}],["path",{d:"M13 12h8"}],["path",{d:"M13 18h8"}]]];/**
+ */const Ov=["svg",t,[["rect",{x:"3",y:"5",width:"6",height:"6",rx:"1"}],["path",{d:"m3 17 2 2 4-4"}],["path",{d:"M13 6h8"}],["path",{d:"M13 12h8"}],["path",{d:"M13 18h8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const N4=["svg",t,[["path",{d:"M21 12h-8"}],["path",{d:"M21 6H8"}],["path",{d:"M21 18h-8"}],["path",{d:"M3 6v4c0 1.1.9 2 2 2h3"}],["path",{d:"M3 10v6c0 1.1.9 2 2 2h3"}]]];/**
+ */const Nv=["svg",t,[["path",{d:"M21 12h-8"}],["path",{d:"M21 6H8"}],["path",{d:"M21 18h-8"}],["path",{d:"M3 6v4c0 1.1.9 2 2 2h3"}],["path",{d:"M3 10v6c0 1.1.9 2 2 2h3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z4=["svg",t,[["path",{d:"M12 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M12 18H3"}],["path",{d:"m16 12 5 3-5 3v-6Z"}]]];/**
+ */const Fv=["svg",t,[["path",{d:"M12 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M12 18H3"}],["path",{d:"m16 12 5 3-5 3v-6Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F4=["svg",t,[["path",{d:"M11 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M16 18H3"}],["path",{d:"m19 10-4 4"}],["path",{d:"m15 10 4 4"}]]];/**
+ */const Zv=["svg",t,[["path",{d:"M11 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M16 18H3"}],["path",{d:"m19 10-4 4"}],["path",{d:"m15 10 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const U4=["svg",t,[["line",{x1:"8",x2:"21",y1:"6",y2:"6"}],["line",{x1:"8",x2:"21",y1:"12",y2:"12"}],["line",{x1:"8",x2:"21",y1:"18",y2:"18"}],["line",{x1:"3",x2:"3.01",y1:"6",y2:"6"}],["line",{x1:"3",x2:"3.01",y1:"12",y2:"12"}],["line",{x1:"3",x2:"3.01",y1:"18",y2:"18"}]]];/**
+ */const Uv=["svg",t,[["line",{x1:"8",x2:"21",y1:"6",y2:"6"}],["line",{x1:"8",x2:"21",y1:"12",y2:"12"}],["line",{x1:"8",x2:"21",y1:"18",y2:"18"}],["line",{x1:"3",x2:"3.01",y1:"6",y2:"6"}],["line",{x1:"3",x2:"3.01",y1:"12",y2:"12"}],["line",{x1:"3",x2:"3.01",y1:"18",y2:"18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4053,27 +4053,27 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G4=["svg",t,[["path",{d:"M2 12c0-2.8 2.2-5 5-5s5 2.2 5 5 2.2 5 5 5 5-2.2 5-5"}],["path",{d:"M7 20.7a1 1 0 1 1 5-8.7 1 1 0 1 0 5-8.6"}],["path",{d:"M7 3.3a1 1 0 1 1 5 8.6 1 1 0 1 0 5 8.6"}],["circle",{cx:"12",cy:"12",r:"10"}]]];/**
+ */const jv=["svg",t,[["path",{d:"M2 12c0-2.8 2.2-5 5-5s5 2.2 5 5 2.2 5 5 5 5-2.2 5-5"}],["path",{d:"M7 20.7a1 1 0 1 1 5-8.7 1 1 0 1 0 5-8.6"}],["path",{d:"M7 3.3a1 1 0 1 1 5 8.6 1 1 0 1 0 5 8.6"}],["circle",{cx:"12",cy:"12",r:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j4=["svg",t,[["path",{d:"M12 2v4"}],["path",{d:"m16.2 7.8 2.9-2.9"}],["path",{d:"M18 12h4"}],["path",{d:"m16.2 16.2 2.9 2.9"}],["path",{d:"M12 18v4"}],["path",{d:"m4.9 19.1 2.9-2.9"}],["path",{d:"M2 12h4"}],["path",{d:"m4.9 4.9 2.9 2.9"}]]];/**
+ */const Gv=["svg",t,[["path",{d:"M12 2v4"}],["path",{d:"m16.2 7.8 2.9-2.9"}],["path",{d:"M18 12h4"}],["path",{d:"m16.2 16.2 2.9 2.9"}],["path",{d:"M12 18v4"}],["path",{d:"m4.9 19.1 2.9-2.9"}],["path",{d:"M2 12h4"}],["path",{d:"m4.9 4.9 2.9 2.9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K4=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
+ */const Kv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W4=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["path",{d:"M7.11 7.11C5.83 8.39 5 10.1 5 12c0 3.87 3.13 7 7 7 1.9 0 3.61-.83 4.89-2.11"}],["path",{d:"M18.71 13.96c.19-.63.29-1.29.29-1.96 0-3.87-3.13-7-7-7-.67 0-1.33.1-1.96.29"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const Wv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["path",{d:"M7.11 7.11C5.83 8.39 5 10.1 5 12c0 3.87 3.13 7 7 7 1.9 0 3.61-.83 4.89-2.11"}],["path",{d:"M18.71 13.96c.19-.63.29-1.29.29-1.96 0-3.87-3.13-7-7-7-.67 0-1.33.1-1.96.29"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J4=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}]]];/**
+ */const Jv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4083,7 +4083,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Y4=["svg",t,[["circle",{cx:"12",cy:"16",r:"1"}],["rect",{x:"3",y:"10",width:"18",height:"12",rx:"2"}],["path",{d:"M7 10V7a5 5 0 0 1 10 0v3"}]]];/**
+ */const Yv=["svg",t,[["circle",{cx:"12",cy:"16",r:"1"}],["rect",{x:"3",y:"10",width:"18",height:"12",rx:"2"}],["path",{d:"M7 10V7a5 5 0 0 1 10 0v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4093,282 +4093,282 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const X4=["svg",t,[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2"}],["path",{d:"M7 11V7a5 5 0 0 1 10 0v4"}]]];/**
+ */const Xv=["svg",t,[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2"}],["path",{d:"M7 11V7a5 5 0 0 1 10 0v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Q4=["svg",t,[["path",{d:"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"}],["polyline",{points:"10 17 15 12 10 7"}],["line",{x1:"15",x2:"3",y1:"12",y2:"12"}]]];/**
+ */const Qv=["svg",t,[["path",{d:"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"}],["polyline",{points:"10 17 15 12 10 7"}],["line",{x1:"15",x2:"3",y1:"12",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const tv=["svg",t,[["path",{d:"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"}],["polyline",{points:"16 17 21 12 16 7"}],["line",{x1:"21",x2:"9",y1:"12",y2:"12"}]]];/**
+ */const t4=["svg",t,[["path",{d:"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"}],["polyline",{points:"16 17 21 12 16 7"}],["line",{x1:"21",x2:"9",y1:"12",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ev=["svg",t,[["circle",{cx:"11",cy:"11",r:"8"}],["path",{d:"m21 21-4.3-4.3"}],["path",{d:"M11 11a2 2 0 0 0 4 0 4 4 0 0 0-8 0 6 6 0 0 0 12 0"}]]];/**
+ */const e4=["svg",t,[["circle",{cx:"11",cy:"11",r:"8"}],["path",{d:"m21 21-4.3-4.3"}],["path",{d:"M11 11a2 2 0 0 0 4 0 4 4 0 0 0-8 0 6 6 0 0 0 12 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const av=["svg",t,[["path",{d:"M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"}],["path",{d:"M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14"}],["path",{d:"M10 20h4"}],["circle",{cx:"16",cy:"20",r:"2"}],["circle",{cx:"8",cy:"20",r:"2"}]]];/**
+ */const a4=["svg",t,[["path",{d:"M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"}],["path",{d:"M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14"}],["path",{d:"M10 20h4"}],["circle",{cx:"16",cy:"20",r:"2"}],["circle",{cx:"8",cy:"20",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const iv=["svg",t,[["path",{d:"m6 15-4-4 6.75-6.77a7.79 7.79 0 0 1 11 11L13 22l-4-4 6.39-6.36a2.14 2.14 0 0 0-3-3L6 15"}],["path",{d:"m5 8 4 4"}],["path",{d:"m12 15 4 4"}]]];/**
+ */const i4=["svg",t,[["path",{d:"m6 15-4-4 6.75-6.77a7.79 7.79 0 0 1 11 11L13 22l-4-4 6.39-6.36a2.14 2.14 0 0 0-3-3L6 15"}],["path",{d:"m5 8 4 4"}],["path",{d:"m12 15 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const sv=["svg",t,[["path",{d:"M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"m16 19 2 2 4-4"}]]];/**
+ */const s4=["svg",t,[["path",{d:"M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"m16 19 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dv=["svg",t,[["path",{d:"M22 15V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M16 19h6"}]]];/**
+ */const o4=["svg",t,[["path",{d:"M22 15V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M16 19h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ov=["svg",t,[["path",{d:"M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"}],["path",{d:"m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"}]]];/**
+ */const d4=["svg",t,[["path",{d:"M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"}],["path",{d:"m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const rv=["svg",t,[["path",{d:"M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M19 16v6"}],["path",{d:"M16 19h6"}]]];/**
+ */const r4=["svg",t,[["path",{d:"M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M19 16v6"}],["path",{d:"M16 19h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const nv=["svg",t,[["path",{d:"M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M18 15.28c.2-.4.5-.8.9-1a2.1 2.1 0 0 1 2.6.4c.3.4.5.8.5 1.3 0 1.3-2 2-2 2"}],["path",{d:"M20 22v.01"}]]];/**
+ */const n4=["svg",t,[["path",{d:"M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M18 15.28c.2-.4.5-.8.9-1a2.1 2.1 0 0 1 2.6.4c.3.4.5.8.5 1.3 0 1.3-2 2-2 2"}],["path",{d:"M20 22v.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const cv=["svg",t,[["path",{d:"M22 12.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h7.5"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"}],["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"m22 22-1.5-1.5"}]]];/**
+ */const c4=["svg",t,[["path",{d:"M22 12.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h7.5"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"}],["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"m22 22-1.5-1.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const lv=["svg",t,[["path",{d:"M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M20 14v4"}],["path",{d:"M20 22v.01"}]]];/**
+ */const l4=["svg",t,[["path",{d:"M22 10.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h12.5"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"M20 14v4"}],["path",{d:"M20 22v.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const hv=["svg",t,[["path",{d:"M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h9"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"m17 17 4 4"}],["path",{d:"m21 17-4 4"}]]];/**
+ */const h4=["svg",t,[["path",{d:"M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h9"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}],["path",{d:"m17 17 4 4"}],["path",{d:"m21 17-4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const pv=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}]]];/**
+ */const p4=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const vv=["svg",t,[["path",{d:"M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"}],["polyline",{points:"15,9 18,9 18,11"}],["path",{d:"M6.5 5C9 5 11 7 11 9.5V17a2 2 0 0 1-2 2"}],["line",{x1:"6",x2:"7",y1:"10",y2:"10"}]]];/**
+ */const v4=["svg",t,[["path",{d:"M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"}],["polyline",{points:"15,9 18,9 18,11"}],["path",{d:"M6.5 5C9 5 11 7 11 9.5V17a2 2 0 0 1-2 2"}],["line",{x1:"6",x2:"7",y1:"10",y2:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const mv=["svg",t,[["rect",{width:"16",height:"13",x:"6",y:"4",rx:"2"}],["path",{d:"m22 7-7.1 3.78c-.57.3-1.23.3-1.8 0L6 7"}],["path",{d:"M2 8v11c0 1.1.9 2 2 2h14"}]]];/**
+ */const m4=["svg",t,[["rect",{width:"16",height:"13",x:"6",y:"4",rx:"2"}],["path",{d:"m22 7-7.1 3.78c-.57.3-1.23.3-1.8 0L6 7"}],["path",{d:"M2 8v11c0 1.1.9 2 2 2h14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const gv=["svg",t,[["path",{d:"M5.43 5.43A8.06 8.06 0 0 0 4 10c0 6 8 12 8 12a29.94 29.94 0 0 0 5-5"}],["path",{d:"M19.18 13.52A8.66 8.66 0 0 0 20 10a8 8 0 0 0-8-8 7.88 7.88 0 0 0-3.52.82"}],["path",{d:"M9.13 9.13A2.78 2.78 0 0 0 9 10a3 3 0 0 0 3 3 2.78 2.78 0 0 0 .87-.13"}],["path",{d:"M14.9 9.25a3 3 0 0 0-2.15-2.16"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const g4=["svg",t,[["path",{d:"M5.43 5.43A8.06 8.06 0 0 0 4 10c0 6 8 12 8 12a29.94 29.94 0 0 0 5-5"}],["path",{d:"M19.18 13.52A8.66 8.66 0 0 0 20 10a8 8 0 0 0-8-8 7.88 7.88 0 0 0-3.52.82"}],["path",{d:"M9.13 9.13A2.78 2.78 0 0 0 9 10a3 3 0 0 0 3 3 2.78 2.78 0 0 0 .87-.13"}],["path",{d:"M14.9 9.25a3 3 0 0 0-2.15-2.16"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const uv=["svg",t,[["path",{d:"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"}],["circle",{cx:"12",cy:"10",r:"3"}]]];/**
+ */const u4=["svg",t,[["path",{d:"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"}],["circle",{cx:"12",cy:"10",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const yv=["svg",t,[["path",{d:"M18 8c0 4.5-6 9-6 9s-6-4.5-6-9a6 6 0 0 1 12 0"}],["circle",{cx:"12",cy:"8",r:"2"}],["path",{d:"M8.835 14H5a1 1 0 0 0-.9.7l-2 6c-.1.1-.1.2-.1.3 0 .6.4 1 1 1h18c.6 0 1-.4 1-1 0-.1 0-.2-.1-.3l-2-6a1 1 0 0 0-.9-.7h-3.835"}]]];/**
+ */const y4=["svg",t,[["path",{d:"M18 8c0 4.5-6 9-6 9s-6-4.5-6-9a6 6 0 0 1 12 0"}],["circle",{cx:"12",cy:"8",r:"2"}],["path",{d:"M8.835 14H5a1 1 0 0 0-.9.7l-2 6c-.1.1-.1.2-.1.3 0 .6.4 1 1 1h18c.6 0 1-.4 1-1 0-.1 0-.2-.1-.3l-2-6a1 1 0 0 0-.9-.7h-3.835"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Mv=["svg",t,[["path",{d:"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"}],["path",{d:"M15 5.764v15"}],["path",{d:"M9 3.236v15"}]]];/**
+ */const M4=["svg",t,[["path",{d:"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"}],["path",{d:"M15 5.764v15"}],["path",{d:"M9 3.236v15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const xv=["svg",t,[["path",{d:"M8 22h8"}],["path",{d:"M12 11v11"}],["path",{d:"m19 3-7 8-7-8Z"}]]];/**
+ */const x4=["svg",t,[["path",{d:"M8 22h8"}],["path",{d:"M12 11v11"}],["path",{d:"m19 3-7 8-7-8Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const fv=["svg",t,[["polyline",{points:"15 3 21 3 21 9"}],["polyline",{points:"9 21 3 21 3 15"}],["line",{x1:"21",x2:"14",y1:"3",y2:"10"}],["line",{x1:"3",x2:"10",y1:"21",y2:"14"}]]];/**
+ */const f4=["svg",t,[["polyline",{points:"15 3 21 3 21 9"}],["polyline",{points:"9 21 3 21 3 15"}],["line",{x1:"21",x2:"14",y1:"3",y2:"10"}],["line",{x1:"3",x2:"10",y1:"21",y2:"14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const bv=["svg",t,[["path",{d:"M8 3H5a2 2 0 0 0-2 2v3"}],["path",{d:"M21 8V5a2 2 0 0 0-2-2h-3"}],["path",{d:"M3 16v3a2 2 0 0 0 2 2h3"}],["path",{d:"M16 21h3a2 2 0 0 0 2-2v-3"}]]];/**
+ */const b4=["svg",t,[["path",{d:"M8 3H5a2 2 0 0 0-2 2v3"}],["path",{d:"M21 8V5a2 2 0 0 0-2-2h-3"}],["path",{d:"M3 16v3a2 2 0 0 0 2 2h3"}],["path",{d:"M16 21h3a2 2 0 0 0 2-2v-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const wv=["svg",t,[["path",{d:"M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"}],["path",{d:"M11 12 5.12 2.2"}],["path",{d:"m13 12 5.88-9.8"}],["path",{d:"M8 7h8"}],["circle",{cx:"12",cy:"17",r:"5"}],["path",{d:"M12 18v-2h-.5"}]]];/**
+ */const w4=["svg",t,[["path",{d:"M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"}],["path",{d:"M11 12 5.12 2.2"}],["path",{d:"m13 12 5.88-9.8"}],["path",{d:"M8 7h8"}],["circle",{cx:"12",cy:"17",r:"5"}],["path",{d:"M12 18v-2h-.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const kv=["svg",t,[["path",{d:"M9.26 9.26 3 11v3l14.14 3.14"}],["path",{d:"M21 15.34V6l-7.31 2.03"}],["path",{d:"M11.6 16.8a3 3 0 1 1-5.8-1.6"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const k4=["svg",t,[["path",{d:"M9.26 9.26 3 11v3l14.14 3.14"}],["path",{d:"M21 15.34V6l-7.31 2.03"}],["path",{d:"M11.6 16.8a3 3 0 1 1-5.8-1.6"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hv=["svg",t,[["path",{d:"m3 11 18-5v12L3 14v-3z"}],["path",{d:"M11.6 16.8a3 3 0 1 1-5.8-1.6"}]]];/**
+ */const S4=["svg",t,[["path",{d:"m3 11 18-5v12L3 14v-3z"}],["path",{d:"M11.6 16.8a3 3 0 1 1-5.8-1.6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sv=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"8",x2:"16",y1:"15",y2:"15"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
+ */const H4=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"8",x2:"16",y1:"15",y2:"15"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Cv=["svg",t,[["path",{d:"M6 19v-3"}],["path",{d:"M10 19v-3"}],["path",{d:"M14 19v-3"}],["path",{d:"M18 19v-3"}],["path",{d:"M8 11V9"}],["path",{d:"M16 11V9"}],["path",{d:"M12 11V9"}],["path",{d:"M2 15h20"}],["path",{d:"M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1.1a2 2 0 0 0 0 3.837V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5.1a2 2 0 0 0 0-3.837Z"}]]];/**
+ */const C4=["svg",t,[["path",{d:"M6 19v-3"}],["path",{d:"M10 19v-3"}],["path",{d:"M14 19v-3"}],["path",{d:"M18 19v-3"}],["path",{d:"M8 11V9"}],["path",{d:"M16 11V9"}],["path",{d:"M12 11V9"}],["path",{d:"M2 15h20"}],["path",{d:"M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1.1a2 2 0 0 0 0 3.837V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5.1a2 2 0 0 0 0-3.837Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Av=["svg",t,[["line",{x1:"4",x2:"20",y1:"12",y2:"12"}],["line",{x1:"4",x2:"20",y1:"6",y2:"6"}],["line",{x1:"4",x2:"20",y1:"18",y2:"18"}]]];/**
+ */const A4=["svg",t,[["line",{x1:"4",x2:"20",y1:"12",y2:"12"}],["line",{x1:"4",x2:"20",y1:"6",y2:"6"}],["line",{x1:"4",x2:"20",y1:"18",y2:"18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Lv=["svg",t,[["path",{d:"m8 6 4-4 4 4"}],["path",{d:"M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22"}],["path",{d:"m20 22-5-5"}]]];/**
+ */const L4=["svg",t,[["path",{d:"m8 6 4-4 4 4"}],["path",{d:"M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22"}],["path",{d:"m20 22-5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vv=["svg",t,[["path",{d:"M10 9.5 8 12l2 2.5"}],["path",{d:"m14 9.5 2 2.5-2 2.5"}],["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22z"}]]];/**
+ */const $4=["svg",t,[["path",{d:"M10 9.5 8 12l2 2.5"}],["path",{d:"m14 9.5 2 2.5-2 2.5"}],["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $v=["svg",t,[["path",{d:"M13.5 3.1c-.5 0-1-.1-1.5-.1s-1 .1-1.5.1"}],["path",{d:"M19.3 6.8a10.45 10.45 0 0 0-2.1-2.1"}],["path",{d:"M20.9 13.5c.1-.5.1-1 .1-1.5s-.1-1-.1-1.5"}],["path",{d:"M17.2 19.3a10.45 10.45 0 0 0 2.1-2.1"}],["path",{d:"M10.5 20.9c.5.1 1 .1 1.5.1s1-.1 1.5-.1"}],["path",{d:"M3.5 17.5 2 22l4.5-1.5"}],["path",{d:"M3.1 10.5c0 .5-.1 1-.1 1.5s.1 1 .1 1.5"}],["path",{d:"M6.8 4.7a10.45 10.45 0 0 0-2.1 2.1"}]]];/**
+ */const V4=["svg",t,[["path",{d:"M13.5 3.1c-.5 0-1-.1-1.5-.1s-1 .1-1.5.1"}],["path",{d:"M19.3 6.8a10.45 10.45 0 0 0-2.1-2.1"}],["path",{d:"M20.9 13.5c.1-.5.1-1 .1-1.5s-.1-1-.1-1.5"}],["path",{d:"M17.2 19.3a10.45 10.45 0 0 0 2.1-2.1"}],["path",{d:"M10.5 20.9c.5.1 1 .1 1.5.1s1-.1 1.5-.1"}],["path",{d:"M3.5 17.5 2 22l4.5-1.5"}],["path",{d:"M3.1 10.5c0 .5-.1 1-.1 1.5s.1 1 .1 1.5"}],["path",{d:"M6.8 4.7a10.45 10.45 0 0 0-2.1 2.1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _v=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M15.8 9.2a2.5 2.5 0 0 0-3.5 0l-.3.4-.35-.3a2.42 2.42 0 1 0-3.2 3.6l3.6 3.5 3.6-3.5c1.2-1.2 1.1-2.7.2-3.7"}]]];/**
+ */const _4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M15.8 9.2a2.5 2.5 0 0 0-3.5 0l-.3.4-.35-.3a2.42 2.42 0 1 0-3.2 3.6l3.6 3.5 3.6-3.5c1.2-1.2 1.1-2.7.2-3.7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tv=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M8 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M16 12h.01"}]]];/**
+ */const T4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M8 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M16 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pv=["svg",t,[["path",{d:"M20.5 14.9A9 9 0 0 0 9.1 3.5"}],["path",{d:"m2 2 20 20"}],["path",{d:"M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"}]]];/**
+ */const P4=["svg",t,[["path",{d:"M20.5 14.9A9 9 0 0 0 9.1 3.5"}],["path",{d:"m2 2 20 20"}],["path",{d:"M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const zv=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M8 12h8"}],["path",{d:"M12 8v8"}]]];/**
+ */const z4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M8 12h8"}],["path",{d:"M12 8v8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const qv=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"}],["path",{d:"M12 17h.01"}]]];/**
+ */const q4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"}],["path",{d:"M12 17h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ev=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"m10 15-3-3 3-3"}],["path",{d:"M7 12h7a2 2 0 0 1 2 2v1"}]]];/**
+ */const E4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"m10 15-3-3 3-3"}],["path",{d:"M7 12h7a2 2 0 0 1 2 2v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Bv=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M12 8v4"}],["path",{d:"M12 16h.01"}]]];/**
+ */const B4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M12 8v4"}],["path",{d:"M12 16h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Dv=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"m15 9-6 6"}],["path",{d:"m9 9 6 6"}]]];/**
+ */const D4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"m15 9-6 6"}],["path",{d:"m9 9 6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Rv=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}]]];/**
+ */const R4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Iv=["svg",t,[["path",{d:"M10 7.5 8 10l2 2.5"}],["path",{d:"m14 7.5 2 2.5-2 2.5"}],["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}]]];/**
+ */const I4=["svg",t,[["path",{d:"M10 7.5 8 10l2 2.5"}],["path",{d:"m14 7.5 2 2.5-2 2.5"}],["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ov=["svg",t,[["path",{d:"M3 6V5c0-1.1.9-2 2-2h2"}],["path",{d:"M11 3h3"}],["path",{d:"M18 3h1c1.1 0 2 .9 2 2"}],["path",{d:"M21 9v2"}],["path",{d:"M21 15c0 1.1-.9 2-2 2h-1"}],["path",{d:"M14 17h-3"}],["path",{d:"m7 17-4 4v-5"}],["path",{d:"M3 12v-2"}]]];/**
+ */const O4=["svg",t,[["path",{d:"M3 6V5c0-1.1.9-2 2-2h2"}],["path",{d:"M11 3h3"}],["path",{d:"M18 3h1c1.1 0 2 .9 2 2"}],["path",{d:"M21 9v2"}],["path",{d:"M21 15c0 1.1-.9 2-2 2h-1"}],["path",{d:"M14 17h-3"}],["path",{d:"m7 17-4 4v-5"}],["path",{d:"M3 12v-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Nv=["svg",t,[["path",{d:"m5 19-2 2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"}],["path",{d:"M9 10h6"}],["path",{d:"M12 7v6"}],["path",{d:"M9 17h6"}]]];/**
+ */const N4=["svg",t,[["path",{d:"m5 19-2 2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"}],["path",{d:"M9 10h6"}],["path",{d:"M12 7v6"}],["path",{d:"M9 17h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zv=["svg",t,[["path",{d:"M11.7 3H5a2 2 0 0 0-2 2v16l4-4h12a2 2 0 0 0 2-2v-2.7"}],["circle",{cx:"18",cy:"6",r:"3"}]]];/**
+ */const F4=["svg",t,[["path",{d:"M11.7 3H5a2 2 0 0 0-2 2v16l4-4h12a2 2 0 0 0 2-2v-2.7"}],["circle",{cx:"18",cy:"6",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M14.8 7.5a1.84 1.84 0 0 0-2.6 0l-.2.3-.3-.3a1.84 1.84 0 1 0-2.4 2.8L12 13l2.7-2.7c.9-.9.8-2.1.1-2.8"}]]];/**
+ */const Z4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M14.8 7.5a1.84 1.84 0 0 0-2.6 0l-.2.3-.3-.3a1.84 1.84 0 1 0-2.4 2.8L12 13l2.7-2.7c.9-.9.8-2.1.1-2.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Uv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M8 10h.01"}],["path",{d:"M12 10h.01"}],["path",{d:"M16 10h.01"}]]];/**
+ */const U4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M8 10h.01"}],["path",{d:"M12 10h.01"}],["path",{d:"M16 10h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gv=["svg",t,[["path",{d:"M21 15V5a2 2 0 0 0-2-2H9"}],["path",{d:"m2 2 20 20"}],["path",{d:"M3.6 3.6c-.4.3-.6.8-.6 1.4v16l4-4h10"}]]];/**
+ */const j4=["svg",t,[["path",{d:"M21 15V5a2 2 0 0 0-2-2H9"}],["path",{d:"m2 2 20 20"}],["path",{d:"M3.6 3.6c-.4.3-.6.8-.6 1.4v16l4-4h10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M12 7v6"}],["path",{d:"M9 10h6"}]]];/**
+ */const G4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M12 7v6"}],["path",{d:"M9 10h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M8 12a2 2 0 0 0 2-2V8H8"}],["path",{d:"M14 12a2 2 0 0 0 2-2V8h-2"}]]];/**
+ */const K4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M8 12a2 2 0 0 0 2-2V8H8"}],["path",{d:"M14 12a2 2 0 0 0 2-2V8h-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"m10 7-3 3 3 3"}],["path",{d:"M17 13v-1a2 2 0 0 0-2-2H7"}]]];/**
+ */const W4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"m10 7-3 3 3 3"}],["path",{d:"M17 13v-1a2 2 0 0 0-2-2H7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jv=["svg",t,[["path",{d:"M21 12v3a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h7"}],["path",{d:"M16 3h5v5"}],["path",{d:"m16 8 5-5"}]]];/**
+ */const J4=["svg",t,[["path",{d:"M21 12v3a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h7"}],["path",{d:"M16 3h5v5"}],["path",{d:"m16 8 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Yv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M13 8H7"}],["path",{d:"M17 12H7"}]]];/**
+ */const Y4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M13 8H7"}],["path",{d:"M17 12H7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Xv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M12 7v2"}],["path",{d:"M12 13h.01"}]]];/**
+ */const X4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M12 7v2"}],["path",{d:"M12 13h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Qv=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"m14.5 7.5-5 5"}],["path",{d:"m9.5 7.5 5 5"}]]];/**
+ */const Q4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"m14.5 7.5-5 5"}],["path",{d:"m9.5 7.5 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4403,12 +4403,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d5=["svg",t,[["rect",{width:"20",height:"15",x:"2",y:"4",rx:"2"}],["rect",{width:"8",height:"7",x:"6",y:"8",rx:"1"}],["path",{d:"M18 8v7"}],["path",{d:"M6 19v2"}],["path",{d:"M18 19v2"}]]];/**
+ */const o5=["svg",t,[["rect",{width:"20",height:"15",x:"2",y:"4",rx:"2"}],["rect",{width:"8",height:"7",x:"6",y:"8",rx:"1"}],["path",{d:"M18 8v7"}],["path",{d:"M6 19v2"}],["path",{d:"M18 19v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o5=["svg",t,[["path",{d:"M18 6H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h13l4-3.5L18 6Z"}],["path",{d:"M12 13v8"}],["path",{d:"M12 3v3"}]]];/**
+ */const d5=["svg",t,[["path",{d:"M18 6H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h13l4-3.5L18 6Z"}],["path",{d:"M12 13v8"}],["path",{d:"M12 3v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4498,12 +4498,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H5=["svg",t,[["path",{d:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"}],["path",{d:"M20 3v4"}],["path",{d:"M22 5h-4"}]]];/**
+ */const S5=["svg",t,[["path",{d:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"}],["path",{d:"M20 3v4"}],["path",{d:"M22 5h-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S5=["svg",t,[["path",{d:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"}]]];/**
+ */const H5=["svg",t,[["path",{d:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4523,12 +4523,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V5=["svg",t,[["path",{d:"m4 4 7.07 17 2.51-7.39L21 11.07z"}]]];/**
+ */const $5=["svg",t,[["path",{d:"m4 4 7.07 17 2.51-7.39L21 11.07z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $5=["svg",t,[["path",{d:"m2 2 4 11 2-5 5-2Z"}],["circle",{cx:"16",cy:"16",r:"6"}],["path",{d:"m11.8 11.8 8.4 8.4"}]]];/**
+ */const V5=["svg",t,[["path",{d:"m2 2 4 11 2-5 5-2Z"}],["circle",{cx:"16",cy:"16",r:"6"}],["path",{d:"m11.8 11.8 8.4 8.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4598,12 +4598,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z5=["svg",t,[["path",{d:"M13 5H19V11"}],["path",{d:"M19 5L5 19"}]]];/**
+ */const F5=["svg",t,[["path",{d:"M13 5H19V11"}],["path",{d:"M19 5L5 19"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F5=["svg",t,[["path",{d:"M8 6L12 2L16 6"}],["path",{d:"M12 2V22"}]]];/**
+ */const Z5=["svg",t,[["path",{d:"M8 6L12 2L16 6"}],["path",{d:"M12 2V22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4613,12 +4613,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G5=["svg",t,[["polyline",{points:"5 9 2 12 5 15"}],["polyline",{points:"9 5 12 2 15 5"}],["polyline",{points:"15 19 12 22 9 19"}],["polyline",{points:"19 9 22 12 19 15"}],["line",{x1:"2",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"22"}]]];/**
+ */const j5=["svg",t,[["polyline",{points:"5 9 2 12 5 15"}],["polyline",{points:"9 5 12 2 15 5"}],["polyline",{points:"15 19 12 22 9 19"}],["polyline",{points:"19 9 22 12 19 15"}],["line",{x1:"2",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j5=["svg",t,[["circle",{cx:"8",cy:"18",r:"4"}],["path",{d:"M12 18V2l7 4"}]]];/**
+ */const G5=["svg",t,[["circle",{cx:"8",cy:"18",r:"4"}],["path",{d:"M12 18V2l7 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4653,62 +4653,62 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const t3=["svg",t,[["polygon",{points:"3 11 22 2 13 21 11 13 3 11"}]]];/**
+ */const tm=["svg",t,[["polygon",{points:"3 11 22 2 13 21 11 13 3 11"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const e3=["svg",t,[["rect",{x:"16",y:"16",width:"6",height:"6",rx:"1"}],["rect",{x:"2",y:"16",width:"6",height:"6",rx:"1"}],["rect",{x:"9",y:"2",width:"6",height:"6",rx:"1"}],["path",{d:"M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"}],["path",{d:"M12 12V8"}]]];/**
+ */const em=["svg",t,[["rect",{x:"16",y:"16",width:"6",height:"6",rx:"1"}],["rect",{x:"2",y:"16",width:"6",height:"6",rx:"1"}],["rect",{x:"9",y:"2",width:"6",height:"6",rx:"1"}],["path",{d:"M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"}],["path",{d:"M12 12V8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const a3=["svg",t,[["path",{d:"M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"}],["path",{d:"M18 14h-8"}],["path",{d:"M15 18h-5"}],["path",{d:"M10 6h8v4h-8V6Z"}]]];/**
+ */const am=["svg",t,[["path",{d:"M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"}],["path",{d:"M18 14h-8"}],["path",{d:"M15 18h-5"}],["path",{d:"M10 6h8v4h-8V6Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const i3=["svg",t,[["path",{d:"M6 8.32a7.43 7.43 0 0 1 0 7.36"}],["path",{d:"M9.46 6.21a11.76 11.76 0 0 1 0 11.58"}],["path",{d:"M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"}],["path",{d:"M16.37 2a20.16 20.16 0 0 1 0 20"}]]];/**
+ */const im=["svg",t,[["path",{d:"M6 8.32a7.43 7.43 0 0 1 0 7.36"}],["path",{d:"M9.46 6.21a11.76 11.76 0 0 1 0 11.58"}],["path",{d:"M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"}],["path",{d:"M16.37 2a20.16 20.16 0 0 1 0 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const s3=["svg",t,[["path",{d:"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"}],["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["path",{d:"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"}]]];/**
+ */const sm=["svg",t,[["path",{d:"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"}],["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["path",{d:"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d3=["svg",t,[["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["path",{d:"M15 2v20"}],["path",{d:"M15 7h5"}],["path",{d:"M15 12h5"}],["path",{d:"M15 17h5"}]]];/**
+ */const om=["svg",t,[["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["path",{d:"M15 2v20"}],["path",{d:"M15 7h5"}],["path",{d:"M15 12h5"}],["path",{d:"M15 17h5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o3=["svg",t,[["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["path",{d:"M9.5 8h5"}],["path",{d:"M9.5 12H16"}],["path",{d:"M9.5 16H14"}]]];/**
+ */const dm=["svg",t,[["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["path",{d:"M9.5 8h5"}],["path",{d:"M9.5 12H16"}],["path",{d:"M9.5 16H14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const r3=["svg",t,[["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["path",{d:"M16 2v20"}]]];/**
+ */const rm=["svg",t,[["path",{d:"M2 6h4"}],["path",{d:"M2 10h4"}],["path",{d:"M2 14h4"}],["path",{d:"M2 18h4"}],["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2"}],["path",{d:"M16 2v20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const n3=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M12 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v2"}],["path",{d:"M20 12v2"}],["path",{d:"M20 18v2a2 2 0 0 1-2 2h-1"}],["path",{d:"M13 22h-2"}],["path",{d:"M7 22H6a2 2 0 0 1-2-2v-2"}],["path",{d:"M4 14v-2"}],["path",{d:"M4 8V6a2 2 0 0 1 2-2h2"}],["path",{d:"M8 10h6"}],["path",{d:"M8 14h8"}],["path",{d:"M8 18h5"}]]];/**
+ */const nm=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M12 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v2"}],["path",{d:"M20 12v2"}],["path",{d:"M20 18v2a2 2 0 0 1-2 2h-1"}],["path",{d:"M13 22h-2"}],["path",{d:"M7 22H6a2 2 0 0 1-2-2v-2"}],["path",{d:"M4 14v-2"}],["path",{d:"M4 8V6a2 2 0 0 1 2-2h2"}],["path",{d:"M8 10h6"}],["path",{d:"M8 14h8"}],["path",{d:"M8 18h5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const c3=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M12 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"16",height:"18",x:"4",y:"4",rx:"2"}],["path",{d:"M8 10h6"}],["path",{d:"M8 14h8"}],["path",{d:"M8 18h5"}]]];/**
+ */const cm=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M12 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"16",height:"18",x:"4",y:"4",rx:"2"}],["path",{d:"M8 10h6"}],["path",{d:"M8 14h8"}],["path",{d:"M8 18h5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l3=["svg",t,[["path",{d:"M12 4V2"}],["path",{d:"M5 10v4a7.004 7.004 0 0 0 5.277 6.787c.412.104.802.292 1.102.592L12 22l.621-.621c.3-.3.69-.488 1.102-.592a7.01 7.01 0 0 0 4.125-2.939"}],["path",{d:"M19 10v3.343"}],["path",{d:"M12 12c-1.349-.573-1.905-1.005-2.5-2-.546.902-1.048 1.353-2.5 2-1.018-.644-1.46-1.08-2-2-1.028.71-1.69.918-3 1 1.081-1.048 1.757-2.03 2-3 .194-.776.84-1.551 1.79-2.21m11.654 5.997c.887-.457 1.28-.891 1.556-1.787 1.032.916 1.683 1.157 3 1-1.297-1.036-1.758-2.03-2-3-.5-2-4-4-8-4-.74 0-1.461.068-2.15.192"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const lm=["svg",t,[["path",{d:"M12 4V2"}],["path",{d:"M5 10v4a7.004 7.004 0 0 0 5.277 6.787c.412.104.802.292 1.102.592L12 22l.621-.621c.3-.3.69-.488 1.102-.592a7.01 7.01 0 0 0 4.125-2.939"}],["path",{d:"M19 10v3.343"}],["path",{d:"M12 12c-1.349-.573-1.905-1.005-2.5-2-.546.902-1.048 1.353-2.5 2-1.018-.644-1.46-1.08-2-2-1.028.71-1.69.918-3 1 1.081-1.048 1.757-2.03 2-3 .194-.776.84-1.551 1.79-2.21m11.654 5.997c.887-.457 1.28-.891 1.556-1.787 1.032.916 1.683 1.157 3 1-1.297-1.036-1.758-2.03-2-3-.5-2-4-4-8-4-.74 0-1.461.068-2.15.192"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const h3=["svg",t,[["path",{d:"M12 4V2"}],["path",{d:"M5 10v4a7.004 7.004 0 0 0 5.277 6.787c.412.104.802.292 1.102.592L12 22l.621-.621c.3-.3.69-.488 1.102-.592A7.003 7.003 0 0 0 19 14v-4"}],["path",{d:"M12 4C8 4 4.5 6 4 8c-.243.97-.919 1.952-2 3 1.31-.082 1.972-.29 3-1 .54.92.982 1.356 2 2 1.452-.647 1.954-1.098 2.5-2 .595.995 1.151 1.427 2.5 2 1.31-.621 1.862-1.058 2.5-2 .629.977 1.162 1.423 2.5 2 1.209-.548 1.68-.967 2-2 1.032.916 1.683 1.157 3 1-1.297-1.036-1.758-2.03-2-3-.5-2-4-4-8-4Z"}]]];/**
+ */const hm=["svg",t,[["path",{d:"M12 4V2"}],["path",{d:"M5 10v4a7.004 7.004 0 0 0 5.277 6.787c.412.104.802.292 1.102.592L12 22l.621-.621c.3-.3.69-.488 1.102-.592A7.003 7.003 0 0 0 19 14v-4"}],["path",{d:"M12 4C8 4 4.5 6 4 8c-.243.97-.919 1.952-2 3 1.31-.082 1.972-.29 3-1 .54.92.982 1.356 2 2 1.452-.647 1.954-1.098 2.5-2 .595.995 1.151 1.427 2.5 2 1.31-.621 1.862-1.058 2.5-2 .629.977 1.162 1.423 2.5 2 1.209-.548 1.68-.967 2-2 1.032.916 1.683 1.157 3 1-1.297-1.036-1.758-2.03-2-3-.5-2-4-4-8-4Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4728,107 +4728,107 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const p3=["svg",t,[["polygon",{points:"7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"}]]];/**
+ */const pm=["svg",t,[["polygon",{points:"7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const v3=["svg",t,[["path",{d:"M3 3h6l6 18h6"}],["path",{d:"M14 3h7"}]]];/**
+ */const vm=["svg",t,[["path",{d:"M3 3h6l6 18h6"}],["path",{d:"M14 3h7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const m3=["svg",t,[["circle",{cx:"12",cy:"12",r:"3"}],["circle",{cx:"19",cy:"5",r:"2"}],["circle",{cx:"5",cy:"19",r:"2"}],["path",{d:"M10.4 21.9a10 10 0 0 0 9.941-15.416"}],["path",{d:"M13.5 2.1a10 10 0 0 0-9.841 15.416"}]]];/**
+ */const mm=["svg",t,[["circle",{cx:"12",cy:"12",r:"3"}],["circle",{cx:"19",cy:"5",r:"2"}],["circle",{cx:"5",cy:"19",r:"2"}],["path",{d:"M10.4 21.9a10 10 0 0 0 9.941-15.416"}],["path",{d:"M13.5 2.1a10 10 0 0 0-9.841 15.416"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const g3=["svg",t,[["path",{d:"M12 12V4a1 1 0 0 1 1-1h6.297a1 1 0 0 1 .651 1.759l-4.696 4.025"}],["path",{d:"m12 21-7.414-7.414A2 2 0 0 1 4 12.172V6.415a1.002 1.002 0 0 1 1.707-.707L20 20.009"}],["path",{d:"m12.214 3.381 8.414 14.966a1 1 0 0 1-.167 1.199l-1.168 1.163a1 1 0 0 1-.706.291H6.351a1 1 0 0 1-.625-.219L3.25 18.8a1 1 0 0 1 .631-1.781l4.165.027"}]]];/**
+ */const gm=["svg",t,[["path",{d:"M12 12V4a1 1 0 0 1 1-1h6.297a1 1 0 0 1 .651 1.759l-4.696 4.025"}],["path",{d:"m12 21-7.414-7.414A2 2 0 0 1 4 12.172V6.415a1.002 1.002 0 0 1 1.707-.707L20 20.009"}],["path",{d:"m12.214 3.381 8.414 14.966a1 1 0 0 1-.167 1.199l-1.168 1.163a1 1 0 0 1-.706.291H6.351a1 1 0 0 1-.625-.219L3.25 18.8a1 1 0 0 1 .631-1.781l4.165.027"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const u3=["svg",t,[["path",{d:"M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"}],["path",{d:"m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"}],["path",{d:"M12 3v6"}]]];/**
+ */const um=["svg",t,[["path",{d:"M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"}],["path",{d:"m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"}],["path",{d:"M12 3v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const y3=["svg",t,[["path",{d:"m16 16 2 2 4-4"}],["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}]]];/**
+ */const ym=["svg",t,[["path",{d:"m16 16 2 2 4-4"}],["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const M3=["svg",t,[["path",{d:"M16 16h6"}],["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}]]];/**
+ */const Mm=["svg",t,[["path",{d:"M16 16h6"}],["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const x3=["svg",t,[["path",{d:"M12 22v-9"}],["path",{d:"M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.655 1.655 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z"}],["path",{d:"M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13"}],["path",{d:"M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.636 1.636 0 0 0 1.63 0z"}]]];/**
+ */const xm=["svg",t,[["path",{d:"M12 22v-9"}],["path",{d:"M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.655 1.655 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z"}],["path",{d:"M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13"}],["path",{d:"M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.636 1.636 0 0 0 1.63 0z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const f3=["svg",t,[["path",{d:"M16 16h6"}],["path",{d:"M19 13v6"}],["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}]]];/**
+ */const fm=["svg",t,[["path",{d:"M16 16h6"}],["path",{d:"M19 13v6"}],["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const b3=["svg",t,[["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}],["circle",{cx:"18.5",cy:"15.5",r:"2.5"}],["path",{d:"M20.27 17.27 22 19"}]]];/**
+ */const bm=["svg",t,[["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}],["circle",{cx:"18.5",cy:"15.5",r:"2.5"}],["path",{d:"M20.27 17.27 22 19"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const w3=["svg",t,[["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}],["path",{d:"m17 13 5 5m-5 0 5-5"}]]];/**
+ */const wm=["svg",t,[["path",{d:"M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"}],["path",{d:"m7.5 4.27 9 5.15"}],["polyline",{points:"3.29 7 12 12 20.71 7"}],["line",{x1:"12",x2:"12",y1:"22",y2:"12"}],["path",{d:"m17 13 5 5m-5 0 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const k3=["svg",t,[["path",{d:"m7.5 4.27 9 5.15"}],["path",{d:"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"}],["path",{d:"m3.3 7 8.7 5 8.7-5"}],["path",{d:"M12 22V12"}]]];/**
+ */const km=["svg",t,[["path",{d:"m7.5 4.27 9 5.15"}],["path",{d:"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"}],["path",{d:"m3.3 7 8.7 5 8.7-5"}],["path",{d:"M12 22V12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H3=["svg",t,[["path",{d:"m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"}],["path",{d:"m5 2 5 5"}],["path",{d:"M2 13h15"}],["path",{d:"M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"}]]];/**
+ */const Sm=["svg",t,[["path",{d:"m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"}],["path",{d:"m5 2 5 5"}],["path",{d:"M2 13h15"}],["path",{d:"M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S3=["svg",t,[["rect",{width:"16",height:"6",x:"2",y:"2",rx:"2"}],["path",{d:"M10 16v-2a2 2 0 0 1 2-2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"}],["rect",{width:"4",height:"6",x:"8",y:"16",rx:"1"}]]];/**
+ */const Hm=["svg",t,[["rect",{width:"16",height:"6",x:"2",y:"2",rx:"2"}],["path",{d:"M10 16v-2a2 2 0 0 1 2-2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"}],["rect",{width:"4",height:"6",x:"8",y:"16",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const He=["svg",t,[["path",{d:"M10 2v2"}],["path",{d:"M14 2v4"}],["path",{d:"M17 2a1 1 0 0 1 1 1v9H6V3a1 1 0 0 1 1-1z"}],["path",{d:"M6 12a1 1 0 0 0-1 1v1a2 2 0 0 0 2 2h2a1 1 0 0 1 1 1v2.9a2 2 0 1 0 4 0V17a1 1 0 0 1 1-1h2a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1"}]]];/**
+ */const Se=["svg",t,[["path",{d:"M10 2v2"}],["path",{d:"M14 2v4"}],["path",{d:"M17 2a1 1 0 0 1 1 1v9H6V3a1 1 0 0 1 1-1z"}],["path",{d:"M6 12a1 1 0 0 0-1 1v1a2 2 0 0 0 2 2h2a1 1 0 0 1 1 1v2.9a2 2 0 1 0 4 0V17a1 1 0 0 1 1-1h2a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const C3=["svg",t,[["path",{d:"m14.622 17.897-10.68-2.913"}],["path",{d:"M18.376 2.622a1 1 0 1 1 3.002 3.002L17.36 9.643a.5.5 0 0 0 0 .707l.944.944a2.41 2.41 0 0 1 0 3.408l-.944.944a.5.5 0 0 1-.707 0L8.354 7.348a.5.5 0 0 1 0-.707l.944-.944a2.41 2.41 0 0 1 3.408 0l.944.944a.5.5 0 0 0 .707 0z"}],["path",{d:"M9 8c-1.804 2.71-3.97 3.46-6.583 3.948a.507.507 0 0 0-.302.819l7.32 8.883a1 1 0 0 0 1.185.204C12.735 20.405 16 16.792 16 15"}]]];/**
+ */const Cm=["svg",t,[["path",{d:"m14.622 17.897-10.68-2.913"}],["path",{d:"M18.376 2.622a1 1 0 1 1 3.002 3.002L17.36 9.643a.5.5 0 0 0 0 .707l.944.944a2.41 2.41 0 0 1 0 3.408l-.944.944a.5.5 0 0 1-.707 0L8.354 7.348a.5.5 0 0 1 0-.707l.944-.944a2.41 2.41 0 0 1 3.408 0l.944.944a.5.5 0 0 0 .707 0z"}],["path",{d:"M9 8c-1.804 2.71-3.97 3.46-6.583 3.948a.507.507 0 0 0-.302.819l7.32 8.883a1 1 0 0 0 1.185.204C12.735 20.405 16 16.792 16 15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const A3=["svg",t,[["circle",{cx:"13.5",cy:"6.5",r:".5",fill:"currentColor"}],["circle",{cx:"17.5",cy:"10.5",r:".5",fill:"currentColor"}],["circle",{cx:"8.5",cy:"7.5",r:".5",fill:"currentColor"}],["circle",{cx:"6.5",cy:"12.5",r:".5",fill:"currentColor"}],["path",{d:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"}]]];/**
+ */const Am=["svg",t,[["circle",{cx:"13.5",cy:"6.5",r:".5",fill:"currentColor"}],["circle",{cx:"17.5",cy:"10.5",r:".5",fill:"currentColor"}],["circle",{cx:"8.5",cy:"7.5",r:".5",fill:"currentColor"}],["circle",{cx:"6.5",cy:"12.5",r:".5",fill:"currentColor"}],["path",{d:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const L3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h18"}],["path",{d:"m15 8-3 3-3-3"}]]];/**
+ */const Lm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h18"}],["path",{d:"m15 8-3 3-3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Se=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M14 15h1"}],["path",{d:"M19 15h2"}],["path",{d:"M3 15h2"}],["path",{d:"M9 15h1"}]]];/**
+ */const He=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M14 15h1"}],["path",{d:"M19 15h2"}],["path",{d:"M3 15h2"}],["path",{d:"M9 15h1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h18"}],["path",{d:"m9 10 3-3 3 3"}]]];/**
+ */const $m=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h18"}],["path",{d:"m9 10 3-3 3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h18"}]]];/**
+ */const Vm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4848,32 +4848,32 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ve=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}]]];/**
+ */const $e=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}],["path",{d:"m8 9 3 3-3 3"}]]];/**
+ */const _m=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}],["path",{d:"m8 9 3 3-3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $e=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 14v1"}],["path",{d:"M15 19v2"}],["path",{d:"M15 3v2"}],["path",{d:"M15 9v1"}]]];/**
+ */const Ve=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 14v1"}],["path",{d:"M15 19v2"}],["path",{d:"M15 3v2"}],["path",{d:"M15 9v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}],["path",{d:"m10 15-3-3 3-3"}]]];/**
+ */const Tm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}],["path",{d:"m10 15-3-3 3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}]]];/**
+ */const Pm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const z3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"m9 16 3-3 3 3"}]]];/**
+ */const zm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"m9 16 3-3 3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4883,22 +4883,22 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const q3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"m15 14-3 3-3-3"}]]];/**
+ */const qm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"m15 14-3 3-3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const E3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}]]];/**
+ */const Em=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const B3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}],["path",{d:"M9 15h12"}]]];/**
+ */const Bm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}],["path",{d:"M9 15h12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const D3=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h12"}],["path",{d:"M15 3v18"}]]];/**
+ */const Dm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 15h12"}],["path",{d:"M15 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4908,37 +4908,37 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const R3=["svg",t,[["path",{d:"m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"}]]];/**
+ */const Rm=["svg",t,[["path",{d:"m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const I3=["svg",t,[["path",{d:"M8 21s-4-3-4-9 4-9 4-9"}],["path",{d:"M16 3s4 3 4 9-4 9-4 9"}]]];/**
+ */const Im=["svg",t,[["path",{d:"M8 21s-4-3-4-9 4-9 4-9"}],["path",{d:"M16 3s4 3 4 9-4 9-4 9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const O3=["svg",t,[["path",{d:"M9 9a3 3 0 1 1 6 0"}],["path",{d:"M12 12v3"}],["path",{d:"M11 15h2"}],["path",{d:"M19 9a7 7 0 1 0-13.6 2.3C6.4 14.4 8 19 8 19h8s1.6-4.6 2.6-7.7c.3-.8.4-1.5.4-2.3"}],["path",{d:"M12 19v3"}]]];/**
+ */const Om=["svg",t,[["path",{d:"M9 9a3 3 0 1 1 6 0"}],["path",{d:"M12 12v3"}],["path",{d:"M11 15h2"}],["path",{d:"M19 9a7 7 0 1 0-13.6 2.3C6.4 14.4 8 19 8 19h8s1.6-4.6 2.6-7.7c.3-.8.4-1.5.4-2.3"}],["path",{d:"M12 19v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const N3=["svg",t,[["path",{d:"M5.8 11.3 2 22l10.7-3.79"}],["path",{d:"M4 3h.01"}],["path",{d:"M22 8h.01"}],["path",{d:"M15 2h.01"}],["path",{d:"M22 20h.01"}],["path",{d:"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"}],["path",{d:"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"}],["path",{d:"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"}],["path",{d:"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"}]]];/**
+ */const Nm=["svg",t,[["path",{d:"M5.8 11.3 2 22l10.7-3.79"}],["path",{d:"M4 3h.01"}],["path",{d:"M22 8h.01"}],["path",{d:"M15 2h.01"}],["path",{d:"M22 20h.01"}],["path",{d:"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"}],["path",{d:"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"}],["path",{d:"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"}],["path",{d:"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z3=["svg",t,[["rect",{x:"14",y:"4",width:"4",height:"16",rx:"1"}],["rect",{x:"6",y:"4",width:"4",height:"16",rx:"1"}]]];/**
+ */const Fm=["svg",t,[["rect",{x:"14",y:"4",width:"4",height:"16",rx:"1"}],["rect",{x:"6",y:"4",width:"4",height:"16",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F3=["svg",t,[["circle",{cx:"11",cy:"4",r:"2"}],["circle",{cx:"18",cy:"8",r:"2"}],["circle",{cx:"20",cy:"16",r:"2"}],["path",{d:"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"}]]];/**
+ */const Zm=["svg",t,[["circle",{cx:"11",cy:"4",r:"2"}],["circle",{cx:"18",cy:"8",r:"2"}],["circle",{cx:"20",cy:"16",r:"2"}],["path",{d:"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const U3=["svg",t,[["rect",{width:"14",height:"20",x:"5",y:"2",rx:"2"}],["path",{d:"M15 14h.01"}],["path",{d:"M9 6h6"}],["path",{d:"M9 10h6"}]]];/**
+ */const Um=["svg",t,[["rect",{width:"14",height:"20",x:"5",y:"2",rx:"2"}],["path",{d:"M15 14h.01"}],["path",{d:"M9 6h6"}],["path",{d:"M9 10h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4948,12 +4948,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G3=["svg",t,[["path",{d:"m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982"}],["path",{d:"m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const jm=["svg",t,[["path",{d:"m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982"}],["path",{d:"m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j3=["svg",t,[["path",{d:"M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z"}],["path",{d:"m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18"}],["path",{d:"m2.3 2.3 7.286 7.286"}],["circle",{cx:"11",cy:"11",r:"2"}]]];/**
+ */const Gm=["svg",t,[["path",{d:"M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z"}],["path",{d:"m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18"}],["path",{d:"m2.3 2.3 7.286 7.286"}],["circle",{cx:"11",cy:"11",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4963,302 +4963,302 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K3=["svg",t,[["path",{d:"M12 20h9"}],["path",{d:"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"}],["path",{d:"m15 5 3 3"}]]];/**
+ */const Km=["svg",t,[["path",{d:"M12 20h9"}],["path",{d:"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"}],["path",{d:"m15 5 3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W3=["svg",t,[["path",{d:"m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982"}],["path",{d:"m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353"}],["path",{d:"m15 5 4 4"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const Wm=["svg",t,[["path",{d:"m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982"}],["path",{d:"m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353"}],["path",{d:"m15 5 4 4"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J3=["svg",t,[["path",{d:"M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"}],["path",{d:"m8 6 2-2"}],["path",{d:"m18 16 2-2"}],["path",{d:"m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17"}],["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"}],["path",{d:"m15 5 4 4"}]]];/**
+ */const Jm=["svg",t,[["path",{d:"M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"}],["path",{d:"m8 6 2-2"}],["path",{d:"m18 16 2-2"}],["path",{d:"m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17"}],["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"}],["path",{d:"m15 5 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Y3=["svg",t,[["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"}],["path",{d:"m15 5 4 4"}]]];/**
+ */const Ym=["svg",t,[["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"}],["path",{d:"m15 5 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const X3=["svg",t,[["path",{d:"M3.5 8.7c-.7.5-1 1.4-.7 2.2l2.8 8.7c.3.8 1 1.4 1.9 1.4h9.1c.9 0 1.6-.6 1.9-1.4l2.8-8.7c.3-.8 0-1.7-.7-2.2l-7.4-5.3a2.1 2.1 0 0 0-2.4 0Z"}]]];/**
+ */const Xm=["svg",t,[["path",{d:"M3.5 8.7c-.7.5-1 1.4-.7 2.2l2.8 8.7c.3.8 1 1.4 1.9 1.4h9.1c.9 0 1.6-.6 1.9-1.4l2.8-8.7c.3-.8 0-1.7-.7-2.2l-7.4-5.3a2.1 2.1 0 0 0-2.4 0Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Q3=["svg",t,[["line",{x1:"19",x2:"5",y1:"5",y2:"19"}],["circle",{cx:"6.5",cy:"6.5",r:"2.5"}],["circle",{cx:"17.5",cy:"17.5",r:"2.5"}]]];/**
+ */const Qm=["svg",t,[["line",{x1:"19",x2:"5",y1:"5",y2:"19"}],["circle",{cx:"6.5",cy:"6.5",r:"2.5"}],["circle",{cx:"17.5",cy:"17.5",r:"2.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const tm=["svg",t,[["circle",{cx:"12",cy:"5",r:"1"}],["path",{d:"m9 20 3-6 3 6"}],["path",{d:"m6 8 6 2 6-2"}],["path",{d:"M12 10v4"}]]];/**
+ */const t3=["svg",t,[["circle",{cx:"12",cy:"5",r:"1"}],["path",{d:"m9 20 3-6 3 6"}],["path",{d:"m6 8 6 2 6-2"}],["path",{d:"M12 10v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const em=["svg",t,[["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}],["path",{d:"M14.05 2a9 9 0 0 1 8 7.94"}],["path",{d:"M14.05 6A5 5 0 0 1 18 10"}]]];/**
+ */const e3=["svg",t,[["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}],["path",{d:"M14.05 2a9 9 0 0 1 8 7.94"}],["path",{d:"M14.05 6A5 5 0 0 1 18 10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const am=["svg",t,[["polyline",{points:"18 2 22 6 18 10"}],["line",{x1:"14",x2:"22",y1:"6",y2:"6"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
+ */const a3=["svg",t,[["polyline",{points:"18 2 22 6 18 10"}],["line",{x1:"14",x2:"22",y1:"6",y2:"6"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const im=["svg",t,[["polyline",{points:"16 2 16 8 22 8"}],["line",{x1:"22",x2:"16",y1:"2",y2:"8"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
+ */const i3=["svg",t,[["polyline",{points:"16 2 16 8 22 8"}],["line",{x1:"22",x2:"16",y1:"2",y2:"8"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const sm=["svg",t,[["line",{x1:"22",x2:"16",y1:"2",y2:"8"}],["line",{x1:"16",x2:"22",y1:"2",y2:"8"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
+ */const s3=["svg",t,[["line",{x1:"22",x2:"16",y1:"2",y2:"8"}],["line",{x1:"16",x2:"22",y1:"2",y2:"8"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dm=["svg",t,[["path",{d:"M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"}],["line",{x1:"22",x2:"2",y1:"2",y2:"22"}]]];/**
+ */const o3=["svg",t,[["path",{d:"M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"}],["line",{x1:"22",x2:"2",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const om=["svg",t,[["polyline",{points:"22 8 22 2 16 2"}],["line",{x1:"16",x2:"22",y1:"8",y2:"2"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
+ */const d3=["svg",t,[["polyline",{points:"22 8 22 2 16 2"}],["line",{x1:"16",x2:"22",y1:"8",y2:"2"}],["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const rm=["svg",t,[["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
+ */const r3=["svg",t,[["path",{d:"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const nm=["svg",t,[["line",{x1:"9",x2:"9",y1:"4",y2:"20"}],["path",{d:"M4 7c0-1.7 1.3-3 3-3h13"}],["path",{d:"M18 20c-1.7 0-3-1.3-3-3V4"}]]];/**
+ */const n3=["svg",t,[["line",{x1:"9",x2:"9",y1:"4",y2:"20"}],["path",{d:"M4 7c0-1.7 1.3-3 3-3h13"}],["path",{d:"M18 20c-1.7 0-3-1.3-3-3V4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const cm=["svg",t,[["path",{d:"M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8"}],["path",{d:"M2 14h20"}],["path",{d:"M6 14v4"}],["path",{d:"M10 14v4"}],["path",{d:"M14 14v4"}],["path",{d:"M18 14v4"}]]];/**
+ */const c3=["svg",t,[["path",{d:"M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8"}],["path",{d:"M2 14h20"}],["path",{d:"M6 14v4"}],["path",{d:"M10 14v4"}],["path",{d:"M14 14v4"}],["path",{d:"M18 14v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const lm=["svg",t,[["path",{d:"M14.531 12.469 6.619 20.38a1 1 0 1 1-3-3l7.912-7.912"}],["path",{d:"M15.686 4.314A12.5 12.5 0 0 0 5.461 2.958 1 1 0 0 0 5.58 4.71a22 22 0 0 1 6.318 3.393"}],["path",{d:"M17.7 3.7a1 1 0 0 0-1.4 0l-4.6 4.6a1 1 0 0 0 0 1.4l2.6 2.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z"}],["path",{d:"M19.686 8.314a12.501 12.501 0 0 1 1.356 10.225 1 1 0 0 1-1.751-.119 22 22 0 0 0-3.393-6.319"}]]];/**
+ */const l3=["svg",t,[["path",{d:"M14.531 12.469 6.619 20.38a1 1 0 1 1-3-3l7.912-7.912"}],["path",{d:"M15.686 4.314A12.5 12.5 0 0 0 5.461 2.958 1 1 0 0 0 5.58 4.71a22 22 0 0 1 6.318 3.393"}],["path",{d:"M17.7 3.7a1 1 0 0 0-1.4 0l-4.6 4.6a1 1 0 0 0 0 1.4l2.6 2.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z"}],["path",{d:"M19.686 8.314a12.501 12.501 0 0 1 1.356 10.225 1 1 0 0 1-1.751-.119 22 22 0 0 0-3.393-6.319"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const hm=["svg",t,[["path",{d:"M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"}],["rect",{width:"10",height:"7",x:"12",y:"13",rx:"2"}]]];/**
+ */const h3=["svg",t,[["path",{d:"M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4"}],["rect",{width:"10",height:"7",x:"12",y:"13",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const pm=["svg",t,[["path",{d:"M8 4.5v5H3m-1-6 6 6m13 0v-3c0-1.16-.84-2-2-2h-7m-9 9v2c0 1.05.95 2 2 2h3"}],["rect",{width:"10",height:"7",x:"12",y:"13.5",ry:"2"}]]];/**
+ */const p3=["svg",t,[["path",{d:"M8 4.5v5H3m-1-6 6 6m13 0v-3c0-1.16-.84-2-2-2h-7m-9 9v2c0 1.05.95 2 2 2h3"}],["rect",{width:"10",height:"7",x:"12",y:"13.5",ry:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const vm=["svg",t,[["path",{d:"M21.21 15.89A10 10 0 1 1 8 2.83"}],["path",{d:"M22 12A10 10 0 0 0 12 2v10z"}]]];/**
+ */const v3=["svg",t,[["path",{d:"M21.21 15.89A10 10 0 1 1 8 2.83"}],["path",{d:"M22 12A10 10 0 0 0 12 2v10z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const mm=["svg",t,[["path",{d:"M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"}],["path",{d:"M2 9v1c0 1.1.9 2 2 2h1"}],["path",{d:"M16 11h.01"}]]];/**
+ */const m3=["svg",t,[["path",{d:"M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"}],["path",{d:"M2 9v1c0 1.1.9 2 2 2h1"}],["path",{d:"M16 11h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const gm=["svg",t,[["path",{d:"M14 3v11"}],["path",{d:"M14 9h-3a3 3 0 0 1 0-6h9"}],["path",{d:"M18 3v11"}],["path",{d:"M22 18H2l4-4"}],["path",{d:"m6 22-4-4"}]]];/**
+ */const g3=["svg",t,[["path",{d:"M14 3v11"}],["path",{d:"M14 9h-3a3 3 0 0 1 0-6h9"}],["path",{d:"M18 3v11"}],["path",{d:"M22 18H2l4-4"}],["path",{d:"m6 22-4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const um=["svg",t,[["path",{d:"M10 3v11"}],["path",{d:"M10 9H7a1 1 0 0 1 0-6h8"}],["path",{d:"M14 3v11"}],["path",{d:"m18 14 4 4H2"}],["path",{d:"m22 18-4 4"}]]];/**
+ */const u3=["svg",t,[["path",{d:"M10 3v11"}],["path",{d:"M10 9H7a1 1 0 0 1 0-6h8"}],["path",{d:"M14 3v11"}],["path",{d:"m18 14 4 4H2"}],["path",{d:"m22 18-4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ym=["svg",t,[["path",{d:"M13 4v16"}],["path",{d:"M17 4v16"}],["path",{d:"M19 4H9.5a4.5 4.5 0 0 0 0 9H13"}]]];/**
+ */const y3=["svg",t,[["path",{d:"M13 4v16"}],["path",{d:"M17 4v16"}],["path",{d:"M19 4H9.5a4.5 4.5 0 0 0 0 9H13"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Mm=["svg",t,[["path",{d:"M18 11h-4a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h4"}],["path",{d:"M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"}],["rect",{width:"16",height:"5",x:"4",y:"2",rx:"1"}]]];/**
+ */const M3=["svg",t,[["path",{d:"M18 11h-4a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h4"}],["path",{d:"M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"}],["rect",{width:"16",height:"5",x:"4",y:"2",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const xm=["svg",t,[["path",{d:"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"}],["path",{d:"m8.5 8.5 7 7"}]]];/**
+ */const x3=["svg",t,[["path",{d:"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"}],["path",{d:"m8.5 8.5 7 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const fm=["svg",t,[["path",{d:"M12 17v5"}],["path",{d:"M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89"}],["path",{d:"m2 2 20 20"}],["path",{d:"M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"}]]];/**
+ */const f3=["svg",t,[["path",{d:"M12 17v5"}],["path",{d:"M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89"}],["path",{d:"m2 2 20 20"}],["path",{d:"M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const bm=["svg",t,[["path",{d:"M12 17v5"}],["path",{d:"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"}]]];/**
+ */const b3=["svg",t,[["path",{d:"M12 17v5"}],["path",{d:"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const wm=["svg",t,[["path",{d:"m2 22 1-1h3l9-9"}],["path",{d:"M3 21v-3l9-9"}],["path",{d:"m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"}]]];/**
+ */const w3=["svg",t,[["path",{d:"m2 22 1-1h3l9-9"}],["path",{d:"M3 21v-3l9-9"}],["path",{d:"m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const km=["svg",t,[["path",{d:"M15 11h.01"}],["path",{d:"M11 15h.01"}],["path",{d:"M16 16h.01"}],["path",{d:"m2 16 20 6-6-20A20 20 0 0 0 2 16"}],["path",{d:"M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4"}]]];/**
+ */const k3=["svg",t,[["path",{d:"M15 11h.01"}],["path",{d:"M11 15h.01"}],["path",{d:"M16 16h.01"}],["path",{d:"m2 16 20 6-6-20A20 20 0 0 0 2 16"}],["path",{d:"M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hm=["svg",t,[["path",{d:"M2 22h20"}],["path",{d:"M3.77 10.77 2 9l2-4.5 1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6 1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38Z"}]]];/**
+ */const S3=["svg",t,[["path",{d:"M2 22h20"}],["path",{d:"M3.77 10.77 2 9l2-4.5 1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6 1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sm=["svg",t,[["path",{d:"M2 22h20"}],["path",{d:"M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l.9-.45a2 2 0 0 1 2.09.2l4.02 3a2 2 0 0 0 2.1.2l4.19-2.06a2.41 2.41 0 0 1 1.73-.17L21 7a1.4 1.4 0 0 1 .87 1.99l-.38.76c-.23.46-.6.84-1.07 1.08L7.58 17.2a2 2 0 0 1-1.22.18Z"}]]];/**
+ */const H3=["svg",t,[["path",{d:"M2 22h20"}],["path",{d:"M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l.9-.45a2 2 0 0 1 2.09.2l4.02 3a2 2 0 0 0 2.1.2l4.19-2.06a2.41 2.41 0 0 1 1.73-.17L21 7a1.4 1.4 0 0 1 .87 1.99l-.38.76c-.23.46-.6.84-1.07 1.08L7.58 17.2a2 2 0 0 1-1.22.18Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Cm=["svg",t,[["path",{d:"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]]];/**
+ */const C3=["svg",t,[["path",{d:"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Am=["svg",t,[["polygon",{points:"6 3 20 12 6 21 6 3"}]]];/**
+ */const A3=["svg",t,[["polygon",{points:"6 3 20 12 6 21 6 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Lm=["svg",t,[["path",{d:"M9 2v6"}],["path",{d:"M15 2v6"}],["path",{d:"M12 17v5"}],["path",{d:"M5 8h14"}],["path",{d:"M6 11V8h12v3a6 6 0 1 1-12 0Z"}]]];/**
+ */const L3=["svg",t,[["path",{d:"M9 2v6"}],["path",{d:"M15 2v6"}],["path",{d:"M12 17v5"}],["path",{d:"M5 8h14"}],["path",{d:"M6 11V8h12v3a6 6 0 1 1-12 0Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vm=["svg",t,[["path",{d:"m13 2-2 2.5h3L12 7"}],["path",{d:"M10 14v-3"}],["path",{d:"M14 14v-3"}],["path",{d:"M11 19c-1.7 0-3-1.3-3-3v-2h8v2c0 1.7-1.3 3-3 3Z"}],["path",{d:"M12 22v-3"}]]];/**
+ */const $3=["svg",t,[["path",{d:"m13 2-2 2.5h3L12 7"}],["path",{d:"M10 14v-3"}],["path",{d:"M14 14v-3"}],["path",{d:"M11 19c-1.7 0-3-1.3-3-3v-2h8v2c0 1.7-1.3 3-3 3Z"}],["path",{d:"M12 22v-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $m=["svg",t,[["path",{d:"M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"}],["path",{d:"m2 22 3-3"}],["path",{d:"M7.5 13.5 10 11"}],["path",{d:"M10.5 16.5 13 14"}],["path",{d:"m18 3-4 4h6l-4 4"}]]];/**
+ */const V3=["svg",t,[["path",{d:"M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"}],["path",{d:"m2 22 3-3"}],["path",{d:"M7.5 13.5 10 11"}],["path",{d:"M10.5 16.5 13 14"}],["path",{d:"m18 3-4 4h6l-4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _m=["svg",t,[["path",{d:"M12 22v-5"}],["path",{d:"M9 8V2"}],["path",{d:"M15 8V2"}],["path",{d:"M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"}]]];/**
+ */const _3=["svg",t,[["path",{d:"M12 22v-5"}],["path",{d:"M9 8V2"}],["path",{d:"M15 8V2"}],["path",{d:"M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tm=["svg",t,[["path",{d:"M5 12h14"}],["path",{d:"M12 5v14"}]]];/**
+ */const T3=["svg",t,[["path",{d:"M5 12h14"}],["path",{d:"M12 5v14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pm=["svg",t,[["path",{d:"M3 2v1c0 1 2 1 2 2S3 6 3 7s2 1 2 2-2 1-2 2 2 1 2 2"}],["path",{d:"M18 6h.01"}],["path",{d:"M6 18h.01"}],["path",{d:"M20.83 8.83a4 4 0 0 0-5.66-5.66l-12 12a4 4 0 1 0 5.66 5.66Z"}],["path",{d:"M18 11.66V22a4 4 0 0 0 4-4V6"}]]];/**
+ */const P3=["svg",t,[["path",{d:"M3 2v1c0 1 2 1 2 2S3 6 3 7s2 1 2 2-2 1-2 2 2 1 2 2"}],["path",{d:"M18 6h.01"}],["path",{d:"M6 18h.01"}],["path",{d:"M20.83 8.83a4 4 0 0 0-5.66-5.66l-12 12a4 4 0 1 0 5.66 5.66Z"}],["path",{d:"M18 11.66V22a4 4 0 0 0 4-4V6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const zm=["svg",t,[["path",{d:"M4 3h16a2 2 0 0 1 2 2v6a10 10 0 0 1-10 10A10 10 0 0 1 2 11V5a2 2 0 0 1 2-2z"}],["polyline",{points:"8 10 12 14 16 10"}]]];/**
+ */const z3=["svg",t,[["path",{d:"M4 3h16a2 2 0 0 1 2 2v6a10 10 0 0 1-10 10A10 10 0 0 1 2 11V5a2 2 0 0 1 2-2z"}],["polyline",{points:"8 10 12 14 16 10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const qm=["svg",t,[["path",{d:"M16.85 18.58a9 9 0 1 0-9.7 0"}],["path",{d:"M8 14a5 5 0 1 1 8 0"}],["circle",{cx:"12",cy:"11",r:"1"}],["path",{d:"M13 17a1 1 0 1 0-2 0l.5 4.5a.5.5 0 1 0 1 0Z"}]]];/**
+ */const q3=["svg",t,[["path",{d:"M16.85 18.58a9 9 0 1 0-9.7 0"}],["path",{d:"M8 14a5 5 0 1 1 8 0"}],["circle",{cx:"12",cy:"11",r:"1"}],["path",{d:"M13 17a1 1 0 1 0-2 0l.5 4.5a.5.5 0 1 0 1 0Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Em=["svg",t,[["path",{d:"M10 4.5V4a2 2 0 0 0-2.41-1.957"}],["path",{d:"M13.9 8.4a2 2 0 0 0-1.26-1.295"}],["path",{d:"M21.7 16.2A8 8 0 0 0 22 14v-3a2 2 0 1 0-4 0v-1a2 2 0 0 0-3.63-1.158"}],["path",{d:"m7 15-1.8-1.8a2 2 0 0 0-2.79 2.86L6 19.7a7.74 7.74 0 0 0 6 2.3h2a8 8 0 0 0 5.657-2.343"}],["path",{d:"M6 6v8"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const E3=["svg",t,[["path",{d:"M10 4.5V4a2 2 0 0 0-2.41-1.957"}],["path",{d:"M13.9 8.4a2 2 0 0 0-1.26-1.295"}],["path",{d:"M21.7 16.2A8 8 0 0 0 22 14v-3a2 2 0 1 0-4 0v-1a2 2 0 0 0-3.63-1.158"}],["path",{d:"m7 15-1.8-1.8a2 2 0 0 0-2.79 2.86L6 19.7a7.74 7.74 0 0 0 6 2.3h2a8 8 0 0 0 5.657-2.343"}],["path",{d:"M6 6v8"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Bm=["svg",t,[["path",{d:"M22 14a8 8 0 0 1-8 8"}],["path",{d:"M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"}],["path",{d:"M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"}],["path",{d:"M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"}],["path",{d:"M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"}]]];/**
+ */const B3=["svg",t,[["path",{d:"M22 14a8 8 0 0 1-8 8"}],["path",{d:"M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"}],["path",{d:"M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"}],["path",{d:"M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"}],["path",{d:"M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Dm=["svg",t,[["path",{d:"M18 8a2 2 0 0 0 0-4 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0 0 4"}],["path",{d:"M10 22 9 8"}],["path",{d:"m14 22 1-14"}],["path",{d:"M20 8c.5 0 .9.4.8 1l-2.6 12c-.1.5-.7 1-1.2 1H7c-.6 0-1.1-.4-1.2-1L3.2 9c-.1-.6.3-1 .8-1Z"}]]];/**
+ */const D3=["svg",t,[["path",{d:"M18 8a2 2 0 0 0 0-4 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0-4 0 2 2 0 0 0 0 4"}],["path",{d:"M10 22 9 8"}],["path",{d:"m14 22 1-14"}],["path",{d:"M20 8c.5 0 .9.4.8 1l-2.6 12c-.1.5-.7 1-1.2 1H7c-.6 0-1.1-.4-1.2-1L3.2 9c-.1-.6.3-1 .8-1Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Rm=["svg",t,[["path",{d:"M18.6 14.4c.8-.8.8-2 0-2.8l-8.1-8.1a4.95 4.95 0 1 0-7.1 7.1l8.1 8.1c.9.7 2.1.7 2.9-.1Z"}],["path",{d:"m22 22-5.5-5.5"}]]];/**
+ */const R3=["svg",t,[["path",{d:"M18.6 14.4c.8-.8.8-2 0-2.8l-8.1-8.1a4.95 4.95 0 1 0-7.1 7.1l8.1 8.1c.9.7 2.1.7 2.9-.1Z"}],["path",{d:"m22 22-5.5-5.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Im=["svg",t,[["path",{d:"M18 7c0-5.333-8-5.333-8 0"}],["path",{d:"M10 7v14"}],["path",{d:"M6 21h12"}],["path",{d:"M6 13h10"}]]];/**
+ */const I3=["svg",t,[["path",{d:"M18 7c0-5.333-8-5.333-8 0"}],["path",{d:"M10 7v14"}],["path",{d:"M6 21h12"}],["path",{d:"M6 13h10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Om=["svg",t,[["path",{d:"M18.36 6.64A9 9 0 0 1 20.77 15"}],["path",{d:"M6.16 6.16a9 9 0 1 0 12.68 12.68"}],["path",{d:"M12 2v4"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const O3=["svg",t,[["path",{d:"M18.36 6.64A9 9 0 0 1 20.77 15"}],["path",{d:"M6.16 6.16a9 9 0 1 0 12.68 12.68"}],["path",{d:"M12 2v4"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Nm=["svg",t,[["path",{d:"M12 2v10"}],["path",{d:"M18.4 6.6a9 9 0 1 1-12.77.04"}]]];/**
+ */const N3=["svg",t,[["path",{d:"M12 2v10"}],["path",{d:"M18.4 6.6a9 9 0 1 1-12.77.04"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zm=["svg",t,[["path",{d:"M2 3h20"}],["path",{d:"M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"}],["path",{d:"m7 21 5-5 5 5"}]]];/**
+ */const F3=["svg",t,[["path",{d:"M2 3h20"}],["path",{d:"M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"}],["path",{d:"m7 21 5-5 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fm=["svg",t,[["path",{d:"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"}],["path",{d:"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"}],["rect",{x:"6",y:"14",width:"12",height:"8",rx:"1"}]]];/**
+ */const Z3=["svg",t,[["path",{d:"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"}],["path",{d:"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"}],["rect",{x:"6",y:"14",width:"12",height:"8",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Um=["svg",t,[["path",{d:"M5 7 3 5"}],["path",{d:"M9 6V3"}],["path",{d:"m13 7 2-2"}],["circle",{cx:"9",cy:"13",r:"3"}],["path",{d:"M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2.17"}],["path",{d:"M16 16h2"}]]];/**
+ */const U3=["svg",t,[["path",{d:"M5 7 3 5"}],["path",{d:"M9 6V3"}],["path",{d:"m13 7 2-2"}],["circle",{cx:"9",cy:"13",r:"3"}],["path",{d:"M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2.17"}],["path",{d:"M16 16h2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gm=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M12 9v11"}],["path",{d:"M2 9h13a2 2 0 0 1 2 2v9"}]]];/**
+ */const j3=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M12 9v11"}],["path",{d:"M2 9h13a2 2 0 0 1 2 2v9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jm=["svg",t,[["path",{d:"M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"}]]];/**
+ */const G3=["svg",t,[["path",{d:"M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Km=["svg",t,[["path",{d:"M2.5 16.88a1 1 0 0 1-.32-1.43l9-13.02a1 1 0 0 1 1.64 0l9 13.01a1 1 0 0 1-.32 1.44l-8.51 4.86a2 2 0 0 1-1.98 0Z"}],["path",{d:"M12 2v20"}]]];/**
+ */const K3=["svg",t,[["path",{d:"M2.5 16.88a1 1 0 0 1-.32-1.43l9-13.02a1 1 0 0 1 1.64 0l9 13.01a1 1 0 0 1-.32 1.44l-8.51 4.86a2 2 0 0 1-1.98 0Z"}],["path",{d:"M12 2v20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wm=["svg",t,[["rect",{width:"5",height:"5",x:"3",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"16",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"3",y:"16",rx:"1"}],["path",{d:"M21 16h-3a2 2 0 0 0-2 2v3"}],["path",{d:"M21 21v.01"}],["path",{d:"M12 7v3a2 2 0 0 1-2 2H7"}],["path",{d:"M3 12h.01"}],["path",{d:"M12 3h.01"}],["path",{d:"M12 16v.01"}],["path",{d:"M16 12h1"}],["path",{d:"M21 12v.01"}],["path",{d:"M12 21v-1"}]]];/**
+ */const W3=["svg",t,[["rect",{width:"5",height:"5",x:"3",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"16",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"3",y:"16",rx:"1"}],["path",{d:"M21 16h-3a2 2 0 0 0-2 2v3"}],["path",{d:"M21 21v.01"}],["path",{d:"M12 7v3a2 2 0 0 1-2 2H7"}],["path",{d:"M3 12h.01"}],["path",{d:"M12 3h.01"}],["path",{d:"M12 16v.01"}],["path",{d:"M16 12h1"}],["path",{d:"M21 12v.01"}],["path",{d:"M12 21v-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jm=["svg",t,[["path",{d:"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}],["path",{d:"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}]]];/**
+ */const J3=["svg",t,[["path",{d:"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}],["path",{d:"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ym=["svg",t,[["path",{d:"M13 16a3 3 0 0 1 2.24 5"}],["path",{d:"M18 12h.01"}],["path",{d:"M18 21h-8a4 4 0 0 1-4-4 7 7 0 0 1 7-7h.2L9.6 6.4a1 1 0 1 1 2.8-2.8L15.8 7h.2c3.3 0 6 2.7 6 6v1a2 2 0 0 1-2 2h-1a3 3 0 0 0-3 3"}],["path",{d:"M20 8.54V4a2 2 0 1 0-4 0v3"}],["path",{d:"M7.612 12.524a3 3 0 1 0-1.6 4.3"}]]];/**
+ */const Y3=["svg",t,[["path",{d:"M13 16a3 3 0 0 1 2.24 5"}],["path",{d:"M18 12h.01"}],["path",{d:"M18 21h-8a4 4 0 0 1-4-4 7 7 0 0 1 7-7h.2L9.6 6.4a1 1 0 1 1 2.8-2.8L15.8 7h.2c3.3 0 6 2.7 6 6v1a2 2 0 0 1-2 2h-1a3 3 0 0 0-3 3"}],["path",{d:"M20 8.54V4a2 2 0 1 0-4 0v3"}],["path",{d:"M7.612 12.524a3 3 0 1 0-1.6 4.3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Xm=["svg",t,[["path",{d:"M19.07 4.93A10 10 0 0 0 6.99 3.34"}],["path",{d:"M4 6h.01"}],["path",{d:"M2.29 9.62A10 10 0 1 0 21.31 8.35"}],["path",{d:"M16.24 7.76A6 6 0 1 0 8.23 16.67"}],["path",{d:"M12 18h.01"}],["path",{d:"M17.99 11.66A6 6 0 0 1 15.77 16.67"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"m13.41 10.59 5.66-5.66"}]]];/**
+ */const X3=["svg",t,[["path",{d:"M19.07 4.93A10 10 0 0 0 6.99 3.34"}],["path",{d:"M4 6h.01"}],["path",{d:"M2.29 9.62A10 10 0 1 0 21.31 8.35"}],["path",{d:"M16.24 7.76A6 6 0 1 0 8.23 16.67"}],["path",{d:"M12 18h.01"}],["path",{d:"M17.99 11.66A6 6 0 0 1 15.77 16.67"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"m13.41 10.59 5.66-5.66"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Qm=["svg",t,[["path",{d:"M12 12h.01"}],["path",{d:"M7.5 4.2c-.3-.5-.9-.7-1.3-.4C3.9 5.5 2.3 8.1 2 11c-.1.5.4 1 1 1h5c0-1.5.8-2.8 2-3.4-1.1-1.9-2-3.5-2.5-4.4z"}],["path",{d:"M21 12c.6 0 1-.4 1-1-.3-2.9-1.8-5.5-4.1-7.1-.4-.3-1.1-.2-1.3.3-.6.9-1.5 2.5-2.6 4.3 1.2.7 2 2 2 3.5h5z"}],["path",{d:"M7.5 19.8c-.3.5-.1 1.1.4 1.3 2.6 1.2 5.6 1.2 8.2 0 .5-.2.7-.8.4-1.3-.5-.9-1.4-2.5-2.5-4.3-1.2.7-2.8.7-4 0-1.1 1.8-2 3.4-2.5 4.3z"}]]];/**
+ */const Q3=["svg",t,[["path",{d:"M12 12h.01"}],["path",{d:"M7.5 4.2c-.3-.5-.9-.7-1.3-.4C3.9 5.5 2.3 8.1 2 11c-.1.5.4 1 1 1h5c0-1.5.8-2.8 2-3.4-1.1-1.9-2-3.5-2.5-4.4z"}],["path",{d:"M21 12c.6 0 1-.4 1-1-.3-2.9-1.8-5.5-4.1-7.1-.4-.3-1.1-.2-1.3.3-.6.9-1.5 2.5-2.6 4.3 1.2.7 2 2 2 3.5h5z"}],["path",{d:"M7.5 19.8c-.3.5-.1 1.1.4 1.3 2.6 1.2 5.6 1.2 8.2 0 .5-.2.7-.8.4-1.3-.5-.9-1.4-2.5-2.5-4.3-1.2.7-2.8.7-4 0-1.1 1.8-2 3.4-2.5 4.3z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5288,12 +5288,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dg=["svg",t,[["path",{d:"M5 15h14"}],["path",{d:"M5 9h14"}],["path",{d:"m14 20-5-5 6-6-5-5"}]]];/**
+ */const og=["svg",t,[["path",{d:"M5 15h14"}],["path",{d:"M5 9h14"}],["path",{d:"m14 20-5-5 6-6-5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const og=["svg",t,[["path",{d:"M22 17a10 10 0 0 0-20 0"}],["path",{d:"M6 17a6 6 0 0 1 12 0"}],["path",{d:"M10 17a2 2 0 0 1 4 0"}]]];/**
+ */const dg=["svg",t,[["path",{d:"M22 17a10 10 0 0 0-20 0"}],["path",{d:"M6 17a6 6 0 0 1 12 0"}],["path",{d:"M10 17a2 2 0 0 1 4 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5388,12 +5388,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hg=["svg",t,[["path",{d:"M3 2v6h6"}],["path",{d:"M21 12A9 9 0 0 0 6 5.3L3 8"}],["path",{d:"M21 22v-6h-6"}],["path",{d:"M3 12a9 9 0 0 0 15 6.7l3-2.7"}],["circle",{cx:"12",cy:"12",r:"1"}]]];/**
+ */const Sg=["svg",t,[["path",{d:"M3 2v6h6"}],["path",{d:"M21 12A9 9 0 0 0 6 5.3L3 8"}],["path",{d:"M21 22v-6h-6"}],["path",{d:"M3 12a9 9 0 0 0 15 6.7l3-2.7"}],["circle",{cx:"12",cy:"12",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sg=["svg",t,[["path",{d:"M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"}],["path",{d:"M3 3v5h5"}],["path",{d:"M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"}],["path",{d:"M16 16h5v5"}]]];/**
+ */const Hg=["svg",t,[["path",{d:"M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"}],["path",{d:"M3 3v5h5"}],["path",{d:"M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"}],["path",{d:"M16 16h5v5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5413,12 +5413,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vg=["svg",t,[["path",{d:"M17 3v10"}],["path",{d:"m12.67 5.5 8.66 5"}],["path",{d:"m12.67 10.5 8.66-5"}],["path",{d:"M9 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2z"}]]];/**
+ */const $g=["svg",t,[["path",{d:"M17 3v10"}],["path",{d:"m12.67 5.5 8.66 5"}],["path",{d:"m12.67 10.5 8.66-5"}],["path",{d:"M9 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $g=["svg",t,[["path",{d:"M4 7V4h16v3"}],["path",{d:"M5 20h6"}],["path",{d:"M13 4 8 20"}],["path",{d:"m15 15 5 5"}],["path",{d:"m20 15-5 5"}]]];/**
+ */const Vg=["svg",t,[["path",{d:"M4 7V4h16v3"}],["path",{d:"M5 20h6"}],["path",{d:"M13 4 8 20"}],["path",{d:"m15 15 5 5"}],["path",{d:"m20 15-5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5488,12 +5488,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zg=["svg",t,[["path",{d:"M20 9V7a2 2 0 0 0-2-2h-6"}],["path",{d:"m15 2-3 3 3 3"}],["path",{d:"M20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"}]]];/**
+ */const Fg=["svg",t,[["path",{d:"M20 9V7a2 2 0 0 0-2-2h-6"}],["path",{d:"m15 2-3 3 3 3"}],["path",{d:"M20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fg=["svg",t,[["path",{d:"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"}],["path",{d:"M3 3v5h5"}]]];/**
+ */const Zg=["svg",t,[["path",{d:"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"}],["path",{d:"M3 3v5h5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5503,12 +5503,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gg=["svg",t,[["path",{d:"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"}],["path",{d:"M21 3v5h-5"}]]];/**
+ */const jg=["svg",t,[["path",{d:"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"}],["path",{d:"M21 3v5h-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jg=["svg",t,[["circle",{cx:"6",cy:"19",r:"3"}],["path",{d:"M9 19h8.5c.4 0 .9-.1 1.3-.2"}],["path",{d:"M5.2 5.2A3.5 3.53 0 0 0 6.5 12H12"}],["path",{d:"m2 2 20 20"}],["path",{d:"M21 15.3a3.5 3.5 0 0 0-3.3-3.3"}],["path",{d:"M15 5h-4.3"}],["circle",{cx:"18",cy:"5",r:"3"}]]];/**
+ */const Gg=["svg",t,[["circle",{cx:"6",cy:"19",r:"3"}],["path",{d:"M9 19h8.5c.4 0 .9-.1 1.3-.2"}],["path",{d:"M5.2 5.2A3.5 3.53 0 0 0 6.5 12H12"}],["path",{d:"m2 2 20 20"}],["path",{d:"M21 15.3a3.5 3.5 0 0 0-3.3-3.3"}],["path",{d:"M15 5h-4.3"}],["circle",{cx:"18",cy:"5",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5578,12 +5578,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const du=["svg",t,[["path",{d:"M10 2v3a1 1 0 0 0 1 1h5"}],["path",{d:"M18 18v-6a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6"}],["path",{d:"M18 22H4a2 2 0 0 1-2-2V6"}],["path",{d:"M8 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 22 6.828V16a2 2 0 0 1-2.01 2z"}]]];/**
+ */const ou=["svg",t,[["path",{d:"M10 2v3a1 1 0 0 0 1 1h5"}],["path",{d:"M18 18v-6a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6"}],["path",{d:"M18 22H4a2 2 0 0 1-2-2V6"}],["path",{d:"M8 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9.172a2 2 0 0 1 1.414.586l2.828 2.828A2 2 0 0 1 22 6.828V16a2 2 0 0 1-2.01 2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ou=["svg",t,[["path",{d:"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"}],["path",{d:"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"}],["path",{d:"M7 3v4a1 1 0 0 0 1 1h7"}]]];/**
+ */const du=["svg",t,[["path",{d:"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"}],["path",{d:"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"}],["path",{d:"M7 3v4a1 1 0 0 0 1 1h7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5678,12 +5678,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hu=["svg",t,[["path",{d:"m8 11 2 2 4-4"}],["circle",{cx:"11",cy:"11",r:"8"}],["path",{d:"m21 21-4.3-4.3"}]]];/**
+ */const Su=["svg",t,[["path",{d:"m8 11 2 2 4-4"}],["circle",{cx:"11",cy:"11",r:"8"}],["path",{d:"m21 21-4.3-4.3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Su=["svg",t,[["path",{d:"m13 13.5 2-2.5-2-2.5"}],["path",{d:"m21 21-4.3-4.3"}],["path",{d:"M9 8.5 7 11l2 2.5"}],["circle",{cx:"11",cy:"11",r:"8"}]]];/**
+ */const Hu=["svg",t,[["path",{d:"m13 13.5 2-2.5-2-2.5"}],["path",{d:"m21 21-4.3-4.3"}],["path",{d:"M9 8.5 7 11l2 2.5"}],["circle",{cx:"11",cy:"11",r:"8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5703,7 +5703,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vu=["svg",t,[["path",{d:"M16 5a4 3 0 0 0-8 0c0 4 8 3 8 7a4 3 0 0 1-8 0"}],["path",{d:"M8 19a4 3 0 0 0 8 0c0-4-8-3-8-7a4 3 0 0 1 8 0"}]]];/**
+ */const $u=["svg",t,[["path",{d:"M16 5a4 3 0 0 0-8 0c0 4 8 3 8 7a4 3 0 0 1-8 0"}],["path",{d:"M8 19a4 3 0 0 0 8 0c0-4-8-3-8-7a4 3 0 0 1 8 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5713,7 +5713,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $u=["svg",t,[["rect",{x:"14",y:"14",width:"8",height:"8",rx:"2"}],["rect",{x:"2",y:"2",width:"8",height:"8",rx:"2"}],["path",{d:"M7 14v1a2 2 0 0 0 2 2h1"}],["path",{d:"M14 7h1a2 2 0 0 1 2 2v1"}]]];/**
+ */const Vu=["svg",t,[["rect",{x:"14",y:"14",width:"8",height:"8",rx:"2"}],["rect",{x:"2",y:"2",width:"8",height:"8",rx:"2"}],["path",{d:"M7 14v1a2 2 0 0 0 2 2h1"}],["path",{d:"M14 7h1a2 2 0 0 1 2 2v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5778,12 +5778,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zu=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["line",{x1:"3",x2:"21",y1:"9",y2:"9"}],["line",{x1:"3",x2:"21",y1:"15",y2:"15"}],["line",{x1:"9",x2:"9",y1:"9",y2:"21"}],["line",{x1:"15",x2:"15",y1:"9",y2:"21"}]]];/**
+ */const Fu=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["line",{x1:"3",x2:"21",y1:"9",y2:"9"}],["line",{x1:"3",x2:"21",y1:"15",y2:"15"}],["line",{x1:"9",x2:"9",y1:"9",y2:"21"}],["line",{x1:"15",x2:"15",y1:"9",y2:"21"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fu=["svg",t,[["path",{d:"M14 11a2 2 0 1 1-4 0 4 4 0 0 1 8 0 6 6 0 0 1-12 0 8 8 0 0 1 16 0 10 10 0 1 1-20 0 11.93 11.93 0 0 1 2.42-7.22 2 2 0 1 1 3.16 2.44"}]]];/**
+ */const Zu=["svg",t,[["path",{d:"M14 11a2 2 0 1 1-4 0 4 4 0 0 1 8 0 6 6 0 0 1-12 0 8 8 0 0 1 16 0 10 10 0 1 1-20 0 11.93 11.93 0 0 1 2.42-7.22 2 2 0 1 1 3.16 2.44"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5793,12 +5793,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gu=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"m4.243 5.21 14.39 12.472"}]]];/**
+ */const ju=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"m4.243 5.21 14.39 12.472"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ju=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"m9 12 2 2 4-4"}]]];/**
+ */const Gu=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"m9 12 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5863,12 +5863,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d6=["svg",t,[["path",{d:"m15 11-1 9"}],["path",{d:"m19 11-4-7"}],["path",{d:"M2 11h20"}],["path",{d:"m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"}],["path",{d:"M4.5 15.5h15"}],["path",{d:"m5 11 4-7"}],["path",{d:"m9 11 1 9"}]]];/**
+ */const o6=["svg",t,[["path",{d:"m15 11-1 9"}],["path",{d:"m19 11-4-7"}],["path",{d:"M2 11h20"}],["path",{d:"m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"}],["path",{d:"M4.5 15.5h15"}],["path",{d:"m5 11 4-7"}],["path",{d:"m9 11 1 9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o6=["svg",t,[["circle",{cx:"8",cy:"21",r:"1"}],["circle",{cx:"19",cy:"21",r:"1"}],["path",{d:"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"}]]];/**
+ */const d6=["svg",t,[["circle",{cx:"8",cy:"21",r:"1"}],["circle",{cx:"19",cy:"21",r:"1"}],["path",{d:"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5958,12 +5958,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H6=["svg",t,[["rect",{width:"3",height:"8",x:"13",y:"2",rx:"1.5"}],["path",{d:"M19 8.5V10h1.5A1.5 1.5 0 1 0 19 8.5"}],["rect",{width:"3",height:"8",x:"8",y:"14",rx:"1.5"}],["path",{d:"M5 15.5V14H3.5A1.5 1.5 0 1 0 5 15.5"}],["rect",{width:"8",height:"3",x:"14",y:"13",rx:"1.5"}],["path",{d:"M15.5 19H14v1.5a1.5 1.5 0 1 0 1.5-1.5"}],["rect",{width:"8",height:"3",x:"2",y:"8",rx:"1.5"}],["path",{d:"M8.5 5H10V3.5A1.5 1.5 0 1 0 8.5 5"}]]];/**
+ */const S6=["svg",t,[["rect",{width:"3",height:"8",x:"13",y:"2",rx:"1.5"}],["path",{d:"M19 8.5V10h1.5A1.5 1.5 0 1 0 19 8.5"}],["rect",{width:"3",height:"8",x:"8",y:"14",rx:"1.5"}],["path",{d:"M5 15.5V14H3.5A1.5 1.5 0 1 0 5 15.5"}],["rect",{width:"8",height:"3",x:"14",y:"13",rx:"1.5"}],["path",{d:"M15.5 19H14v1.5a1.5 1.5 0 1 0 1.5-1.5"}],["rect",{width:"8",height:"3",x:"2",y:"8",rx:"1.5"}],["path",{d:"M8.5 5H10V3.5A1.5 1.5 0 1 0 8.5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S6=["svg",t,[["path",{d:"M22 2 2 22"}]]];/**
+ */const H6=["svg",t,[["path",{d:"M22 2 2 22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5988,12 +5988,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V6=["svg",t,[["rect",{width:"7",height:"12",x:"2",y:"6",rx:"1"}],["path",{d:"M13 8.32a7.43 7.43 0 0 1 0 7.36"}],["path",{d:"M16.46 6.21a11.76 11.76 0 0 1 0 11.58"}],["path",{d:"M19.91 4.1a15.91 15.91 0 0 1 .01 15.8"}]]];/**
+ */const $6=["svg",t,[["rect",{width:"7",height:"12",x:"2",y:"6",rx:"1"}],["path",{d:"M13 8.32a7.43 7.43 0 0 1 0 7.36"}],["path",{d:"M16.46 6.21a11.76 11.76 0 0 1 0 11.58"}],["path",{d:"M19.91 4.1a15.91 15.91 0 0 1 .01 15.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $6=["svg",t,[["rect",{width:"14",height:"20",x:"5",y:"2",rx:"2",ry:"2"}],["path",{d:"M12 18h.01"}]]];/**
+ */const V6=["svg",t,[["rect",{width:"14",height:"20",x:"5",y:"2",rx:"2",ry:"2"}],["path",{d:"M12 18h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6043,7 +6043,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ze=["svg",t,[["path",{d:"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"}],["path",{d:"M20 3v4"}],["path",{d:"M22 5h-4"}],["path",{d:"M4 17v2"}],["path",{d:"M5 18H3"}]]];/**
+ */const Fe=["svg",t,[["path",{d:"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"}],["path",{d:"M20 3v4"}],["path",{d:"M22 5h-4"}],["path",{d:"M4 17v2"}],["path",{d:"M5 18H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6063,12 +6063,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z6=["svg",t,[["path",{d:"m6 16 6-12 6 12"}],["path",{d:"M8 12h8"}],["path",{d:"m16 20 2 2 4-4"}]]];/**
+ */const F6=["svg",t,[["path",{d:"m6 16 6-12 6 12"}],["path",{d:"M8 12h8"}],["path",{d:"m16 20 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F6=["svg",t,[["circle",{cx:"19",cy:"5",r:"2"}],["circle",{cx:"5",cy:"19",r:"2"}],["path",{d:"M5 17A12 12 0 0 1 17 5"}]]];/**
+ */const Z6=["svg",t,[["circle",{cx:"19",cy:"5",r:"2"}],["circle",{cx:"5",cy:"19",r:"2"}],["path",{d:"M5 17A12 12 0 0 1 17 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6078,17 +6078,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G6=["svg",t,[["path",{d:"M3 3h.01"}],["path",{d:"M7 5h.01"}],["path",{d:"M11 7h.01"}],["path",{d:"M3 7h.01"}],["path",{d:"M7 9h.01"}],["path",{d:"M3 11h.01"}],["rect",{width:"4",height:"4",x:"15",y:"5"}],["path",{d:"m19 9 2 2v10c0 .6-.4 1-1 1h-6c-.6 0-1-.4-1-1V11l2-2"}],["path",{d:"m13 14 8-2"}],["path",{d:"m13 19 8-2"}]]];/**
+ */const j6=["svg",t,[["path",{d:"M3 3h.01"}],["path",{d:"M7 5h.01"}],["path",{d:"M11 7h.01"}],["path",{d:"M3 7h.01"}],["path",{d:"M7 9h.01"}],["path",{d:"M3 11h.01"}],["rect",{width:"4",height:"4",x:"15",y:"5"}],["path",{d:"m19 9 2 2v10c0 .6-.4 1-1 1h-6c-.6 0-1-.4-1-1V11l2-2"}],["path",{d:"m13 14 8-2"}],["path",{d:"m13 19 8-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j6=["svg",t,[["path",{d:"M7 20h10"}],["path",{d:"M10 20c5.5-2.5.8-6.4 3-10"}],["path",{d:"M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"}],["path",{d:"M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"}]]];/**
+ */const G6=["svg",t,[["path",{d:"M7 20h10"}],["path",{d:"M10 20c5.5-2.5.8-6.4 3-10"}],["path",{d:"M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"}],["path",{d:"M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fe=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M17 12h-2l-2 5-2-10-2 5H7"}]]];/**
+ */const Ze=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M17 12h-2l-2 5-2-10-2 5H7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6098,12 +6098,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ge=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m8 8 8 8"}],["path",{d:"M16 8v8H8"}]]];/**
+ */const je=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m8 8 8 8"}],["path",{d:"M16 8v8H8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const je=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 8v8"}],["path",{d:"m8 12 4 4 4-4"}]]];/**
+ */const Ge=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 8v8"}],["path",{d:"m8 12 4 4 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6163,12 +6163,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const da=["svg",t,[["path",{d:"m9 11 3 3L22 4"}],["path",{d:"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"}]]];/**
+ */const oa=["svg",t,[["path",{d:"m9 11 3 3L22 4"}],["path",{d:"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oa=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m9 12 2 2 4-4"}]]];/**
+ */const da=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m9 12 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6268,12 +6268,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ha=["svg",t,[["path",{d:"M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"}],["path",{d:"m12 12 4 10 1.7-4.3L22 16Z"}]]];/**
+ */const Sa=["svg",t,[["path",{d:"M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"}],["path",{d:"m12 12 4 10 1.7-4.3L22 16Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sa=["svg",t,[["path",{d:"M3.6 3.6A2 2 0 0 1 5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-.59 1.41"}],["path",{d:"M3 8.7V19a2 2 0 0 0 2 2h10.3"}],["path",{d:"m2 2 20 20"}],["path",{d:"M13 13a3 3 0 1 0 0-6H9v2"}],["path",{d:"M9 17v-2.3"}]]];/**
+ */const Ha=["svg",t,[["path",{d:"M3.6 3.6A2 2 0 0 1 5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-.59 1.41"}],["path",{d:"M3 8.7V19a2 2 0 0 0 2 2h10.3"}],["path",{d:"m2 2 20 20"}],["path",{d:"M13 13a3 3 0 1 0 0-6H9v2"}],["path",{d:"M9 17v-2.3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6283,7 +6283,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F=["svg",t,[["path",{d:"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"}],["path",{d:"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"}]]];/**
+ */const Z=["svg",t,[["path",{d:"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"}],["path",{d:"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6298,12 +6298,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Va=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 12H9.5a2.5 2.5 0 0 1 0-5H17"}],["path",{d:"M12 7v10"}],["path",{d:"M16 7v10"}]]];/**
+ */const $a=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 12H9.5a2.5 2.5 0 0 1 0-5H17"}],["path",{d:"M12 7v10"}],["path",{d:"M16 7v10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $a=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m9 8 6 4-6 4Z"}]]];/**
+ */const Va=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m9 8 6 4-6 4Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6383,262 +6383,262 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const t8=["svg",t,[["path",{d:"M15.236 22a3 3 0 0 0-2.2-5"}],["path",{d:"M16 20a3 3 0 0 1 3-3h1a2 2 0 0 0 2-2v-2a4 4 0 0 0-4-4V4"}],["path",{d:"M18 13h.01"}],["path",{d:"M18 6a4 4 0 0 0-4 4 7 7 0 0 0-7 7c0-5 4-5 4-10.5a4.5 4.5 0 1 0-9 0 2.5 2.5 0 0 0 5 0C7 10 3 11 3 17c0 2.8 2.2 5 5 5h10"}]]];/**
+ */const ty=["svg",t,[["path",{d:"M15.236 22a3 3 0 0 0-2.2-5"}],["path",{d:"M16 20a3 3 0 0 1 3-3h1a2 2 0 0 0 2-2v-2a4 4 0 0 0-4-4V4"}],["path",{d:"M18 13h.01"}],["path",{d:"M18 6a4 4 0 0 0-4 4 7 7 0 0 0-7 7c0-5 4-5 4-10.5a4.5 4.5 0 1 0-9 0 2.5 2.5 0 0 0 5 0C7 10 3 11 3 17c0 2.8 2.2 5 5 5h10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const e8=["svg",t,[["path",{d:"M5 22h14"}],["path",{d:"M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"}],["path",{d:"M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.66 0-3 1-3 3s1 2 1 3.5V13"}]]];/**
+ */const ey=["svg",t,[["path",{d:"M5 22h14"}],["path",{d:"M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"}],["path",{d:"M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.66 0-3 1-3 3s1 2 1 3.5V13"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const a8=["svg",t,[["path",{d:"M12 17.8 5.8 21 7 14.1 2 9.3l7-1L12 2"}]]];/**
+ */const ay=["svg",t,[["path",{d:"M12 17.8 5.8 21 7 14.1 2 9.3l7-1L12 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const i8=["svg",t,[["path",{d:"M8.34 8.34 2 9.27l5 4.87L5.82 21 12 17.77 18.18 21l-.59-3.43"}],["path",{d:"M18.42 12.76 22 9.27l-6.91-1L12 2l-1.44 2.91"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const iy=["svg",t,[["path",{d:"M8.34 8.34 2 9.27l5 4.87L5.82 21 12 17.77 18.18 21l-.59-3.43"}],["path",{d:"M18.42 12.76 22 9.27l-6.91-1L12 2l-1.44 2.91"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const s8=["svg",t,[["polygon",{points:"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"}]]];/**
+ */const sy=["svg",t,[["polygon",{points:"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d8=["svg",t,[["line",{x1:"18",x2:"18",y1:"20",y2:"4"}],["polygon",{points:"14,20 4,12 14,4"}]]];/**
+ */const oy=["svg",t,[["line",{x1:"18",x2:"18",y1:"20",y2:"4"}],["polygon",{points:"14,20 4,12 14,4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o8=["svg",t,[["line",{x1:"6",x2:"6",y1:"4",y2:"20"}],["polygon",{points:"10,4 20,12 10,20"}]]];/**
+ */const dy=["svg",t,[["line",{x1:"6",x2:"6",y1:"4",y2:"20"}],["polygon",{points:"10,4 20,12 10,20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const r8=["svg",t,[["path",{d:"M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"}],["path",{d:"M8 15v1a6 6 0 0 0 6 6a6 6 0 0 0 6-6v-4"}],["circle",{cx:"20",cy:"10",r:"2"}]]];/**
+ */const ry=["svg",t,[["path",{d:"M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"}],["path",{d:"M8 15v1a6 6 0 0 0 6 6a6 6 0 0 0 6-6v-4"}],["circle",{cx:"20",cy:"10",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const n8=["svg",t,[["path",{d:"M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"}],["path",{d:"M14 3v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 13h.01"}],["path",{d:"M16 13h.01"}],["path",{d:"M10 16s.8 1 2 1c1.3 0 2-1 2-1"}]]];/**
+ */const ny=["svg",t,[["path",{d:"M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"}],["path",{d:"M14 3v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 13h.01"}],["path",{d:"M16 13h.01"}],["path",{d:"M10 16s.8 1 2 1c1.3 0 2-1 2-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const c8=["svg",t,[["path",{d:"M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"}],["path",{d:"M15 3v4a2 2 0 0 0 2 2h4"}]]];/**
+ */const cy=["svg",t,[["path",{d:"M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"}],["path",{d:"M15 3v4a2 2 0 0 0 2 2h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l8=["svg",t,[["path",{d:"m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"}],["path",{d:"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"}],["path",{d:"M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"}],["path",{d:"M2 7h20"}],["path",{d:"M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"}]]];/**
+ */const ly=["svg",t,[["path",{d:"m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"}],["path",{d:"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"}],["path",{d:"M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"}],["path",{d:"M2 7h20"}],["path",{d:"M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const h8=["svg",t,[["rect",{width:"20",height:"6",x:"2",y:"4",rx:"2"}],["rect",{width:"20",height:"6",x:"2",y:"14",rx:"2"}]]];/**
+ */const hy=["svg",t,[["rect",{width:"20",height:"6",x:"2",y:"4",rx:"2"}],["rect",{width:"20",height:"6",x:"2",y:"14",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const p8=["svg",t,[["rect",{width:"6",height:"20",x:"4",y:"2",rx:"2"}],["rect",{width:"6",height:"20",x:"14",y:"2",rx:"2"}]]];/**
+ */const py=["svg",t,[["rect",{width:"6",height:"20",x:"4",y:"2",rx:"2"}],["rect",{width:"6",height:"20",x:"14",y:"2",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const v8=["svg",t,[["path",{d:"M16 4H9a3 3 0 0 0-2.83 4"}],["path",{d:"M14 12a4 4 0 0 1 0 8H6"}],["line",{x1:"4",x2:"20",y1:"12",y2:"12"}]]];/**
+ */const vy=["svg",t,[["path",{d:"M16 4H9a3 3 0 0 0-2.83 4"}],["path",{d:"M14 12a4 4 0 0 1 0 8H6"}],["line",{x1:"4",x2:"20",y1:"12",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const m8=["svg",t,[["path",{d:"m4 5 8 8"}],["path",{d:"m12 5-8 8"}],["path",{d:"M20 19h-4c0-1.5.44-2 1.5-2.5S20 15.33 20 14c0-.47-.17-.93-.48-1.29a2.11 2.11 0 0 0-2.62-.44c-.42.24-.74.62-.9 1.07"}]]];/**
+ */const my=["svg",t,[["path",{d:"m4 5 8 8"}],["path",{d:"m12 5-8 8"}],["path",{d:"M20 19h-4c0-1.5.44-2 1.5-2.5S20 15.33 20 14c0-.47-.17-.93-.48-1.29a2.11 2.11 0 0 0-2.62-.44c-.42.24-.74.62-.9 1.07"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const g8=["svg",t,[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 4h.01"}],["path",{d:"M20 12h.01"}],["path",{d:"M12 20h.01"}],["path",{d:"M4 12h.01"}],["path",{d:"M17.657 6.343h.01"}],["path",{d:"M17.657 17.657h.01"}],["path",{d:"M6.343 17.657h.01"}],["path",{d:"M6.343 6.343h.01"}]]];/**
+ */const gy=["svg",t,[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 4h.01"}],["path",{d:"M20 12h.01"}],["path",{d:"M12 20h.01"}],["path",{d:"M4 12h.01"}],["path",{d:"M17.657 6.343h.01"}],["path",{d:"M17.657 17.657h.01"}],["path",{d:"M6.343 17.657h.01"}],["path",{d:"M6.343 6.343h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const u8=["svg",t,[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 3v1"}],["path",{d:"M12 20v1"}],["path",{d:"M3 12h1"}],["path",{d:"M20 12h1"}],["path",{d:"m18.364 5.636-.707.707"}],["path",{d:"m6.343 17.657-.707.707"}],["path",{d:"m5.636 5.636.707.707"}],["path",{d:"m17.657 17.657.707.707"}]]];/**
+ */const uy=["svg",t,[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 3v1"}],["path",{d:"M12 20v1"}],["path",{d:"M3 12h1"}],["path",{d:"M20 12h1"}],["path",{d:"m18.364 5.636-.707.707"}],["path",{d:"m6.343 17.657-.707.707"}],["path",{d:"m5.636 5.636.707.707"}],["path",{d:"m17.657 17.657.707.707"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const y8=["svg",t,[["path",{d:"M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"}],["path",{d:"M12 2v2"}],["path",{d:"M12 20v2"}],["path",{d:"m4.9 4.9 1.4 1.4"}],["path",{d:"m17.7 17.7 1.4 1.4"}],["path",{d:"M2 12h2"}],["path",{d:"M20 12h2"}],["path",{d:"m6.3 17.7-1.4 1.4"}],["path",{d:"m19.1 4.9-1.4 1.4"}]]];/**
+ */const yy=["svg",t,[["path",{d:"M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"}],["path",{d:"M12 2v2"}],["path",{d:"M12 20v2"}],["path",{d:"m4.9 4.9 1.4 1.4"}],["path",{d:"m17.7 17.7 1.4 1.4"}],["path",{d:"M2 12h2"}],["path",{d:"M20 12h2"}],["path",{d:"m6.3 17.7-1.4 1.4"}],["path",{d:"m19.1 4.9-1.4 1.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const M8=["svg",t,[["path",{d:"M10 9a3 3 0 1 0 0 6"}],["path",{d:"M2 12h1"}],["path",{d:"M14 21V3"}],["path",{d:"M10 4V3"}],["path",{d:"M10 21v-1"}],["path",{d:"m3.64 18.36.7-.7"}],["path",{d:"m4.34 6.34-.7-.7"}],["path",{d:"M14 12h8"}],["path",{d:"m17 4-3 3"}],["path",{d:"m14 17 3 3"}],["path",{d:"m21 15-3-3 3-3"}]]];/**
+ */const My=["svg",t,[["path",{d:"M10 9a3 3 0 1 0 0 6"}],["path",{d:"M2 12h1"}],["path",{d:"M14 21V3"}],["path",{d:"M10 4V3"}],["path",{d:"M10 21v-1"}],["path",{d:"m3.64 18.36.7-.7"}],["path",{d:"m4.34 6.34-.7-.7"}],["path",{d:"M14 12h8"}],["path",{d:"m17 4-3 3"}],["path",{d:"m14 17 3 3"}],["path",{d:"m21 15-3-3 3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const x8=["svg",t,[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 2v2"}],["path",{d:"M12 20v2"}],["path",{d:"m4.93 4.93 1.41 1.41"}],["path",{d:"m17.66 17.66 1.41 1.41"}],["path",{d:"M2 12h2"}],["path",{d:"M20 12h2"}],["path",{d:"m6.34 17.66-1.41 1.41"}],["path",{d:"m19.07 4.93-1.41 1.41"}]]];/**
+ */const xy=["svg",t,[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 2v2"}],["path",{d:"M12 20v2"}],["path",{d:"m4.93 4.93 1.41 1.41"}],["path",{d:"m17.66 17.66 1.41 1.41"}],["path",{d:"M2 12h2"}],["path",{d:"M20 12h2"}],["path",{d:"m6.34 17.66-1.41 1.41"}],["path",{d:"m19.07 4.93-1.41 1.41"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const f8=["svg",t,[["path",{d:"M12 2v8"}],["path",{d:"m4.93 10.93 1.41 1.41"}],["path",{d:"M2 18h2"}],["path",{d:"M20 18h2"}],["path",{d:"m19.07 10.93-1.41 1.41"}],["path",{d:"M22 22H2"}],["path",{d:"m8 6 4-4 4 4"}],["path",{d:"M16 18a4 4 0 0 0-8 0"}]]];/**
+ */const fy=["svg",t,[["path",{d:"M12 2v8"}],["path",{d:"m4.93 10.93 1.41 1.41"}],["path",{d:"M2 18h2"}],["path",{d:"M20 18h2"}],["path",{d:"m19.07 10.93-1.41 1.41"}],["path",{d:"M22 22H2"}],["path",{d:"m8 6 4-4 4 4"}],["path",{d:"M16 18a4 4 0 0 0-8 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const b8=["svg",t,[["path",{d:"M12 10V2"}],["path",{d:"m4.93 10.93 1.41 1.41"}],["path",{d:"M2 18h2"}],["path",{d:"M20 18h2"}],["path",{d:"m19.07 10.93-1.41 1.41"}],["path",{d:"M22 22H2"}],["path",{d:"m16 6-4 4-4-4"}],["path",{d:"M16 18a4 4 0 0 0-8 0"}]]];/**
+ */const by=["svg",t,[["path",{d:"M12 10V2"}],["path",{d:"m4.93 10.93 1.41 1.41"}],["path",{d:"M2 18h2"}],["path",{d:"M20 18h2"}],["path",{d:"m19.07 10.93-1.41 1.41"}],["path",{d:"M22 22H2"}],["path",{d:"m16 6-4 4-4-4"}],["path",{d:"M16 18a4 4 0 0 0-8 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const w8=["svg",t,[["path",{d:"m4 19 8-8"}],["path",{d:"m12 19-8-8"}],["path",{d:"M20 12h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06"}]]];/**
+ */const wy=["svg",t,[["path",{d:"m4 19 8-8"}],["path",{d:"m12 19-8-8"}],["path",{d:"M20 12h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const k8=["svg",t,[["path",{d:"M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"}],["path",{d:"M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7"}],["path",{d:"M 7 17h.01"}],["path",{d:"m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"}]]];/**
+ */const ky=["svg",t,[["path",{d:"M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"}],["path",{d:"M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7"}],["path",{d:"M 7 17h.01"}],["path",{d:"m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H8=["svg",t,[["path",{d:"M10 21V3h8"}],["path",{d:"M6 16h9"}],["path",{d:"M10 9.5h7"}]]];/**
+ */const Sy=["svg",t,[["path",{d:"M10 21V3h8"}],["path",{d:"M6 16h9"}],["path",{d:"M10 9.5h7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S8=["svg",t,[["path",{d:"M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"}],["path",{d:"M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"}],["circle",{cx:"12",cy:"12",r:"3"}],["path",{d:"m18 22-3-3 3-3"}],["path",{d:"m6 2 3 3-3 3"}]]];/**
+ */const Hy=["svg",t,[["path",{d:"M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"}],["path",{d:"M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"}],["circle",{cx:"12",cy:"12",r:"3"}],["path",{d:"m18 22-3-3 3-3"}],["path",{d:"m6 2 3 3-3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const C8=["svg",t,[["polyline",{points:"14.5 17.5 3 6 3 3 6 3 17.5 14.5"}],["line",{x1:"13",x2:"19",y1:"19",y2:"13"}],["line",{x1:"16",x2:"20",y1:"16",y2:"20"}],["line",{x1:"19",x2:"21",y1:"21",y2:"19"}]]];/**
+ */const Cy=["svg",t,[["polyline",{points:"14.5 17.5 3 6 3 3 6 3 17.5 14.5"}],["line",{x1:"13",x2:"19",y1:"19",y2:"13"}],["line",{x1:"16",x2:"20",y1:"16",y2:"20"}],["line",{x1:"19",x2:"21",y1:"21",y2:"19"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const A8=["svg",t,[["polyline",{points:"14.5 17.5 3 6 3 3 6 3 17.5 14.5"}],["line",{x1:"13",x2:"19",y1:"19",y2:"13"}],["line",{x1:"16",x2:"20",y1:"16",y2:"20"}],["line",{x1:"19",x2:"21",y1:"21",y2:"19"}],["polyline",{points:"14.5 6.5 18 3 21 3 21 6 17.5 9.5"}],["line",{x1:"5",x2:"9",y1:"14",y2:"18"}],["line",{x1:"7",x2:"4",y1:"17",y2:"20"}],["line",{x1:"3",x2:"5",y1:"19",y2:"21"}]]];/**
+ */const Ay=["svg",t,[["polyline",{points:"14.5 17.5 3 6 3 3 6 3 17.5 14.5"}],["line",{x1:"13",x2:"19",y1:"19",y2:"13"}],["line",{x1:"16",x2:"20",y1:"16",y2:"20"}],["line",{x1:"19",x2:"21",y1:"21",y2:"19"}],["polyline",{points:"14.5 6.5 18 3 21 3 21 6 17.5 9.5"}],["line",{x1:"5",x2:"9",y1:"14",y2:"18"}],["line",{x1:"7",x2:"4",y1:"17",y2:"20"}],["line",{x1:"3",x2:"5",y1:"19",y2:"21"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const L8=["svg",t,[["path",{d:"m18 2 4 4"}],["path",{d:"m17 7 3-3"}],["path",{d:"M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"}],["path",{d:"m9 11 4 4"}],["path",{d:"m5 19-3 3"}],["path",{d:"m14 4 6 6"}]]];/**
+ */const Ly=["svg",t,[["path",{d:"m18 2 4 4"}],["path",{d:"m17 7 3-3"}],["path",{d:"M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"}],["path",{d:"m9 11 4 4"}],["path",{d:"m5 19-3 3"}],["path",{d:"m14 4 6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V8=["svg",t,[["path",{d:"M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"}]]];/**
+ */const $y=["svg",t,[["path",{d:"M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $8=["svg",t,[["path",{d:"M12 21v-6"}],["path",{d:"M12 9V3"}],["path",{d:"M3 15h18"}],["path",{d:"M3 9h18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}]]];/**
+ */const Vy=["svg",t,[["path",{d:"M12 21v-6"}],["path",{d:"M12 9V3"}],["path",{d:"M3 15h18"}],["path",{d:"M3 9h18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _8=["svg",t,[["path",{d:"M12 15V9"}],["path",{d:"M3 15h18"}],["path",{d:"M3 9h18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}]]];/**
+ */const _y=["svg",t,[["path",{d:"M12 15V9"}],["path",{d:"M3 15h18"}],["path",{d:"M3 9h18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T8=["svg",t,[["path",{d:"M14 14v2"}],["path",{d:"M14 20v2"}],["path",{d:"M14 2v2"}],["path",{d:"M14 8v2"}],["path",{d:"M2 15h8"}],["path",{d:"M2 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H2"}],["path",{d:"M2 9h8"}],["path",{d:"M22 15h-4"}],["path",{d:"M22 3h-2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"}],["path",{d:"M22 9h-4"}],["path",{d:"M5 3v18"}]]];/**
+ */const Ty=["svg",t,[["path",{d:"M14 14v2"}],["path",{d:"M14 20v2"}],["path",{d:"M14 2v2"}],["path",{d:"M14 8v2"}],["path",{d:"M2 15h8"}],["path",{d:"M2 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H2"}],["path",{d:"M2 9h8"}],["path",{d:"M22 15h-4"}],["path",{d:"M22 3h-2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"}],["path",{d:"M22 9h-4"}],["path",{d:"M5 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P8=["svg",t,[["path",{d:"M15 3v18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M21 9H3"}],["path",{d:"M21 15H3"}]]];/**
+ */const Py=["svg",t,[["path",{d:"M15 3v18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M21 9H3"}],["path",{d:"M21 15H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const z8=["svg",t,[["path",{d:"M14 10h2"}],["path",{d:"M15 22v-8"}],["path",{d:"M15 2v4"}],["path",{d:"M2 10h2"}],["path",{d:"M20 10h2"}],["path",{d:"M3 19h18"}],["path",{d:"M3 22v-6a2 2 135 0 1 2-2h14a2 2 45 0 1 2 2v6"}],["path",{d:"M3 2v2a2 2 45 0 0 2 2h14a2 2 135 0 0 2-2V2"}],["path",{d:"M8 10h2"}],["path",{d:"M9 22v-8"}],["path",{d:"M9 2v4"}]]];/**
+ */const zy=["svg",t,[["path",{d:"M14 10h2"}],["path",{d:"M15 22v-8"}],["path",{d:"M15 2v4"}],["path",{d:"M2 10h2"}],["path",{d:"M20 10h2"}],["path",{d:"M3 19h18"}],["path",{d:"M3 22v-6a2 2 135 0 1 2-2h14a2 2 45 0 1 2 2v6"}],["path",{d:"M3 2v2a2 2 45 0 0 2 2h14a2 2 135 0 0 2-2V2"}],["path",{d:"M8 10h2"}],["path",{d:"M9 22v-8"}],["path",{d:"M9 2v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const q8=["svg",t,[["path",{d:"M12 3v18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"M3 15h18"}]]];/**
+ */const qy=["svg",t,[["path",{d:"M12 3v18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"M3 15h18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const E8=["svg",t,[["rect",{width:"10",height:"14",x:"3",y:"8",rx:"2"}],["path",{d:"M5 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-2.4"}],["path",{d:"M8 18h.01"}]]];/**
+ */const Ey=["svg",t,[["rect",{width:"10",height:"14",x:"3",y:"8",rx:"2"}],["path",{d:"M5 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-2.4"}],["path",{d:"M8 18h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const B8=["svg",t,[["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2",ry:"2"}],["line",{x1:"12",x2:"12.01",y1:"18",y2:"18"}]]];/**
+ */const By=["svg",t,[["rect",{width:"16",height:"20",x:"4",y:"2",rx:"2",ry:"2"}],["line",{x1:"12",x2:"12.01",y1:"18",y2:"18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const D8=["svg",t,[["circle",{cx:"7",cy:"7",r:"5"}],["circle",{cx:"17",cy:"17",r:"5"}],["path",{d:"M12 17h10"}],["path",{d:"m3.46 10.54 7.08-7.08"}]]];/**
+ */const Dy=["svg",t,[["circle",{cx:"7",cy:"7",r:"5"}],["circle",{cx:"17",cy:"17",r:"5"}],["path",{d:"M12 17h10"}],["path",{d:"m3.46 10.54 7.08-7.08"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const R8=["svg",t,[["path",{d:"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"}],["circle",{cx:"7.5",cy:"7.5",r:".5",fill:"currentColor"}]]];/**
+ */const Ry=["svg",t,[["path",{d:"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"}],["circle",{cx:"7.5",cy:"7.5",r:".5",fill:"currentColor"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const I8=["svg",t,[["path",{d:"m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"}],["path",{d:"M9.586 5.586A2 2 0 0 0 8.172 5H3a1 1 0 0 0-1 1v5.172a2 2 0 0 0 .586 1.414L8.29 18.29a2.426 2.426 0 0 0 3.42 0l3.58-3.58a2.426 2.426 0 0 0 0-3.42z"}],["circle",{cx:"6.5",cy:"9.5",r:".5",fill:"currentColor"}]]];/**
+ */const Iy=["svg",t,[["path",{d:"m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"}],["path",{d:"M9.586 5.586A2 2 0 0 0 8.172 5H3a1 1 0 0 0-1 1v5.172a2 2 0 0 0 .586 1.414L8.29 18.29a2.426 2.426 0 0 0 3.42 0l3.58-3.58a2.426 2.426 0 0 0 0-3.42z"}],["circle",{cx:"6.5",cy:"9.5",r:".5",fill:"currentColor"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const O8=["svg",t,[["path",{d:"M4 4v16"}]]];/**
+ */const Oy=["svg",t,[["path",{d:"M4 4v16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const N8=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}]]];/**
+ */const Ny=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z8=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}],["path",{d:"M14 4v16"}]]];/**
+ */const Fy=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}],["path",{d:"M14 4v16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F8=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}],["path",{d:"M14 4v16"}],["path",{d:"M19 4v16"}]]];/**
+ */const Zy=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}],["path",{d:"M14 4v16"}],["path",{d:"M19 4v16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const U8=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}],["path",{d:"M14 4v16"}],["path",{d:"M19 4v16"}],["path",{d:"M22 6 2 18"}]]];/**
+ */const Uy=["svg",t,[["path",{d:"M4 4v16"}],["path",{d:"M9 4v16"}],["path",{d:"M14 4v16"}],["path",{d:"M19 4v16"}],["path",{d:"M22 6 2 18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G8=["svg",t,[["circle",{cx:"17",cy:"4",r:"2"}],["path",{d:"M15.59 5.41 5.41 15.59"}],["circle",{cx:"4",cy:"17",r:"2"}],["path",{d:"M12 22s-4-9-1.5-11.5S22 12 22 12"}]]];/**
+ */const jy=["svg",t,[["circle",{cx:"17",cy:"4",r:"2"}],["path",{d:"M15.59 5.41 5.41 15.59"}],["circle",{cx:"4",cy:"17",r:"2"}],["path",{d:"M12 22s-4-9-1.5-11.5S22 12 22 12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j8=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"6"}],["circle",{cx:"12",cy:"12",r:"2"}]]];/**
+ */const Gy=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"6"}],["circle",{cx:"12",cy:"12",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K8=["svg",t,[["path",{d:"m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"}],["path",{d:"m13.56 11.747 4.332-.924"}],["path",{d:"m16 21-3.105-6.21"}],["path",{d:"M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"}],["path",{d:"m6.158 8.633 1.114 4.456"}],["path",{d:"m8 21 3.105-6.21"}],["circle",{cx:"12",cy:"13",r:"2"}]]];/**
+ */const Ky=["svg",t,[["path",{d:"m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"}],["path",{d:"m13.56 11.747 4.332-.924"}],["path",{d:"m16 21-3.105-6.21"}],["path",{d:"M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"}],["path",{d:"m6.158 8.633 1.114 4.456"}],["path",{d:"m8 21 3.105-6.21"}],["circle",{cx:"12",cy:"13",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W8=["svg",t,[["circle",{cx:"4",cy:"4",r:"2"}],["path",{d:"m14 5 3-3 3 3"}],["path",{d:"m14 10 3-3 3 3"}],["path",{d:"M17 14V2"}],["path",{d:"M17 14H7l-5 8h20Z"}],["path",{d:"M8 14v8"}],["path",{d:"m9 14 5 8"}]]];/**
+ */const Wy=["svg",t,[["circle",{cx:"4",cy:"4",r:"2"}],["path",{d:"m14 5 3-3 3 3"}],["path",{d:"m14 10 3-3 3 3"}],["path",{d:"M17 14V2"}],["path",{d:"M17 14H7l-5 8h20Z"}],["path",{d:"M8 14v8"}],["path",{d:"m9 14 5 8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J8=["svg",t,[["path",{d:"M3.5 21 14 3"}],["path",{d:"M20.5 21 10 3"}],["path",{d:"M15.5 21 12 15l-3.5 6"}],["path",{d:"M2 21h20"}]]];/**
+ */const Jy=["svg",t,[["path",{d:"M3.5 21 14 3"}],["path",{d:"M20.5 21 10 3"}],["path",{d:"M15.5 21 12 15l-3.5 6"}],["path",{d:"M2 21h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Y8=["svg",t,[["polyline",{points:"4 17 10 11 4 5"}],["line",{x1:"12",x2:"20",y1:"19",y2:"19"}]]];/**
+ */const Yy=["svg",t,[["polyline",{points:"4 17 10 11 4 5"}],["line",{x1:"12",x2:"20",y1:"19",y2:"19"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6648,207 +6648,207 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const X8=["svg",t,[["path",{d:"M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5c-1.4 0-2.5-1.1-2.5-2.5V2"}],["path",{d:"M8.5 2h7"}],["path",{d:"M14.5 16h-5"}]]];/**
+ */const Xy=["svg",t,[["path",{d:"M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5c-1.4 0-2.5-1.1-2.5-2.5V2"}],["path",{d:"M8.5 2h7"}],["path",{d:"M14.5 16h-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Q8=["svg",t,[["path",{d:"M9 2v17.5A2.5 2.5 0 0 1 6.5 22A2.5 2.5 0 0 1 4 19.5V2"}],["path",{d:"M20 2v17.5a2.5 2.5 0 0 1-2.5 2.5a2.5 2.5 0 0 1-2.5-2.5V2"}],["path",{d:"M3 2h7"}],["path",{d:"M14 2h7"}],["path",{d:"M9 16H4"}],["path",{d:"M20 16h-5"}]]];/**
+ */const Qy=["svg",t,[["path",{d:"M9 2v17.5A2.5 2.5 0 0 1 6.5 22A2.5 2.5 0 0 1 4 19.5V2"}],["path",{d:"M20 2v17.5a2.5 2.5 0 0 1-2.5 2.5a2.5 2.5 0 0 1-2.5-2.5V2"}],["path",{d:"M3 2h7"}],["path",{d:"M14 2h7"}],["path",{d:"M9 16H4"}],["path",{d:"M20 16h-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ty=["svg",t,[["path",{d:"M5 4h1a3 3 0 0 1 3 3 3 3 0 0 1 3-3h1"}],["path",{d:"M13 20h-1a3 3 0 0 1-3-3 3 3 0 0 1-3 3H5"}],["path",{d:"M5 16H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1"}],["path",{d:"M13 8h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7"}],["path",{d:"M9 7v10"}]]];/**
+ */const t8=["svg",t,[["path",{d:"M5 4h1a3 3 0 0 1 3 3 3 3 0 0 1 3-3h1"}],["path",{d:"M13 20h-1a3 3 0 0 1-3-3 3 3 0 0 1-3 3H5"}],["path",{d:"M5 16H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1"}],["path",{d:"M13 8h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7"}],["path",{d:"M9 7v10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ey=["svg",t,[["path",{d:"M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"}],["path",{d:"M7 22h1a4 4 0 0 0 4-4v-1"}],["path",{d:"M7 2h1a4 4 0 0 1 4 4v1"}]]];/**
+ */const e8=["svg",t,[["path",{d:"M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"}],["path",{d:"M7 22h1a4 4 0 0 0 4-4v-1"}],["path",{d:"M7 2h1a4 4 0 0 1 4 4v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ay=["svg",t,[["path",{d:"M17 6H3"}],["path",{d:"M21 12H8"}],["path",{d:"M21 18H8"}],["path",{d:"M3 12v6"}]]];/**
+ */const a8=["svg",t,[["path",{d:"M17 6H3"}],["path",{d:"M21 12H8"}],["path",{d:"M21 18H8"}],["path",{d:"M3 12v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const iy=["svg",t,[["path",{d:"M21 6H3"}],["path",{d:"M10 12H3"}],["path",{d:"M10 18H3"}],["circle",{cx:"17",cy:"15",r:"3"}],["path",{d:"m21 19-1.9-1.9"}]]];/**
+ */const i8=["svg",t,[["path",{d:"M21 6H3"}],["path",{d:"M10 12H3"}],["path",{d:"M10 18H3"}],["circle",{cx:"17",cy:"15",r:"3"}],["path",{d:"m21 19-1.9-1.9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Za=["svg",t,[["path",{d:"M5 3a2 2 0 0 0-2 2"}],["path",{d:"M19 3a2 2 0 0 1 2 2"}],["path",{d:"M21 19a2 2 0 0 1-2 2"}],["path",{d:"M5 21a2 2 0 0 1-2-2"}],["path",{d:"M9 3h1"}],["path",{d:"M9 21h1"}],["path",{d:"M14 3h1"}],["path",{d:"M14 21h1"}],["path",{d:"M3 9v1"}],["path",{d:"M21 9v1"}],["path",{d:"M3 14v1"}],["path",{d:"M21 14v1"}],["line",{x1:"7",x2:"15",y1:"8",y2:"8"}],["line",{x1:"7",x2:"17",y1:"12",y2:"12"}],["line",{x1:"7",x2:"13",y1:"16",y2:"16"}]]];/**
+ */const Fa=["svg",t,[["path",{d:"M5 3a2 2 0 0 0-2 2"}],["path",{d:"M19 3a2 2 0 0 1 2 2"}],["path",{d:"M21 19a2 2 0 0 1-2 2"}],["path",{d:"M5 21a2 2 0 0 1-2-2"}],["path",{d:"M9 3h1"}],["path",{d:"M9 21h1"}],["path",{d:"M14 3h1"}],["path",{d:"M14 21h1"}],["path",{d:"M3 9v1"}],["path",{d:"M21 9v1"}],["path",{d:"M3 14v1"}],["path",{d:"M21 14v1"}],["line",{x1:"7",x2:"15",y1:"8",y2:"8"}],["line",{x1:"7",x2:"17",y1:"12",y2:"12"}],["line",{x1:"7",x2:"13",y1:"16",y2:"16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const sy=["svg",t,[["path",{d:"M17 6.1H3"}],["path",{d:"M21 12.1H3"}],["path",{d:"M15.1 18H3"}]]];/**
+ */const s8=["svg",t,[["path",{d:"M17 6.1H3"}],["path",{d:"M21 12.1H3"}],["path",{d:"M15.1 18H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dy=["svg",t,[["path",{d:"M2 10s3-3 3-8"}],["path",{d:"M22 10s-3-3-3-8"}],["path",{d:"M10 2c0 4.4-3.6 8-8 8"}],["path",{d:"M14 2c0 4.4 3.6 8 8 8"}],["path",{d:"M2 10s2 2 2 5"}],["path",{d:"M22 10s-2 2-2 5"}],["path",{d:"M8 15h8"}],["path",{d:"M2 22v-1a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1"}],["path",{d:"M14 22v-1a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1"}]]];/**
+ */const o8=["svg",t,[["path",{d:"M2 10s3-3 3-8"}],["path",{d:"M22 10s-3-3-3-8"}],["path",{d:"M10 2c0 4.4-3.6 8-8 8"}],["path",{d:"M14 2c0 4.4 3.6 8 8 8"}],["path",{d:"M2 10s2 2 2 5"}],["path",{d:"M22 10s-2 2-2 5"}],["path",{d:"M8 15h8"}],["path",{d:"M2 22v-1a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1"}],["path",{d:"M14 22v-1a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oy=["svg",t,[["path",{d:"M2 12h10"}],["path",{d:"M9 4v16"}],["path",{d:"m3 9 3 3-3 3"}],["path",{d:"M12 6 9 9 6 6"}],["path",{d:"m6 18 3-3 1.5 1.5"}],["path",{d:"M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}]]];/**
+ */const d8=["svg",t,[["path",{d:"M2 12h10"}],["path",{d:"M9 4v16"}],["path",{d:"m3 9 3 3-3 3"}],["path",{d:"M12 6 9 9 6 6"}],["path",{d:"m6 18 3-3 1.5 1.5"}],["path",{d:"M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ry=["svg",t,[["path",{d:"M12 9a4 4 0 0 0-2 7.5"}],["path",{d:"M12 3v2"}],["path",{d:"m6.6 18.4-1.4 1.4"}],["path",{d:"M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}],["path",{d:"M4 13H2"}],["path",{d:"M6.34 7.34 4.93 5.93"}]]];/**
+ */const r8=["svg",t,[["path",{d:"M12 9a4 4 0 0 0-2 7.5"}],["path",{d:"M12 3v2"}],["path",{d:"m6.6 18.4-1.4 1.4"}],["path",{d:"M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}],["path",{d:"M4 13H2"}],["path",{d:"M6.34 7.34 4.93 5.93"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ny=["svg",t,[["path",{d:"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}]]];/**
+ */const n8=["svg",t,[["path",{d:"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const cy=["svg",t,[["path",{d:"M17 14V2"}],["path",{d:"M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"}]]];/**
+ */const c8=["svg",t,[["path",{d:"M17 14V2"}],["path",{d:"M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ly=["svg",t,[["path",{d:"M7 10v12"}],["path",{d:"M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"}]]];/**
+ */const l8=["svg",t,[["path",{d:"M7 10v12"}],["path",{d:"M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const hy=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"m9 12 2 2 4-4"}]]];/**
+ */const h8=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"m9 12 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const py=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M9 12h6"}]]];/**
+ */const p8=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M9 12h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const vy=["svg",t,[["path",{d:"M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M9 9h.01"}],["path",{d:"m15 9-6 6"}],["path",{d:"M15 15h.01"}]]];/**
+ */const v8=["svg",t,[["path",{d:"M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M9 9h.01"}],["path",{d:"m15 9-6 6"}],["path",{d:"M15 15h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const my=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M9 12h6"}],["path",{d:"M12 9v6"}]]];/**
+ */const m8=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M9 12h6"}],["path",{d:"M12 9v6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const gy=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"m9.5 14.5 5-5"}]]];/**
+ */const g8=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"m9.5 14.5 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const uy=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"m9.5 14.5 5-5"}],["path",{d:"m9.5 9.5 5 5"}]]];/**
+ */const u8=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"m9.5 14.5 5-5"}],["path",{d:"m9.5 9.5 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const yy=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M13 5v2"}],["path",{d:"M13 17v2"}],["path",{d:"M13 11v2"}]]];/**
+ */const y8=["svg",t,[["path",{d:"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M13 5v2"}],["path",{d:"M13 17v2"}],["path",{d:"M13 11v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const My=["svg",t,[["path",{d:"M10 2h4"}],["path",{d:"M4.6 11a8 8 0 0 0 1.7 8.7 8 8 0 0 0 8.7 1.7"}],["path",{d:"M7.4 7.4a8 8 0 0 1 10.3 1 8 8 0 0 1 .9 10.2"}],["path",{d:"m2 2 20 20"}],["path",{d:"M12 12v-2"}]]];/**
+ */const M8=["svg",t,[["path",{d:"M10 2h4"}],["path",{d:"M4.6 11a8 8 0 0 0 1.7 8.7 8 8 0 0 0 8.7 1.7"}],["path",{d:"M7.4 7.4a8 8 0 0 1 10.3 1 8 8 0 0 1 .9 10.2"}],["path",{d:"m2 2 20 20"}],["path",{d:"M12 12v-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const xy=["svg",t,[["path",{d:"M10 2h4"}],["path",{d:"M12 14v-4"}],["path",{d:"M4 13a8 8 0 0 1 8-7 8 8 0 1 1-5.3 14L4 17.6"}],["path",{d:"M9 17H4v5"}]]];/**
+ */const x8=["svg",t,[["path",{d:"M10 2h4"}],["path",{d:"M12 14v-4"}],["path",{d:"M4 13a8 8 0 0 1 8-7 8 8 0 1 1-5.3 14L4 17.6"}],["path",{d:"M9 17H4v5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const fy=["svg",t,[["line",{x1:"10",x2:"14",y1:"2",y2:"2"}],["line",{x1:"12",x2:"15",y1:"14",y2:"11"}],["circle",{cx:"12",cy:"14",r:"8"}]]];/**
+ */const f8=["svg",t,[["line",{x1:"10",x2:"14",y1:"2",y2:"2"}],["line",{x1:"12",x2:"15",y1:"14",y2:"11"}],["circle",{cx:"12",cy:"14",r:"8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const by=["svg",t,[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"6",ry:"6"}],["circle",{cx:"8",cy:"12",r:"2"}]]];/**
+ */const b8=["svg",t,[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"6",ry:"6"}],["circle",{cx:"8",cy:"12",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const wy=["svg",t,[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"6",ry:"6"}],["circle",{cx:"16",cy:"12",r:"2"}]]];/**
+ */const w8=["svg",t,[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"6",ry:"6"}],["circle",{cx:"16",cy:"12",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ky=["svg",t,[["path",{d:"M21 4H3"}],["path",{d:"M18 8H6"}],["path",{d:"M19 12H9"}],["path",{d:"M16 16h-6"}],["path",{d:"M11 20H9"}]]];/**
+ */const k8=["svg",t,[["path",{d:"M21 4H3"}],["path",{d:"M18 8H6"}],["path",{d:"M19 12H9"}],["path",{d:"M16 16h-6"}],["path",{d:"M11 20H9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hy=["svg",t,[["ellipse",{cx:"12",cy:"11",rx:"3",ry:"2"}],["ellipse",{cx:"12",cy:"12.5",rx:"10",ry:"8.5"}]]];/**
+ */const S8=["svg",t,[["ellipse",{cx:"12",cy:"11",rx:"3",ry:"2"}],["ellipse",{cx:"12",cy:"12.5",rx:"10",ry:"8.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sy=["svg",t,[["path",{d:"M4 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16"}],["path",{d:"M2 14h12"}],["path",{d:"M22 14h-2"}],["path",{d:"M12 20v-6"}],["path",{d:"m2 2 20 20"}],["path",{d:"M22 16V6a2 2 0 0 0-2-2H10"}]]];/**
+ */const H8=["svg",t,[["path",{d:"M4 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16"}],["path",{d:"M2 14h12"}],["path",{d:"M22 14h-2"}],["path",{d:"M12 20v-6"}],["path",{d:"m2 2 20 20"}],["path",{d:"M22 16V6a2 2 0 0 0-2-2H10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Cy=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M2 14h20"}],["path",{d:"M12 20v-6"}]]];/**
+ */const C8=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M2 14h20"}],["path",{d:"M12 20v-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ay=["svg",t,[["path",{d:"M18.2 12.27 20 6H4l1.8 6.27a1 1 0 0 0 .95.73h10.5a1 1 0 0 0 .96-.73Z"}],["path",{d:"M8 13v9"}],["path",{d:"M16 22v-9"}],["path",{d:"m9 6 1 7"}],["path",{d:"m15 6-1 7"}],["path",{d:"M12 6V2"}],["path",{d:"M13 2h-2"}]]];/**
+ */const A8=["svg",t,[["path",{d:"M18.2 12.27 20 6H4l1.8 6.27a1 1 0 0 0 .95.73h10.5a1 1 0 0 0 .96-.73Z"}],["path",{d:"M8 13v9"}],["path",{d:"M16 22v-9"}],["path",{d:"m9 6 1 7"}],["path",{d:"m15 6-1 7"}],["path",{d:"M12 6V2"}],["path",{d:"M13 2h-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ly=["svg",t,[["rect",{width:"18",height:"12",x:"3",y:"8",rx:"1"}],["path",{d:"M10 8V5c0-.6-.4-1-1-1H6a1 1 0 0 0-1 1v3"}],["path",{d:"M19 8V5c0-.6-.4-1-1-1h-3a1 1 0 0 0-1 1v3"}]]];/**
+ */const L8=["svg",t,[["rect",{width:"18",height:"12",x:"3",y:"8",rx:"1"}],["path",{d:"M10 8V5c0-.6-.4-1-1-1H6a1 1 0 0 0-1 1v3"}],["path",{d:"M19 8V5c0-.6-.4-1-1-1h-3a1 1 0 0 0-1 1v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vy=["svg",t,[["path",{d:"m10 11 11 .9a1 1 0 0 1 .8 1.1l-.665 4.158a1 1 0 0 1-.988.842H20"}],["path",{d:"M16 18h-5"}],["path",{d:"M18 5a1 1 0 0 0-1 1v5.573"}],["path",{d:"M3 4h8.129a1 1 0 0 1 .99.863L13 11.246"}],["path",{d:"M4 11V4"}],["path",{d:"M7 15h.01"}],["path",{d:"M8 10.1V4"}],["circle",{cx:"18",cy:"18",r:"2"}],["circle",{cx:"7",cy:"15",r:"5"}]]];/**
+ */const $8=["svg",t,[["path",{d:"m10 11 11 .9a1 1 0 0 1 .8 1.1l-.665 4.158a1 1 0 0 1-.988.842H20"}],["path",{d:"M16 18h-5"}],["path",{d:"M18 5a1 1 0 0 0-1 1v5.573"}],["path",{d:"M3 4h8.129a1 1 0 0 1 .99.863L13 11.246"}],["path",{d:"M4 11V4"}],["path",{d:"M7 15h.01"}],["path",{d:"M8 10.1V4"}],["circle",{cx:"18",cy:"18",r:"2"}],["circle",{cx:"7",cy:"15",r:"5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $y=["svg",t,[["path",{d:"M9.3 6.2a4.55 4.55 0 0 0 5.4 0"}],["path",{d:"M7.9 10.7c.9.8 2.4 1.3 4.1 1.3s3.2-.5 4.1-1.3"}],["path",{d:"M13.9 3.5a1.93 1.93 0 0 0-3.8-.1l-3 10c-.1.2-.1.4-.1.6 0 1.7 2.2 3 5 3s5-1.3 5-3c0-.2 0-.4-.1-.5Z"}],["path",{d:"m7.5 12.2-4.7 2.7c-.5.3-.8.7-.8 1.1s.3.8.8 1.1l7.6 4.5c.9.5 2.1.5 3 0l7.6-4.5c.7-.3 1-.7 1-1.1s-.3-.8-.8-1.1l-4.7-2.8"}]]];/**
+ */const V8=["svg",t,[["path",{d:"M9.3 6.2a4.55 4.55 0 0 0 5.4 0"}],["path",{d:"M7.9 10.7c.9.8 2.4 1.3 4.1 1.3s3.2-.5 4.1-1.3"}],["path",{d:"M13.9 3.5a1.93 1.93 0 0 0-3.8-.1l-3 10c-.1.2-.1.4-.1.6 0 1.7 2.2 3 5 3s5-1.3 5-3c0-.2 0-.4-.1-.5Z"}],["path",{d:"m7.5 12.2-4.7 2.7c-.5.3-.8.7-.8 1.1s.3.8.8 1.1l7.6 4.5c.9.5 2.1.5 3 0l7.6-4.5c.7-.3 1-.7 1-1.1s-.3-.8-.8-1.1l-4.7-2.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _y=["svg",t,[["path",{d:"M2 22V12a10 10 0 1 1 20 0v10"}],["path",{d:"M15 6.8v1.4a3 2.8 0 1 1-6 0V6.8"}],["path",{d:"M10 15h.01"}],["path",{d:"M14 15h.01"}],["path",{d:"M10 19a4 4 0 0 1-4-4v-3a6 6 0 1 1 12 0v3a4 4 0 0 1-4 4Z"}],["path",{d:"m9 19-2 3"}],["path",{d:"m15 19 2 3"}]]];/**
+ */const _8=["svg",t,[["path",{d:"M2 22V12a10 10 0 1 1 20 0v10"}],["path",{d:"M15 6.8v1.4a3 2.8 0 1 1-6 0V6.8"}],["path",{d:"M10 15h.01"}],["path",{d:"M14 15h.01"}],["path",{d:"M10 19a4 4 0 0 1-4-4v-3a6 6 0 1 1 12 0v3a4 4 0 0 1-4 4Z"}],["path",{d:"m9 19-2 3"}],["path",{d:"m15 19 2 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ty=["svg",t,[["path",{d:"M8 3.1V7a4 4 0 0 0 8 0V3.1"}],["path",{d:"m9 15-1-1"}],["path",{d:"m15 15 1-1"}],["path",{d:"M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"}],["path",{d:"m8 19-2 3"}],["path",{d:"m16 19 2 3"}]]];/**
+ */const T8=["svg",t,[["path",{d:"M8 3.1V7a4 4 0 0 0 8 0V3.1"}],["path",{d:"m9 15-1-1"}],["path",{d:"m15 15 1-1"}],["path",{d:"M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"}],["path",{d:"m8 19-2 3"}],["path",{d:"m16 19 2 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Py=["svg",t,[["path",{d:"M2 17 17 2"}],["path",{d:"m2 14 8 8"}],["path",{d:"m5 11 8 8"}],["path",{d:"m8 8 8 8"}],["path",{d:"m11 5 8 8"}],["path",{d:"m14 2 8 8"}],["path",{d:"M7 22 22 7"}]]];/**
+ */const P8=["svg",t,[["path",{d:"M2 17 17 2"}],["path",{d:"m2 14 8 8"}],["path",{d:"m5 11 8 8"}],["path",{d:"m8 8 8 8"}],["path",{d:"m11 5 8 8"}],["path",{d:"m14 2 8 8"}],["path",{d:"M7 22 22 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fa=["svg",t,[["rect",{width:"16",height:"16",x:"4",y:"3",rx:"2"}],["path",{d:"M4 11h16"}],["path",{d:"M12 3v8"}],["path",{d:"m8 19-2 3"}],["path",{d:"m18 22-2-3"}],["path",{d:"M8 15h.01"}],["path",{d:"M16 15h.01"}]]];/**
+ */const Za=["svg",t,[["rect",{width:"16",height:"16",x:"4",y:"3",rx:"2"}],["path",{d:"M4 11h16"}],["path",{d:"M12 3v8"}],["path",{d:"m8 19-2 3"}],["path",{d:"m18 22-2-3"}],["path",{d:"M8 15h.01"}],["path",{d:"M16 15h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const zy=["svg",t,[["path",{d:"M3 6h18"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"}],["line",{x1:"10",x2:"10",y1:"11",y2:"17"}],["line",{x1:"14",x2:"14",y1:"11",y2:"17"}]]];/**
+ */const z8=["svg",t,[["path",{d:"M3 6h18"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"}],["line",{x1:"10",x2:"10",y1:"11",y2:"17"}],["line",{x1:"14",x2:"14",y1:"11",y2:"17"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const qy=["svg",t,[["path",{d:"M3 6h18"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"}]]];/**
+ */const q8=["svg",t,[["path",{d:"M3 6h18"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ey=["svg",t,[["path",{d:"M8 19a4 4 0 0 1-2.24-7.32A3.5 3.5 0 0 1 9 6.03V6a3 3 0 1 1 6 0v.04a3.5 3.5 0 0 1 3.24 5.65A4 4 0 0 1 16 19Z"}],["path",{d:"M12 19v3"}]]];/**
+ */const E8=["svg",t,[["path",{d:"M8 19a4 4 0 0 1-2.24-7.32A3.5 3.5 0 0 1 9 6.03V6a3 3 0 1 1 6 0v.04a3.5 3.5 0 0 1 3.24 5.65A4 4 0 0 1 16 19Z"}],["path",{d:"M12 19v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6858,97 +6858,97 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const By=["svg",t,[["path",{d:"m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"}],["path",{d:"M12 22v-3"}]]];/**
+ */const B8=["svg",t,[["path",{d:"m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"}],["path",{d:"M12 22v-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Dy=["svg",t,[["path",{d:"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"}],["path",{d:"M7 16v6"}],["path",{d:"M13 19v3"}],["path",{d:"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"}]]];/**
+ */const D8=["svg",t,[["path",{d:"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"}],["path",{d:"M7 16v6"}],["path",{d:"M13 19v3"}],["path",{d:"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ry=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["rect",{width:"3",height:"9",x:"7",y:"7"}],["rect",{width:"3",height:"5",x:"14",y:"7"}]]];/**
+ */const R8=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["rect",{width:"3",height:"9",x:"7",y:"7"}],["rect",{width:"3",height:"5",x:"14",y:"7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Iy=["svg",t,[["polyline",{points:"22 17 13.5 8.5 8.5 13.5 2 7"}],["polyline",{points:"16 17 22 17 22 11"}]]];/**
+ */const I8=["svg",t,[["polyline",{points:"22 17 13.5 8.5 8.5 13.5 2 7"}],["polyline",{points:"16 17 22 17 22 11"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Oy=["svg",t,[["polyline",{points:"22 7 13.5 15.5 8.5 10.5 2 17"}],["polyline",{points:"16 7 22 7 22 13"}]]];/**
+ */const O8=["svg",t,[["polyline",{points:"22 7 13.5 15.5 8.5 10.5 2 17"}],["polyline",{points:"16 7 22 7 22 13"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ga=["svg",t,[["path",{d:"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"}],["path",{d:"M12 9v4"}],["path",{d:"M12 17h.01"}]]];/**
+ */const ja=["svg",t,[["path",{d:"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"}],["path",{d:"M12 9v4"}],["path",{d:"M12 17h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ny=["svg",t,[["path",{d:"M22 18a2 2 0 0 1-2 2H3c-1.1 0-1.3-.6-.4-1.3L20.4 4.3c.9-.7 1.6-.4 1.6.7Z"}]]];/**
+ */const N8=["svg",t,[["path",{d:"M22 18a2 2 0 0 1-2 2H3c-1.1 0-1.3-.6-.4-1.3L20.4 4.3c.9-.7 1.6-.4 1.6.7Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zy=["svg",t,[["path",{d:"M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"}]]];/**
+ */const F8=["svg",t,[["path",{d:"M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fy=["svg",t,[["path",{d:"M6 9H4.5a2.5 2.5 0 0 1 0-5H6"}],["path",{d:"M18 9h1.5a2.5 2.5 0 0 0 0-5H18"}],["path",{d:"M4 22h16"}],["path",{d:"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"}],["path",{d:"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"}],["path",{d:"M18 2H6v7a6 6 0 0 0 12 0V2Z"}]]];/**
+ */const Z8=["svg",t,[["path",{d:"M6 9H4.5a2.5 2.5 0 0 1 0-5H6"}],["path",{d:"M18 9h1.5a2.5 2.5 0 0 0 0-5H18"}],["path",{d:"M4 22h16"}],["path",{d:"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"}],["path",{d:"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"}],["path",{d:"M18 2H6v7a6 6 0 0 0 12 0V2Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Uy=["svg",t,[["path",{d:"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"}],["path",{d:"M15 18H9"}],["path",{d:"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"}],["circle",{cx:"17",cy:"18",r:"2"}],["circle",{cx:"7",cy:"18",r:"2"}]]];/**
+ */const U8=["svg",t,[["path",{d:"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"}],["path",{d:"M15 18H9"}],["path",{d:"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"}],["circle",{cx:"17",cy:"18",r:"2"}],["circle",{cx:"7",cy:"18",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gy=["svg",t,[["path",{d:"m12 10 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a8 8 0 1 0-16 0v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3l2-4h4Z"}],["path",{d:"M4.82 7.9 8 10"}],["path",{d:"M15.18 7.9 12 10"}],["path",{d:"M16.93 10H20a2 2 0 0 1 0 4H2"}]]];/**
+ */const j8=["svg",t,[["path",{d:"m12 10 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a8 8 0 1 0-16 0v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3l2-4h4Z"}],["path",{d:"M4.82 7.9 8 10"}],["path",{d:"M15.18 7.9 12 10"}],["path",{d:"M16.93 10H20a2 2 0 0 1 0 4H2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jy=["svg",t,[["path",{d:"M10 7.75a.75.75 0 0 1 1.142-.638l3.664 2.249a.75.75 0 0 1 0 1.278l-3.664 2.25a.75.75 0 0 1-1.142-.64z"}],["path",{d:"M7 21h10"}],["rect",{width:"20",height:"14",x:"2",y:"3",rx:"2"}]]];/**
+ */const G8=["svg",t,[["path",{d:"M10 7.75a.75.75 0 0 1 1.142-.638l3.664 2.249a.75.75 0 0 1 0 1.278l-3.664 2.25a.75.75 0 0 1-1.142-.64z"}],["path",{d:"M7 21h10"}],["rect",{width:"20",height:"14",x:"2",y:"3",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ja=["svg",t,[["path",{d:"M7 21h10"}],["rect",{width:"20",height:"14",x:"2",y:"3",rx:"2"}]]];/**
+ */const Ga=["svg",t,[["path",{d:"M7 21h10"}],["rect",{width:"20",height:"14",x:"2",y:"3",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ky=["svg",t,[["rect",{width:"20",height:"15",x:"2",y:"7",rx:"2",ry:"2"}],["polyline",{points:"17 2 12 7 7 2"}]]];/**
+ */const K8=["svg",t,[["rect",{width:"20",height:"15",x:"2",y:"7",rx:"2",ry:"2"}],["polyline",{points:"17 2 12 7 7 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wy=["svg",t,[["path",{d:"M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"}]]];/**
+ */const W8=["svg",t,[["path",{d:"M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jy=["svg",t,[["path",{d:"M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"}]]];/**
+ */const J8=["svg",t,[["path",{d:"M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Yy=["svg",t,[["polyline",{points:"4 7 4 4 20 4 20 7"}],["line",{x1:"9",x2:"15",y1:"20",y2:"20"}],["line",{x1:"12",x2:"12",y1:"4",y2:"20"}]]];/**
+ */const Y8=["svg",t,[["polyline",{points:"4 7 4 4 20 4 20 7"}],["line",{x1:"9",x2:"15",y1:"20",y2:"20"}],["line",{x1:"12",x2:"12",y1:"4",y2:"20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Xy=["svg",t,[["path",{d:"M12 2v1"}],["path",{d:"M15.5 21a1.85 1.85 0 0 1-3.5-1v-8H2a10 10 0 0 1 3.428-6.575"}],["path",{d:"M17.5 12H22A10 10 0 0 0 9.004 3.455"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const X8=["svg",t,[["path",{d:"M12 2v1"}],["path",{d:"M15.5 21a1.85 1.85 0 0 1-3.5-1v-8H2a10 10 0 0 1 3.428-6.575"}],["path",{d:"M17.5 12H22A10 10 0 0 0 9.004 3.455"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Qy=["svg",t,[["path",{d:"M22 12a10.06 10.06 1 0 0-20 0Z"}],["path",{d:"M12 12v8a2 2 0 0 0 4 0"}],["path",{d:"M12 2v1"}]]];/**
+ */const Q8=["svg",t,[["path",{d:"M22 12a10.06 10.06 1 0 0-20 0Z"}],["path",{d:"M12 12v8a2 2 0 0 0 4 0"}],["path",{d:"M12 2v1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6978,12 +6978,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d7=["svg",t,[["path",{d:"M12 22v-6"}],["path",{d:"M12 8V2"}],["path",{d:"M4 12H2"}],["path",{d:"M10 12H8"}],["path",{d:"M16 12h-2"}],["path",{d:"M22 12h-2"}],["path",{d:"m15 19-3 3-3-3"}],["path",{d:"m15 5-3-3-3 3"}]]];/**
+ */const o7=["svg",t,[["path",{d:"M12 22v-6"}],["path",{d:"M12 8V2"}],["path",{d:"M4 12H2"}],["path",{d:"M10 12H8"}],["path",{d:"M16 12h-2"}],["path",{d:"M22 12h-2"}],["path",{d:"m15 19-3 3-3-3"}],["path",{d:"m15 5-3-3-3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o7=["svg",t,[["rect",{width:"8",height:"6",x:"5",y:"4",rx:"1"}],["rect",{width:"8",height:"6",x:"11",y:"14",rx:"1"}]]];/**
+ */const d7=["svg",t,[["rect",{width:"8",height:"6",x:"5",y:"4",rx:"1"}],["rect",{width:"8",height:"6",x:"11",y:"14",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7113,12 +7113,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H7=["svg",t,[["path",{d:"M8 21s-4-3-4-9 4-9 4-9"}],["path",{d:"M16 3s4 3 4 9-4 9-4 9"}],["line",{x1:"15",x2:"9",y1:"9",y2:"15"}],["line",{x1:"9",x2:"15",y1:"9",y2:"15"}]]];/**
+ */const S7=["svg",t,[["path",{d:"M8 21s-4-3-4-9 4-9 4-9"}],["path",{d:"M16 3s4 3 4 9-4 9-4 9"}],["line",{x1:"15",x2:"9",y1:"9",y2:"15"}],["line",{x1:"9",x2:"15",y1:"9",y2:"15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S7=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["circle",{cx:"7.5",cy:"7.5",r:".5",fill:"currentColor"}],["path",{d:"m7.9 7.9 2.7 2.7"}],["circle",{cx:"16.5",cy:"7.5",r:".5",fill:"currentColor"}],["path",{d:"m13.4 10.6 2.7-2.7"}],["circle",{cx:"7.5",cy:"16.5",r:".5",fill:"currentColor"}],["path",{d:"m7.9 16.1 2.7-2.7"}],["circle",{cx:"16.5",cy:"16.5",r:".5",fill:"currentColor"}],["path",{d:"m13.4 13.4 2.7 2.7"}],["circle",{cx:"12",cy:"12",r:"2"}]]];/**
+ */const H7=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["circle",{cx:"7.5",cy:"7.5",r:".5",fill:"currentColor"}],["path",{d:"m7.9 7.9 2.7 2.7"}],["circle",{cx:"16.5",cy:"7.5",r:".5",fill:"currentColor"}],["path",{d:"m13.4 10.6 2.7-2.7"}],["circle",{cx:"7.5",cy:"16.5",r:".5",fill:"currentColor"}],["path",{d:"m7.9 16.1 2.7-2.7"}],["circle",{cx:"16.5",cy:"16.5",r:".5",fill:"currentColor"}],["path",{d:"m13.4 13.4 2.7 2.7"}],["circle",{cx:"12",cy:"12",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7138,12 +7138,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V7=["svg",t,[["path",{d:"m2 8 2 2-2 2 2 2-2 2"}],["path",{d:"m22 8-2 2 2 2-2 2 2 2"}],["rect",{width:"8",height:"14",x:"8",y:"5",rx:"1"}]]];/**
+ */const $7=["svg",t,[["path",{d:"m2 8 2 2-2 2 2 2-2 2"}],["path",{d:"m22 8-2 2 2 2-2 2 2 2"}],["rect",{width:"8",height:"14",x:"8",y:"5",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $7=["svg",t,[["path",{d:"M10.66 6H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196"}],["path",{d:"M16 16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const V7=["svg",t,[["path",{d:"M10.66 6H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196"}],["path",{d:"M16 16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7218,12 +7218,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z7=["svg",t,[["path",{d:"M15 4V2"}],["path",{d:"M15 16v-2"}],["path",{d:"M8 9h2"}],["path",{d:"M20 9h2"}],["path",{d:"M17.8 11.8 19 13"}],["path",{d:"M15 9h.01"}],["path",{d:"M17.8 6.2 19 5"}],["path",{d:"m3 21 9-9"}],["path",{d:"M12.2 6.2 11 5"}]]];/**
+ */const F7=["svg",t,[["path",{d:"M15 4V2"}],["path",{d:"M15 16v-2"}],["path",{d:"M8 9h2"}],["path",{d:"M20 9h2"}],["path",{d:"M17.8 11.8 19 13"}],["path",{d:"M15 9h.01"}],["path",{d:"M17.8 6.2 19 5"}],["path",{d:"m3 21 9-9"}],["path",{d:"M12.2 6.2 11 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F7=["svg",t,[["path",{d:"M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"}],["path",{d:"M6 18h12"}],["path",{d:"M6 14h12"}],["rect",{width:"12",height:"12",x:"6",y:"10"}]]];/**
+ */const Z7=["svg",t,[["path",{d:"M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"}],["path",{d:"M6 18h12"}],["path",{d:"M6 14h12"}],["rect",{width:"12",height:"12",x:"6",y:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7233,12 +7233,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G7=["svg",t,[["circle",{cx:"12",cy:"12",r:"6"}],["polyline",{points:"12 10 12 12 13 13"}],["path",{d:"m16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05"}],["path",{d:"m7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05"}]]];/**
+ */const j7=["svg",t,[["circle",{cx:"12",cy:"12",r:"6"}],["polyline",{points:"12 10 12 12 13 13"}],["path",{d:"m16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05"}],["path",{d:"m7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j7=["svg",t,[["path",{d:"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{d:"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{d:"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]]];/**
+ */const G7=["svg",t,[["path",{d:"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{d:"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{d:"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7298,12 +7298,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dM=["svg",t,[["path",{d:"M8 22h8"}],["path",{d:"M7 10h3m7 0h-1.343"}],["path",{d:"M12 15v7"}],["path",{d:"M7.307 7.307A12.33 12.33 0 0 0 7 10a5 5 0 0 0 7.391 4.391M8.638 2.981C8.75 2.668 8.872 2.34 9 2h6c1.5 4 2 6 2 8 0 .407-.05.809-.145 1.198"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const oM=["svg",t,[["path",{d:"M8 22h8"}],["path",{d:"M7 10h3m7 0h-1.343"}],["path",{d:"M12 15v7"}],["path",{d:"M7.307 7.307A12.33 12.33 0 0 0 7 10a5 5 0 0 0 7.391 4.391M8.638 2.981C8.75 2.668 8.872 2.34 9 2h6c1.5 4 2 6 2 8 0 .407-.05.809-.145 1.198"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oM=["svg",t,[["path",{d:"M8 22h8"}],["path",{d:"M7 10h10"}],["path",{d:"M12 15v7"}],["path",{d:"M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"}]]];/**
+ */const dM=["svg",t,[["path",{d:"M8 22h8"}],["path",{d:"M7 10h10"}],["path",{d:"M12 15v7"}],["path",{d:"M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7358,7 +7358,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const s1=Object.freeze(Object.defineProperty({__proto__:null,AArrowDown:m1,AArrowUp:g1,ALargeSmall:u1,Accessibility:y1,Activity:M1,ActivitySquare:Fe,AirVent:x1,Airplay:f1,AlarmCheck:Y,AlarmClock:w1,AlarmClockCheck:Y,AlarmClockMinus:X,AlarmClockOff:b1,AlarmClockPlus:Q,AlarmMinus:X,AlarmPlus:Q,AlarmSmoke:k1,Album:H1,AlertCircle:vt,AlertOctagon:be,AlertTriangle:Ga,AlignCenter:A1,AlignCenterHorizontal:S1,AlignCenterVertical:C1,AlignEndHorizontal:L1,AlignEndVertical:V1,AlignHorizontalDistributeCenter:$1,AlignHorizontalDistributeEnd:_1,AlignHorizontalDistributeStart:T1,AlignHorizontalJustifyCenter:P1,AlignHorizontalJustifyEnd:z1,AlignHorizontalJustifyStart:q1,AlignHorizontalSpaceAround:E1,AlignHorizontalSpaceBetween:B1,AlignJustify:D1,AlignLeft:R1,AlignRight:I1,AlignStartHorizontal:O1,AlignStartVertical:N1,AlignVerticalDistributeCenter:Z1,AlignVerticalDistributeEnd:F1,AlignVerticalDistributeStart:U1,AlignVerticalJustifyCenter:G1,AlignVerticalJustifyEnd:j1,AlignVerticalJustifyStart:K1,AlignVerticalSpaceAround:W1,AlignVerticalSpaceBetween:J1,Ambulance:Y1,Ampersand:X1,Ampersands:Q1,Anchor:t2,Angry:e2,Annoyed:a2,Antenna:i2,Anvil:s2,Aperture:d2,AppWindow:r2,AppWindowMac:o2,Apple:n2,Archive:h2,ArchiveRestore:c2,ArchiveX:l2,AreaChart:p2,Armchair:v2,ArrowBigDown:g2,ArrowBigDownDash:m2,ArrowBigLeft:y2,ArrowBigLeftDash:u2,ArrowBigRight:x2,ArrowBigRightDash:M2,ArrowBigUp:b2,ArrowBigUpDash:f2,ArrowDown:_2,ArrowDown01:w2,ArrowDown10:k2,ArrowDownAZ:tt,ArrowDownAz:tt,ArrowDownCircle:mt,ArrowDownFromLine:H2,ArrowDownLeft:S2,ArrowDownLeftFromCircle:ut,ArrowDownLeftFromSquare:We,ArrowDownLeftSquare:Ue,ArrowDownNarrowWide:C2,ArrowDownRight:A2,ArrowDownRightFromCircle:yt,ArrowDownRightFromSquare:Je,ArrowDownRightSquare:Ge,ArrowDownSquare:je,ArrowDownToDot:L2,ArrowDownToLine:V2,ArrowDownUp:$2,ArrowDownWideNarrow:et,ArrowDownZA:at,ArrowDownZa:at,ArrowLeft:q2,ArrowLeftCircle:gt,ArrowLeftFromLine:T2,ArrowLeftRight:P2,ArrowLeftSquare:Ke,ArrowLeftToLine:z2,ArrowRight:R2,ArrowRightCircle:ft,ArrowRightFromLine:E2,ArrowRightLeft:B2,ArrowRightSquare:Qe,ArrowRightToLine:D2,ArrowUp:W2,ArrowUp01:I2,ArrowUp10:O2,ArrowUpAZ:it,ArrowUpAz:it,ArrowUpCircle:bt,ArrowUpDown:N2,ArrowUpFromDot:Z2,ArrowUpFromLine:F2,ArrowUpLeft:U2,ArrowUpLeftFromCircle:Mt,ArrowUpLeftFromSquare:Ye,ArrowUpLeftSquare:ta,ArrowUpNarrowWide:st,ArrowUpRight:G2,ArrowUpRightFromCircle:xt,ArrowUpRightFromSquare:Xe,ArrowUpRightSquare:ea,ArrowUpSquare:aa,ArrowUpToLine:j2,ArrowUpWideNarrow:K2,ArrowUpZA:dt,ArrowUpZa:dt,ArrowsUpFromLine:J2,Asterisk:Y2,AsteriskSquare:ia,AtSign:X2,Atom:Q2,AudioLines:ti,AudioWaveform:ei,Award:ai,Axe:ii,Axis3D:ot,Axis3d:ot,Baby:si,Backpack:di,Badge:bi,BadgeAlert:oi,BadgeCent:ri,BadgeCheck:rt,BadgeDollarSign:ni,BadgeEuro:ci,BadgeHelp:li,BadgeIndianRupee:hi,BadgeInfo:pi,BadgeJapaneseYen:vi,BadgeMinus:mi,BadgePercent:gi,BadgePlus:ui,BadgePoundSterling:yi,BadgeRussianRuble:Mi,BadgeSwissFranc:xi,BadgeX:fi,BaggageClaim:wi,Ban:ki,Banana:Hi,Banknote:Si,BarChart:Ti,BarChart2:Ci,BarChart3:Ai,BarChart4:Li,BarChartBig:Vi,BarChartHorizontal:_i,BarChartHorizontalBig:$i,Barcode:Pi,Baseline:zi,Bath:qi,Battery:Oi,BatteryCharging:Ei,BatteryFull:Bi,BatteryLow:Di,BatteryMedium:Ri,BatteryWarning:Ii,Beaker:Ni,Bean:Fi,BeanOff:Zi,Bed:ji,BedDouble:Ui,BedSingle:Gi,Beef:Ki,Beer:Ji,BeerOff:Wi,Bell:is,BellDot:Yi,BellElectric:Xi,BellMinus:Qi,BellOff:ts,BellPlus:es,BellRing:as,BetweenHorizonalEnd:nt,BetweenHorizonalStart:ct,BetweenHorizontalEnd:nt,BetweenHorizontalStart:ct,BetweenVerticalEnd:ss,BetweenVerticalStart:ds,BicepsFlexed:os,Bike:rs,Binary:ns,Biohazard:cs,Bird:ls,Bitcoin:hs,Blend:ps,Blinds:vs,Blocks:ms,Bluetooth:Ms,BluetoothConnected:gs,BluetoothOff:us,BluetoothSearching:ys,Bold:xs,Bolt:fs,Bomb:bs,Bone:ws,Book:Us,BookA:ks,BookAudio:Hs,BookCheck:Ss,BookCopy:Cs,BookDashed:lt,BookDown:As,BookHeadphones:Ls,BookHeart:Vs,BookImage:$s,BookKey:_s,BookLock:Ts,BookMarked:Ps,BookMinus:zs,BookOpen:Bs,BookOpenCheck:qs,BookOpenText:Es,BookPlus:Ds,BookTemplate:lt,BookText:Rs,BookType:Is,BookUp:Ns,BookUp2:Os,BookUser:Zs,BookX:Fs,Bookmark:Js,BookmarkCheck:Gs,BookmarkMinus:js,BookmarkPlus:Ks,BookmarkX:Ws,BoomBox:Ys,Bot:td,BotMessageSquare:Xs,BotOff:Qs,Box:ad,BoxSelect:ed,Boxes:id,Braces:ht,Brackets:sd,Brain:rd,BrainCircuit:dd,BrainCog:od,BrickWall:nd,Briefcase:hd,BriefcaseBusiness:cd,BriefcaseMedical:ld,BringToFront:pd,Brush:vd,Bug:ud,BugOff:md,BugPlay:gd,Building:Md,Building2:yd,Bus:fd,BusFront:xd,Cable:wd,CableCar:bd,Cake:Hd,CakeSlice:kd,Calculator:Sd,Calendar:Nd,CalendarCheck:Ad,CalendarCheck2:Cd,CalendarClock:Ld,CalendarCog:Vd,CalendarDays:$d,CalendarFold:_d,CalendarHeart:Td,CalendarMinus:zd,CalendarMinus2:Pd,CalendarOff:qd,CalendarPlus:Bd,CalendarPlus2:Ed,CalendarRange:Dd,CalendarSearch:Rd,CalendarX:Od,CalendarX2:Id,Camera:Fd,CameraOff:Zd,CandlestickChart:Ud,Candy:Kd,CandyCane:Gd,CandyOff:jd,Cannabis:Wd,Captions:pt,CaptionsOff:Jd,Car:Qd,CarFront:Yd,CarTaxiFront:Xd,Caravan:to,Carrot:eo,CaseLower:ao,CaseSensitive:io,CaseUpper:so,CassetteTape:oo,Cast:ro,Castle:no,Cat:co,Cctv:lo,Check:po,CheckCheck:ho,CheckCircle:wt,CheckCircle2:kt,CheckSquare:da,CheckSquare2:oa,ChefHat:vo,Cherry:mo,ChevronDown:go,ChevronDownCircle:Ht,ChevronDownSquare:ra,ChevronFirst:uo,ChevronLast:yo,ChevronLeft:Mo,ChevronLeftCircle:St,ChevronLeftSquare:na,ChevronRight:xo,ChevronRightCircle:Ct,ChevronRightSquare:ca,ChevronUp:fo,ChevronUpCircle:At,ChevronUpSquare:la,ChevronsDown:wo,ChevronsDownUp:bo,ChevronsLeft:Ho,ChevronsLeftRight:ko,ChevronsRight:Co,ChevronsRightLeft:So,ChevronsUp:Lo,ChevronsUpDown:Ao,Chrome:Vo,Church:$o,Cigarette:To,CigaretteOff:_o,Circle:No,CircleAlert:vt,CircleArrowDown:mt,CircleArrowLeft:gt,CircleArrowOutDownLeft:ut,CircleArrowOutDownRight:yt,CircleArrowOutUpLeft:Mt,CircleArrowOutUpRight:xt,CircleArrowRight:ft,CircleArrowUp:bt,CircleCheck:kt,CircleCheckBig:wt,CircleChevronDown:Ht,CircleChevronLeft:St,CircleChevronRight:Ct,CircleChevronUp:At,CircleDashed:Po,CircleDivide:Lt,CircleDollarSign:zo,CircleDot:Eo,CircleDotDashed:qo,CircleEllipsis:Bo,CircleEqual:Do,CircleFadingPlus:Ro,CircleGauge:Vt,CircleHelp:$t,CircleMinus:_t,CircleOff:Io,CircleParking:Pt,CircleParkingOff:Tt,CirclePause:zt,CirclePercent:qt,CirclePlay:Et,CirclePlus:Bt,CirclePower:Dt,CircleSlash:Oo,CircleSlash2:Rt,CircleSlashed:Rt,CircleStop:It,CircleUser:Nt,CircleUserRound:Ot,CircleX:Zt,CircuitBoard:Zo,Citrus:Fo,Clapperboard:Uo,Clipboard:t0,ClipboardCheck:Go,ClipboardCopy:jo,ClipboardEdit:Ut,ClipboardList:Ko,ClipboardMinus:Wo,ClipboardPaste:Jo,ClipboardPen:Ut,ClipboardPenLine:Ft,ClipboardPlus:Yo,ClipboardSignature:Ft,ClipboardType:Xo,ClipboardX:Qo,Clock:v0,Clock1:e0,Clock10:a0,Clock11:i0,Clock12:s0,Clock2:d0,Clock3:o0,Clock4:r0,Clock5:n0,Clock6:c0,Clock7:l0,Clock8:h0,Clock9:p0,Cloud:A0,CloudCog:m0,CloudDownload:Gt,CloudDrizzle:g0,CloudFog:u0,CloudHail:y0,CloudLightning:M0,CloudMoon:f0,CloudMoonRain:x0,CloudOff:b0,CloudRain:k0,CloudRainWind:w0,CloudSnow:H0,CloudSun:C0,CloudSunRain:S0,CloudUpload:jt,Cloudy:L0,Clover:V0,Club:$0,Code:_0,Code2:Kt,CodeSquare:ha,CodeXml:Kt,Codepen:T0,Codesandbox:P0,Coffee:z0,Cog:q0,Coins:E0,Columns:Wt,Columns2:Wt,Columns3:Jt,Columns4:B0,Combine:D0,Command:R0,Compass:I0,Component:O0,Computer:N0,ConciergeBell:Z0,Cone:F0,Construction:U0,Contact:G0,Contact2:Yt,ContactRound:Yt,Container:j0,Contrast:K0,Cookie:W0,CookingPot:J0,Copy:ar,CopyCheck:Y0,CopyMinus:X0,CopyPlus:Q0,CopySlash:tr,CopyX:er,Copyleft:ir,Copyright:sr,CornerDownLeft:dr,CornerDownRight:or,CornerLeftDown:rr,CornerLeftUp:nr,CornerRightDown:cr,CornerRightUp:lr,CornerUpLeft:hr,CornerUpRight:pr,Cpu:vr,CreativeCommons:mr,CreditCard:gr,Croissant:ur,Crop:yr,Cross:Mr,Crosshair:xr,Crown:fr,Cuboid:br,CupSoda:wr,CurlyBraces:ht,Currency:kr,Cylinder:Hr,Database:Ar,DatabaseBackup:Sr,DatabaseZap:Cr,Delete:Lr,Dessert:Vr,Diameter:$r,Diamond:Pr,DiamondMinus:_r,DiamondPercent:Xt,DiamondPlus:Tr,Dice1:zr,Dice2:qr,Dice3:Er,Dice4:Br,Dice5:Dr,Dice6:Rr,Dices:Ir,Diff:Or,Disc:Ur,Disc2:Nr,Disc3:Zr,DiscAlbum:Fr,Divide:Gr,DivideCircle:Lt,DivideSquare:ma,Dna:Kr,DnaOff:jr,Dock:Wr,Dog:Jr,DollarSign:Yr,Donut:Xr,DoorClosed:Qr,DoorOpen:tn,Dot:en,DotSquare:ga,Download:an,DownloadCloud:Gt,DraftingCompass:sn,Drama:dn,Dribbble:on,Drill:rn,Droplet:nn,Droplets:cn,Drum:ln,Drumstick:hn,Dumbbell:pn,Ear:mn,EarOff:vn,Earth:Qt,EarthLock:gn,Eclipse:un,Edit:F,Edit2:ze,Edit3:Pe,Egg:xn,EggFried:yn,EggOff:Mn,Ellipsis:ee,EllipsisVertical:te,Equal:bn,EqualNot:fn,EqualSquare:ua,Eraser:wn,Euro:kn,Expand:Hn,ExternalLink:Sn,Eye:An,EyeOff:Cn,Facebook:Ln,Factory:Vn,Fan:$n,FastForward:_n,Feather:Tn,Fence:Pn,FerrisWheel:zn,Figma:qn,File:qc,FileArchive:En,FileAudio:Dn,FileAudio2:Bn,FileAxis3D:ae,FileAxis3d:ae,FileBadge:In,FileBadge2:Rn,FileBarChart:Nn,FileBarChart2:On,FileBox:Zn,FileCheck:Un,FileCheck2:Fn,FileClock:Gn,FileCode:Kn,FileCode2:jn,FileCog:ie,FileCog2:ie,FileDiff:Wn,FileDigit:Jn,FileDown:Yn,FileEdit:de,FileHeart:Xn,FileImage:Qn,FileInput:tc,FileJson:ac,FileJson2:ec,FileKey:sc,FileKey2:ic,FileLineChart:dc,FileLock:rc,FileLock2:oc,FileMinus:cc,FileMinus2:nc,FileMusic:lc,FileOutput:hc,FilePen:de,FilePenLine:se,FilePieChart:pc,FilePlus:mc,FilePlus2:vc,FileQuestion:gc,FileScan:uc,FileSearch:Mc,FileSearch2:yc,FileSignature:se,FileSliders:xc,FileSpreadsheet:fc,FileStack:bc,FileSymlink:wc,FileTerminal:kc,FileText:Hc,FileType:Cc,FileType2:Sc,FileUp:Ac,FileVideo:Vc,FileVideo2:Lc,FileVolume:_c,FileVolume2:$c,FileWarning:Tc,FileX:zc,FileX2:Pc,Files:Ec,Film:Bc,Filter:Rc,FilterX:Dc,Fingerprint:Ic,FireExtinguisher:Oc,Fish:Fc,FishOff:Nc,FishSymbol:Zc,Flag:Kc,FlagOff:Uc,FlagTriangleLeft:Gc,FlagTriangleRight:jc,Flame:Jc,FlameKindling:Wc,Flashlight:Xc,FlashlightOff:Yc,FlaskConical:tl,FlaskConicalOff:Qc,FlaskRound:el,FlipHorizontal:il,FlipHorizontal2:al,FlipVertical:dl,FlipVertical2:sl,Flower:rl,Flower2:ol,Focus:nl,FoldHorizontal:cl,FoldVertical:ll,Folder:Bl,FolderArchive:hl,FolderCheck:pl,FolderClock:vl,FolderClosed:ml,FolderCog:oe,FolderCog2:oe,FolderDot:gl,FolderDown:ul,FolderEdit:re,FolderGit:Ml,FolderGit2:yl,FolderHeart:xl,FolderInput:fl,FolderKanban:bl,FolderKey:wl,FolderLock:kl,FolderMinus:Hl,FolderOpen:Cl,FolderOpenDot:Sl,FolderOutput:Al,FolderPen:re,FolderPlus:Ll,FolderRoot:Vl,FolderSearch:_l,FolderSearch2:$l,FolderSymlink:Tl,FolderSync:Pl,FolderTree:zl,FolderUp:ql,FolderX:El,Folders:Dl,Footprints:Rl,Forklift:Il,FormInput:qe,Forward:Ol,Frame:Nl,Framer:Zl,Frown:Fl,Fuel:Ul,Fullscreen:Gl,FunctionSquare:ya,GalleryHorizontal:Kl,GalleryHorizontalEnd:jl,GalleryThumbnails:Wl,GalleryVertical:Yl,GalleryVerticalEnd:Jl,Gamepad:Ql,Gamepad2:Xl,GanttChart:th,GanttChartSquare:Ma,Gauge:eh,GaugeCircle:Vt,Gavel:ah,Gem:ih,Ghost:sh,Gift:dh,GitBranch:rh,GitBranchPlus:oh,GitCommit:ne,GitCommitHorizontal:ne,GitCommitVertical:nh,GitCompare:lh,GitCompareArrows:ch,GitFork:hh,GitGraph:ph,GitMerge:vh,GitPullRequest:xh,GitPullRequestArrow:mh,GitPullRequestClosed:gh,GitPullRequestCreate:yh,GitPullRequestCreateArrow:uh,GitPullRequestDraft:Mh,Github:fh,Gitlab:bh,GlassWater:wh,Glasses:kh,Globe:Sh,Globe2:Qt,GlobeLock:Hh,Goal:Ch,Grab:Ah,GraduationCap:Lh,Grape:Vh,Grid:K,Grid2X2:ce,Grid2x2:ce,Grid2x2Check:$h,Grid2x2X:_h,Grid3X3:K,Grid3x3:K,Grip:zh,GripHorizontal:Th,GripVertical:Ph,Group:qh,Guitar:Eh,Ham:Bh,Hammer:Dh,Hand:Zh,HandCoins:Rh,HandHeart:Ih,HandHelping:le,HandMetal:Oh,HandPlatter:Nh,Handshake:Fh,HardDrive:jh,HardDriveDownload:Uh,HardDriveUpload:Gh,HardHat:Kh,Hash:Wh,Haze:Jh,HdmiPort:Yh,Heading:sp,Heading1:Xh,Heading2:Qh,Heading3:tp,Heading4:ep,Heading5:ap,Heading6:ip,Headphones:dp,Headset:op,Heart:hp,HeartCrack:rp,HeartHandshake:np,HeartOff:cp,HeartPulse:lp,Heater:pp,HelpCircle:$t,HelpingHand:le,Hexagon:vp,Highlighter:mp,History:gp,Home:up,Hop:Mp,HopOff:yp,Hospital:xp,Hotel:fp,Hourglass:bp,IceCream:pe,IceCream2:he,IceCreamBowl:he,IceCreamCone:pe,Image:Lp,ImageDown:wp,ImageMinus:kp,ImageOff:Hp,ImagePlay:Sp,ImagePlus:Cp,ImageUp:Ap,Images:Vp,Import:$p,Inbox:_p,Indent:me,IndentDecrease:ve,IndentIncrease:me,IndianRupee:Tp,Infinity:Pp,Info:zp,Inspect:Ha,InspectionPanel:qp,Instagram:Ep,Italic:Bp,IterationCcw:Dp,IterationCw:Rp,JapaneseYen:Ip,Joystick:Op,Kanban:Np,KanbanSquare:xa,KanbanSquareDashed:pa,Key:Up,KeyRound:Zp,KeySquare:Fp,Keyboard:Kp,KeyboardMusic:Gp,KeyboardOff:jp,Lamp:t4,LampCeiling:Wp,LampDesk:Jp,LampFloor:Yp,LampWallDown:Xp,LampWallUp:Qp,LandPlot:e4,Landmark:a4,Languages:i4,Laptop:s4,Laptop2:ge,LaptopMinimal:ge,Lasso:o4,LassoSelect:d4,Laugh:r4,Layers:l4,Layers2:n4,Layers3:c4,Layout:Te,LayoutDashboard:h4,LayoutGrid:p4,LayoutList:v4,LayoutPanelLeft:m4,LayoutPanelTop:g4,LayoutTemplate:u4,Leaf:y4,LeafyGreen:M4,Lectern:x4,Library:b4,LibraryBig:f4,LibrarySquare:fa,LifeBuoy:w4,Ligature:k4,Lightbulb:S4,LightbulbOff:H4,LineChart:C4,Link:V4,Link2:L4,Link2Off:A4,Linkedin:$4,List:U4,ListChecks:_4,ListCollapse:T4,ListEnd:P4,ListFilter:z4,ListMinus:q4,ListMusic:E4,ListOrdered:B4,ListPlus:D4,ListRestart:R4,ListStart:I4,ListTodo:O4,ListTree:N4,ListVideo:Z4,ListX:F4,Loader:j4,Loader2:ue,LoaderCircle:ue,LoaderPinwheel:G4,Locate:J4,LocateFixed:K4,LocateOff:W4,Lock:X4,LockKeyhole:Y4,LockKeyholeOpen:ye,LockOpen:Me,LogIn:Q4,LogOut:tv,Lollipop:ev,Luggage:av,MSquare:ba,Magnet:iv,Mail:pv,MailCheck:sv,MailMinus:dv,MailOpen:ov,MailPlus:rv,MailQuestion:nv,MailSearch:cv,MailWarning:lv,MailX:hv,Mailbox:vv,Mails:mv,Map:Mv,MapPin:uv,MapPinOff:gv,MapPinned:yv,Martini:xv,Maximize:bv,Maximize2:fv,Medal:wv,Megaphone:Hv,MegaphoneOff:kv,Meh:Sv,MemoryStick:Cv,Menu:Av,MenuSquare:wa,Merge:Lv,MessageCircle:Rv,MessageCircleCode:Vv,MessageCircleDashed:$v,MessageCircleHeart:_v,MessageCircleMore:Tv,MessageCircleOff:Pv,MessageCirclePlus:zv,MessageCircleQuestion:qv,MessageCircleReply:Ev,MessageCircleWarning:Bv,MessageCircleX:Dv,MessageSquare:t5,MessageSquareCode:Iv,MessageSquareDashed:Ov,MessageSquareDiff:Nv,MessageSquareDot:Zv,MessageSquareHeart:Fv,MessageSquareMore:Uv,MessageSquareOff:Gv,MessageSquarePlus:jv,MessageSquareQuote:Kv,MessageSquareReply:Wv,MessageSquareShare:Jv,MessageSquareText:Yv,MessageSquareWarning:Xv,MessageSquareX:Qv,MessagesSquare:e5,Mic:i5,Mic2:xe,MicOff:a5,MicVocal:xe,Microscope:s5,Microwave:d5,Milestone:o5,Milk:n5,MilkOff:r5,Minimize:l5,Minimize2:c5,Minus:h5,MinusCircle:_t,MinusSquare:ka,Monitor:k5,MonitorCheck:p5,MonitorDot:v5,MonitorDown:m5,MonitorOff:g5,MonitorPause:u5,MonitorPlay:y5,MonitorSmartphone:M5,MonitorSpeaker:x5,MonitorStop:f5,MonitorUp:b5,MonitorX:w5,Moon:S5,MoonStar:H5,MoreHorizontal:ee,MoreVertical:te,Mountain:A5,MountainSnow:C5,Mouse:P5,MouseOff:L5,MousePointer:T5,MousePointer2:V5,MousePointerBan:$5,MousePointerClick:_5,MousePointerSquareDashed:va,Move:G5,Move3D:fe,Move3d:fe,MoveDiagonal:q5,MoveDiagonal2:z5,MoveDown:D5,MoveDownLeft:E5,MoveDownRight:B5,MoveHorizontal:R5,MoveLeft:I5,MoveRight:O5,MoveUp:F5,MoveUpLeft:N5,MoveUpRight:Z5,MoveVertical:U5,Music:J5,Music2:j5,Music3:K5,Music4:W5,Navigation:t3,Navigation2:X5,Navigation2Off:Y5,NavigationOff:Q5,Network:e3,Newspaper:a3,Nfc:i3,Notebook:r3,NotebookPen:s3,NotebookTabs:d3,NotebookText:o3,NotepadText:c3,NotepadTextDashed:n3,Nut:h3,NutOff:l3,Octagon:p3,OctagonAlert:be,OctagonPause:we,OctagonX:ke,Option:v3,Orbit:m3,Origami:g3,Outdent:ve,Package:k3,Package2:u3,PackageCheck:y3,PackageMinus:M3,PackageOpen:x3,PackagePlus:f3,PackageSearch:b3,PackageX:w3,PaintBucket:H3,PaintRoller:S3,Paintbrush:C3,Paintbrush2:He,PaintbrushVertical:He,Palette:A3,Palmtree:Ua,PanelBottom:$3,PanelBottomClose:L3,PanelBottomDashed:Se,PanelBottomInactive:Se,PanelBottomOpen:V3,PanelLeft:Ve,PanelLeftClose:Ce,PanelLeftDashed:Ae,PanelLeftInactive:Ae,PanelLeftOpen:Le,PanelRight:P3,PanelRightClose:_3,PanelRightDashed:$e,PanelRightInactive:$e,PanelRightOpen:T3,PanelTop:E3,PanelTopClose:z3,PanelTopDashed:_e,PanelTopInactive:_e,PanelTopOpen:q3,PanelsLeftBottom:B3,PanelsLeftRight:Jt,PanelsRightBottom:D3,PanelsTopBottom:De,PanelsTopLeft:Te,Paperclip:R3,Parentheses:I3,ParkingCircle:Pt,ParkingCircleOff:Tt,ParkingMeter:O3,ParkingSquare:Ca,ParkingSquareOff:Sa,PartyPopper:N3,Pause:Z3,PauseCircle:zt,PauseOctagon:we,PawPrint:F3,PcCase:U3,Pen:ze,PenBox:F,PenLine:Pe,PenOff:G3,PenSquare:F,PenTool:j3,Pencil:Y3,PencilLine:K3,PencilOff:W3,PencilRuler:J3,Pentagon:X3,Percent:Q3,PercentCircle:qt,PercentDiamond:Xt,PercentSquare:Aa,PersonStanding:tm,Phone:rm,PhoneCall:em,PhoneForwarded:am,PhoneIncoming:im,PhoneMissed:sm,PhoneOff:dm,PhoneOutgoing:om,Pi:nm,PiSquare:La,Piano:cm,Pickaxe:lm,PictureInPicture:pm,PictureInPicture2:hm,PieChart:vm,PiggyBank:mm,Pilcrow:ym,PilcrowLeft:gm,PilcrowRight:um,PilcrowSquare:Va,Pill:xm,PillBottle:Mm,Pin:bm,PinOff:fm,Pipette:wm,Pizza:km,Plane:Cm,PlaneLanding:Hm,PlaneTakeoff:Sm,Play:Am,PlayCircle:Et,PlaySquare:$a,Plug:_m,Plug2:Lm,PlugZap:$m,PlugZap2:Vm,Plus:Tm,PlusCircle:Bt,PlusSquare:_a,Pocket:zm,PocketKnife:Pm,Podcast:qm,Pointer:Bm,PointerOff:Em,Popcorn:Dm,Popsicle:Rm,PoundSterling:Im,Power:Nm,PowerCircle:Dt,PowerOff:Om,PowerSquare:Ta,Presentation:Zm,Printer:Fm,Projector:Um,Proportions:Gm,Puzzle:jm,Pyramid:Km,QrCode:Wm,Quote:Jm,Rabbit:Ym,Radar:Xm,Radiation:Qm,Radical:tg,Radio:ig,RadioReceiver:eg,RadioTower:ag,Radius:sg,RailSymbol:dg,Rainbow:og,Rat:rg,Ratio:ng,Receipt:yg,ReceiptCent:cg,ReceiptEuro:lg,ReceiptIndianRupee:hg,ReceiptJapaneseYen:pg,ReceiptPoundSterling:vg,ReceiptRussianRuble:mg,ReceiptSwissFranc:gg,ReceiptText:ug,RectangleEllipsis:qe,RectangleHorizontal:Mg,RectangleVertical:xg,Recycle:fg,Redo:kg,Redo2:bg,RedoDot:wg,RefreshCcw:Sg,RefreshCcwDot:Hg,RefreshCw:Ag,RefreshCwOff:Cg,Refrigerator:Lg,Regex:Vg,RemoveFormatting:$g,Repeat:Pg,Repeat1:_g,Repeat2:Tg,Replace:qg,ReplaceAll:zg,Reply:Bg,ReplyAll:Eg,Rewind:Dg,Ribbon:Rg,Rocket:Ig,RockingChair:Og,RollerCoaster:Ng,Rotate3D:Ee,Rotate3d:Ee,RotateCcw:Fg,RotateCcwSquare:Zg,RotateCw:Gg,RotateCwSquare:Ug,Route:Kg,RouteOff:jg,Router:Wg,Rows:Be,Rows2:Be,Rows3:De,Rows4:Jg,Rss:Yg,Ruler:Xg,RussianRuble:Qg,Sailboat:tu,Salad:eu,Sandwich:au,Satellite:su,SatelliteDish:iu,Save:ou,SaveAll:du,Scale:ru,Scale3D:Re,Scale3d:Re,Scaling:nu,Scan:gu,ScanBarcode:cu,ScanEye:lu,ScanFace:hu,ScanLine:pu,ScanSearch:vu,ScanText:mu,ScatterChart:uu,School:yu,School2:Ka,Scissors:xu,ScissorsLineDashed:Mu,ScissorsSquare:Pa,ScissorsSquareDashedBottom:sa,ScreenShare:bu,ScreenShareOff:fu,Scroll:ku,ScrollText:wu,Search:Lu,SearchCheck:Hu,SearchCode:Su,SearchSlash:Cu,SearchX:Au,Section:Vu,Send:_u,SendHorizonal:Ie,SendHorizontal:Ie,SendToBack:$u,SeparatorHorizontal:Tu,SeparatorVertical:Pu,Server:Bu,ServerCog:zu,ServerCrash:qu,ServerOff:Eu,Settings:Ru,Settings2:Du,Shapes:Iu,Share:Nu,Share2:Ou,Sheet:Zu,Shell:Fu,Shield:t6,ShieldAlert:Uu,ShieldBan:Gu,ShieldCheck:ju,ShieldClose:Oe,ShieldEllipsis:Ku,ShieldHalf:Wu,ShieldMinus:Ju,ShieldOff:Yu,ShieldPlus:Xu,ShieldQuestion:Qu,ShieldX:Oe,Ship:a6,ShipWheel:e6,Shirt:i6,ShoppingBag:s6,ShoppingBasket:d6,ShoppingCart:o6,Shovel:r6,ShowerHead:n6,Shrink:c6,Shrub:l6,Shuffle:h6,Sidebar:Ve,SidebarClose:Ce,SidebarOpen:Le,Sigma:p6,SigmaSquare:za,Signal:y6,SignalHigh:v6,SignalLow:m6,SignalMedium:g6,SignalZero:u6,Signpost:x6,SignpostBig:M6,Siren:f6,SkipBack:b6,SkipForward:w6,Skull:k6,Slack:H6,Slash:S6,SlashSquare:qa,Slice:C6,Sliders:Ne,SlidersHorizontal:A6,SlidersVertical:Ne,Smartphone:$6,SmartphoneCharging:L6,SmartphoneNfc:V6,Smile:T6,SmilePlus:_6,Snail:P6,Snowflake:z6,Sofa:q6,SortAsc:st,SortDesc:et,Soup:E6,Space:B6,Spade:D6,Sparkle:R6,Sparkles:Ze,Speaker:I6,Speech:O6,SpellCheck:Z6,SpellCheck2:N6,Spline:F6,Split:U6,SplitSquareHorizontal:Ea,SplitSquareVertical:Ba,SprayCan:G6,Sprout:j6,Square:X6,SquareActivity:Fe,SquareArrowDown:je,SquareArrowDownLeft:Ue,SquareArrowDownRight:Ge,SquareArrowLeft:Ke,SquareArrowOutDownLeft:We,SquareArrowOutDownRight:Je,SquareArrowOutUpLeft:Ye,SquareArrowOutUpRight:Xe,SquareArrowRight:Qe,SquareArrowUp:aa,SquareArrowUpLeft:ta,SquareArrowUpRight:ea,SquareAsterisk:ia,SquareBottomDashedScissors:sa,SquareCheck:oa,SquareCheckBig:da,SquareChevronDown:ra,SquareChevronLeft:na,SquareChevronRight:ca,SquareChevronUp:la,SquareCode:ha,SquareDashedBottom:W6,SquareDashedBottomCode:K6,SquareDashedKanban:pa,SquareDashedMousePointer:va,SquareDivide:ma,SquareDot:ga,SquareEqual:ua,SquareFunction:ya,SquareGanttChart:Ma,SquareKanban:xa,SquareLibrary:fa,SquareM:ba,SquareMenu:wa,SquareMinus:ka,SquareMousePointer:Ha,SquareParking:Ca,SquareParkingOff:Sa,SquarePen:F,SquarePercent:Aa,SquarePi:La,SquarePilcrow:Va,SquarePlay:$a,SquarePlus:_a,SquarePower:Ta,SquareRadical:J6,SquareScissors:Pa,SquareSigma:za,SquareSlash:qa,SquareSplitHorizontal:Ea,SquareSplitVertical:Ba,SquareStack:Y6,SquareTerminal:Da,SquareUser:Ia,SquareUserRound:Ra,SquareX:Oa,Squircle:Q6,Squirrel:t8,Stamp:e8,Star:s8,StarHalf:a8,StarOff:i8,Stars:Ze,StepBack:d8,StepForward:o8,Stethoscope:r8,Sticker:n8,StickyNote:c8,StopCircle:It,Store:l8,StretchHorizontal:h8,StretchVertical:p8,Strikethrough:v8,Subscript:m8,Subtitles:pt,Sun:x8,SunDim:g8,SunMedium:u8,SunMoon:y8,SunSnow:M8,Sunrise:f8,Sunset:b8,Superscript:w8,SwatchBook:k8,SwissFranc:H8,SwitchCamera:S8,Sword:C8,Swords:A8,Syringe:L8,Table:q8,Table2:V8,TableCellsMerge:$8,TableCellsSplit:_8,TableColumnsSplit:T8,TableProperties:P8,TableRowsSplit:z8,Tablet:B8,TabletSmartphone:E8,Tablets:D8,Tag:R8,Tags:I8,Tally1:O8,Tally2:N8,Tally3:Z8,Tally4:F8,Tally5:U8,Tangent:G8,Target:j8,Telescope:K8,Tent:J8,TentTree:W8,Terminal:Y8,TerminalSquare:Da,TestTube:X8,TestTube2:Na,TestTubeDiagonal:Na,TestTubes:Q8,Text:sy,TextCursor:ey,TextCursorInput:ty,TextQuote:ay,TextSearch:iy,TextSelect:Za,TextSelection:Za,Theater:dy,Thermometer:ny,ThermometerSnowflake:oy,ThermometerSun:ry,ThumbsDown:cy,ThumbsUp:ly,Ticket:yy,TicketCheck:hy,TicketMinus:py,TicketPercent:vy,TicketPlus:my,TicketSlash:gy,TicketX:uy,Timer:fy,TimerOff:My,TimerReset:xy,ToggleLeft:by,ToggleRight:wy,Tornado:ky,Torus:Hy,Touchpad:Cy,TouchpadOff:Sy,TowerControl:Ay,ToyBrick:Ly,Tractor:Vy,TrafficCone:$y,Train:Fa,TrainFront:Ty,TrainFrontTunnel:_y,TrainTrack:Py,TramFront:Fa,Trash:qy,Trash2:zy,TreeDeciduous:Ey,TreePalm:Ua,TreePine:By,Trees:Dy,Trello:Ry,TrendingDown:Iy,TrendingUp:Oy,Triangle:Zy,TriangleAlert:Ga,TriangleRight:Ny,Trophy:Fy,Truck:Uy,Turtle:Gy,Tv:Ky,Tv2:ja,TvMinimal:ja,TvMinimalPlay:jy,Twitch:Wy,Twitter:Jy,Type:Yy,Umbrella:Qy,UmbrellaOff:Xy,Underline:t7,Undo:i7,Undo2:e7,UndoDot:a7,UnfoldHorizontal:s7,UnfoldVertical:d7,Ungroup:o7,University:Ka,Unlink:n7,Unlink2:r7,Unlock:Me,UnlockKeyhole:ye,Unplug:c7,Upload:l7,UploadCloud:jt,Usb:h7,User:x7,User2:t1,UserCheck:p7,UserCheck2:Wa,UserCircle:Nt,UserCircle2:Ot,UserCog:v7,UserCog2:Ja,UserMinus:m7,UserMinus2:Ya,UserPlus:g7,UserPlus2:Xa,UserRound:t1,UserRoundCheck:Wa,UserRoundCog:Ja,UserRoundMinus:Ya,UserRoundPlus:Xa,UserRoundSearch:u7,UserRoundX:Qa,UserSearch:y7,UserSquare:Ia,UserSquare2:Ra,UserX:M7,UserX2:Qa,Users:f7,Users2:e1,UsersRound:e1,Utensils:w7,UtensilsCrossed:b7,UtilityPole:k7,Variable:H7,Vault:S7,Vegan:C7,VenetianMask:A7,Verified:rt,Vibrate:V7,VibrateOff:L7,Video:_7,VideoOff:$7,Videotape:T7,View:P7,Voicemail:z7,Volume:D7,Volume1:q7,Volume2:E7,VolumeX:B7,Vote:R7,Wallet:O7,Wallet2:a1,WalletCards:I7,WalletMinimal:a1,Wallpaper:N7,Wand:Z7,Wand2:i1,WandSparkles:i1,Warehouse:F7,WashingMachine:U7,Watch:G7,Waves:j7,Waypoints:K7,Webcam:W7,Webhook:Y7,WebhookOff:J7,Weight:X7,Wheat:tM,WheatOff:Q7,WholeWord:eM,Wifi:iM,WifiOff:aM,Wind:sM,Wine:oM,WineOff:dM,Workflow:rM,Worm:nM,WrapText:cM,Wrench:lM,X:hM,XCircle:Zt,XOctagon:ke,XSquare:Oa,Youtube:pM,Zap:mM,ZapOff:vM,ZoomIn:gM,ZoomOut:uM},Symbol.toStringTag,{value:"Module"}));/**
+ */const s1=Object.freeze(Object.defineProperty({__proto__:null,AArrowDown:m1,AArrowUp:g1,ALargeSmall:u1,Accessibility:y1,Activity:M1,ActivitySquare:Ze,AirVent:x1,Airplay:f1,AlarmCheck:Y,AlarmClock:w1,AlarmClockCheck:Y,AlarmClockMinus:X,AlarmClockOff:b1,AlarmClockPlus:Q,AlarmMinus:X,AlarmPlus:Q,AlarmSmoke:k1,Album:S1,AlertCircle:vt,AlertOctagon:be,AlertTriangle:ja,AlignCenter:A1,AlignCenterHorizontal:H1,AlignCenterVertical:C1,AlignEndHorizontal:L1,AlignEndVertical:$1,AlignHorizontalDistributeCenter:V1,AlignHorizontalDistributeEnd:_1,AlignHorizontalDistributeStart:T1,AlignHorizontalJustifyCenter:P1,AlignHorizontalJustifyEnd:z1,AlignHorizontalJustifyStart:q1,AlignHorizontalSpaceAround:E1,AlignHorizontalSpaceBetween:B1,AlignJustify:D1,AlignLeft:R1,AlignRight:I1,AlignStartHorizontal:O1,AlignStartVertical:N1,AlignVerticalDistributeCenter:F1,AlignVerticalDistributeEnd:Z1,AlignVerticalDistributeStart:U1,AlignVerticalJustifyCenter:j1,AlignVerticalJustifyEnd:G1,AlignVerticalJustifyStart:K1,AlignVerticalSpaceAround:W1,AlignVerticalSpaceBetween:J1,Ambulance:Y1,Ampersand:X1,Ampersands:Q1,Anchor:t2,Angry:e2,Annoyed:a2,Antenna:i2,Anvil:s2,Aperture:o2,AppWindow:r2,AppWindowMac:d2,Apple:n2,Archive:h2,ArchiveRestore:c2,ArchiveX:l2,AreaChart:p2,Armchair:v2,ArrowBigDown:g2,ArrowBigDownDash:m2,ArrowBigLeft:y2,ArrowBigLeftDash:u2,ArrowBigRight:x2,ArrowBigRightDash:M2,ArrowBigUp:b2,ArrowBigUpDash:f2,ArrowDown:_2,ArrowDown01:w2,ArrowDown10:k2,ArrowDownAZ:tt,ArrowDownAz:tt,ArrowDownCircle:mt,ArrowDownFromLine:S2,ArrowDownLeft:H2,ArrowDownLeftFromCircle:ut,ArrowDownLeftFromSquare:We,ArrowDownLeftSquare:Ue,ArrowDownNarrowWide:C2,ArrowDownRight:A2,ArrowDownRightFromCircle:yt,ArrowDownRightFromSquare:Je,ArrowDownRightSquare:je,ArrowDownSquare:Ge,ArrowDownToDot:L2,ArrowDownToLine:$2,ArrowDownUp:V2,ArrowDownWideNarrow:et,ArrowDownZA:at,ArrowDownZa:at,ArrowLeft:q2,ArrowLeftCircle:gt,ArrowLeftFromLine:T2,ArrowLeftRight:P2,ArrowLeftSquare:Ke,ArrowLeftToLine:z2,ArrowRight:R2,ArrowRightCircle:ft,ArrowRightFromLine:E2,ArrowRightLeft:B2,ArrowRightSquare:Qe,ArrowRightToLine:D2,ArrowUp:W2,ArrowUp01:I2,ArrowUp10:O2,ArrowUpAZ:it,ArrowUpAz:it,ArrowUpCircle:bt,ArrowUpDown:N2,ArrowUpFromDot:F2,ArrowUpFromLine:Z2,ArrowUpLeft:U2,ArrowUpLeftFromCircle:Mt,ArrowUpLeftFromSquare:Ye,ArrowUpLeftSquare:ta,ArrowUpNarrowWide:st,ArrowUpRight:j2,ArrowUpRightFromCircle:xt,ArrowUpRightFromSquare:Xe,ArrowUpRightSquare:ea,ArrowUpSquare:aa,ArrowUpToLine:G2,ArrowUpWideNarrow:K2,ArrowUpZA:ot,ArrowUpZa:ot,ArrowsUpFromLine:J2,Asterisk:Y2,AsteriskSquare:ia,AtSign:X2,Atom:Q2,AudioLines:ti,AudioWaveform:ei,Award:ai,Axe:ii,Axis3D:dt,Axis3d:dt,Baby:si,Backpack:oi,Badge:bi,BadgeAlert:di,BadgeCent:ri,BadgeCheck:rt,BadgeDollarSign:ni,BadgeEuro:ci,BadgeHelp:li,BadgeIndianRupee:hi,BadgeInfo:pi,BadgeJapaneseYen:vi,BadgeMinus:mi,BadgePercent:gi,BadgePlus:ui,BadgePoundSterling:yi,BadgeRussianRuble:Mi,BadgeSwissFranc:xi,BadgeX:fi,BaggageClaim:wi,Ban:ki,Banana:Si,Banknote:Hi,BarChart:Ti,BarChart2:Ci,BarChart3:Ai,BarChart4:Li,BarChartBig:$i,BarChartHorizontal:_i,BarChartHorizontalBig:Vi,Barcode:Pi,Baseline:zi,Bath:qi,Battery:Oi,BatteryCharging:Ei,BatteryFull:Bi,BatteryLow:Di,BatteryMedium:Ri,BatteryWarning:Ii,Beaker:Ni,Bean:Zi,BeanOff:Fi,Bed:Gi,BedDouble:Ui,BedSingle:ji,Beef:Ki,Beer:Ji,BeerOff:Wi,Bell:is,BellDot:Yi,BellElectric:Xi,BellMinus:Qi,BellOff:ts,BellPlus:es,BellRing:as,BetweenHorizonalEnd:nt,BetweenHorizonalStart:ct,BetweenHorizontalEnd:nt,BetweenHorizontalStart:ct,BetweenVerticalEnd:ss,BetweenVerticalStart:os,BicepsFlexed:ds,Bike:rs,Binary:ns,Biohazard:cs,Bird:ls,Bitcoin:hs,Blend:ps,Blinds:vs,Blocks:ms,Bluetooth:Ms,BluetoothConnected:gs,BluetoothOff:us,BluetoothSearching:ys,Bold:xs,Bolt:fs,Bomb:bs,Bone:ws,Book:Us,BookA:ks,BookAudio:Ss,BookCheck:Hs,BookCopy:Cs,BookDashed:lt,BookDown:As,BookHeadphones:Ls,BookHeart:$s,BookImage:Vs,BookKey:_s,BookLock:Ts,BookMarked:Ps,BookMinus:zs,BookOpen:Bs,BookOpenCheck:qs,BookOpenText:Es,BookPlus:Ds,BookTemplate:lt,BookText:Rs,BookType:Is,BookUp:Ns,BookUp2:Os,BookUser:Fs,BookX:Zs,Bookmark:Js,BookmarkCheck:js,BookmarkMinus:Gs,BookmarkPlus:Ks,BookmarkX:Ws,BoomBox:Ys,Bot:to,BotMessageSquare:Xs,BotOff:Qs,Box:ao,BoxSelect:eo,Boxes:io,Braces:ht,Brackets:so,Brain:no,BrainCircuit:oo,BrainCog:ro,BrickWall:co,Briefcase:po,BriefcaseBusiness:lo,BriefcaseMedical:ho,BringToFront:vo,Brush:mo,Bug:yo,BugOff:go,BugPlay:uo,Building:xo,Building2:Mo,Bus:bo,BusFront:fo,Cable:ko,CableCar:wo,Cake:Ho,CakeSlice:So,Calculator:Co,Calendar:Fo,CalendarCheck:Lo,CalendarCheck2:Ao,CalendarClock:$o,CalendarCog:Vo,CalendarDays:_o,CalendarFold:To,CalendarHeart:Po,CalendarMinus:qo,CalendarMinus2:zo,CalendarOff:Eo,CalendarPlus:Do,CalendarPlus2:Bo,CalendarRange:Ro,CalendarSearch:Io,CalendarX:No,CalendarX2:Oo,Camera:Uo,CameraOff:Zo,CandlestickChart:jo,Candy:Wo,CandyCane:Go,CandyOff:Ko,Cannabis:Jo,Captions:pt,CaptionsOff:Yo,Car:td,CarFront:Xo,CarTaxiFront:Qo,Caravan:ed,Carrot:ad,CaseLower:id,CaseSensitive:sd,CaseUpper:od,CassetteTape:dd,Cast:rd,Castle:nd,Cat:cd,Cctv:ld,Check:pd,CheckCheck:hd,CheckCircle:wt,CheckCircle2:kt,CheckSquare:oa,CheckSquare2:da,ChefHat:vd,Cherry:md,ChevronDown:gd,ChevronDownCircle:St,ChevronDownSquare:ra,ChevronFirst:ud,ChevronLast:yd,ChevronLeft:Md,ChevronLeftCircle:Ht,ChevronLeftSquare:na,ChevronRight:xd,ChevronRightCircle:Ct,ChevronRightSquare:ca,ChevronUp:fd,ChevronUpCircle:At,ChevronUpSquare:la,ChevronsDown:wd,ChevronsDownUp:bd,ChevronsLeft:Sd,ChevronsLeftRight:kd,ChevronsRight:Cd,ChevronsRightLeft:Hd,ChevronsUp:Ld,ChevronsUpDown:Ad,Chrome:$d,Church:Vd,Cigarette:Td,CigaretteOff:_d,Circle:Nd,CircleAlert:vt,CircleArrowDown:mt,CircleArrowLeft:gt,CircleArrowOutDownLeft:ut,CircleArrowOutDownRight:yt,CircleArrowOutUpLeft:Mt,CircleArrowOutUpRight:xt,CircleArrowRight:ft,CircleArrowUp:bt,CircleCheck:kt,CircleCheckBig:wt,CircleChevronDown:St,CircleChevronLeft:Ht,CircleChevronRight:Ct,CircleChevronUp:At,CircleDashed:Pd,CircleDivide:Lt,CircleDollarSign:zd,CircleDot:Ed,CircleDotDashed:qd,CircleEllipsis:Bd,CircleEqual:Dd,CircleFadingPlus:Rd,CircleGauge:$t,CircleHelp:Vt,CircleMinus:_t,CircleOff:Id,CircleParking:Pt,CircleParkingOff:Tt,CirclePause:zt,CirclePercent:qt,CirclePlay:Et,CirclePlus:Bt,CirclePower:Dt,CircleSlash:Od,CircleSlash2:Rt,CircleSlashed:Rt,CircleStop:It,CircleUser:Nt,CircleUserRound:Ot,CircleX:Ft,CircuitBoard:Fd,Citrus:Zd,Clapperboard:Ud,Clipboard:t0,ClipboardCheck:jd,ClipboardCopy:Gd,ClipboardEdit:Ut,ClipboardList:Kd,ClipboardMinus:Wd,ClipboardPaste:Jd,ClipboardPen:Ut,ClipboardPenLine:Zt,ClipboardPlus:Yd,ClipboardSignature:Zt,ClipboardType:Xd,ClipboardX:Qd,Clock:v0,Clock1:e0,Clock10:a0,Clock11:i0,Clock12:s0,Clock2:o0,Clock3:d0,Clock4:r0,Clock5:n0,Clock6:c0,Clock7:l0,Clock8:h0,Clock9:p0,Cloud:A0,CloudCog:m0,CloudDownload:jt,CloudDrizzle:g0,CloudFog:u0,CloudHail:y0,CloudLightning:M0,CloudMoon:f0,CloudMoonRain:x0,CloudOff:b0,CloudRain:k0,CloudRainWind:w0,CloudSnow:S0,CloudSun:C0,CloudSunRain:H0,CloudUpload:Gt,Cloudy:L0,Clover:$0,Club:V0,Code:_0,Code2:Kt,CodeSquare:ha,CodeXml:Kt,Codepen:T0,Codesandbox:P0,Coffee:z0,Cog:q0,Coins:E0,Columns:Wt,Columns2:Wt,Columns3:Jt,Columns4:B0,Combine:D0,Command:R0,Compass:I0,Component:O0,Computer:N0,ConciergeBell:F0,Cone:Z0,Construction:U0,Contact:j0,Contact2:Yt,ContactRound:Yt,Container:G0,Contrast:K0,Cookie:W0,CookingPot:J0,Copy:ar,CopyCheck:Y0,CopyMinus:X0,CopyPlus:Q0,CopySlash:tr,CopyX:er,Copyleft:ir,Copyright:sr,CornerDownLeft:or,CornerDownRight:dr,CornerLeftDown:rr,CornerLeftUp:nr,CornerRightDown:cr,CornerRightUp:lr,CornerUpLeft:hr,CornerUpRight:pr,Cpu:vr,CreativeCommons:mr,CreditCard:gr,Croissant:ur,Crop:yr,Cross:Mr,Crosshair:xr,Crown:fr,Cuboid:br,CupSoda:wr,CurlyBraces:ht,Currency:kr,Cylinder:Sr,Database:Ar,DatabaseBackup:Hr,DatabaseZap:Cr,Delete:Lr,Dessert:$r,Diameter:Vr,Diamond:Pr,DiamondMinus:_r,DiamondPercent:Xt,DiamondPlus:Tr,Dice1:zr,Dice2:qr,Dice3:Er,Dice4:Br,Dice5:Dr,Dice6:Rr,Dices:Ir,Diff:Or,Disc:Ur,Disc2:Nr,Disc3:Fr,DiscAlbum:Zr,Divide:jr,DivideCircle:Lt,DivideSquare:ma,Dna:Kr,DnaOff:Gr,Dock:Wr,Dog:Jr,DollarSign:Yr,Donut:Xr,DoorClosed:Qr,DoorOpen:tn,Dot:en,DotSquare:ga,Download:an,DownloadCloud:jt,DraftingCompass:sn,Drama:on,Dribbble:dn,Drill:rn,Droplet:nn,Droplets:cn,Drum:ln,Drumstick:hn,Dumbbell:pn,Ear:mn,EarOff:vn,Earth:Qt,EarthLock:gn,Eclipse:un,Edit:Z,Edit2:ze,Edit3:Pe,Egg:xn,EggFried:yn,EggOff:Mn,Ellipsis:ee,EllipsisVertical:te,Equal:bn,EqualNot:fn,EqualSquare:ua,Eraser:wn,Euro:kn,Expand:Sn,ExternalLink:Hn,Eye:An,EyeOff:Cn,Facebook:Ln,Factory:$n,Fan:Vn,FastForward:_n,Feather:Tn,Fence:Pn,FerrisWheel:zn,Figma:qn,File:qc,FileArchive:En,FileAudio:Dn,FileAudio2:Bn,FileAxis3D:ae,FileAxis3d:ae,FileBadge:In,FileBadge2:Rn,FileBarChart:Nn,FileBarChart2:On,FileBox:Fn,FileCheck:Un,FileCheck2:Zn,FileClock:jn,FileCode:Kn,FileCode2:Gn,FileCog:ie,FileCog2:ie,FileDiff:Wn,FileDigit:Jn,FileDown:Yn,FileEdit:oe,FileHeart:Xn,FileImage:Qn,FileInput:tc,FileJson:ac,FileJson2:ec,FileKey:sc,FileKey2:ic,FileLineChart:oc,FileLock:rc,FileLock2:dc,FileMinus:cc,FileMinus2:nc,FileMusic:lc,FileOutput:hc,FilePen:oe,FilePenLine:se,FilePieChart:pc,FilePlus:mc,FilePlus2:vc,FileQuestion:gc,FileScan:uc,FileSearch:Mc,FileSearch2:yc,FileSignature:se,FileSliders:xc,FileSpreadsheet:fc,FileStack:bc,FileSymlink:wc,FileTerminal:kc,FileText:Sc,FileType:Cc,FileType2:Hc,FileUp:Ac,FileVideo:$c,FileVideo2:Lc,FileVolume:_c,FileVolume2:Vc,FileWarning:Tc,FileX:zc,FileX2:Pc,Files:Ec,Film:Bc,Filter:Rc,FilterX:Dc,Fingerprint:Ic,FireExtinguisher:Oc,Fish:Zc,FishOff:Nc,FishSymbol:Fc,Flag:Kc,FlagOff:Uc,FlagTriangleLeft:jc,FlagTriangleRight:Gc,Flame:Jc,FlameKindling:Wc,Flashlight:Xc,FlashlightOff:Yc,FlaskConical:tl,FlaskConicalOff:Qc,FlaskRound:el,FlipHorizontal:il,FlipHorizontal2:al,FlipVertical:ol,FlipVertical2:sl,Flower:rl,Flower2:dl,Focus:nl,FoldHorizontal:cl,FoldVertical:ll,Folder:Bl,FolderArchive:hl,FolderCheck:pl,FolderClock:vl,FolderClosed:ml,FolderCog:de,FolderCog2:de,FolderDot:gl,FolderDown:ul,FolderEdit:re,FolderGit:Ml,FolderGit2:yl,FolderHeart:xl,FolderInput:fl,FolderKanban:bl,FolderKey:wl,FolderLock:kl,FolderMinus:Sl,FolderOpen:Cl,FolderOpenDot:Hl,FolderOutput:Al,FolderPen:re,FolderPlus:Ll,FolderRoot:$l,FolderSearch:_l,FolderSearch2:Vl,FolderSymlink:Tl,FolderSync:Pl,FolderTree:zl,FolderUp:ql,FolderX:El,Folders:Dl,Footprints:Rl,Forklift:Il,FormInput:qe,Forward:Ol,Frame:Nl,Framer:Fl,Frown:Zl,Fuel:Ul,Fullscreen:jl,FunctionSquare:ya,GalleryHorizontal:Kl,GalleryHorizontalEnd:Gl,GalleryThumbnails:Wl,GalleryVertical:Yl,GalleryVerticalEnd:Jl,Gamepad:Ql,Gamepad2:Xl,GanttChart:th,GanttChartSquare:Ma,Gauge:eh,GaugeCircle:$t,Gavel:ah,Gem:ih,Ghost:sh,Gift:oh,GitBranch:rh,GitBranchPlus:dh,GitCommit:ne,GitCommitHorizontal:ne,GitCommitVertical:nh,GitCompare:lh,GitCompareArrows:ch,GitFork:hh,GitGraph:ph,GitMerge:vh,GitPullRequest:xh,GitPullRequestArrow:mh,GitPullRequestClosed:gh,GitPullRequestCreate:yh,GitPullRequestCreateArrow:uh,GitPullRequestDraft:Mh,Github:fh,Gitlab:bh,GlassWater:wh,Glasses:kh,Globe:Hh,Globe2:Qt,GlobeLock:Sh,Goal:Ch,Grab:Ah,GraduationCap:Lh,Grape:$h,Grid:K,Grid2X2:ce,Grid2x2:ce,Grid2x2Check:Vh,Grid2x2X:_h,Grid3X3:K,Grid3x3:K,Grip:zh,GripHorizontal:Th,GripVertical:Ph,Group:qh,Guitar:Eh,Ham:Bh,Hammer:Dh,Hand:Fh,HandCoins:Rh,HandHeart:Ih,HandHelping:le,HandMetal:Oh,HandPlatter:Nh,Handshake:Zh,HardDrive:Gh,HardDriveDownload:Uh,HardDriveUpload:jh,HardHat:Kh,Hash:Wh,Haze:Jh,HdmiPort:Yh,Heading:sp,Heading1:Xh,Heading2:Qh,Heading3:tp,Heading4:ep,Heading5:ap,Heading6:ip,Headphones:op,Headset:dp,Heart:hp,HeartCrack:rp,HeartHandshake:np,HeartOff:cp,HeartPulse:lp,Heater:pp,HelpCircle:Vt,HelpingHand:le,Hexagon:vp,Highlighter:mp,History:gp,Home:up,Hop:Mp,HopOff:yp,Hospital:xp,Hotel:fp,Hourglass:bp,IceCream:pe,IceCream2:he,IceCreamBowl:he,IceCreamCone:pe,Image:Lp,ImageDown:wp,ImageMinus:kp,ImageOff:Sp,ImagePlay:Hp,ImagePlus:Cp,ImageUp:Ap,Images:$p,Import:Vp,Inbox:_p,Indent:me,IndentDecrease:ve,IndentIncrease:me,IndianRupee:Tp,Infinity:Pp,Info:zp,Inspect:Sa,InspectionPanel:qp,Instagram:Ep,Italic:Bp,IterationCcw:Dp,IterationCw:Rp,JapaneseYen:Ip,Joystick:Op,Kanban:Np,KanbanSquare:xa,KanbanSquareDashed:pa,Key:Up,KeyRound:Fp,KeySquare:Zp,Keyboard:Kp,KeyboardMusic:jp,KeyboardOff:Gp,Lamp:tv,LampCeiling:Wp,LampDesk:Jp,LampFloor:Yp,LampWallDown:Xp,LampWallUp:Qp,LandPlot:ev,Landmark:av,Languages:iv,Laptop:sv,Laptop2:ge,LaptopMinimal:ge,Lasso:dv,LassoSelect:ov,Laugh:rv,Layers:lv,Layers2:nv,Layers3:cv,Layout:Te,LayoutDashboard:hv,LayoutGrid:pv,LayoutList:vv,LayoutPanelLeft:mv,LayoutPanelTop:gv,LayoutTemplate:uv,Leaf:yv,LeafyGreen:Mv,Lectern:xv,Library:bv,LibraryBig:fv,LibrarySquare:fa,LifeBuoy:wv,Ligature:kv,Lightbulb:Hv,LightbulbOff:Sv,LineChart:Cv,Link:$v,Link2:Lv,Link2Off:Av,Linkedin:Vv,List:Uv,ListChecks:_v,ListCollapse:Tv,ListEnd:Pv,ListFilter:zv,ListMinus:qv,ListMusic:Ev,ListOrdered:Bv,ListPlus:Dv,ListRestart:Rv,ListStart:Iv,ListTodo:Ov,ListTree:Nv,ListVideo:Fv,ListX:Zv,Loader:Gv,Loader2:ue,LoaderCircle:ue,LoaderPinwheel:jv,Locate:Jv,LocateFixed:Kv,LocateOff:Wv,Lock:Xv,LockKeyhole:Yv,LockKeyholeOpen:ye,LockOpen:Me,LogIn:Qv,LogOut:t4,Lollipop:e4,Luggage:a4,MSquare:ba,Magnet:i4,Mail:p4,MailCheck:s4,MailMinus:o4,MailOpen:d4,MailPlus:r4,MailQuestion:n4,MailSearch:c4,MailWarning:l4,MailX:h4,Mailbox:v4,Mails:m4,Map:M4,MapPin:u4,MapPinOff:g4,MapPinned:y4,Martini:x4,Maximize:b4,Maximize2:f4,Medal:w4,Megaphone:S4,MegaphoneOff:k4,Meh:H4,MemoryStick:C4,Menu:A4,MenuSquare:wa,Merge:L4,MessageCircle:R4,MessageCircleCode:$4,MessageCircleDashed:V4,MessageCircleHeart:_4,MessageCircleMore:T4,MessageCircleOff:P4,MessageCirclePlus:z4,MessageCircleQuestion:q4,MessageCircleReply:E4,MessageCircleWarning:B4,MessageCircleX:D4,MessageSquare:t5,MessageSquareCode:I4,MessageSquareDashed:O4,MessageSquareDiff:N4,MessageSquareDot:F4,MessageSquareHeart:Z4,MessageSquareMore:U4,MessageSquareOff:j4,MessageSquarePlus:G4,MessageSquareQuote:K4,MessageSquareReply:W4,MessageSquareShare:J4,MessageSquareText:Y4,MessageSquareWarning:X4,MessageSquareX:Q4,MessagesSquare:e5,Mic:i5,Mic2:xe,MicOff:a5,MicVocal:xe,Microscope:s5,Microwave:o5,Milestone:d5,Milk:n5,MilkOff:r5,Minimize:l5,Minimize2:c5,Minus:h5,MinusCircle:_t,MinusSquare:ka,Monitor:k5,MonitorCheck:p5,MonitorDot:v5,MonitorDown:m5,MonitorOff:g5,MonitorPause:u5,MonitorPlay:y5,MonitorSmartphone:M5,MonitorSpeaker:x5,MonitorStop:f5,MonitorUp:b5,MonitorX:w5,Moon:H5,MoonStar:S5,MoreHorizontal:ee,MoreVertical:te,Mountain:A5,MountainSnow:C5,Mouse:P5,MouseOff:L5,MousePointer:T5,MousePointer2:$5,MousePointerBan:V5,MousePointerClick:_5,MousePointerSquareDashed:va,Move:j5,Move3D:fe,Move3d:fe,MoveDiagonal:q5,MoveDiagonal2:z5,MoveDown:D5,MoveDownLeft:E5,MoveDownRight:B5,MoveHorizontal:R5,MoveLeft:I5,MoveRight:O5,MoveUp:Z5,MoveUpLeft:N5,MoveUpRight:F5,MoveVertical:U5,Music:J5,Music2:G5,Music3:K5,Music4:W5,Navigation:tm,Navigation2:X5,Navigation2Off:Y5,NavigationOff:Q5,Network:em,Newspaper:am,Nfc:im,Notebook:rm,NotebookPen:sm,NotebookTabs:om,NotebookText:dm,NotepadText:cm,NotepadTextDashed:nm,Nut:hm,NutOff:lm,Octagon:pm,OctagonAlert:be,OctagonPause:we,OctagonX:ke,Option:vm,Orbit:mm,Origami:gm,Outdent:ve,Package:km,Package2:um,PackageCheck:ym,PackageMinus:Mm,PackageOpen:xm,PackagePlus:fm,PackageSearch:bm,PackageX:wm,PaintBucket:Sm,PaintRoller:Hm,Paintbrush:Cm,Paintbrush2:Se,PaintbrushVertical:Se,Palette:Am,Palmtree:Ua,PanelBottom:Vm,PanelBottomClose:Lm,PanelBottomDashed:He,PanelBottomInactive:He,PanelBottomOpen:$m,PanelLeft:$e,PanelLeftClose:Ce,PanelLeftDashed:Ae,PanelLeftInactive:Ae,PanelLeftOpen:Le,PanelRight:Pm,PanelRightClose:_m,PanelRightDashed:Ve,PanelRightInactive:Ve,PanelRightOpen:Tm,PanelTop:Em,PanelTopClose:zm,PanelTopDashed:_e,PanelTopInactive:_e,PanelTopOpen:qm,PanelsLeftBottom:Bm,PanelsLeftRight:Jt,PanelsRightBottom:Dm,PanelsTopBottom:De,PanelsTopLeft:Te,Paperclip:Rm,Parentheses:Im,ParkingCircle:Pt,ParkingCircleOff:Tt,ParkingMeter:Om,ParkingSquare:Ca,ParkingSquareOff:Ha,PartyPopper:Nm,Pause:Fm,PauseCircle:zt,PauseOctagon:we,PawPrint:Zm,PcCase:Um,Pen:ze,PenBox:Z,PenLine:Pe,PenOff:jm,PenSquare:Z,PenTool:Gm,Pencil:Ym,PencilLine:Km,PencilOff:Wm,PencilRuler:Jm,Pentagon:Xm,Percent:Qm,PercentCircle:qt,PercentDiamond:Xt,PercentSquare:Aa,PersonStanding:t3,Phone:r3,PhoneCall:e3,PhoneForwarded:a3,PhoneIncoming:i3,PhoneMissed:s3,PhoneOff:o3,PhoneOutgoing:d3,Pi:n3,PiSquare:La,Piano:c3,Pickaxe:l3,PictureInPicture:p3,PictureInPicture2:h3,PieChart:v3,PiggyBank:m3,Pilcrow:y3,PilcrowLeft:g3,PilcrowRight:u3,PilcrowSquare:$a,Pill:x3,PillBottle:M3,Pin:b3,PinOff:f3,Pipette:w3,Pizza:k3,Plane:C3,PlaneLanding:S3,PlaneTakeoff:H3,Play:A3,PlayCircle:Et,PlaySquare:Va,Plug:_3,Plug2:L3,PlugZap:V3,PlugZap2:$3,Plus:T3,PlusCircle:Bt,PlusSquare:_a,Pocket:z3,PocketKnife:P3,Podcast:q3,Pointer:B3,PointerOff:E3,Popcorn:D3,Popsicle:R3,PoundSterling:I3,Power:N3,PowerCircle:Dt,PowerOff:O3,PowerSquare:Ta,Presentation:F3,Printer:Z3,Projector:U3,Proportions:j3,Puzzle:G3,Pyramid:K3,QrCode:W3,Quote:J3,Rabbit:Y3,Radar:X3,Radiation:Q3,Radical:tg,Radio:ig,RadioReceiver:eg,RadioTower:ag,Radius:sg,RailSymbol:og,Rainbow:dg,Rat:rg,Ratio:ng,Receipt:yg,ReceiptCent:cg,ReceiptEuro:lg,ReceiptIndianRupee:hg,ReceiptJapaneseYen:pg,ReceiptPoundSterling:vg,ReceiptRussianRuble:mg,ReceiptSwissFranc:gg,ReceiptText:ug,RectangleEllipsis:qe,RectangleHorizontal:Mg,RectangleVertical:xg,Recycle:fg,Redo:kg,Redo2:bg,RedoDot:wg,RefreshCcw:Hg,RefreshCcwDot:Sg,RefreshCw:Ag,RefreshCwOff:Cg,Refrigerator:Lg,Regex:$g,RemoveFormatting:Vg,Repeat:Pg,Repeat1:_g,Repeat2:Tg,Replace:qg,ReplaceAll:zg,Reply:Bg,ReplyAll:Eg,Rewind:Dg,Ribbon:Rg,Rocket:Ig,RockingChair:Og,RollerCoaster:Ng,Rotate3D:Ee,Rotate3d:Ee,RotateCcw:Zg,RotateCcwSquare:Fg,RotateCw:jg,RotateCwSquare:Ug,Route:Kg,RouteOff:Gg,Router:Wg,Rows:Be,Rows2:Be,Rows3:De,Rows4:Jg,Rss:Yg,Ruler:Xg,RussianRuble:Qg,Sailboat:tu,Salad:eu,Sandwich:au,Satellite:su,SatelliteDish:iu,Save:du,SaveAll:ou,Scale:ru,Scale3D:Re,Scale3d:Re,Scaling:nu,Scan:gu,ScanBarcode:cu,ScanEye:lu,ScanFace:hu,ScanLine:pu,ScanSearch:vu,ScanText:mu,ScatterChart:uu,School:yu,School2:Ka,Scissors:xu,ScissorsLineDashed:Mu,ScissorsSquare:Pa,ScissorsSquareDashedBottom:sa,ScreenShare:bu,ScreenShareOff:fu,Scroll:ku,ScrollText:wu,Search:Lu,SearchCheck:Su,SearchCode:Hu,SearchSlash:Cu,SearchX:Au,Section:$u,Send:_u,SendHorizonal:Ie,SendHorizontal:Ie,SendToBack:Vu,SeparatorHorizontal:Tu,SeparatorVertical:Pu,Server:Bu,ServerCog:zu,ServerCrash:qu,ServerOff:Eu,Settings:Ru,Settings2:Du,Shapes:Iu,Share:Nu,Share2:Ou,Sheet:Fu,Shell:Zu,Shield:t6,ShieldAlert:Uu,ShieldBan:ju,ShieldCheck:Gu,ShieldClose:Oe,ShieldEllipsis:Ku,ShieldHalf:Wu,ShieldMinus:Ju,ShieldOff:Yu,ShieldPlus:Xu,ShieldQuestion:Qu,ShieldX:Oe,Ship:a6,ShipWheel:e6,Shirt:i6,ShoppingBag:s6,ShoppingBasket:o6,ShoppingCart:d6,Shovel:r6,ShowerHead:n6,Shrink:c6,Shrub:l6,Shuffle:h6,Sidebar:$e,SidebarClose:Ce,SidebarOpen:Le,Sigma:p6,SigmaSquare:za,Signal:y6,SignalHigh:v6,SignalLow:m6,SignalMedium:g6,SignalZero:u6,Signpost:x6,SignpostBig:M6,Siren:f6,SkipBack:b6,SkipForward:w6,Skull:k6,Slack:S6,Slash:H6,SlashSquare:qa,Slice:C6,Sliders:Ne,SlidersHorizontal:A6,SlidersVertical:Ne,Smartphone:V6,SmartphoneCharging:L6,SmartphoneNfc:$6,Smile:T6,SmilePlus:_6,Snail:P6,Snowflake:z6,Sofa:q6,SortAsc:st,SortDesc:et,Soup:E6,Space:B6,Spade:D6,Sparkle:R6,Sparkles:Fe,Speaker:I6,Speech:O6,SpellCheck:F6,SpellCheck2:N6,Spline:Z6,Split:U6,SplitSquareHorizontal:Ea,SplitSquareVertical:Ba,SprayCan:j6,Sprout:G6,Square:X6,SquareActivity:Ze,SquareArrowDown:Ge,SquareArrowDownLeft:Ue,SquareArrowDownRight:je,SquareArrowLeft:Ke,SquareArrowOutDownLeft:We,SquareArrowOutDownRight:Je,SquareArrowOutUpLeft:Ye,SquareArrowOutUpRight:Xe,SquareArrowRight:Qe,SquareArrowUp:aa,SquareArrowUpLeft:ta,SquareArrowUpRight:ea,SquareAsterisk:ia,SquareBottomDashedScissors:sa,SquareCheck:da,SquareCheckBig:oa,SquareChevronDown:ra,SquareChevronLeft:na,SquareChevronRight:ca,SquareChevronUp:la,SquareCode:ha,SquareDashedBottom:W6,SquareDashedBottomCode:K6,SquareDashedKanban:pa,SquareDashedMousePointer:va,SquareDivide:ma,SquareDot:ga,SquareEqual:ua,SquareFunction:ya,SquareGanttChart:Ma,SquareKanban:xa,SquareLibrary:fa,SquareM:ba,SquareMenu:wa,SquareMinus:ka,SquareMousePointer:Sa,SquareParking:Ca,SquareParkingOff:Ha,SquarePen:Z,SquarePercent:Aa,SquarePi:La,SquarePilcrow:$a,SquarePlay:Va,SquarePlus:_a,SquarePower:Ta,SquareRadical:J6,SquareScissors:Pa,SquareSigma:za,SquareSlash:qa,SquareSplitHorizontal:Ea,SquareSplitVertical:Ba,SquareStack:Y6,SquareTerminal:Da,SquareUser:Ia,SquareUserRound:Ra,SquareX:Oa,Squircle:Q6,Squirrel:ty,Stamp:ey,Star:sy,StarHalf:ay,StarOff:iy,Stars:Fe,StepBack:oy,StepForward:dy,Stethoscope:ry,Sticker:ny,StickyNote:cy,StopCircle:It,Store:ly,StretchHorizontal:hy,StretchVertical:py,Strikethrough:vy,Subscript:my,Subtitles:pt,Sun:xy,SunDim:gy,SunMedium:uy,SunMoon:yy,SunSnow:My,Sunrise:fy,Sunset:by,Superscript:wy,SwatchBook:ky,SwissFranc:Sy,SwitchCamera:Hy,Sword:Cy,Swords:Ay,Syringe:Ly,Table:qy,Table2:$y,TableCellsMerge:Vy,TableCellsSplit:_y,TableColumnsSplit:Ty,TableProperties:Py,TableRowsSplit:zy,Tablet:By,TabletSmartphone:Ey,Tablets:Dy,Tag:Ry,Tags:Iy,Tally1:Oy,Tally2:Ny,Tally3:Fy,Tally4:Zy,Tally5:Uy,Tangent:jy,Target:Gy,Telescope:Ky,Tent:Jy,TentTree:Wy,Terminal:Yy,TerminalSquare:Da,TestTube:Xy,TestTube2:Na,TestTubeDiagonal:Na,TestTubes:Qy,Text:s8,TextCursor:e8,TextCursorInput:t8,TextQuote:a8,TextSearch:i8,TextSelect:Fa,TextSelection:Fa,Theater:o8,Thermometer:n8,ThermometerSnowflake:d8,ThermometerSun:r8,ThumbsDown:c8,ThumbsUp:l8,Ticket:y8,TicketCheck:h8,TicketMinus:p8,TicketPercent:v8,TicketPlus:m8,TicketSlash:g8,TicketX:u8,Timer:f8,TimerOff:M8,TimerReset:x8,ToggleLeft:b8,ToggleRight:w8,Tornado:k8,Torus:S8,Touchpad:C8,TouchpadOff:H8,TowerControl:A8,ToyBrick:L8,Tractor:$8,TrafficCone:V8,Train:Za,TrainFront:T8,TrainFrontTunnel:_8,TrainTrack:P8,TramFront:Za,Trash:q8,Trash2:z8,TreeDeciduous:E8,TreePalm:Ua,TreePine:B8,Trees:D8,Trello:R8,TrendingDown:I8,TrendingUp:O8,Triangle:F8,TriangleAlert:ja,TriangleRight:N8,Trophy:Z8,Truck:U8,Turtle:j8,Tv:K8,Tv2:Ga,TvMinimal:Ga,TvMinimalPlay:G8,Twitch:W8,Twitter:J8,Type:Y8,Umbrella:Q8,UmbrellaOff:X8,Underline:t7,Undo:i7,Undo2:e7,UndoDot:a7,UnfoldHorizontal:s7,UnfoldVertical:o7,Ungroup:d7,University:Ka,Unlink:n7,Unlink2:r7,Unlock:Me,UnlockKeyhole:ye,Unplug:c7,Upload:l7,UploadCloud:Gt,Usb:h7,User:x7,User2:t1,UserCheck:p7,UserCheck2:Wa,UserCircle:Nt,UserCircle2:Ot,UserCog:v7,UserCog2:Ja,UserMinus:m7,UserMinus2:Ya,UserPlus:g7,UserPlus2:Xa,UserRound:t1,UserRoundCheck:Wa,UserRoundCog:Ja,UserRoundMinus:Ya,UserRoundPlus:Xa,UserRoundSearch:u7,UserRoundX:Qa,UserSearch:y7,UserSquare:Ia,UserSquare2:Ra,UserX:M7,UserX2:Qa,Users:f7,Users2:e1,UsersRound:e1,Utensils:w7,UtensilsCrossed:b7,UtilityPole:k7,Variable:S7,Vault:H7,Vegan:C7,VenetianMask:A7,Verified:rt,Vibrate:$7,VibrateOff:L7,Video:_7,VideoOff:V7,Videotape:T7,View:P7,Voicemail:z7,Volume:D7,Volume1:q7,Volume2:E7,VolumeX:B7,Vote:R7,Wallet:O7,Wallet2:a1,WalletCards:I7,WalletMinimal:a1,Wallpaper:N7,Wand:F7,Wand2:i1,WandSparkles:i1,Warehouse:Z7,WashingMachine:U7,Watch:j7,Waves:G7,Waypoints:K7,Webcam:W7,Webhook:Y7,WebhookOff:J7,Weight:X7,Wheat:tM,WheatOff:Q7,WholeWord:eM,Wifi:iM,WifiOff:aM,Wind:sM,Wine:dM,WineOff:oM,Workflow:rM,Worm:nM,WrapText:cM,Wrench:lM,X:hM,XCircle:Ft,XOctagon:ke,XSquare:Oa,Youtube:pM,Zap:mM,ZapOff:vM,ZoomIn:gM,ZoomOut:uM},Symbol.toStringTag,{value:"Module"}));/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7366,7 +7366,7 @@
  */const yM=({icons:i={},nameAttr:e="data-lucide",attrs:a={}}={})=>{if(!Object.values(i).length)throw new Error(`Please provide an icons object.
 If you want to use all the icons you can import it like:
  \`import { createIcons, icons } from 'lucide';
-lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`createIcons()` only works in a browser environment.");const d=document.querySelectorAll(`[${e}]`);if(Array.from(d).forEach(s=>J(s,{nameAttr:e,icons:i,attrs:a})),e==="data-lucide"){const s=document.querySelectorAll("[icon-name]");s.length>0&&(console.warn("[Lucide] Some icons were found with the now deprecated icon-name attribute. These will still be replaced for backwards compatibility, but will no longer be supported in v1.0 and you should switch to data-lucide"),Array.from(s).forEach(r=>J(r,{nameAttr:"icon-name",icons:i,attrs:a})))}};function MM(i){i.innerHTML=`
+lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`createIcons()` only works in a browser environment.");const d=document.querySelectorAll(`[${e}]`);if(Array.from(d).forEach(s=>J(s,{nameAttr:e,icons:i,attrs:a})),e==="data-lucide"){const s=document.querySelectorAll("[icon-name]");s.length>0&&(console.warn("[Lucide] Some icons were found with the now deprecated icon-name attribute. These will still be replaced for backwards compatibility, but will no longer be supported in v1.0 and you should switch to data-lucide"),Array.from(s).forEach(n=>J(n,{nameAttr:"icon-name",icons:i,attrs:a})))}};function MM(i){i.innerHTML=`
     <div style="min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background-color: var(--bg-app);">
       <div style="width: 100%; max-width: 440px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-md); overflow: hidden;">
         
@@ -7476,7 +7476,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#login-password"),a=i.querySelector("#btn-toggle-pwd");a&&e&&a.addEventListener("click",l=>{l.preventDefault(),e.type==="password"?(e.type="text",a.textContent="Hide"):(e.type="password",a.textContent="Show")});const d=i.querySelector("#unified-login-form"),s=i.querySelector("#login-alert"),r=i.querySelector("#btn-submit-unified-login"),o=i.querySelector("#btn-submit-text");function c(l,v="danger"){s&&(s.style.display="block",v==="danger"?(s.style.background="var(--status-danger-bg)",s.style.border="1px solid var(--status-danger-border)",s.style.color="var(--status-danger)"):(s.style.background="var(--status-success-bg)",s.style.border="1px solid var(--status-success-border)",s.style.color="var(--status-success)"),s.innerHTML=l)}d&&d.addEventListener("submit",async l=>{var p,y;l.preventDefault(),l.stopPropagation();const v=(p=i.querySelector("#login-email"))==null?void 0:p.value.trim(),h=(y=i.querySelector("#login-password"))==null?void 0:y.value;if(!v||!h){c("Please enter both email and password.");return}s.style.display="none",r.disabled=!0,o.textContent="Signing in...";try{const m=await M.login(v,h);if(!m.success||!m.token)throw new Error(m.message||"Authentication failed. Please verify credentials.");const n=m.user||{},g=n.role;if(g==="customer"){M.clearSession(),c("Customer accounts are for the HotelHub Mobile App. Please use the mobile application to manage guest bookings.","danger"),r.disabled=!1,o.textContent="Sign In";return}c(`Welcome back, <strong>${n.name||"User"}</strong>! Redirecting to workspace...`,"success"),setTimeout(()=>{let u="/admin/dashboard";g==="hotel_admin"||g==="owner"?u="/hotel-admin/dashboard":g==="support_admin"?u="/admin/support":g==="finance_admin"&&(u="/admin/payments"),typeof window.navigateTo=="function"?window.navigateTo(u):window.location.hash=`#${u}`},350)}catch(m){console.error("Unified login error:",m),c(m.message||"Invalid email or password."),r.disabled=!1,o.textContent="Sign In",window.lucide&&window.lucide.createIcons()}})}function xM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#login-password"),a=i.querySelector("#btn-toggle-pwd");a&&e&&a.addEventListener("click",o=>{o.preventDefault(),e.type==="password"?(e.type="text",a.textContent="Hide"):(e.type="password",a.textContent="Show")});const d=i.querySelector("#unified-login-form"),s=i.querySelector("#login-alert"),n=i.querySelector("#btn-submit-unified-login"),r=i.querySelector("#btn-submit-text");function c(o,p="danger"){s&&(s.style.display="block",p==="danger"?(s.style.background="var(--status-danger-bg)",s.style.border="1px solid var(--status-danger-border)",s.style.color="var(--status-danger)"):(s.style.background="var(--status-success-bg)",s.style.border="1px solid var(--status-success-border)",s.style.color="var(--status-success)"),s.innerHTML=o)}d&&d.addEventListener("submit",async o=>{var v,u;o.preventDefault(),o.stopPropagation();const p=(v=i.querySelector("#login-email"))==null?void 0:v.value.trim(),h=(u=i.querySelector("#login-password"))==null?void 0:u.value;if(!p||!h){c("Please enter both email and password.");return}s.style.display="none",n.disabled=!0,r.textContent="Signing in...";try{const m=await x.login(p,h);if(!m.success||!m.token)throw new Error(m.message||"Authentication failed. Please verify credentials.");const l=m.user||{},g=l.role;if(g==="customer"){x.clearSession(),c("Customer accounts are for the HotelHub Mobile App. Please use the mobile application to manage guest bookings.","danger"),n.disabled=!1,r.textContent="Sign In";return}c(`Welcome back, <strong>${l.name||"User"}</strong>! Redirecting to workspace...`,"success"),setTimeout(()=>{let y="/admin/dashboard";g==="hotel_admin"||g==="owner"?y="/hotel-admin/dashboard":g==="support_admin"?y="/admin/support":g==="finance_admin"&&(y="/admin/payments"),typeof window.navigateTo=="function"?window.navigateTo(y):window.location.hash=`#${y}`},350)}catch(m){console.error("Unified login error:",m),c(m.message||"Invalid email or password."),n.disabled=!1,r.textContent="Sign In",window.lucide&&window.lucide.createIcons()}})}function xM(i){i.innerHTML=`
     <div style="min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background-color: var(--bg-app);">
       <div style="width: 100%; max-width: 520px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-md); overflow: hidden;">
         
@@ -7629,7 +7629,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#partner-register-form"),a=i.querySelector("#register-alert"),d=i.querySelector("#btn-submit-register"),s=i.querySelector("#btn-register-text");function r(o,c="danger"){a&&(a.style.display="block",c==="danger"?(a.style.background="var(--status-danger-bg)",a.style.border="1px solid var(--status-danger-border)",a.style.color="var(--status-danger)"):(a.style.background="var(--status-success-bg)",a.style.border="1px solid var(--status-success-border)",a.style.color="var(--status-success)"),a.innerHTML=o)}e&&e.addEventListener("submit",async o=>{var n,g,u,b,f,x,w;o.preventDefault(),o.stopPropagation();const c=(n=i.querySelector("#reg-name"))==null?void 0:n.value.trim(),l=(g=i.querySelector("#reg-phone"))==null?void 0:g.value.trim(),v=(u=i.querySelector("#reg-email"))==null?void 0:u.value.trim(),h=(b=i.querySelector("#reg-hotel-name"))==null?void 0:b.value.trim(),p=(f=i.querySelector("#reg-hotel-address"))==null?void 0:f.value.trim(),y=(x=i.querySelector("#reg-password"))==null?void 0:x.value,m=(w=i.querySelector("#reg-confirm-password"))==null?void 0:w.value;if(!c||!v||!y||!h){r("Please fill in all required fields.");return}if(y!==m){r("Passwords do not match. Please re-enter.");return}a.style.display="none",d.disabled=!0,s.textContent="Registering property...";try{const k=await M.register({name:c,phone:l,email:v,password:y,role:"hotel_admin",hotel_name:h,hotel_address:p});if(!k.success)throw new Error(k.message||"Registration failed.");r("<strong>Registration submitted!</strong> Your hotel partner dossier is under administrative review. Redirecting to login...","success"),setTimeout(()=>{typeof window.navigateTo=="function"?window.navigateTo("/login"):window.location.hash="#/login"},1200)}catch(k){console.error("Registration error:",k),r(k.message||"Registration failed. Please try again."),d.disabled=!1,s.textContent="Submit Partner Registration",window.lucide&&window.lucide.createIcons()}})}function z(i,e="Administrator"){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#partner-register-form"),a=i.querySelector("#register-alert"),d=i.querySelector("#btn-submit-register"),s=i.querySelector("#btn-register-text");function n(r,c="danger"){a&&(a.style.display="block",c==="danger"?(a.style.background="var(--status-danger-bg)",a.style.border="1px solid var(--status-danger-border)",a.style.color="var(--status-danger)"):(a.style.background="var(--status-success-bg)",a.style.border="1px solid var(--status-success-border)",a.style.color="var(--status-success)"),a.innerHTML=r)}e&&e.addEventListener("submit",async r=>{var l,g,y,S,w,f,M;r.preventDefault(),r.stopPropagation();const c=(l=i.querySelector("#reg-name"))==null?void 0:l.value.trim(),o=(g=i.querySelector("#reg-phone"))==null?void 0:g.value.trim(),p=(y=i.querySelector("#reg-email"))==null?void 0:y.value.trim(),h=(S=i.querySelector("#reg-hotel-name"))==null?void 0:S.value.trim(),v=(w=i.querySelector("#reg-hotel-address"))==null?void 0:w.value.trim(),u=(f=i.querySelector("#reg-password"))==null?void 0:f.value,m=(M=i.querySelector("#reg-confirm-password"))==null?void 0:M.value;if(!c||!p||!u||!h){n("Please fill in all required fields.");return}if(u!==m){n("Passwords do not match. Please re-enter.");return}a.style.display="none",d.disabled=!0,s.textContent="Registering property...";try{const b=await x.register({name:c,phone:o,email:p,password:u,role:"hotel_admin",hotel_name:h,hotel_address:v});if(!b.success)throw new Error(b.message||"Registration failed.");n("<strong>Registration submitted!</strong> Your hotel partner dossier is under administrative review. Redirecting to login...","success"),setTimeout(()=>{typeof window.navigateTo=="function"?window.navigateTo("/login"):window.location.hash="#/login"},1200)}catch(b){console.error("Registration error:",b),n(b.message||"Registration failed. Please try again."),d.disabled=!1,s.textContent="Submit Partner Registration",window.lucide&&window.lucide.createIcons()}})}function E(i,e="Administrator"){i.innerHTML=`
     <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
       <div style="width: 100%; max-width: 540px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center; box-shadow: var(--shadow-md);">
         
@@ -7662,12 +7662,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons()}function d1(i,e,a){if(!i||!e)return"—";try{const d=new Date(i),s=new Date(e);if(isNaN(d.getTime())||isNaN(s.getTime()))return`${i} → ${e}`;const r=d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),o=s.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),c=a?` • ${a} ${a===1?"night":"nights"}`:"";return`${r} → ${o}${c}`}catch{return`${i} → ${e}`}}async function fM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons()}function o1(i,e,a){if(!i||!e)return"—";try{const d=new Date(i),s=new Date(e);if(isNaN(d.getTime())||isNaN(s.getTime()))return`${i} → ${e}`;const n=d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),r=s.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),c=a?` • ${a} ${a===1?"night":"nights"}`:"";return`${n} → ${r}${c}`}catch{return`${i} → ${e}`}}async function fM(i){i.innerHTML=`
     <div style="text-align: center; padding: 48px 20px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.85rem;">Loading live platform metrics...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d,s,r]=await Promise.all([M.getAdminKpis(),M.getAdminBookings(),M.getAdminRefunds(),M.getOwnersKyc(),M.getSupportTickets()]),o=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_hotels:0,verified_hotels:0,pending_hotels:0,total_bookings:0,todays_bookings:0,upcoming_checkins_count:0,checked_in_bookings_count:0,upcoming_checkouts_count:0,cancelled_bookings_count:0,total_gmv:0,platform_revenue:0,pending_refunds_count:0,pending_kyc_count:0},c=((a==null?void 0:a.bookings)||[]).slice(0,6),l=((d==null?void 0:d.refunds)||[]).filter(p=>p.status==="pending"),v=((s==null?void 0:s.owners)||[]).filter(p=>p.kyc_status==="pending"),h=((r==null?void 0:r.tickets)||[]).filter(p=>p.status==="open"||p.status==="in_progress");i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d,s,n]=await Promise.all([x.getAdminKpis(),x.getAdminBookings(),x.getAdminRefunds(),x.getOwnersKyc(),x.getSupportTickets()]),r=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_hotels:0,verified_hotels:0,pending_hotels:0,total_bookings:0,todays_bookings:0,upcoming_checkins_count:0,checked_in_bookings_count:0,upcoming_checkouts_count:0,cancelled_bookings_count:0,total_gmv:0,platform_revenue:0,pending_refunds_count:0,pending_kyc_count:0},c=((a==null?void 0:a.bookings)||[]).slice(0,6),o=((d==null?void 0:d.refunds)||[]).filter(v=>v.status==="pending"),p=((s==null?void 0:s.owners)||[]).filter(v=>v.kyc_status==="pending"),h=((n==null?void 0:n.tickets)||[]).filter(v=>v.status==="open"||v.status==="in_progress");i.innerHTML=`
       <!-- 1. TOP 4-COLUMN KPI CARDS (Desktop: 4 cols, Tablet: 2 cols, Mobile: 1 col) -->
       <div class="metrics-grid">
         <!-- TOTAL HOTELS -->
@@ -7676,10 +7676,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Total Hotels</span>
             <div class="metric-icon-box"><i data-lucide="building-2"></i></div>
           </div>
-          <div class="metric-value">${o.total_hotels||0}</div>
+          <div class="metric-value">${r.total_hotels||0}</div>
           <div class="metric-footer">
-            <span style="color: var(--status-success); font-weight: 600;">${o.verified_hotels||0} Verified</span>
-            <span>• ${o.pending_hotels||0} Under Review</span>
+            <span style="color: var(--status-success); font-weight: 600;">${r.verified_hotels||0} Verified</span>
+            <span>• ${r.pending_hotels||0} Under Review</span>
           </div>
         </div>
 
@@ -7689,10 +7689,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Total Bookings</span>
             <div class="metric-icon-box"><i data-lucide="calendar-check"></i></div>
           </div>
-          <div class="metric-value">${o.total_bookings||0}</div>
+          <div class="metric-value">${r.total_bookings||0}</div>
           <div class="metric-footer">
-            <span style="color: var(--color-accent-dark); font-weight: 600;">${o.todays_bookings||0} Today</span>
-            <span>• ${o.upcoming_checkins_count||0} Incoming Check-ins</span>
+            <span style="color: var(--color-accent-dark); font-weight: 600;">${r.todays_bookings||0} Today</span>
+            <span>• ${r.upcoming_checkins_count||0} Incoming Check-ins</span>
           </div>
         </div>
 
@@ -7702,7 +7702,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Gross Platform Volume</span>
             <div class="metric-icon-box gold"><i data-lucide="wallet"></i></div>
           </div>
-          <div class="metric-value">₹${(o.total_gmv||0).toLocaleString("en-IN")}</div>
+          <div class="metric-value">₹${(r.total_gmv||0).toLocaleString("en-IN")}</div>
           <div class="metric-footer">
             <span>Total bookings processed</span>
           </div>
@@ -7714,7 +7714,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Net Platform Commission</span>
             <div class="metric-icon-box success"><i data-lucide="badge-percent"></i></div>
           </div>
-          <div class="metric-value" style="color: var(--status-success);">₹${(o.platform_revenue||0).toLocaleString("en-IN")}</div>
+          <div class="metric-value" style="color: var(--status-success);">₹${(r.platform_revenue||0).toLocaleString("en-IN")}</div>
           <div class="metric-footer">
             <span style="color: var(--status-success); font-weight: 600;">15% Platform Take-Rate</span>
           </div>
@@ -7733,23 +7733,23 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <div class="ops-metrics-grid">
           <div class="ops-item">
             <div class="ops-item-label">Today's Bookings</div>
-            <div class="ops-item-value">${o.todays_bookings||0}</div>
+            <div class="ops-item-value">${r.todays_bookings||0}</div>
           </div>
           <div class="ops-item">
             <div class="ops-item-label">Upcoming Check-Ins</div>
-            <div class="ops-item-value" style="color: var(--status-info);">${o.upcoming_checkins_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-info);">${r.upcoming_checkins_count||0}</div>
           </div>
           <div class="ops-item">
             <div class="ops-item-label">Active In-House Stays</div>
-            <div class="ops-item-value" style="color: var(--status-success);">${o.checked_in_bookings_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-success);">${r.checked_in_bookings_count||0}</div>
           </div>
           <div class="ops-item">
             <div class="ops-item-label">Upcoming Check-Outs</div>
-            <div class="ops-item-value" style="color: var(--status-warning);">${o.upcoming_checkouts_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-warning);">${r.upcoming_checkouts_count||0}</div>
           </div>
           <div class="ops-item ops-item-full">
             <div class="ops-item-label">Cancelled / Refunded</div>
-            <div class="ops-item-value" style="color: var(--status-danger);">${o.cancelled_bookings_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-danger);">${r.cancelled_bookings_count||0}</div>
           </div>
         </div>
       </div>
@@ -7790,31 +7790,31 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                         No reservations found on the platform yet.
                       </td>
                     </tr>
-                  `:c.map(p=>`
+                  `:c.map(v=>`
                     <tr>
                       <td>
-                        <span class="code-pill">${p.booking_code||"BKG-000"}</span>
+                        <span class="code-pill">${v.booking_code||"BKG-000"}</span>
                       </td>
                       <td>
-                        <div style="font-weight: 600; color: var(--text-main);">${p.customer_name||p.guest_name||"Guest User"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${p.customer_phone||p.customer_email||"—"}</div>
+                        <div style="font-weight: 600; color: var(--text-main);">${v.customer_name||v.guest_name||"Guest User"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${v.customer_phone||v.customer_email||"—"}</div>
                       </td>
                       <td>
-                        <div style="font-weight: 600; color: var(--text-main);">${p.hotel_name||"Grand Horizon Hotel"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${p.room_name||"Deluxe Room"} (${p.guests_count||2} Guests)</div>
+                        <div style="font-weight: 600; color: var(--text-main);">${v.hotel_name||"Grand Horizon Hotel"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${v.room_name||"Deluxe Room"} (${v.guests_count||2} Guests)</div>
                       </td>
                       <td>
                         <div style="font-size: 0.76rem; color: var(--text-main); font-weight: 500;">
-                          ${d1(p.check_in_date,p.check_out_date,p.nights)}
+                          ${o1(v.check_in_date,v.check_out_date,v.nights)}
                         </div>
                       </td>
                       <td>
-                        <div style="font-weight: 700; color: var(--text-main);">₹${(p.total_amount||0).toLocaleString("en-IN")}</div>
-                        <div style="font-size: 0.72rem; color: var(--status-success);">Cut: ₹${(p.commission_amount||Math.round((p.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
+                        <div style="font-weight: 700; color: var(--text-main);">₹${(v.total_amount||0).toLocaleString("en-IN")}</div>
+                        <div style="font-size: 0.72rem; color: var(--status-success);">Cut: ₹${(v.commission_amount||Math.round((v.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
                       </td>
                       <td>
-                        <span class="status-pill ${p.booking_status||"confirmed"}">
-                          ${(p.booking_status||"confirmed").replace("_"," ")}
+                        <span class="status-pill ${v.booking_status||"confirmed"}">
+                          ${(v.booking_status||"confirmed").replace("_"," ")}
                         </span>
                       </td>
                     </tr>
@@ -7830,29 +7830,29 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <div style="text-align: center; color: var(--text-muted); padding: 24px 12px; background: var(--bg-surface-secondary); border-radius: var(--radius-sm);">
                 No reservations found on the platform yet.
               </div>
-            `:c.map(p=>`
+            `:c.map(v=>`
               <div class="mobile-booking-card">
                 <div class="mb-card-header">
-                  <span class="code-pill">${p.booking_code||"BKG-000"}</span>
-                  <span class="status-pill ${p.booking_status||"confirmed"}">
-                    ${(p.booking_status||"confirmed").replace("_"," ")}
+                  <span class="code-pill">${v.booking_code||"BKG-000"}</span>
+                  <span class="status-pill ${v.booking_status||"confirmed"}">
+                    ${(v.booking_status||"confirmed").replace("_"," ")}
                   </span>
                 </div>
                 <div class="mb-card-guest">
-                  <div class="mb-guest-name">${p.customer_name||p.guest_name||"Guest User"}</div>
-                  <div class="mb-guest-contact">${p.customer_phone||p.customer_email||"—"}</div>
+                  <div class="mb-guest-name">${v.customer_name||v.guest_name||"Guest User"}</div>
+                  <div class="mb-guest-contact">${v.customer_phone||v.customer_email||"—"}</div>
                 </div>
                 <div class="mb-card-hotel">
-                  <div class="mb-hotel-name">${p.hotel_name||"Grand Horizon Hotel"}</div>
-                  <div class="mb-room-type">${p.room_name||"Deluxe Room"} • ${p.guests_count||2} Guests</div>
+                  <div class="mb-hotel-name">${v.hotel_name||"Grand Horizon Hotel"}</div>
+                  <div class="mb-room-type">${v.room_name||"Deluxe Room"} • ${v.guests_count||2} Guests</div>
                 </div>
                 <div class="mb-card-dates">
                   <i data-lucide="calendar" style="width: 14px; height: 14px; color: var(--color-accent-dark); flex-shrink: 0;"></i>
-                  <span>${d1(p.check_in_date,p.check_out_date,p.nights)}</span>
+                  <span>${o1(v.check_in_date,v.check_out_date,v.nights)}</span>
                 </div>
                 <div class="mb-card-footer">
-                  <div class="mb-amount">₹${(p.total_amount||0).toLocaleString("en-IN")}</div>
-                  <div class="mb-cut">Platform Cut: ₹${(p.commission_amount||Math.round((p.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
+                  <div class="mb-amount">₹${(v.total_amount||0).toLocaleString("en-IN")}</div>
+                  <div class="mb-cut">Platform Cut: ₹${(v.commission_amount||Math.round((v.total_amount||0)*.15)).toLocaleString("en-IN")}</div>
                 </div>
               </div>
             `).join("")}
@@ -7876,10 +7876,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                   <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--color-accent-dark);"></i>
                   <span>Owner KYC Submissions</span>
                 </span>
-                <span class="nav-badge gold">${v.length} Pending</span>
+                <span class="nav-badge gold">${p.length} Pending</span>
               </div>
               <p class="action-card-desc">
-                ${v.length>0?`${v.length} hotel partner KYC compliance dossiers awaiting verification.`:"All hotel partner KYC dossiers have been reviewed and verified."}
+                ${p.length>0?`${p.length} hotel partner KYC compliance dossiers awaiting verification.`:"All hotel partner KYC dossiers have been reviewed and verified."}
               </p>
               <a href="#/admin/owners" class="btn btn-primary btn-sm" style="width: 100%;">
                 <span>Review KYC Queue</span>
@@ -7894,10 +7894,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                   <i data-lucide="credit-card" style="width: 16px; height: 16px; color: var(--status-danger);"></i>
                   <span>Pending Guest Refunds</span>
                 </span>
-                <span class="nav-badge danger">${l.length} Pending</span>
+                <span class="nav-badge danger">${o.length} Pending</span>
               </div>
               <p class="action-card-desc">
-                ${l.length>0?`${l.length} cancellation claim${l.length>1?"s":""} total ₹${l.reduce((p,y)=>p+(y.refund_amount||0),0).toLocaleString("en-IN")} requiring payout approval.`:"All guest cancellation refund claims have been cleared."}
+                ${o.length>0?`${o.length} cancellation claim${o.length>1?"s":""} total ₹${o.reduce((v,u)=>v+(u.refund_amount||0),0).toLocaleString("en-IN")} requiring payout approval.`:"All guest cancellation refund claims have been cleared."}
               </p>
               <a href="#/admin/refunds" class="btn btn-danger btn-sm" style="width: 100%;">
                 <span>Process Refund Queue</span>
@@ -7937,16 +7937,16 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <span>Retry Loading</span>
         </button>
       </div>
-    `,window.lucide&&window.lucide.createIcons()}}async function bM(i){let e=[],a="all",d="all",s="";async function r(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons()}}async function bM(i){let e=[],a="all",d="all",s="";async function n(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotels...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getAdminHotels()).hotels,o()}catch(v){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminHotels()).hotels,r()}catch(p){i.innerHTML=`
         <div style="background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); padding: 20px; border-radius: var(--radius-sm); color: var(--status-danger);">
-          <strong>Error loading hotels:</strong> ${v.message}
+          <strong>Error loading hotels:</strong> ${p.message}
         </div>
-      `}}function o(){const v=e.filter(h=>{const p=h.name.toLowerCase().includes(s.toLowerCase())||h.city.toLowerCase().includes(s.toLowerCase())||h.owner_name.toLowerCase().includes(s.toLowerCase()),y=a==="all"||h.city.toLowerCase()===a.toLowerCase(),m=d==="all"||h.status.toLowerCase()===d.toLowerCase();return p&&y&&m});i.innerHTML=`
+      `}}function r(){const p=e.filter(h=>{const v=h.name.toLowerCase().includes(s.toLowerCase())||h.city.toLowerCase().includes(s.toLowerCase())||h.owner_name.toLowerCase().includes(s.toLowerCase()),u=a==="all"||h.city.toLowerCase()===a.toLowerCase(),m=d==="all"||h.status.toLowerCase()===d.toLowerCase();return v&&u&&m});i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div class="search-input-box">
@@ -7986,13 +7986,13 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${v.length===0?`
+              ${p.length===0?`
                 <tr>
                   <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
                     No hotels match the selected criteria.
                   </td>
                 </tr>
-              `:v.map(h=>`
+              `:p.map(h=>`
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -8043,7 +8043,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="hotel-modal-root"></div>
-    `,c(),window.lucide&&window.lucide.createIcons()}function c(){var v,h,p;(v=i.querySelector("#hotel-search-input"))==null||v.addEventListener("input",y=>{s=y.target.value,o()}),(h=i.querySelector("#city-filter"))==null||h.addEventListener("change",y=>{a=y.target.value,o()}),(p=i.querySelector("#status-filter"))==null||p.addEventListener("change",y=>{d=y.target.value,o()}),i.querySelectorAll(".btn-set-status").forEach(y=>{y.addEventListener("click",async()=>{const m=y.getAttribute("data-hotel-id"),n=y.getAttribute("data-status");try{await M.updateHotelStatus(m,n),window.showToast(`Hotel status updated to ${n.toUpperCase()}`,"success"),r()}catch(g){window.showToast(g.message,"error")}})}),i.querySelectorAll(".btn-inspect-hotel").forEach(y=>{y.addEventListener("click",()=>{const m=y.getAttribute("data-hotel-id");l(m)})})}function l(v){var m,n,g,u;const h=e.find(b=>b.id===v);if(!h)return;const p=i.querySelector("#hotel-modal-root");p.innerHTML=`
+    `,c(),window.lucide&&window.lucide.createIcons()}function c(){var p,h,v;(p=i.querySelector("#hotel-search-input"))==null||p.addEventListener("input",u=>{s=u.target.value,r()}),(h=i.querySelector("#city-filter"))==null||h.addEventListener("change",u=>{a=u.target.value,r()}),(v=i.querySelector("#status-filter"))==null||v.addEventListener("change",u=>{d=u.target.value,r()}),i.querySelectorAll(".btn-set-status").forEach(u=>{u.addEventListener("click",async()=>{const m=u.getAttribute("data-hotel-id"),l=u.getAttribute("data-status");try{await x.updateHotelStatus(m,l),window.showToast(`Hotel status updated to ${l.toUpperCase()}`,"success"),n()}catch(g){window.showToast(g.message,"error")}})}),i.querySelectorAll(".btn-inspect-hotel").forEach(u=>{u.addEventListener("click",()=>{const m=u.getAttribute("data-hotel-id");o(m)})})}function o(p){var m,l,g,y;const h=e.find(S=>S.id===p);if(!h)return;const v=i.querySelector("#hotel-modal-root");v.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container">
           <div class="modal-header">
@@ -8085,9 +8085,9 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div>
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Configured Amenities</div>
               <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                ${h.amenities.map(b=>`
+                ${h.amenities.map(S=>`
                   <span style="background: var(--bg-surface-secondary); border: 1px solid var(--border-light); font-size: 0.72rem; padding: 3px 8px; border-radius: var(--radius-full); color: var(--text-main);">
-                    ✓ ${b}
+                    ✓ ${S}
                   </span>
                 `).join("")}
               </div>
@@ -8107,12 +8107,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const y=()=>{p.innerHTML=""};(m=p.querySelector("#modal-close"))==null||m.addEventListener("click",y),(n=p.querySelector("#modal-close-action"))==null||n.addEventListener("click",y),(g=p.querySelector("#modal-suspend-btn"))==null||g.addEventListener("click",async()=>{await M.updateHotelStatus(v,"suspended"),window.showToast("Hotel suspended from customer application.","warning"),y(),r()}),(u=p.querySelector("#modal-approve-btn"))==null||u.addEventListener("click",async()=>{await M.updateHotelStatus(v,"active"),window.showToast("Hotel is now LIVE on customer app!","success"),y(),r()})}r()}async function wM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const u=()=>{v.innerHTML=""};(m=v.querySelector("#modal-close"))==null||m.addEventListener("click",u),(l=v.querySelector("#modal-close-action"))==null||l.addEventListener("click",u),(g=v.querySelector("#modal-suspend-btn"))==null||g.addEventListener("click",async()=>{await x.updateHotelStatus(p,"suspended"),window.showToast("Hotel suspended from customer application.","warning"),u(),n()}),(y=v.querySelector("#modal-approve-btn"))==null||y.addEventListener("click",async()=>{await x.updateHotelStatus(p,"active"),window.showToast("Hotel is now LIVE on customer app!","success"),u(),n()})}n()}async function wM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner KYC applications...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getOwnersKyc()).owners,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnersKyc()).owners,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8128,33 +8128,33 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.map(o=>`
+              ${e.map(r=>`
                 <tr>
                   <td>
-                    <div style="font-weight: 700; color: var(--text-main);">${o.name}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${o.email}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${o.phone}</div>
+                    <div style="font-weight: 700; color: var(--text-main);">${r.name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${r.email}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.phone}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 600;">${o.business_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">PAN: <strong>${o.pan_no}</strong> • GST: <strong>${o.gstin}</strong></div>
+                    <div style="font-weight: 600;">${r.business_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">PAN: <strong>${r.pan_no}</strong> • GST: <strong>${r.gstin}</strong></div>
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem; color: var(--text-main);">${o.bank_account}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${o.address}</div>
+                    <div style="font-size: 0.78rem; color: var(--text-main);">${r.bank_account}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.address}</div>
                   </td>
                   <td>
-                    <span style="font-weight: 600;">${o.hotels_count} properties</span>
+                    <span style="font-weight: 600;">${r.hotels_count} properties</span>
                   </td>
                   <td>
-                    <span class="status-pill ${o.kyc_status}">${o.kyc_status}</span>
-                    ${o.rejection_reason?`<div style="font-size: 0.68rem; color: var(--status-danger); margin-top: 2px;">${o.rejection_reason}</div>`:""}
+                    <span class="status-pill ${r.kyc_status}">${r.kyc_status}</span>
+                    ${r.rejection_reason?`<div style="font-size: 0.68rem; color: var(--status-danger); margin-top: 2px;">${r.rejection_reason}</div>`:""}
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(o.submitted_at).toLocaleDateString()}</div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(r.submitted_at).toLocaleDateString()}</div>
                   </td>
                   <td>
-                    <button class="btn btn-primary btn-sm btn-inspect-owner" data-owner-id="${o.user_id}">
+                    <button class="btn btn-primary btn-sm btn-inspect-owner" data-owner-id="${r.user_id}">
                       <i data-lucide="shield"></i> Inspect KYC
                     </button>
                   </td>
@@ -8166,7 +8166,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="owner-modal-root"></div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-inspect-owner").forEach(o=>{o.addEventListener("click",()=>{const c=o.getAttribute("data-owner-id");r(c)})})}function r(o){var h,p,y,m;const c=e.find(n=>n.user_id===o);if(!c)return;const l=i.querySelector("#owner-modal-root");l.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-inspect-owner").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-owner-id");n(c)})})}function n(r){var h,v,u,m;const c=e.find(l=>l.user_id===r);if(!c)return;const o=i.querySelector("#owner-modal-root");o.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container">
           <div class="modal-header">
@@ -8205,12 +8205,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const v=()=>{l.innerHTML=""};(h=l.querySelector("#modal-close"))==null||h.addEventListener("click",v),(p=l.querySelector("#modal-close-action"))==null||p.addEventListener("click",v),(y=l.querySelector("#modal-approve-btn"))==null||y.addEventListener("click",async()=>{const n=l.querySelector("#modal-approve-btn");n&&(n.disabled=!0);try{await M.updateOwnerKyc(o,"verified"),window.showToast(`Owner ${c.name} verified successfully! Associated hotel is now active.`,"success"),v(),a()}catch(g){n&&(n.disabled=!1),window.showToast(g.message||"Failed to approve owner KYC.","error")}}),(m=l.querySelector("#modal-reject-btn"))==null||m.addEventListener("click",async()=>{const n=l.querySelector("#reject-box"),g=l.querySelector("#modal-reject-btn");if(n.style.display==="none")n.style.display="block",g&&(g.textContent="Confirm Rejection");else{const u=l.querySelector("#reject-reason").value||"Documentation incomplete.";g&&(g.disabled=!0);try{await M.updateOwnerKyc(o,"rejected",u),window.showToast(`KYC application for ${c.name} rejected.`,"error"),v(),a()}catch(b){g&&(g.disabled=!1),window.showToast(b.message||"Failed to reject owner KYC.","error")}}})}a()}async function kM(i){let e=[],a="",d="all";async function s(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{o.innerHTML=""};(h=o.querySelector("#modal-close"))==null||h.addEventListener("click",p),(v=o.querySelector("#modal-close-action"))==null||v.addEventListener("click",p),(u=o.querySelector("#modal-approve-btn"))==null||u.addEventListener("click",async()=>{const l=o.querySelector("#modal-approve-btn");l&&(l.disabled=!0);try{await x.updateOwnerKyc(r,"verified"),window.showToast(`Owner ${c.name} verified successfully! Associated hotel is now active.`,"success"),p(),a()}catch(g){l&&(l.disabled=!1),window.showToast(g.message||"Failed to approve owner KYC.","error")}}),(m=o.querySelector("#modal-reject-btn"))==null||m.addEventListener("click",async()=>{const l=o.querySelector("#reject-box"),g=o.querySelector("#modal-reject-btn");if(l.style.display==="none")l.style.display="block",g&&(g.textContent="Confirm Rejection");else{const y=o.querySelector("#reject-reason").value||"Documentation incomplete.";g&&(g.disabled=!0);try{await x.updateOwnerKyc(r,"rejected",y),window.showToast(`KYC application for ${c.name} rejected.`,"error"),p(),a()}catch(S){g&&(g.disabled=!1),window.showToast(S.message||"Failed to reject owner KYC.","error")}}})}a()}async function kM(i){let e=[],a="",d="all";async function s(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading bookings...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getAdminBookings()).bookings,r()}catch(l){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${l.message}</div>`}}function r(){const l=e.filter(v=>{const h=v.booking_code.toLowerCase().includes(a.toLowerCase())||v.customer_name.toLowerCase().includes(a.toLowerCase())||v.hotel_name.toLowerCase().includes(a.toLowerCase()),p=d==="all"||v.booking_status===d;return h&&p});i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminBookings()).bookings,n()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function n(){const o=e.filter(p=>{const h=p.booking_code.toLowerCase().includes(a.toLowerCase())||p.customer_name.toLowerCase().includes(a.toLowerCase())||p.hotel_name.toLowerCase().includes(a.toLowerCase()),v=d==="all"||p.booking_status===d;return h&&v});i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div class="search-input-box">
@@ -8244,37 +8244,37 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${l.map(v=>`
+              ${o.map(p=>`
                 <tr>
                   <td>
-                    <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${v.booking_code}</span>
-                    <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(v.created_at).toLocaleDateString()}</div>
+                    <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${p.booking_code}</span>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(p.created_at).toLocaleDateString()}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 600;">${v.customer_name}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${v.customer_phone||v.customer_email}</div>
+                    <div style="font-weight: 600;">${p.customer_name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${p.customer_phone||p.customer_email}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 600;">${v.hotel_name}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">${v.room_name} (${v.guests_count} guests)</div>
+                    <div style="font-weight: 600;">${p.hotel_name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${p.room_name} (${p.guests_count} guests)</div>
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem;">${v.check_in_date} to ${v.check_out_date}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${v.nights} nights</div>
+                    <div style="font-size: 0.78rem;">${p.check_in_date} to ${p.check_out_date}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${p.nights} nights</div>
                   </td>
                   <td>
-                    <div style="font-weight: 700;">₹${v.total_amount.toLocaleString("en-IN")}</div>
-                    <div style="font-size: 0.7rem; color: var(--status-success);">${v.payment_status}</div>
+                    <div style="font-weight: 700;">₹${p.total_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-size: 0.7rem; color: var(--status-success);">${p.payment_status}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 700; color: var(--status-success);">₹${v.commission_amount.toLocaleString("en-IN")}</div>
-                    <div style="font-size: 0.7rem; color: var(--text-muted);">Owner: ₹${v.owner_payout.toLocaleString("en-IN")}</div>
+                    <div style="font-weight: 700; color: var(--status-success);">₹${p.commission_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Owner: ₹${p.owner_payout.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <span class="status-pill ${v.booking_status}">${v.booking_status.replace("_"," ")}</span>
+                    <span class="status-pill ${p.booking_status}">${p.booking_status.replace("_"," ")}</span>
                   </td>
                   <td>
-                    <button class="btn btn-secondary btn-sm btn-view-invoice" data-booking-id="${v.id}">
+                    <button class="btn btn-secondary btn-sm btn-view-invoice" data-booking-id="${p.id}">
                       <i data-lucide="file-text"></i> Invoice
                     </button>
                   </td>
@@ -8286,13 +8286,13 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="booking-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var l,v;(l=i.querySelector("#booking-search-input"))==null||l.addEventListener("input",h=>{a=h.target.value,r()}),(v=i.querySelector("#booking-status-filter"))==null||v.addEventListener("change",h=>{d=h.target.value,r()}),i.querySelectorAll(".btn-view-invoice").forEach(h=>{h.addEventListener("click",()=>{const p=h.getAttribute("data-booking-id");c(p)})})}function c(l){var y,m;const v=e.find(n=>n.id===l);if(!v)return;const h=i.querySelector("#booking-modal-root");h.innerHTML=`
+    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var o,p;(o=i.querySelector("#booking-search-input"))==null||o.addEventListener("input",h=>{a=h.target.value,n()}),(p=i.querySelector("#booking-status-filter"))==null||p.addEventListener("change",h=>{d=h.target.value,n()}),i.querySelectorAll(".btn-view-invoice").forEach(h=>{h.addEventListener("click",()=>{const v=h.getAttribute("data-booking-id");c(v)})})}function c(o){var u,m;const p=e.find(l=>l.id===o);if(!p)return;const h=i.querySelector("#booking-modal-root");h.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 600px;">
           <div class="modal-header">
             <div>
               <span style="font-size: 0.72rem; font-family: monospace; color: var(--color-primary); font-weight: 700;">OFFICIAL BOOKING STATEMENT</span>
-              <h2 class="modal-title">${v.booking_code}</h2>
+              <h2 class="modal-title">${p.booking_code}</h2>
             </div>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
@@ -8300,20 +8300,20 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <div class="modal-body">
             <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 14px; margin-bottom: 16px;">
               <div>
-                <h3 style="font-size: 1.05rem;">${v.hotel_name}</h3>
-                <div style="font-size: 0.8rem; color: var(--text-secondary);">${v.room_name} (${v.guests_count} Guests)</div>
+                <h3 style="font-size: 1.05rem;">${p.hotel_name}</h3>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">${p.room_name} (${p.guests_count} Guests)</div>
               </div>
               <div style="text-align: right;">
-                <span class="status-pill ${v.booking_status}">${v.booking_status.replace("_"," ")}</span>
-                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Booked on ${new Date(v.created_at).toLocaleDateString()}</div>
+                <span class="status-pill ${p.booking_status}">${p.booking_status.replace("_"," ")}</span>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Booked on ${new Date(p.created_at).toLocaleDateString()}</div>
               </div>
             </div>
 
             <!-- Customer Details -->
             <div style="background: var(--bg-surface-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); margin-bottom: 16px;">
               <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Guest Profile</div>
-              <div style="font-weight: 700; color: var(--text-main); margin-top: 2px;">${v.customer_name}</div>
-              <div style="font-size: 0.78rem; color: var(--text-secondary);">${v.customer_email} • ${v.customer_phone}</div>
+              <div style="font-weight: 700; color: var(--text-main); margin-top: 2px;">${p.customer_name}</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">${p.customer_email} • ${p.customer_phone}</div>
             </div>
 
             <!-- Financial Settlement -->
@@ -8321,26 +8321,26 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Itemized Tariff & Commission</div>
               
               <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px;">
-                <span style="color: var(--text-secondary);">Room Base Tariff (${v.nights} nights):</span>
-                <span>₹${v.base_amount.toLocaleString("en-IN")}</span>
+                <span style="color: var(--text-secondary);">Room Base Tariff (${p.nights} nights):</span>
+                <span>₹${p.base_amount.toLocaleString("en-IN")}</span>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 8px;">
                 <span style="color: var(--text-secondary);">Government Tax / GST (12%):</span>
-                <span>₹${v.tax_amount.toLocaleString("en-IN")}</span>
+                <span>₹${p.tax_amount.toLocaleString("en-IN")}</span>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 700; border-top: 1px solid var(--border-light); padding-top: 8px; margin-bottom: 10px;">
                 <span>Total Amount Paid:</span>
-                <span>₹${v.total_amount.toLocaleString("en-IN")}</span>
+                <span>₹${p.total_amount.toLocaleString("en-IN")}</span>
               </div>
 
               <div style="background: var(--bg-surface); border: 1px dashed var(--color-accent-border); padding: 10px; border-radius: var(--radius-xs);">
                 <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--status-success);">
                   <span>Platform Commission Share (15%):</span>
-                  <span>+ ₹${v.commission_amount.toLocaleString("en-IN")}</span>
+                  <span>+ ₹${p.commission_amount.toLocaleString("en-IN")}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--color-primary); margin-top: 4px;">
                   <span>Hotel Owner Net Payout (85%):</span>
-                  <span>₹${v.owner_payout.toLocaleString("en-IN")}</span>
+                  <span>₹${p.owner_payout.toLocaleString("en-IN")}</span>
                 </div>
               </div>
             </div>
@@ -8351,12 +8351,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{h.innerHTML=""};(y=h.querySelector("#modal-close"))==null||y.addEventListener("click",p),(m=h.querySelector("#modal-close-action"))==null||m.addEventListener("click",p)}s()}async function HM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const v=()=>{h.innerHTML=""};(u=h.querySelector("#modal-close"))==null||u.addEventListener("click",v),(m=h.querySelector("#modal-close-action"))==null||m.addEventListener("click",v)}s()}async function SM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading payment transactions...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getAdminPayments()).payments,d()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminPayments()).payments,d()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8406,12 +8406,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons()}a()}async function SM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons()}a()}async function HM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading refund requests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getAdminRefunds()).refunds,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminRefunds()).refunds,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8428,36 +8428,36 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.map(o=>`
+              ${e.map(r=>`
                 <tr>
                   <td>
-                    <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${o.refund_code}</span>
+                    <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.refund_code}</span>
                   </td>
                   <td>
-                    <div style="font-weight: 700; font-family: monospace;">${o.booking_code}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${o.hotel_name}</div>
+                    <div style="font-weight: 700; font-family: monospace;">${r.booking_code}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.hotel_name}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 600;">${o.customer_name}</div>
+                    <div style="font-weight: 600;">${r.customer_name}</div>
                     <div style="font-size: 0.72rem; color: var(--text-muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                      "${o.reason}"
+                      "${r.reason}"
                     </div>
                   </td>
                   <td>
-                    <div style="font-size: 0.82rem;">₹${o.booking_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-size: 0.82rem;">₹${r.booking_amount.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem; color: var(--status-danger);">- ₹${o.fee_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-size: 0.78rem; color: var(--status-danger);">- ₹${r.fee_amount.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 700; color: var(--status-success); font-size: 0.95rem;">₹${o.refund_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-weight: 700; color: var(--status-success); font-size: 0.95rem;">₹${r.refund_amount.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <span class="status-pill ${o.status}">${o.status}</span>
+                    <span class="status-pill ${r.status}">${r.status}</span>
                   </td>
                   <td>
-                    ${o.status==="pending"?`
-                      <button class="btn btn-primary btn-sm btn-process-refund" data-refund-id="${o.id}">
+                    ${r.status==="pending"?`
+                      <button class="btn btn-primary btn-sm btn-process-refund" data-refund-id="${r.id}">
                         Process Refund
                       </button>
                     `:`
@@ -8472,7 +8472,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="refund-modal-root"></div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-process-refund").forEach(o=>{o.addEventListener("click",()=>{const c=o.getAttribute("data-refund-id");r(c)})})}function r(o){var h,p,y,m;const c=e.find(n=>n.id===o);if(!c)return;const l=i.querySelector("#refund-modal-root");l.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-process-refund").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-refund-id");n(c)})})}function n(r){var h,v,u,m;const c=e.find(l=>l.id===r);if(!c)return;const o=i.querySelector("#refund-modal-root");o.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px;">
           <div class="modal-header">
@@ -8517,12 +8517,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const v=()=>{l.innerHTML=""};(h=l.querySelector("#modal-close"))==null||h.addEventListener("click",v),(p=l.querySelector("#modal-close-action"))==null||p.addEventListener("click",v),(y=l.querySelector("#modal-approve-refund"))==null||y.addEventListener("click",async()=>{const n=l.querySelector("#refund-admin-notes").value||"Approved under cancellation policy.";await M.processRefund(o,"approved",n),window.showToast(`Refund of ₹${c.refund_amount.toLocaleString("en-IN")} approved successfully.`,"success"),v(),a()}),(m=l.querySelector("#modal-reject-refund"))==null||m.addEventListener("click",async()=>{const n=l.querySelector("#refund-admin-notes").value||"Refund rejected.";await M.processRefund(o,"rejected",n),window.showToast("Refund rejected.","error"),v(),a()})}a()}async function CM(i){let e=null;async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{o.innerHTML=""};(h=o.querySelector("#modal-close"))==null||h.addEventListener("click",p),(v=o.querySelector("#modal-close-action"))==null||v.addEventListener("click",p),(u=o.querySelector("#modal-approve-refund"))==null||u.addEventListener("click",async()=>{const l=o.querySelector("#refund-admin-notes").value||"Approved under cancellation policy.";await x.processRefund(r,"approved",l),window.showToast(`Refund of ₹${c.refund_amount.toLocaleString("en-IN")} approved successfully.`,"success"),p(),a()}),(m=o.querySelector("#modal-reject-refund"))==null||m.addEventListener("click",async()=>{const l=o.querySelector("#refund-admin-notes").value||"Refund rejected.";await x.processRefund(r,"rejected",l),window.showToast("Refund rejected.","error"),p(),a()})}a()}async function CM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading commission ledger...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=await M.getCommissionLedger(),d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=await x.getCommissionLedger(),d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <!-- Top Overview Metrics -->
       <div class="metrics-grid">
         <div class="metric-card">
@@ -8600,28 +8600,28 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.ledger.map(r=>`
+              ${e.ledger.map(n=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.booking_code}</span></td>
-                  <td><div style="font-weight: 600;">${r.hotel_name}</div></td>
-                  <td>${r.customer_name}</td>
-                  <td style="font-weight: 700;">₹${r.total_amount.toLocaleString("en-IN")}</td>
-                  <td><span style="font-weight: 600; color: var(--status-warning);">${r.commission_rate}%</span></td>
-                  <td style="font-weight: 700; color: var(--status-success);">+ ₹${r.commission_amount.toLocaleString("en-IN")}</td>
-                  <td style="font-weight: 600;">₹${r.owner_payout.toLocaleString("en-IN")}</td>
-                  <td><span class="status-pill ${r.payment_status}">${r.payment_status}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span></td>
+                  <td><div style="font-weight: 600;">${n.hotel_name}</div></td>
+                  <td>${n.customer_name}</td>
+                  <td style="font-weight: 700;">₹${n.total_amount.toLocaleString("en-IN")}</td>
+                  <td><span style="font-weight: 600; color: var(--status-warning);">${n.commission_rate}%</span></td>
+                  <td style="font-weight: 700; color: var(--status-success);">+ ₹${n.commission_amount.toLocaleString("en-IN")}</td>
+                  <td style="font-weight: 600;">₹${n.owner_payout.toLocaleString("en-IN")}</td>
+                  <td><span class="status-pill ${n.payment_status}">${n.payment_status}</span></td>
                 </tr>
               `).join("")}
             </tbody>
           </table>
         </div>
       </div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var r;(r=i.querySelector("#btn-save-commission-rate"))==null||r.addEventListener("click",async()=>{const o=Number(i.querySelector("#input-commission-rate").value);try{await M.updateCommissionRate(o),window.showToast(`Platform Commission Rate set to ${o}%.`,"success"),a()}catch(c){window.showToast(c.message,"error")}})}a()}async function AM(i){i.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var n;(n=i.querySelector("#btn-save-commission-rate"))==null||n.addEventListener("click",async()=>{const r=Number(i.querySelector("#input-commission-rate").value);try{await x.updateCommissionRate(r),window.showToast(`Platform Commission Rate set to ${r}%.`,"success"),a()}catch(c){window.showToast(c.message,"error")}})}a()}async function AM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading customer accounts...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const a=(await M.getAdminBookings()).bookings,d={};a.forEach(r=>{d[r.customer_email]||(d[r.customer_email]={name:r.customer_name,email:r.customer_email,phone:r.customer_phone,bookings_count:0,total_spent:0,last_booking_date:r.created_at}),d[r.customer_email].bookings_count+=1,d[r.customer_email].total_spent+=r.total_amount||0});const s=Object.values(d);i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const a=(await x.getAdminBookings()).bookings,d={};a.forEach(n=>{d[n.customer_email]||(d[n.customer_email]={name:n.customer_name,email:n.customer_email,phone:n.customer_phone,bookings_count:0,total_spent:0,last_booking_date:n.created_at}),d[n.customer_email].bookings_count+=1,d[n.customer_email].total_spent+=n.total_amount||0});const s=Object.values(d);i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8636,14 +8636,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${s.map(r=>`
+              ${s.map(n=>`
                 <tr>
-                  <td><div style="font-weight: 700;">${r.name}</div></td>
-                  <td>${r.email}</td>
-                  <td>${r.phone||"N/A"}</td>
-                  <td><span style="font-weight: 600;">${r.bookings_count} bookings</span></td>
-                  <td style="font-weight: 700; color: var(--color-primary);">₹${r.total_spent.toLocaleString("en-IN")}</td>
-                  <td><div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(r.last_booking_date).toLocaleDateString()}</div></td>
+                  <td><div style="font-weight: 700;">${n.name}</div></td>
+                  <td>${n.email}</td>
+                  <td>${n.phone||"N/A"}</td>
+                  <td><span style="font-weight: 600;">${n.bookings_count} bookings</span></td>
+                  <td style="font-weight: 700; color: var(--color-primary);">₹${n.total_spent.toLocaleString("en-IN")}</td>
+                  <td><div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(n.last_booking_date).toLocaleDateString()}</div></td>
                 </tr>
               `).join("")}
             </tbody>
@@ -8655,7 +8655,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading support desk tickets...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getSupportTickets()).tickets,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getSupportTickets()).tickets,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8671,31 +8671,31 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.map(o=>`
+              ${e.map(r=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${o.ticket_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.ticket_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${o.user_name} (${o.user_role})</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${o.user_email}</div>
-                    ${o.booking_code?`<div style="font-size: 0.7rem; font-family: monospace; color: var(--color-primary);">Ref: ${o.booking_code}</div>`:""}
+                    <div style="font-weight: 600;">${r.user_name} (${r.user_role})</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.user_email}</div>
+                    ${r.booking_code?`<div style="font-size: 0.7rem; font-family: monospace; color: var(--color-primary);">Ref: ${r.booking_code}</div>`:""}
                   </td>
                   <td>
-                    <div style="font-weight: 600; max-width: 240px;">${o.subject}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${o.category}</div>
+                    <div style="font-weight: 600; max-width: 240px;">${r.subject}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.category}</div>
                   </td>
                   <td>
-                    <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-xs); ${o.priority==="high"?"background: var(--status-danger-bg); color: var(--status-danger);":o.priority==="medium"?"background: var(--status-warning-bg); color: var(--status-warning);":"background: var(--status-info-bg); color: var(--status-info);"}">
-                      ${o.priority}
+                    <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-xs); ${r.priority==="high"?"background: var(--status-danger-bg); color: var(--status-danger);":r.priority==="medium"?"background: var(--status-warning-bg); color: var(--status-warning);":"background: var(--status-info-bg); color: var(--status-info);"}">
+                      ${r.priority}
                     </span>
                   </td>
                   <td>
-                    <span class="status-pill ${o.status}">${o.status.replace("_"," ")}</span>
+                    <span class="status-pill ${r.status}">${r.status.replace("_"," ")}</span>
                   </td>
                   <td>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${new Date(o.created_at).toLocaleDateString()}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${new Date(r.created_at).toLocaleDateString()}</div>
                   </td>
                   <td>
-                    <button class="btn btn-primary btn-sm btn-open-ticket" data-ticket-id="${o.id}">
+                    <button class="btn btn-primary btn-sm btn-open-ticket" data-ticket-id="${r.id}">
                       <i data-lucide="message-square"></i> Open Thread
                     </button>
                   </td>
@@ -8707,7 +8707,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="support-modal-root"></div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-open-ticket").forEach(o=>{o.addEventListener("click",()=>{const c=o.getAttribute("data-ticket-id");r(c)})})}function r(o){var h,p,y,m;const c=e.find(n=>n.id===o);if(!c)return;const l=i.querySelector("#support-modal-root");l.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-open-ticket").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-ticket-id");n(c)})})}function n(r){var h,v,u,m;const c=e.find(l=>l.id===r);if(!c)return;const o=i.querySelector("#support-modal-root");o.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 620px;">
           <div class="modal-header">
@@ -8726,10 +8726,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
             <!-- Messages Stream -->
             <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding: 6px; margin-bottom: 14px;">
-              ${c.messages.map(n=>`
-                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${n.sender==="admin"?"align-self: flex-end; background: var(--color-primary); color: #fff;":"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);"}">
-                  <div>${n.text}</div>
-                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${n.sender==="admin"?"🛡️ Administrator":"👤 Customer"} • ${n.time}</span>
+              ${c.messages.map(l=>`
+                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${l.sender==="admin"?"align-self: flex-end; background: var(--color-primary); color: #fff;":"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);"}">
+                  <div>${l.text}</div>
+                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${l.sender==="admin"?"🛡️ Administrator":"👤 Customer"} • ${l.time}</span>
                 </div>
               `).join("")}
             </div>
@@ -8752,12 +8752,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const v=()=>{l.innerHTML=""};(h=l.querySelector("#modal-close"))==null||h.addEventListener("click",v),(p=l.querySelector("#modal-close-action"))==null||p.addEventListener("click",v),(y=l.querySelector("#btn-send-reply"))==null||y.addEventListener("click",async()=>{const n=l.querySelector("#reply-input"),g=n?n.value.trim():"";if(g)try{await M.replySupportTicket(o,g),window.showToast("Reply dispatched to ticket.","success"),e=(await M.getSupportTickets()).tickets||[],r(o)}catch(u){window.showToast(u.message||"Failed to dispatch reply.","error")}}),(m=l.querySelector("#btn-resolve-ticket"))==null||m.addEventListener("click",async()=>{try{await M.updateTicketStatus(o,"resolved"),window.showToast("Ticket marked as RESOLVED.","success"),v(),a()}catch(n){window.showToast(n.message||"Failed to update ticket status.","error")}})}a()}async function VM(i){let e="daily",a=[],d=[];async function s(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{o.innerHTML=""};(h=o.querySelector("#modal-close"))==null||h.addEventListener("click",p),(v=o.querySelector("#modal-close-action"))==null||v.addEventListener("click",p),(u=o.querySelector("#btn-send-reply"))==null||u.addEventListener("click",async()=>{const l=o.querySelector("#reply-input"),g=l?l.value.trim():"";if(g)try{await x.replySupportTicket(r,g),window.showToast("Reply dispatched to ticket.","success"),e=(await x.getSupportTickets()).tickets||[],n(r)}catch(y){window.showToast(y.message||"Failed to dispatch reply.","error")}}),(m=o.querySelector("#btn-resolve-ticket"))==null||m.addEventListener("click",async()=>{try{await x.updateTicketStatus(r,"resolved"),window.showToast("Ticket marked as RESOLVED.","success"),p(),a()}catch(l){window.showToast(l.message||"Failed to update ticket status.","error")}})}a()}async function $M(i){let e="daily",a=[],d=[];async function s(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading financial statements...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{const[c,l]=await Promise.all([M.getDailyReport(),M.getMonthlyReport()]);a=c.daily_report,d=l.monthly_report,r()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function r(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{const[c,o]=await Promise.all([x.getDailyReport(),x.getMonthlyReport()]);a=c.daily_report,d=o.monthly_report,n()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function n(){i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div style="background: var(--bg-surface-secondary); padding: 3px; border-radius: var(--radius-sm); display: flex;">
@@ -8816,13 +8816,13 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var c,l,v;(c=i.querySelector("#tab-daily"))==null||c.addEventListener("click",()=>{e="daily",r()}),(l=i.querySelector("#tab-monthly"))==null||l.addEventListener("click",()=>{e="monthly",r()}),(v=i.querySelector("#btn-export-csv"))==null||v.addEventListener("click",()=>{const h=e==="daily",p=[h?"Date":"Month","Bookings Count","Gross Volume","Platform Commission","Owner Payout","Refunds"],y=h?a.map(u=>[u.date,u.bookings_count,u.gross_amount,u.commission_earned,u.owner_payout,u.refunds_amount]):d.map(u=>[u.month,u.bookings_count,u.gross_amount,u.commission_earned,u.owner_payout,u.refunds_amount]),m="data:text/csv;charset=utf-8,"+[p.join(","),...y.map(u=>u.join(","))].join(`
-`),n=encodeURI(m),g=document.createElement("a");g.setAttribute("href",n),g.setAttribute("download",`hotelhub_${e}_report_${new Date().toISOString().slice(0,10)}.csv`),document.body.appendChild(g),g.click(),document.body.removeChild(g),window.showToast("Financial CSV report exported successfully.","success")})}s()}async function $M(i){let e=null;async function a(){i.innerHTML=`
+    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var c,o,p;(c=i.querySelector("#tab-daily"))==null||c.addEventListener("click",()=>{e="daily",n()}),(o=i.querySelector("#tab-monthly"))==null||o.addEventListener("click",()=>{e="monthly",n()}),(p=i.querySelector("#btn-export-csv"))==null||p.addEventListener("click",()=>{const h=e==="daily",v=[h?"Date":"Month","Bookings Count","Gross Volume","Platform Commission","Owner Payout","Refunds"],u=h?a.map(y=>[y.date,y.bookings_count,y.gross_amount,y.commission_earned,y.owner_payout,y.refunds_amount]):d.map(y=>[y.month,y.bookings_count,y.gross_amount,y.commission_earned,y.owner_payout,y.refunds_amount]),m="data:text/csv;charset=utf-8,"+[v.join(","),...u.map(y=>y.join(","))].join(`
+`),l=encodeURI(m),g=document.createElement("a");g.setAttribute("href",l),g.setAttribute("download",`hotelhub_${e}_report_${new Date().toISOString().slice(0,10)}.csv`),document.body.appendChild(g),g.click(),document.body.removeChild(g),window.showToast("Financial CSV report exported successfully.","success")})}s()}async function VM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading settings...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getSettings()).settings,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getSettings()).settings,d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <div style="max-width: 720px;">
         <div class="panel-card">
           <div class="card-header">
@@ -8883,7 +8883,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var r;(r=i.querySelector("#settings-form"))==null||r.addEventListener("submit",async o=>{o.preventDefault();const c={app_mode:i.querySelector("#setting-app-mode").value,payment_mode:i.querySelector("#setting-payment-mode").value,commission_rate:Number(i.querySelector("#setting-commission-rate").value),cancel_fee_pct:Number(i.querySelector("#setting-cancel-fee").value),support_email:i.querySelector("#setting-support-email").value,support_phone:i.querySelector("#setting-support-phone").value};try{await M.updateSettings(c),window.showToast("Platform configurations saved successfully.","success"),a()}catch(l){window.showToast(l.message,"error")}})}a()}async function _M(i){i.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var n;(n=i.querySelector("#settings-form"))==null||n.addEventListener("submit",async r=>{r.preventDefault();const c={app_mode:i.querySelector("#setting-app-mode").value,payment_mode:i.querySelector("#setting-payment-mode").value,commission_rate:Number(i.querySelector("#setting-commission-rate").value),cancel_fee_pct:Number(i.querySelector("#setting-cancel-fee").value),support_email:i.querySelector("#setting-support-email").value,support_phone:i.querySelector("#setting-support-phone").value};try{await x.updateSettings(c),window.showToast("Platform configurations saved successfully.","success"),a()}catch(o){window.showToast(o.message,"error")}})}a()}async function _M(i){i.innerHTML=`
     <div style="display: flex; flex-direction: column; gap: 1.75rem;">
       
       <!-- Top Action Bar -->
@@ -8981,12 +8981,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </form>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("admin-users-table-body"),a=document.getElementById("users-action-alert"),d=document.getElementById("audit-logs-container");async function s(){try{const[o,c]=await Promise.all([M.getAdminUsers(),M.getAuditLogs()]),l=o.users,v=c.logs;l.length===0?e.innerHTML='<tr><td colspan="7" style="text-align: center; padding: 2rem;">No administrator accounts found.</td></tr>':e.innerHTML=l.map(h=>{const p={super_admin:"background: #0B192C; color: #C5A880; font-weight: 700;",admin:"background: rgba(59, 130, 246, 0.15); color: #1D4ED8;",finance_admin:"background: rgba(16, 185, 129, 0.15); color: #065F46;",support_admin:"background: rgba(245, 158, 11, 0.15); color: #92400E;",hotel_admin:"background: rgba(139, 92, 246, 0.15); color: #5B21B6;"}[h.role]||"background: var(--bg-surface-secondary); color: var(--text-secondary);",y={active:'<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #065F46;">Active</span>',suspended:'<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #991B1B;">Suspended</span>',inactive:'<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">Inactive</span>',pending:'<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #92400E;">Pending</span>'}[h.status]||`<span class="badge">${h.status}</span>`,m=h.permissions?h.permissions.length:0;return`
+  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("admin-users-table-body"),a=document.getElementById("users-action-alert"),d=document.getElementById("audit-logs-container");async function s(){try{const[r,c]=await Promise.all([x.getAdminUsers(),x.getAuditLogs()]),o=r.users,p=c.logs;o.length===0?e.innerHTML='<tr><td colspan="7" style="text-align: center; padding: 2rem;">No administrator accounts found.</td></tr>':e.innerHTML=o.map(h=>{const v={super_admin:"background: #0B192C; color: #C5A880; font-weight: 700;",admin:"background: rgba(59, 130, 246, 0.15); color: #1D4ED8;",finance_admin:"background: rgba(16, 185, 129, 0.15); color: #065F46;",support_admin:"background: rgba(245, 158, 11, 0.15); color: #92400E;",hotel_admin:"background: rgba(139, 92, 246, 0.15); color: #5B21B6;"}[h.role]||"background: var(--bg-surface-secondary); color: var(--text-secondary);",u={active:'<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #065F46;">Active</span>',suspended:'<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #991B1B;">Suspended</span>',inactive:'<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">Inactive</span>',pending:'<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #92400E;">Pending</span>'}[h.status]||`<span class="badge">${h.status}</span>`,m=h.permissions?h.permissions.length:0;return`
             <tr>
               <td>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                   <div style="width: 36px; height: 36px; border-radius: var(--radius-full); background: #0B192C; color: #C5A880; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
-                    ${h.name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}
+                    ${h.name.split(" ").map(l=>l[0]).join("").slice(0,2).toUpperCase()}
                   </div>
                   <div>
                     <div style="font-weight: 600; color: var(--text-primary); font-size: 0.88rem;">${h.name}</div>
@@ -8995,11 +8995,11 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </div>
               </td>
               <td>
-                <span class="badge" style="${p}; font-size: 0.75rem; text-transform: uppercase;">
+                <span class="badge" style="${v}; font-size: 0.75rem; text-transform: uppercase;">
                   ${h.role.replace("_"," ")}
                 </span>
               </td>
-              <td>${y}</td>
+              <td>${u}</td>
               <td>
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">
                   ${h.role==="super_admin"?"Full Authority (All)":`${m} permissions`}
@@ -9036,7 +9036,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </div>
               </td>
             </tr>
-          `}).join(""),v.length===0?d.innerHTML='<div style="font-size: 0.8rem; color: var(--text-muted); padding: 0.5rem 0;">No recorded audit events yet.</div>':d.innerHTML=v.slice(0,5).map(h=>`
+          `}).join(""),p.length===0?d.innerHTML='<div style="font-size: 0.8rem; color: var(--text-muted); padding: 0.5rem 0;">No recorded audit events yet.</div>':d.innerHTML=p.slice(0,5).map(h=>`
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--bg-surface-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 0.8rem;">
             <div style="display: flex; align-items: center; gap: 0.6rem;">
               <span class="badge" style="background: rgba(11, 25, 44, 0.1); color: #0B192C; font-family: monospace; font-size: 0.7rem;">${h.action}</span>
@@ -9047,7 +9047,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <span>${new Date(h.timestamp).toLocaleTimeString()}</span>
             </div>
           </div>
-        `).join(""),window.lucide&&window.lucide.createIcons()}catch(o){e.innerHTML=`<tr><td colspan="7" style="text-align: center; color: #DC2626; padding: 2rem;">${o.message||"Error loading administrators"}</td></tr>`}}window.openRoleModal=(o,c,l)=>{document.getElementById("modal-target-admin-id").value=o,document.getElementById("role-modal-target-info").textContent=`Modifying role permissions for ${c}`,document.getElementById("modal-select-role").value=l,document.getElementById("edit-role-modal").style.display="flex"};const r=()=>{document.getElementById("edit-role-modal").style.display="none"};document.getElementById("btn-close-role-modal").addEventListener("click",r),document.getElementById("btn-cancel-role-modal").addEventListener("click",r),document.getElementById("edit-role-form").addEventListener("submit",async o=>{o.preventDefault();const c=document.getElementById("modal-target-admin-id").value,l=document.getElementById("modal-select-role").value;try{await M.updateAdminUserRole(c,l),r(),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin role updated to ${l} successfully.`,s(),setTimeout(()=>{a.style.display="none"},3e3)}catch(v){alert(v.message||"Failed to update role")}}),window.toggleAdminStatus=async(o,c,l)=>{if(confirm(`Are you sure you want to ${c==="suspended"?"suspend":"activate"} administrator '${l}'?`))try{await M.updateAdminUserStatus(o,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin status updated to ${c}.`,s(),setTimeout(()=>{a.style.display="none"},3e3)}catch(h){alert(h.message||"Failed to change status")}},window.deleteAdmin=async(o,c)=>{if(confirm(`CAUTION: Permanently delete administrator '${c}'? This action cannot be undone.`))try{await M.deleteAdminUser(o),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${c}' deleted successfully.`,s(),setTimeout(()=>{a.style.display="none"},3e3)}catch(l){alert(l.message||"Failed to delete administrator")}},s()}function TM(i){i.innerHTML=`
+        `).join(""),window.lucide&&window.lucide.createIcons()}catch(r){e.innerHTML=`<tr><td colspan="7" style="text-align: center; color: #DC2626; padding: 2rem;">${r.message||"Error loading administrators"}</td></tr>`}}window.openRoleModal=(r,c,o)=>{document.getElementById("modal-target-admin-id").value=r,document.getElementById("role-modal-target-info").textContent=`Modifying role permissions for ${c}`,document.getElementById("modal-select-role").value=o,document.getElementById("edit-role-modal").style.display="flex"};const n=()=>{document.getElementById("edit-role-modal").style.display="none"};document.getElementById("btn-close-role-modal").addEventListener("click",n),document.getElementById("btn-cancel-role-modal").addEventListener("click",n),document.getElementById("edit-role-form").addEventListener("submit",async r=>{r.preventDefault();const c=document.getElementById("modal-target-admin-id").value,o=document.getElementById("modal-select-role").value;try{await x.updateAdminUserRole(c,o),n(),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin role updated to ${o} successfully.`,s(),setTimeout(()=>{a.style.display="none"},3e3)}catch(p){alert(p.message||"Failed to update role")}}),window.toggleAdminStatus=async(r,c,o)=>{if(confirm(`Are you sure you want to ${c==="suspended"?"suspend":"activate"} administrator '${o}'?`))try{await x.updateAdminUserStatus(r,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin status updated to ${c}.`,s(),setTimeout(()=>{a.style.display="none"},3e3)}catch(h){alert(h.message||"Failed to change status")}},window.deleteAdmin=async(r,c)=>{if(confirm(`CAUTION: Permanently delete administrator '${c}'? This action cannot be undone.`))try{await x.deleteAdminUser(r),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${c}' deleted successfully.`,s(),setTimeout(()=>{a.style.display="none"},3e3)}catch(o){alert(o.message||"Failed to delete administrator")}},s()}function TM(i){i.innerHTML=`
     <div style="display: flex; justify-content: center; padding: 2rem 0;">
       <div style="width: 100%; max-width: 740px; display: flex; flex-direction: column; gap: 1.5rem;">
         
@@ -9191,7 +9191,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("create-admin-form"),a=document.getElementById("create-admin-alert"),d=document.getElementById("btn-submit-create");e.addEventListener("submit",async s=>{s.preventDefault();const r=document.getElementById("admin-name").value.trim(),o=document.getElementById("admin-email").value.trim(),c=document.getElementById("admin-phone").value.trim(),l=document.getElementById("admin-password").value,v=document.getElementById("admin-role-select").value,h=document.getElementById("admin-status-select").value,p=Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(y=>y.value);d.disabled=!0,d.innerHTML="<span>Creating...</span>",a.style.display="none";try{await M.adminCreate({name:r,email:o,phone:c,password:l,role:v,status:h,permissions:p}),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${r}' created successfully! Redirecting...`,setTimeout(()=>{window.navigateTo?window.navigateTo("/admin/admins"):window.location.hash="#/admin/admins"},1200)}catch(y){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=y.message||"Failed to create administrator.",d.disabled=!1,d.innerHTML='<i data-lucide="shield-check" style="width: 16px; height: 16px;"></i><span>Provision Administrator</span>',window.lucide&&window.lucide.createIcons()}})}async function PM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("create-admin-form"),a=document.getElementById("create-admin-alert"),d=document.getElementById("btn-submit-create");e.addEventListener("submit",async s=>{s.preventDefault();const n=document.getElementById("admin-name").value.trim(),r=document.getElementById("admin-email").value.trim(),c=document.getElementById("admin-phone").value.trim(),o=document.getElementById("admin-password").value,p=document.getElementById("admin-role-select").value,h=document.getElementById("admin-status-select").value,v=Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(u=>u.value);d.disabled=!0,d.innerHTML="<span>Creating...</span>",a.style.display="none";try{await x.adminCreate({name:n,email:r,phone:c,password:o,role:p,status:h,permissions:v}),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${n}' created successfully! Redirecting...`,setTimeout(()=>{window.navigateTo?window.navigateTo("/admin/admins"):window.location.hash="#/admin/admins"},1200)}catch(u){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=u.message||"Failed to create administrator.",d.disabled=!1,d.innerHTML='<i data-lucide="shield-check" style="width: 16px; height: 16px;"></i><span>Provision Administrator</span>',window.lucide&&window.lucide.createIcons()}})}async function PM(i){i.innerHTML=`
     <div style="display: flex; justify-content: center; padding: 2rem 0;">
       <div style="width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 2rem;">
         
@@ -9314,17 +9314,17 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const o=(await M.getAdminProfile()).user,c=o.name.split(" ").map(v=>v[0]).join("").toUpperCase().slice(0,2)||"AD";document.getElementById("profile-avatar-display").textContent=c,document.getElementById("profile-name-header").textContent=o.name,document.getElementById("profile-email-header").textContent=o.email,document.getElementById("profile-role-badge").textContent=o.role.replace("_"," ").toUpperCase(),document.getElementById("profile-status-badge").textContent=o.status.toUpperCase(),document.getElementById("profile-last-login").textContent=`Last Login: ${o.lastLoginAt?new Date(o.lastLoginAt).toLocaleString():"Just now"}`,document.getElementById("edit-profile-name").value=o.name,document.getElementById("edit-profile-email").value=o.email,document.getElementById("edit-profile-phone").value=o.phone||"";const l=document.getElementById("permissions-chips-container");o.permissions&&o.permissions.length>0?l.innerHTML=o.permissions.map(v=>`
+  `,window.lucide&&window.lucide.createIcons();try{const r=(await x.getAdminProfile()).user,c=r.name.split(" ").map(p=>p[0]).join("").toUpperCase().slice(0,2)||"AD";document.getElementById("profile-avatar-display").textContent=c,document.getElementById("profile-name-header").textContent=r.name,document.getElementById("profile-email-header").textContent=r.email,document.getElementById("profile-role-badge").textContent=r.role.replace("_"," ").toUpperCase(),document.getElementById("profile-status-badge").textContent=r.status.toUpperCase(),document.getElementById("profile-last-login").textContent=`Last Login: ${r.lastLoginAt?new Date(r.lastLoginAt).toLocaleString():"Just now"}`,document.getElementById("edit-profile-name").value=r.name,document.getElementById("edit-profile-email").value=r.email,document.getElementById("edit-profile-phone").value=r.phone||"";const o=document.getElementById("permissions-chips-container");r.permissions&&r.permissions.length>0?o.innerHTML=r.permissions.map(p=>`
         <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.75rem; font-family: monospace; color: var(--text-secondary);">
           <i data-lucide="check" style="width: 12px; height: 12px; color: #10B981;"></i>
-          ${v}
+          ${p}
         </span>
-      `).join(""):l.innerHTML='<span style="font-size: 0.8rem; color: var(--text-muted);">Full system access enabled.</span>',window.lucide&&window.lucide.createIcons()}catch(r){console.error("Failed to load profile:",r)}const e=document.getElementById("edit-profile-form"),a=document.getElementById("profile-info-alert");e.addEventListener("submit",async r=>{r.preventDefault();const o=document.getElementById("edit-profile-name").value.trim(),c=document.getElementById("edit-profile-phone").value.trim();try{await M.updateAdminProfile(o,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent="Profile updated successfully!",document.getElementById("profile-name-header").textContent=o;const l=document.getElementById("user-name-display");l&&(l.textContent=o),setTimeout(()=>{a.style.display="none"},3e3)}catch(l){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=l.message||"Failed to update profile."}});const d=document.getElementById("change-pwd-form"),s=document.getElementById("pwd-change-alert");d.addEventListener("submit",async r=>{r.preventDefault();const o=document.getElementById("current-pwd").value,c=document.getElementById("new-pwd").value,l=document.getElementById("confirm-pwd").value;if(c!==l){s.style.display="block",s.style.background="rgba(239, 68, 68, 0.15)",s.style.color="#991B1B",s.style.border="1px solid #EF4444",s.textContent="New passwords do not match.";return}try{await M.changeAdminPassword(o,c),s.style.display="block",s.style.background="rgba(16, 185, 129, 0.15)",s.style.color="#065F46",s.style.border="1px solid #10B981",s.textContent="Password changed successfully!",d.reset(),setTimeout(()=>{s.style.display="none"},3e3)}catch(v){s.style.display="block",s.style.background="rgba(239, 68, 68, 0.15)",s.style.color="#991B1B",s.style.border="1px solid #EF4444",s.textContent=v.message||"Failed to change password."}})}async function zM(i){let e=[],a=[],d="",s="all",r="all",o="all";async function c(){i.innerHTML=`
+      `).join(""):o.innerHTML='<span style="font-size: 0.8rem; color: var(--text-muted);">Full system access enabled.</span>',window.lucide&&window.lucide.createIcons()}catch(n){console.error("Failed to load profile:",n)}const e=document.getElementById("edit-profile-form"),a=document.getElementById("profile-info-alert");e.addEventListener("submit",async n=>{n.preventDefault();const r=document.getElementById("edit-profile-name").value.trim(),c=document.getElementById("edit-profile-phone").value.trim();try{await x.updateAdminProfile(r,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent="Profile updated successfully!",document.getElementById("profile-name-header").textContent=r;const o=document.getElementById("user-name-display");o&&(o.textContent=r),setTimeout(()=>{a.style.display="none"},3e3)}catch(o){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=o.message||"Failed to update profile."}});const d=document.getElementById("change-pwd-form"),s=document.getElementById("pwd-change-alert");d.addEventListener("submit",async n=>{n.preventDefault();const r=document.getElementById("current-pwd").value,c=document.getElementById("new-pwd").value,o=document.getElementById("confirm-pwd").value;if(c!==o){s.style.display="block",s.style.background="rgba(239, 68, 68, 0.15)",s.style.color="#991B1B",s.style.border="1px solid #EF4444",s.textContent="New passwords do not match.";return}try{await x.changeAdminPassword(r,c),s.style.display="block",s.style.background="rgba(16, 185, 129, 0.15)",s.style.color="#065F46",s.style.border="1px solid #10B981",s.textContent="Password changed successfully!",d.reset(),setTimeout(()=>{s.style.display="none"},3e3)}catch(p){s.style.display="block",s.style.background="rgba(239, 68, 68, 0.15)",s.style.color="#991B1B",s.style.border="1px solid #EF4444",s.textContent=p.message||"Failed to change password."}})}async function zM(i){let e=[],a=[],d="",s="all",n="all",r="all";async function c(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading platform-wide pickup transfers...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{const[h,p]=await Promise.all([M.getPickups(),M.getAdminHotels()]);e=h.pickups||[],a=p.hotels||[],l()}catch(h){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickups: ${h.message}</div>`}}function l(){const h=e.filter(n=>{var w,k,H,A;const g=n.pickup||{},u=((w=n.booking_code)==null?void 0:w.toLowerCase().includes(d.toLowerCase()))||((k=n.customer_name)==null?void 0:k.toLowerCase().includes(d.toLowerCase()))||((H=n.hotel_name)==null?void 0:H.toLowerCase().includes(d.toLowerCase()))||((A=g.location_name)==null?void 0:A.toLowerCase().includes(d.toLowerCase())),b=s==="all"||g.status===s,f=r==="all"||n.hotel_id===r,x=o==="all"||g.type===o;return u&&b&&f&&x}),p=e.reduce((n,g)=>{var u;return n+(((u=g.pickup)==null?void 0:u.pickup_charge)||0)},0),y=e.filter(n=>{var g;return["confirmed","assigned","driver_on_way"].includes((g=n.pickup)==null?void 0:g.status)}).length,m=e.filter(n=>{var g;return((g=n.pickup)==null?void 0:g.status)==="completed"}).length;i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{const[h,v]=await Promise.all([x.getPickups(),x.getAdminHotels()]);e=h.pickups||[],a=v.hotels||[],o()}catch(h){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickups: ${h.message}</div>`}}function o(){const h=e.filter(l=>{var M,b,k,H;const g=l.pickup||{},y=((M=l.booking_code)==null?void 0:M.toLowerCase().includes(d.toLowerCase()))||((b=l.customer_name)==null?void 0:b.toLowerCase().includes(d.toLowerCase()))||((k=l.hotel_name)==null?void 0:k.toLowerCase().includes(d.toLowerCase()))||((H=g.location_name)==null?void 0:H.toLowerCase().includes(d.toLowerCase())),S=s==="all"||g.status===s,w=n==="all"||l.hotel_id===n,f=r==="all"||g.type===r;return y&&S&&w&&f}),v=e.reduce((l,g)=>{var y;return l+(((y=g.pickup)==null?void 0:y.pickup_charge)||0)},0),u=e.filter(l=>{var g;return["confirmed","assigned","driver_on_way"].includes((g=l.pickup)==null?void 0:g.status)}).length,m=e.filter(l=>{var g;return((g=l.pickup)==null?void 0:g.status)==="completed"}).length;i.innerHTML=`
       <!-- TOP METRIC CARDS -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
         <div class="panel-card" style="padding: 16px;">
@@ -9335,7 +9335,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
         <div class="panel-card" style="padding: 16px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active / On-Duty</div>
-          <div style="font-size: 1.6rem; font-weight: 900; color: var(--color-gold); margin-top: 4px;">${y}</div>
+          <div style="font-size: 1.6rem; font-weight: 900; color: var(--color-gold); margin-top: 4px;">${u}</div>
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Confirmed or en route</div>
         </div>
 
@@ -9347,7 +9347,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
         <div class="panel-card" style="padding: 16px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pickup Gross Volume</div>
-          <div style="font-size: 1.6rem; font-weight: 900; color: var(--text-dark); margin-top: 4px;">₹${p.toLocaleString("en-IN")}</div>
+          <div style="font-size: 1.6rem; font-weight: 900; color: var(--text-dark); margin-top: 4px;">₹${v.toLocaleString("en-IN")}</div>
           <div style="font-size: 0.72rem; color: var(--status-success); margin-top: 2px;">100% Verified Revenue</div>
         </div>
       </div>
@@ -9360,16 +9360,16 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
 
         <select class="select-filter" id="pickup-hotel-filter" style="min-width: 180px;">
-          <option value="all" ${r==="all"?"selected":""}>All Hotels</option>
-          ${a.map(n=>`<option value="${n.id}" ${r===n.id?"selected":""}>${n.name}</option>`).join("")}
+          <option value="all" ${n==="all"?"selected":""}>All Hotels</option>
+          ${a.map(l=>`<option value="${l.id}" ${n===l.id?"selected":""}>${l.name}</option>`).join("")}
         </select>
 
         <select class="select-filter" id="pickup-type-filter">
-          <option value="all" ${o==="all"?"selected":""}>All Pickup Types</option>
-          <option value="airport" ${o==="airport"?"selected":""}>Airport</option>
-          <option value="railway" ${o==="railway"?"selected":""}>Railway Station</option>
-          <option value="bus" ${o==="bus"?"selected":""}>Bus Stand</option>
-          <option value="other" ${o==="other"?"selected":""}>Custom Location</option>
+          <option value="all" ${r==="all"?"selected":""}>All Pickup Types</option>
+          <option value="airport" ${r==="airport"?"selected":""}>Airport</option>
+          <option value="railway" ${r==="railway"?"selected":""}>Railway Station</option>
+          <option value="bus" ${r==="bus"?"selected":""}>Bus Stand</option>
+          <option value="other" ${r==="other"?"selected":""}>Custom Location</option>
         </select>
 
         <select class="select-filter" id="pickup-status-filter">
@@ -9403,18 +9403,18 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${h.length===0?`
                 <tr><td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted);">No transfer activity found matching criteria.</td></tr>
-              `:h.map(n=>{const g=n.pickup||{},u=g.driver||{};return`
+              `:h.map(l=>{const g=l.pickup||{},y=g.driver||{};return`
                   <tr>
                     <td>
-                      <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span>
-                      <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(n.created_at).toLocaleDateString()}</div>
+                      <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${l.booking_code}</span>
+                      <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(l.created_at).toLocaleDateString()}</div>
                     </td>
                     <td>
-                      <div style="font-weight: 700; color: var(--text-dark);">${n.hotel_name}</div>
+                      <div style="font-weight: 700; color: var(--text-dark);">${l.hotel_name}</div>
                     </td>
                     <td>
-                      <div style="font-weight: 600;">${n.customer_name}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${n.customer_phone||n.customer_email}</div>
+                      <div style="font-weight: 600;">${l.customer_name}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${l.customer_phone||l.customer_email}</div>
                     </td>
                     <td>
                       <div style="font-weight: 700; color: var(--color-primary-dark); text-transform: capitalize;">
@@ -9428,16 +9428,16 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                     </td>
                     <td>
                       <div style="font-weight: 600;">${g.pickup_time||"10:30 AM"}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${g.pickup_date||n.check_in_date}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${g.pickup_date||l.check_in_date}</div>
                     </td>
                     <td>
                       <div style="font-weight: 700; color: #2E7D32;">${g.pickup_charge===0||g.pickup_service==="FREE"||g.service==="FREE"?"FREE (₹0)":`₹${(g.pickup_charge||0).toLocaleString("en-IN")}`}</div>
                       <div style="font-size: 0.72rem; color: var(--text-muted);">${g.location_name||"Station Transfer"}</div>
                     </td>
                     <td>
-                      ${u.name?`
-                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${u.name}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">${u.phone?"📞 "+u.phone:""} ${u.vehicle_number?`(${u.vehicle_number})`:""}</div>
+                      ${y.name?`
+                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${y.name}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">${y.phone?"📞 "+y.phone:""} ${y.vehicle_number?`(${y.vehicle_number})`:""}</div>
                       `:`
                         <span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">Unassigned</span>
                       `}
@@ -9451,12 +9451,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,v(),window.lucide&&window.lucide.createIcons()}function v(){var h,p,y,m;(h=i.querySelector("#pickup-search-input"))==null||h.addEventListener("input",n=>{d=n.target.value,l()}),(p=i.querySelector("#pickup-hotel-filter"))==null||p.addEventListener("change",n=>{r=n.target.value,l()}),(y=i.querySelector("#pickup-type-filter"))==null||y.addEventListener("change",n=>{o=n.target.value,l()}),(m=i.querySelector("#pickup-status-filter"))==null||m.addEventListener("change",n=>{s=n.target.value,l()})}c()}async function qM(i){i.innerHTML=`
+    `,p(),window.lucide&&window.lucide.createIcons()}function p(){var h,v,u,m;(h=i.querySelector("#pickup-search-input"))==null||h.addEventListener("input",l=>{d=l.target.value,o()}),(v=i.querySelector("#pickup-hotel-filter"))==null||v.addEventListener("change",l=>{n=l.target.value,o()}),(u=i.querySelector("#pickup-type-filter"))==null||u.addEventListener("change",l=>{r=l.target.value,o()}),(m=i.querySelector("#pickup-status-filter"))==null||m.addEventListener("change",l=>{s=l.target.value,o()})}c()}async function qM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotel dashboard...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d]=await Promise.all([M.getHotelAdminDashboard().catch(()=>({})),M.getHotelAdminBookings().catch(()=>M.getOwnerBookings().catch(()=>({}))),M.getHotelAdminHotel().catch(()=>M.getOwnerHotels().catch(()=>({})))]),s=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_rooms:0,available_rooms:0,occupied_rooms:0,upcoming_checkins_count:0,todays_arrivals:0,todays_departures:0,hotel_revenue:0},r=(a==null?void 0:a.bookings)||[],o=(e==null?void 0:e.hotel)||(d==null?void 0:d.hotel)||(d!=null&&d.hotels?d.hotels[0]:null)||{},c=new Date().toISOString().slice(0,10),l=r.filter(y=>y.check_in_date===c&&y.booking_status==="confirmed"),v=r.filter(y=>y.check_out_date===c&&y.booking_status==="checked_in"),h=r.reduce((y,m)=>y+(m.total_amount||0),0),p=r.reduce((y,m)=>y+(m.owner_payout||Math.round(m.total_amount*.85)),0);i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d]=await Promise.all([x.getHotelAdminDashboard().catch(()=>({})),x.getHotelAdminBookings().catch(()=>x.getOwnerBookings().catch(()=>({}))),x.getHotelAdminHotel().catch(()=>x.getOwnerHotels().catch(()=>({})))]),s=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_rooms:0,available_rooms:0,occupied_rooms:0,upcoming_checkins_count:0,todays_arrivals:0,todays_departures:0,hotel_revenue:0},n=(a==null?void 0:a.bookings)||[],r=(e==null?void 0:e.hotel)||(d==null?void 0:d.hotel)||(d!=null&&d.hotels?d.hotels[0]:null)||{},c=new Date().toISOString().slice(0,10),o=n.filter(u=>u.check_in_date===c&&u.booking_status==="confirmed"),p=n.filter(u=>u.check_out_date===c&&u.booking_status==="checked_in"),h=n.reduce((u,m)=>u+(m.total_amount||0),0),v=n.reduce((u,m)=>u+(m.owner_payout||Math.round(m.total_amount*.85)),0);i.innerHTML=`
       <!-- Top Metrics Overview -->
       <div class="metrics-grid">
         <div class="metric-card">
@@ -9475,7 +9475,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Today's Arrivals</span>
             <div class="metric-icon-box gold"><i data-lucide="user-check"></i></div>
           </div>
-          <div class="metric-value">${s.upcoming_checkins_count??l.length}</div>
+          <div class="metric-value">${s.upcoming_checkins_count??o.length}</div>
           <div class="metric-footer">
             <a href="#/hotel-admin/check-in" style="color: var(--color-accent-dark); font-weight: 600;">Open Check-In Desk →</a>
           </div>
@@ -9486,7 +9486,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Today's Check-Outs</span>
             <div class="metric-icon-box info"><i data-lucide="user-minus"></i></div>
           </div>
-          <div class="metric-value">${v.length}</div>
+          <div class="metric-value">${p.length}</div>
           <div class="metric-footer">
             <a href="#/hotel-admin/check-out" style="color: var(--color-primary); font-weight: 600;">Open Check-Out Desk →</a>
           </div>
@@ -9497,7 +9497,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Hotel Net Earnings</span>
             <div class="metric-icon-box gold"><i data-lucide="wallet"></i></div>
           </div>
-          <div class="metric-value">₹${p.toLocaleString("en-IN")}</div>
+          <div class="metric-value">₹${v.toLocaleString("en-IN")}</div>
           <div class="metric-footer">
             <span>85% Net Share (After 15% Platform Cut)</span>
           </div>
@@ -9572,21 +9572,21 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${r.length===0?`
+              ${n.length===0?`
                 <tr><td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">No bookings found for your property yet.</td></tr>
-              `:r.map(y=>`
+              `:n.map(u=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${y.booking_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${u.booking_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${y.customer_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${y.customer_phone||y.customer_email}</div>
+                    <div style="font-weight: 600;">${u.customer_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${u.customer_phone||u.customer_email}</div>
                   </td>
-                  <td>${y.room_name} (${y.guests_count} Guests)</td>
-                  <td><strong style="color: var(--color-primary);">${y.check_in_date}</strong></td>
-                  <td>${y.check_out_date} (${y.nights}n)</td>
-                  <td>₹${y.total_amount.toLocaleString("en-IN")}</td>
-                  <td style="font-weight: 700; color: var(--status-success);">₹${y.owner_payout.toLocaleString("en-IN")}</td>
-                  <td><span class="status-pill ${y.booking_status}">${y.booking_status.replace("_"," ")}</span></td>
+                  <td>${u.room_name} (${u.guests_count} Guests)</td>
+                  <td><strong style="color: var(--color-primary);">${u.check_in_date}</strong></td>
+                  <td>${u.check_out_date} (${u.nights}n)</td>
+                  <td>₹${u.total_amount.toLocaleString("en-IN")}</td>
+                  <td style="font-weight: 700; color: var(--status-success);">₹${u.owner_payout.toLocaleString("en-IN")}</td>
+                  <td><span class="status-pill ${u.booking_status}">${u.booking_status.replace("_"," ")}</span></td>
                 </tr>
               `).join("")}
             </tbody>
@@ -9598,7 +9598,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotel details...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const d=(await M.getOwnerHotels()).hotels;if(d.length===0){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const d=(await x.getOwnerHotels()).hotels;if(d.length===0){i.innerHTML=`
         <div class="panel-card" style="text-align: center; padding: 40px;">
           <i data-lucide="building" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;"></i>
           <h3 style="font-size: 1.1rem; color: var(--text-main);">No Hotel Registered Yet</h3>
@@ -9659,10 +9659,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div style="margin-top: 14px;">
               <label class="form-label">Active Hotel Amenities</label>
               <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                ${["Free Wi-Fi","Swimming Pool","Spa & Wellness","Fine Dining Restaurant","24/7 Room Service","Valet Parking","Airport Shuttle","Gym & Fitness"].map(r=>`
+                ${["Free Wi-Fi","Swimming Pool","Spa & Wellness","Fine Dining Restaurant","24/7 Room Service","Valet Parking","Airport Shuttle","Gym & Fitness"].map(n=>`
                   <label style="display: inline-flex; align-items: center; gap: 6px; background: var(--bg-surface-secondary); padding: 5px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 0.78rem; cursor: pointer;">
-                    <input type="checkbox" class="amenity-checkbox" value="${r}" ${s.amenities&&s.amenities.includes(r)?"checked":""}>
-                    <span>${r}</span>
+                    <input type="checkbox" class="amenity-checkbox" value="${n}" ${s.amenities&&s.amenities.includes(n)?"checked":""}>
+                    <span>${n}</span>
                   </label>
                 `).join("")}
               </div>
@@ -9670,7 +9670,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons(),(e=i.querySelector("#btn-save-hotel"))==null||e.addEventListener("click",async()=>{const r=Array.from(i.querySelectorAll(".amenity-checkbox:checked")).map(c=>c.value),o={name:i.querySelector("#edit-hotel-name").value,hotel_type:i.querySelector("#edit-hotel-type").value,city:i.querySelector("#edit-hotel-city").value,state:i.querySelector("#edit-hotel-state").value,address:i.querySelector("#edit-hotel-address").value,description:i.querySelector("#edit-hotel-desc").value,cover_image:i.querySelector("#edit-hotel-cover").value,amenities:r};try{await M.updateHotel(s.id,o),window.showToast("Hotel details saved successfully.","success")}catch(c){window.showToast(c.message,"error")}})}catch(a){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${a.message}</div>`}}async function BM(i){let e=null,a=[];i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons(),(e=i.querySelector("#btn-save-hotel"))==null||e.addEventListener("click",async()=>{const n=Array.from(i.querySelectorAll(".amenity-checkbox:checked")).map(c=>c.value),r={name:i.querySelector("#edit-hotel-name").value,hotel_type:i.querySelector("#edit-hotel-type").value,city:i.querySelector("#edit-hotel-city").value,state:i.querySelector("#edit-hotel-state").value,address:i.querySelector("#edit-hotel-address").value,description:i.querySelector("#edit-hotel-desc").value,cover_image:i.querySelector("#edit-hotel-cover").value,amenities:n};try{await x.updateHotel(s.id,r),window.showToast("Hotel details saved successfully.","success")}catch(c){window.showToast(c.message,"error")}})}catch(a){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${a.message}</div>`}}async function BM(i){let e=null,a=[];i.innerHTML=`
     <div class="card fade-in">
       <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
@@ -9695,7 +9695,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
     <!-- Modal container root -->
     <div id="banner-modal-root"></div>
-  `,window.lucide&&window.lucide.createIcons();const d=i.querySelector("#banners-grid"),s=i.querySelector("#banners-loading"),r=i.querySelector("#banners-error"),o=i.querySelector("#banners-subtitle"),c=i.querySelector("#btn-add-banner"),l=i.querySelector("#banner-modal-root");try{const p=await M.getOwnerHotels();p&&p.hotels&&p.hotels.length>0&&(e=p.hotels[0],o.textContent=`Manage promotional slider images for ${e.name}.`)}catch(p){console.warn("Could not fetch hotel details:",p.message)}async function v(){var p;try{s.style.display="block",d.style.display="none",r.style.display="none";const y=await M.get("/hotel-admin/banners");if(s.style.display="none",!y.success){r.textContent=y.message||"Failed to load banners.",r.style.display="block";return}a=y.banners||[],d.innerHTML="",a.length===0?(d.style.display="block",d.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const d=i.querySelector("#banners-grid"),s=i.querySelector("#banners-loading"),n=i.querySelector("#banners-error"),r=i.querySelector("#banners-subtitle"),c=i.querySelector("#btn-add-banner"),o=i.querySelector("#banner-modal-root");try{const v=await x.getOwnerHotels();v&&v.hotels&&v.hotels.length>0&&(e=v.hotels[0],r.textContent=`Manage promotional slider images for ${e.name}.`)}catch(v){console.warn("Could not fetch hotel details:",v.message)}async function p(){var v;try{s.style.display="block",d.style.display="none",n.style.display="none";const u=await x.get("/hotel-admin/banners");if(s.style.display="none",!u.success){n.textContent=u.message||"Failed to load banners.",n.style.display="block";return}a=u.banners||[],d.innerHTML="",a.length===0?(d.style.display="block",d.innerHTML=`
           <div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
             <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
             <p style="font-weight: 500; font-size: 16px; margin-bottom: 8px;">No Banners Found</p>
@@ -9704,7 +9704,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Banner Now
             </button>
           </div>
-        `,window.lucide&&window.lucide.createIcons(),(p=d.querySelector("#btn-empty-add-banner"))==null||p.addEventListener("click",()=>h())):(d.style.display="grid",a.forEach(m=>{const n=document.createElement("div");n.className="card",n.style.overflow="hidden",n.innerHTML=`
+        `,window.lucide&&window.lucide.createIcons(),(v=d.querySelector("#btn-empty-add-banner"))==null||v.addEventListener("click",()=>h())):(d.style.display="grid",a.forEach(m=>{const l=document.createElement("div");l.className="card",l.style.overflow="hidden",l.innerHTML=`
             <div style="height: 160px; background: #e2e8f0; position: relative;">
               <img src="${m.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400x200?text=Invalid+Image'" />
               ${m.is_active?"":'<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; letter-spacing: 0.05em;">INACTIVE</div>'}
@@ -9728,17 +9728,17 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </button>
               </div>
             </div>
-          `,d.appendChild(n)}),d.querySelectorAll(".btn-edit").forEach(m=>{m.addEventListener("click",()=>{const n=a.find(g=>g.id===m.dataset.id);n&&h(n)})}),d.querySelectorAll(".btn-toggle").forEach(m=>{m.addEventListener("click",async()=>{const n=m.dataset.id,g=m.dataset.active==="true";if(confirm(`Are you sure you want to ${g?"disable":"enable"} this banner?`))try{m.textContent="...",await M.patch(`/hotel-admin/banners/${n}/status`,{is_active:!g}),window.showToast("Banner status updated","success"),v()}catch(u){window.showToast(u.message,"error"),v()}})}),d.querySelectorAll(".btn-delete").forEach(m=>{m.addEventListener("click",async()=>{if(confirm("Are you sure you want to delete this banner permanently?"))try{m.textContent="...",await M.delete(`/hotel-admin/banners/${m.dataset.id}`),window.showToast("Banner deleted successfully","success"),v()}catch(n){window.showToast(n.message,"error"),v()}})})),window.lucide&&window.lucide.createIcons()}catch(y){s.style.display="none",r.textContent=y.message,r.style.display="block"}}function h(p=null){var L,T;const y=!!p;let m=p?p.image_url:"",n=p?p.image_public_id:null,g=!1;l.innerHTML=`
+          `,d.appendChild(l)}),d.querySelectorAll(".btn-edit").forEach(m=>{m.addEventListener("click",()=>{const l=a.find(g=>g.id===m.dataset.id);l&&h(l)})}),d.querySelectorAll(".btn-toggle").forEach(m=>{m.addEventListener("click",async()=>{const l=m.dataset.id,g=m.dataset.active==="true";if(confirm(`Are you sure you want to ${g?"disable":"enable"} this banner?`))try{m.textContent="...",await x.patch(`/hotel-admin/banners/${l}/status`,{is_active:!g}),window.showToast("Banner status updated","success"),p()}catch(y){window.showToast(y.message,"error"),p()}})}),d.querySelectorAll(".btn-delete").forEach(m=>{m.addEventListener("click",async()=>{if(confirm("Are you sure you want to delete this banner permanently?"))try{m.textContent="...",await x.delete(`/hotel-admin/banners/${m.dataset.id}`),window.showToast("Banner deleted successfully","success"),p()}catch(l){window.showToast(l.message,"error"),p()}})})),window.lucide&&window.lucide.createIcons()}catch(u){s.style.display="none",n.textContent=u.message,n.style.display="block"}}function h(v=null){var V,P;const u=!!v;let m=v?v.image_url:"",l=v?v.image_public_id:null,g=!1;o.innerHTML=`
       <div class="modal-overlay active" id="modal-banner-overlay" style="display: flex;">
         <div class="modal-container" style="max-width: 540px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
-            <h3 class="modal-title">${y?"Edit Banner":"Add New Promotional Banner"}</h3>
+            <h3 class="modal-title">${u?"Edit Banner":"Add New Promotional Banner"}</h3>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
           <form id="form-banner" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; margin: 0;">
             <div class="modal-body" style="overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 20px;">
-              <input type="hidden" id="banner-id" value="${p?p.id:""}" />
+              <input type="hidden" id="banner-id" value="${v?v.id:""}" />
 
               <!-- Property Selection (Locked to authorized hotel) -->
               <div class="form-group" style="margin-bottom: 16px;">
@@ -9753,7 +9753,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <!-- Banner Title -->
               <div class="form-group" style="margin-bottom: 16px;">
                 <label class="form-label" for="banner-title">Banner Title (Optional)</label>
-                <input type="text" id="banner-title" class="form-input" placeholder="e.g. Summer Weekend Getaway Special" value="${p&&p.title?p.title:""}" />
+                <input type="text" id="banner-title" class="form-input" placeholder="e.g. Summer Weekend Getaway Special" value="${v&&v.title?v.title:""}" />
                 <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">Displayed as a headline caption on promotional hero carousels.</p>
               </div>
 
@@ -9819,14 +9819,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="form-group">
                   <label class="form-label" for="banner-order">Display Order</label>
-                  <input type="number" id="banner-order" class="form-input" min="0" value="${p?p.sort_order??0:0}" />
+                  <input type="number" id="banner-order" class="form-input" min="0" value="${v?v.sort_order??0:0}" />
                   <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">Lower numbers appear first.</p>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="banner-status">Status</label>
                   <select id="banner-status" class="form-input">
-                    <option value="true" ${!p||p.is_active!==!1?"selected":""}>Active</option>
-                    <option value="false" ${p&&p.is_active===!1?"selected":""}>Inactive</option>
+                    <option value="true" ${!v||v.is_active!==!1?"selected":""}>Active</option>
+                    <option value="false" ${v&&v.is_active===!1?"selected":""}>Inactive</option>
                   </select>
                   <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">Active banners are visible to guests.</p>
                 </div>
@@ -9837,18 +9837,18 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div class="modal-footer" style="flex-shrink: 0; background: var(--bg-surface-secondary, #f8fafc); border-top: 1px solid var(--border-light, #e2e8f0); padding: 14px 20px; z-index: 10;">
               <button type="button" class="btn btn-secondary" id="btn-cancel-banner">Cancel</button>
               <button type="submit" class="btn btn-primary" id="btn-save-banner">
-                ${y?"Update Banner":"Save Banner"}
+                ${u?"Update Banner":"Save Banner"}
               </button>
             </div>
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const u=l.querySelector("#banner-photo-file-input"),b=l.querySelector("#banner-photo-dropzone"),f=l.querySelector("#upload-progress-box"),x=l.querySelector("#upload-progress-fill"),w=l.querySelector("#upload-progress-percent"),k=l.querySelector("#upload-progress-label"),H=l.querySelector("#upload-status-box"),A=l.querySelector("#btn-save-banner"),_=l.querySelector("#form-banner");function $(S,V="info"){H&&(H.className=`upload-status-msg ${V}`,H.innerHTML=`
-        <i data-lucide="${V==="error"?"alert-triangle":V==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-        <span>${S}</span>
-      `,H.style.display="flex",window.lucide&&window.lucide.createIcons())}function q(){H&&(H.style.display="none",H.innerHTML="")}function B(S){m=S,b.className="upload-dropzone has-preview",b.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const y=o.querySelector("#banner-photo-file-input"),S=o.querySelector("#banner-photo-dropzone"),w=o.querySelector("#upload-progress-box"),f=o.querySelector("#upload-progress-fill"),M=o.querySelector("#upload-progress-percent"),b=o.querySelector("#upload-progress-label"),k=o.querySelector("#upload-status-box"),H=o.querySelector("#btn-save-banner"),$=o.querySelector("#form-banner");function L(C,_="info"){k&&(k.className=`upload-status-msg ${_}`,k.innerHTML=`
+        <i data-lucide="${_==="error"?"alert-triangle":_==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+        <span>${C}</span>
+      `,k.style.display="flex",window.lucide&&window.lucide.createIcons())}function T(){k&&(k.style.display="none",k.innerHTML="")}function q(C){m=C,S.className="upload-dropzone has-preview",S.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container">
-          <img src="${S}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
+          <img src="${C}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
           <div class="upload-preview-badge">
             <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
           </div>
@@ -9861,7 +9861,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),O()}function D(){m="",n=null,b.className="upload-dropzone",b.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),O()}function B(){m="",l=null,S.className="upload-dropzone",S.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 28px; height: 28px;"></i>
@@ -9872,15 +9872,15 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),I()}async function R(S){if(!S)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(S.type.toLowerCase())){$("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const P=5*1024*1024;if(S.size>P){$(`File size exceeds 5 MB limit (${(S.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}q(),g=!0,A&&(A.disabled=!0),f.style.display="flex",x.style.width="0%",w.textContent="0%",k.textContent=`Uploading ${S.name}...`;try{const E=await M.uploadBannerImage(S,e?e.id:null,N=>{x.style.width=`${N}%`,w.textContent=`${N}%`});m=E.secure_url,n=E.public_id||null,B(m),$("Image uploaded securely to Cloudinary!","success")}catch(E){console.error("Banner upload failed:",E),$(E.message||"Image upload failed. Please check network or Cloudinary configuration.","error")}finally{g=!1,f.style.display="none",A&&(A.disabled=!1),u&&(u.value="")}}function I(){const S=b.querySelector("#btn-browse-trigger");S==null||S.addEventListener("click",V=>{V.stopPropagation(),u==null||u.click()})}function O(){var S,V;(S=b.querySelector("#btn-replace-image"))==null||S.addEventListener("click",P=>{P.stopPropagation(),u==null||u.click()}),(V=b.querySelector("#btn-remove-image"))==null||V.addEventListener("click",P=>{P.stopPropagation(),D(),q()})}b.addEventListener("click",()=>{!m&&!g&&(u==null||u.click())}),u==null||u.addEventListener("change",S=>{S.target.files&&S.target.files[0]&&R(S.target.files[0])}),["dragenter","dragover"].forEach(S=>{b.addEventListener(S,V=>{V.preventDefault(),V.stopPropagation(),b.classList.add("drag-over")})}),["dragleave","drop"].forEach(S=>{b.addEventListener(S,V=>{V.preventDefault(),V.stopPropagation(),b.classList.remove("drag-over")})}),b.addEventListener("drop",S=>{var P;if(g)return;const V=(P=S.dataTransfer)==null?void 0:P.files;V&&V.length>0&&R(V[0])}),m?O():I();const C=()=>{l.innerHTML=""};(L=l.querySelector("#modal-close"))==null||L.addEventListener("click",C),(T=l.querySelector("#btn-cancel-banner"))==null||T.addEventListener("click",C),_==null||_.addEventListener("submit",async S=>{if(S.preventDefault(),g){window.showToast("Please wait for image upload to complete.","warning");return}if(!m){$("Banner image is required. Please upload an image first.","error"),window.showToast("Please upload a banner image before saving.","error");return}const V=l.querySelector("#banner-id").value,P={title:l.querySelector("#banner-title").value.trim(),image_url:m,image_public_id:n,sort_order:parseInt(l.querySelector("#banner-order").value)||0,is_active:l.querySelector("#banner-status").value==="true"};e&&(P.hotel_id=e.id);const E=A.textContent;A.textContent="Saving...",A.disabled=!0;try{V?(await M.put(`/hotel-admin/banners/${V}`,P),window.showToast("Banner updated successfully","success")):(await M.post("/hotel-admin/banners",P),window.showToast("Banner created successfully","success")),C(),v()}catch(N){window.showToast(N.message,"error"),$(N.message,"error")}finally{A.textContent=E,A.disabled=!1}})}c.addEventListener("click",()=>h()),v()}async function DM(i){let e=[];async function a(){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),R()}async function D(C){if(!C)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(C.type.toLowerCase())){L("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const z=5*1024*1024;if(C.size>z){L(`File size exceeds 5 MB limit (${(C.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}T(),g=!0,H&&(H.disabled=!0),w.style.display="flex",f.style.width="0%",M.textContent="0%",b.textContent=`Uploading ${C.name}...`;try{const I=await x.uploadBannerImage(C,e?e.id:null,N=>{f.style.width=`${N}%`,M.textContent=`${N}%`});m=I.secure_url,l=I.public_id||null,q(m),L("Image uploaded securely to Cloudinary!","success")}catch(I){console.error("Banner upload failed:",I),L(I.message||"Image upload failed. Please check network or Cloudinary configuration.","error")}finally{g=!1,w.style.display="none",H&&(H.disabled=!1),y&&(y.value="")}}function R(){const C=S.querySelector("#btn-browse-trigger");C==null||C.addEventListener("click",_=>{_.stopPropagation(),y==null||y.click()})}function O(){var C,_;(C=S.querySelector("#btn-replace-image"))==null||C.addEventListener("click",z=>{z.stopPropagation(),y==null||y.click()}),(_=S.querySelector("#btn-remove-image"))==null||_.addEventListener("click",z=>{z.stopPropagation(),B(),T()})}S.addEventListener("click",()=>{!m&&!g&&(y==null||y.click())}),y==null||y.addEventListener("change",C=>{C.target.files&&C.target.files[0]&&D(C.target.files[0])}),["dragenter","dragover"].forEach(C=>{S.addEventListener(C,_=>{_.preventDefault(),_.stopPropagation(),S.classList.add("drag-over")})}),["dragleave","drop"].forEach(C=>{S.addEventListener(C,_=>{_.preventDefault(),_.stopPropagation(),S.classList.remove("drag-over")})}),S.addEventListener("drop",C=>{var z;if(g)return;const _=(z=C.dataTransfer)==null?void 0:z.files;_&&_.length>0&&D(_[0])}),m?O():R();const A=()=>{o.innerHTML=""};(V=o.querySelector("#modal-close"))==null||V.addEventListener("click",A),(P=o.querySelector("#btn-cancel-banner"))==null||P.addEventListener("click",A),$==null||$.addEventListener("submit",async C=>{if(C.preventDefault(),g){window.showToast("Please wait for image upload to complete.","warning");return}if(!m){L("Banner image is required. Please upload an image first.","error"),window.showToast("Please upload a banner image before saving.","error");return}const _=o.querySelector("#banner-id").value,z={title:o.querySelector("#banner-title").value.trim(),image_url:m,image_public_id:l,sort_order:parseInt(o.querySelector("#banner-order").value)||0,is_active:o.querySelector("#banner-status").value==="true"};e&&(z.hotel_id=e.id);const I=H.textContent;H.textContent="Saving...",H.disabled=!0;try{_?(await x.put(`/hotel-admin/banners/${_}`,z),window.showToast("Banner updated successfully","success")):(await x.post("/hotel-admin/banners",z),window.showToast("Banner created successfully","success")),A(),p()}catch(N){window.showToast(N.message,"error"),L(N.message,"error")}finally{H.textContent=I,H.disabled=!1}})}c.addEventListener("click",()=>h()),p()}async function DM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading room inventory...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getOwnerHotels()).hotels,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){if(e.length===0){i.innerHTML='<div class="panel-card">Please register a hotel first.</div>';return}const o=e[0],c=o.rooms||[];i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerHotels()).hotels,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){if(e.length===0){i.innerHTML='<div class="panel-card">Please register a hotel first.</div>';return}const r=e[0],c=r.rooms||[];i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
-          <h2 style="font-size: 1.1rem; font-weight: 700;">Room Categories for ${o.name}</h2>
+          <h2 style="font-size: 1.1rem; font-weight: 700;">Room Categories for ${r.name}</h2>
         </div>
         <button class="btn btn-primary" id="btn-add-room">
           <i data-lucide="plus"></i> Add New Room Category
@@ -9901,23 +9901,23 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${c.map(l=>`
+              ${c.map(o=>`
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                      <img src="${l.photos&&l.photos[0]?l.photos[0]:o.cover_image}" style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover;">
+                      <img src="${o.photos&&o.photos[0]?o.photos[0]:r.cover_image}" style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover;">
                       <div>
-                        <div style="font-weight: 700;">${l.room_name}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${l.room_type}</div>
+                        <div style="font-weight: 700;">${o.room_name}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${o.room_type}</div>
                       </div>
                     </div>
                   </td>
-                  <td>${l.max_guests} Guests max</td>
-                  <td><strong>${l.total_inventory} Rooms</strong> available</td>
-                  <td><strong style="color: var(--status-success); font-size: 0.95rem;">₹${l.price_per_night.toLocaleString("en-IN")}</strong></td>
+                  <td>${o.max_guests} Guests max</td>
+                  <td><strong>${o.total_inventory} Rooms</strong> available</td>
+                  <td><strong style="color: var(--status-success); font-size: 0.95rem;">₹${o.price_per_night.toLocaleString("en-IN")}</strong></td>
                   <td><span class="status-pill active">Active</span></td>
                   <td>
-                    <button class="btn btn-secondary btn-sm btn-edit-room" data-room-id="${l.id}">
+                    <button class="btn btn-secondary btn-sm btn-edit-room" data-room-id="${o.id}">
                       <i data-lucide="edit-3"></i> Edit
                     </button>
                   </td>
@@ -9929,11 +9929,11 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="room-modal-root"></div>
-    `,s(o.id),window.lucide&&window.lucide.createIcons()}function s(o){var c;(c=i.querySelector("#btn-add-room"))==null||c.addEventListener("click",()=>{r(o,null)}),i.querySelectorAll(".btn-edit-room").forEach(l=>{l.addEventListener("click",()=>{const v=l.getAttribute("data-room-id"),h=e[0].rooms.find(p=>p.id===v);r(o,h)})})}function r(o,c){var R,I,O;const l=i.querySelector("#room-modal-root"),v=!!c;let h=c&&c.photos&&c.photos[0]?c.photos[0]:"",p=c&&c.photo_public_id?c.photo_public_id:null,y=!1;l.innerHTML=`
+    `,s(r.id),window.lucide&&window.lucide.createIcons()}function s(r){var c;(c=i.querySelector("#btn-add-room"))==null||c.addEventListener("click",()=>{n(r,null)}),i.querySelectorAll(".btn-edit-room").forEach(o=>{o.addEventListener("click",()=>{const p=o.getAttribute("data-room-id"),h=e[0].rooms.find(v=>v.id===p);n(r,h)})})}function n(r,c){var D,R,O;const o=i.querySelector("#room-modal-root"),p=!!c;let h=c&&c.photos&&c.photos[0]?c.photos[0]:"",v=c&&c.photo_public_id?c.photo_public_id:null,u=!1;o.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
-            <h2 class="modal-title">${v?"Edit Room Category":"Add New Room Category"}</h2>
+            <h2 class="modal-title">${p?"Edit Room Category":"Add New Room Category"}</h2>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
@@ -10037,17 +10037,17 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
             <div class="modal-footer" style="flex-shrink: 0; background: var(--bg-surface-secondary); border-top: 1px solid var(--border-light); padding: 14px 20px; z-index: 10;">
               <button type="button" class="btn btn-secondary" id="modal-close-action">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="btn-submit-room">${v?"Update Room":"Create Room"}</button>
+              <button type="submit" class="btn btn-primary" id="btn-submit-room">${p?"Update Room":"Create Room"}</button>
             </div>
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const m=l.querySelector("#room-photo-file-input"),n=l.querySelector("#room-photo-dropzone"),g=l.querySelector("#upload-progress-box"),u=l.querySelector("#upload-progress-fill"),b=l.querySelector("#upload-progress-percent"),f=l.querySelector("#upload-progress-label"),x=l.querySelector("#upload-status-box"),w=l.querySelector("#btn-submit-room");function k(C,L="info"){x&&(x.className=`upload-status-msg ${L}`,x.innerHTML=`
-        <i data-lucide="${L==="error"?"alert-triangle":L==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-        <span>${C}</span>
-      `,x.style.display="flex",window.lucide&&window.lucide.createIcons())}function H(){x&&(x.style.display="none",x.innerHTML="")}function A(C){h=C,n.className="upload-dropzone has-preview",n.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const m=o.querySelector("#room-photo-file-input"),l=o.querySelector("#room-photo-dropzone"),g=o.querySelector("#upload-progress-box"),y=o.querySelector("#upload-progress-fill"),S=o.querySelector("#upload-progress-percent"),w=o.querySelector("#upload-progress-label"),f=o.querySelector("#upload-status-box"),M=o.querySelector("#btn-submit-room");function b(A,V="info"){f&&(f.className=`upload-status-msg ${V}`,f.innerHTML=`
+        <i data-lucide="${V==="error"?"alert-triangle":V==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+        <span>${A}</span>
+      `,f.style.display="flex",window.lucide&&window.lucide.createIcons())}function k(){f&&(f.style.display="none",f.innerHTML="")}function H(A){h=A,l.className="upload-dropzone has-preview",l.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container">
-          <img src="${C}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
+          <img src="${A}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
           <div class="upload-preview-badge">
             <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
           </div>
@@ -10060,7 +10060,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),B()}function _(){h="",p=null,n.className="upload-dropzone",n.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),q()}function $(){h="",v=null,l.className="upload-dropzone",l.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 24px; height: 24px;"></i>
@@ -10071,49 +10071,427 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),q()}async function $(C){if(!C)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(C.type.toLowerCase())){k("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const T=5*1024*1024;if(C.size>T){k(`File size exceeds 5 MB limit (${(C.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}H(),y=!0,w&&(w.disabled=!0),g.style.display="flex",u.style.width="0%",b.textContent="0%",f.textContent=`Uploading ${C.name}...`;try{const S=await M.uploadRoomImage(C,o,V=>{u.style.width=`${V}%`,b.textContent=`${V}%`});h=S.secure_url,p=S.public_id||null,A(h),k("Image uploaded securely to Cloudinary!","success")}catch(S){console.error("Room image upload failed:",S),k(S.message||"Image upload failed. Please check your network or Cloudinary configuration.","error")}finally{y=!1,g.style.display="none",w&&(w.disabled=!1),m&&(m.value="")}}function q(){const C=n.querySelector("#btn-browse-trigger");C==null||C.addEventListener("click",L=>{L.stopPropagation(),m==null||m.click()})}function B(){var C,L;(C=n.querySelector("#btn-replace-image"))==null||C.addEventListener("click",T=>{T.stopPropagation(),m==null||m.click()}),(L=n.querySelector("#btn-remove-image"))==null||L.addEventListener("click",T=>{T.stopPropagation(),_(),H()})}n.addEventListener("click",()=>{!h&&!y&&(m==null||m.click())}),m==null||m.addEventListener("change",C=>{C.target.files&&C.target.files[0]&&$(C.target.files[0])}),["dragenter","dragover"].forEach(C=>{n.addEventListener(C,L=>{L.preventDefault(),L.stopPropagation(),n.classList.add("drag-over")})}),["dragleave","drop"].forEach(C=>{n.addEventListener(C,L=>{L.preventDefault(),L.stopPropagation(),n.classList.remove("drag-over")})}),n.addEventListener("drop",C=>{var T;if(y)return;const L=(T=C.dataTransfer)==null?void 0:T.files;L&&L.length>0&&$(L[0])}),h?B():q();const D=()=>{l.innerHTML=""};(R=l.querySelector("#modal-close"))==null||R.addEventListener("click",D),(I=l.querySelector("#modal-close-action"))==null||I.addEventListener("click",D),(O=l.querySelector("#room-form"))==null||O.addEventListener("submit",async C=>{if(C.preventDefault(),y){window.showToast("Please wait for image upload to complete.","warning");return}if(!h){k("Please upload a room photo before proceeding.","error"),window.showToast("Room photo is required.","error");return}const L={hotel_id:o,room_name:l.querySelector("#room-name").value.trim(),room_type:l.querySelector("#room-type").value,max_guests:Number(l.querySelector("#room-capacity").value),price_per_night:Number(l.querySelector("#room-price").value),total_inventory:Number(l.querySelector("#room-inventory").value),description:l.querySelector("#room-desc").value.trim(),photos:[h],photo_public_id:p};try{v?(await M.updateRoom(c.id,L),window.showToast("Room category updated successfully.","success")):(await M.createRoom(L),window.showToast("New room category created successfully.","success")),D(),a()}catch(T){window.showToast(T.message,"error")}})}a()}async function RM(i){i.innerHTML=`
-    <div style="text-align: center; padding: 40px;">
-      <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
-      <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading availability calendar matrix...</p>
+      `,window.lucide&&window.lucide.createIcons(),T()}async function L(A){if(!A)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(A.type.toLowerCase())){b("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const P=5*1024*1024;if(A.size>P){b(`File size exceeds 5 MB limit (${(A.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}k(),u=!0,M&&(M.disabled=!0),g.style.display="flex",y.style.width="0%",S.textContent="0%",w.textContent=`Uploading ${A.name}...`;try{const C=await x.uploadRoomImage(A,r,_=>{y.style.width=`${_}%`,S.textContent=`${_}%`});h=C.secure_url,v=C.public_id||null,H(h),b("Image uploaded securely to Cloudinary!","success")}catch(C){console.error("Room image upload failed:",C),b(C.message||"Image upload failed. Please check your network or Cloudinary configuration.","error")}finally{u=!1,g.style.display="none",M&&(M.disabled=!1),m&&(m.value="")}}function T(){const A=l.querySelector("#btn-browse-trigger");A==null||A.addEventListener("click",V=>{V.stopPropagation(),m==null||m.click()})}function q(){var A,V;(A=l.querySelector("#btn-replace-image"))==null||A.addEventListener("click",P=>{P.stopPropagation(),m==null||m.click()}),(V=l.querySelector("#btn-remove-image"))==null||V.addEventListener("click",P=>{P.stopPropagation(),$(),k()})}l.addEventListener("click",()=>{!h&&!u&&(m==null||m.click())}),m==null||m.addEventListener("change",A=>{A.target.files&&A.target.files[0]&&L(A.target.files[0])}),["dragenter","dragover"].forEach(A=>{l.addEventListener(A,V=>{V.preventDefault(),V.stopPropagation(),l.classList.add("drag-over")})}),["dragleave","drop"].forEach(A=>{l.addEventListener(A,V=>{V.preventDefault(),V.stopPropagation(),l.classList.remove("drag-over")})}),l.addEventListener("drop",A=>{var P;if(u)return;const V=(P=A.dataTransfer)==null?void 0:P.files;V&&V.length>0&&L(V[0])}),h?q():T();const B=()=>{o.innerHTML=""};(D=o.querySelector("#modal-close"))==null||D.addEventListener("click",B),(R=o.querySelector("#modal-close-action"))==null||R.addEventListener("click",B),(O=o.querySelector("#room-form"))==null||O.addEventListener("submit",async A=>{if(A.preventDefault(),u){window.showToast("Please wait for image upload to complete.","warning");return}if(!h){b("Please upload a room photo before proceeding.","error"),window.showToast("Room photo is required.","error");return}const V={hotel_id:r,room_name:o.querySelector("#room-name").value.trim(),room_type:o.querySelector("#room-type").value,max_guests:Number(o.querySelector("#room-capacity").value),price_per_night:Number(o.querySelector("#room-price").value),total_inventory:Number(o.querySelector("#room-inventory").value),description:o.querySelector("#room-desc").value.trim(),photos:[h],photo_public_id:v};try{p?(await x.updateRoom(c.id,V),window.showToast("Room category updated successfully.","success")):(await x.createRoom(V),window.showToast("New room category created successfully.","success")),B(),a()}catch(P){window.showToast(P.message,"error")}})}a()}async function RM(i){i.innerHTML=`
+    <div style="text-align: center; padding: 60px 20px;">
+      <i data-lucide="loader-2" style="width: 36px; height: 36px; color: var(--color-primary); animation: spin 1s linear infinite; margin-bottom: 12px; display: inline-block;"></i>
+      <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Loading availability matrix & room inventory...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const a=(await M.getOwnerHotels()).hotels;if(a.length===0||!a[0].rooms||a[0].rooms.length===0){i.innerHTML='<div class="panel-card">Please register rooms for your hotel first to manage availability.</div>';return}const d=a[0].rooms;let s=d[0].id;async function r(){var m;const o=new Date,c=n=>{const g=n.getFullYear(),u=String(n.getMonth()+1).padStart(2,"0"),b=String(n.getDate()).padStart(2,"0");return`${g}-${u}-${b}`},l=c(o),v=new Date(o.getFullYear(),o.getMonth(),o.getDate()+14),h=c(v),y=(await M.getRoomAvailability(s,l,h)).matrix;i.innerHTML=`
-        <div class="panel-card">
-          <div class="card-header">
-            <div class="card-title-group">
-              <h2>Real-Time Room Availability Calendar (Next 14 Days)</h2>
-              <p>Monitor live booked quantities and block blackout dates to prevent double-booking</p>
+  `,window.lucide&&window.lucide.createIcons();try{let c=function(o){var y,S,w,f,M;const p=i.querySelector("#avail-modal-mount");if(!p)return;const h=o.date.split("-"),u=new Date(Number(h[0]),Number(h[1])-1,Number(h[2])).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});p.innerHTML=`
+        <div class="avail-modal-overlay" id="modal-overlay">
+          <div class="avail-modal-card">
+            <div class="modal-header">
+              <div>
+                <h3 class="modal-title" style="font-size: 1.05rem;">Manage Inventory Block</h3>
+                <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0;">${o.roomName} • ${u}</p>
+              </div>
+              <button class="modal-close-btn" id="btn-close-block-modal" aria-label="Close">
+                <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+              </button>
             </div>
-            <div class="card-actions">
-              <select class="select-filter" id="select-room-matrix">
-                ${d.map(n=>`<option value="${n.id}" ${n.id===s?"selected":""}>${n.room_name} (${n.total_inventory} total rooms)</option>`).join("")}
+
+            <form id="form-manage-block" style="padding: 20px;">
+              <div style="background: var(--bg-surface-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 6px;">
+                  <span style="color: var(--text-secondary);">Total Physical Capacity:</span>
+                  <strong>${o.total} Rooms</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 6px;">
+                  <span style="color: #2563EB;">Currently Confirmed Bookings:</span>
+                  <strong>${o.booked} Booked</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 6px;">
+                  <span style="color: #D97706;">Currently Blocked:</span>
+                  <strong>${o.currentBlocked} Rooms</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; border-top: 1px solid var(--border-light); padding-top: 6px; margin-top: 4px;">
+                  <span style="color: var(--color-primary); font-weight: 600;">Max Available to Block:</span>
+                  <strong style="color: var(--color-primary);">${o.maxBlockable} Rooms</strong>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label for="input-blocked-count" style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main);">
+                  Blocked Rooms Quantity
+                </label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="number" 
+                    id="input-blocked-count" 
+                    name="blocked_count"
+                    min="0" 
+                    max="${o.maxBlockable}" 
+                    value="${o.currentBlocked>0?o.currentBlocked:Math.min(1,o.maxBlockable)}" 
+                    class="form-control" 
+                    style="width: 100%; padding: 8px 12px; font-size: 1rem; font-weight: 700; border: 1px solid var(--border-medium); border-radius: var(--radius-sm);"
+                    required />
+                  <span style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">/ ${o.maxBlockable} max</span>
+                </div>
+                <small style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                  Setting this to 0 unblocks all rooms for ${o.date}.
+                </small>
+              </div>
+
+              <div id="modal-error-box" style="display: none; background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); color: var(--status-danger); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; margin-bottom: 14px;"></div>
+
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+                ${o.currentBlocked>0?`
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-modal-clear-block" style="margin-right: auto; color: #B45309; border-color: var(--status-warning-border); background: #FFFBEB;">
+                    Unblock (Set to 0)
+                  </button>
+                `:""}
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-modal-cancel">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm" id="btn-modal-save">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `,window.lucide&&window.lucide.createIcons();const m=()=>{p.innerHTML=""};(y=p.querySelector("#btn-close-block-modal"))==null||y.addEventListener("click",m),(S=p.querySelector("#btn-modal-cancel"))==null||S.addEventListener("click",m),(w=p.querySelector("#modal-overlay"))==null||w.addEventListener("click",b=>{b.target.id==="modal-overlay"&&m()}),(f=p.querySelector("#btn-modal-clear-block"))==null||f.addEventListener("click",async()=>{window.confirm(`Set blocked rooms to 0 for ${o.date}?`)&&await g(0)}),(M=p.querySelector("#form-manage-block"))==null||M.addEventListener("submit",async b=>{b.preventDefault();const k=Number(p.querySelector("#input-blocked-count").value);if(isNaN(k)||k<0){l("Please enter a valid non-negative number.");return}if(k>o.maxBlockable){l(`Cannot block ${k} rooms. Maximum available to block is ${o.maxBlockable} rooms (${o.booked} already booked).`);return}const H=k===0?`Confirm unblocking all rooms for ${o.date}?`:`Confirm blocking ${k} rooms for ${o.date}? These rooms will not be available for guests to book.`;window.confirm(H)&&await g(k)});function l(b){const k=p.querySelector("#modal-error-box");k&&(k.textContent=b,k.style.display="block")}async function g(b){const k=p.querySelector("#btn-modal-save");k&&(k.disabled=!0,k.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons());try{await x.blockAvailability(o.roomId,o.date,b),m(),window.showToast&&window.showToast(b===0?`Unblocked rooms for ${o.date}.`:`Blocked ${b} rooms for ${o.date}.`,"success"),await r()}catch(H){k&&(k.disabled=!1,k.innerHTML="Save Changes"),l(H.message||"Failed to update room availability.")}}};var e=c;let a=[],d="";try{const o=await x.getOwnerHotels();if(o&&o.hotels&&o.hotels.length>0){const p=o.hotels[0];d=p.name||"Hotel Property",a=(p.rooms||[]).filter(h=>h.is_active!==!1)}}catch(o){console.warn("Owner hotels fetch error, falling back to hotel admin rooms:",o)}if(a.length===0)try{const o=await x.getHotelAdminRooms();o&&o.rooms&&o.rooms.length>0&&(a=o.rooms.filter(p=>p.is_active!==!1))}catch(o){console.warn("Hotel admin rooms fetch error:",o)}if(a.length===0){i.innerHTML=`
+        <div class="panel-card" style="text-align: center; padding: 48px 24px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-surface-secondary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid var(--border-light);">
+            <i data-lucide="bed-double" style="width: 28px; height: 28px; color: var(--text-muted);"></i>
+          </div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">No Room Categories Configured</h3>
+          <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px; font-size: 0.88rem;">
+            Please add room categories and total inventory under the Rooms section before managing live daily availability.
+          </p>
+          <a href="#/hotel-admin/rooms" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="plus"></i> Go to Room Categories
+          </a>
+        </div>
+      `,window.lucide&&window.lucide.createIcons();return}let s=a[0].id;const n=o=>{const p=o.getFullYear(),h=String(o.getMonth()+1).padStart(2,"0"),v=String(o.getDate()).padStart(2,"0");return`${p}-${h}-${v}`};async function r(){var w,f;const o=new Date,p=n(o),h=new Date(o.getFullYear(),o.getMonth(),o.getDate()+14),v=n(h),u=a.find(M=>M.id===s)||a[0];let m=[],l=null;try{const M=await x.getRoomAvailability(s,p,v);if(M&&Array.isArray(M.matrix))m=M.matrix;else throw new Error("Unexpected response format from availability endpoint.")}catch(M){l=M.message||"Failed to load availability data."}const g=m.reduce((M,b)=>M+(b.booked_count||0),0),y=m.reduce((M,b)=>M+(b.blocked_count||0),0),S=m.filter(M=>M.available_count===0).length;i.innerHTML=`
+        <style>
+          .avail-matrix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+          }
+          .avail-summary-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 22px;
+          }
+          @media (max-width: 900px) {
+            .avail-summary-bar {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 480px) {
+            .avail-summary-bar {
+              grid-template-columns: 1fr;
+            }
+          }
+          .avail-summary-chip {
+            background: var(--bg-surface-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+          .avail-chip-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+          }
+          .avail-chip-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+          }
+          .avail-grid-scroll {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+          }
+          .avail-card {
+            background: var(--bg-surface-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+            position: relative;
+            min-height: 190px;
+          }
+          .avail-card:hover {
+            border-color: var(--color-primary-light);
+            box-shadow: var(--shadow-sm);
+          }
+          .avail-card.is-today {
+            border-top: 3px solid var(--color-primary);
+          }
+          .avail-card.is-zero {
+            background: var(--status-danger-bg);
+            border-color: var(--status-danger-border);
+          }
+          .avail-card-date {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .avail-card-subdate {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+          }
+          .avail-count-badge {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin: 6px 0;
+          }
+          .avail-count-big {
+            font-size: 1.55rem;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            color: var(--color-primary);
+            line-height: 1;
+          }
+          .avail-card.is-zero .avail-count-big {
+            color: var(--status-danger);
+          }
+          .avail-count-unit {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          .avail-breakdown-bar {
+            height: 6px;
+            width: 100%;
+            border-radius: 3px;
+            background: var(--border-light);
+            overflow: hidden;
+            display: flex;
+            margin: 8px 0;
+          }
+          .avail-bar-booked { background: #3B82F6; }
+          .avail-bar-blocked { background: #F59E0B; }
+          .avail-bar-free { background: #10B981; }
+          .avail-breakdown-text {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 10px;
+          }
+          .avail-card-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 6px;
+          }
+          .avail-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+          }
+          .avail-modal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            animation: fadeInModal 0.2s ease-out;
+          }
+          @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        </style>
+
+        <div class="panel-card">
+          <!-- Top Header & Controls -->
+          <div class="avail-matrix-header">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="badge" style="background: var(--color-primary-subtle); color: var(--color-primary); border: 1px solid var(--border-light); font-size: 0.72rem; padding: 2px 8px; font-weight: 600;">
+                  ${d||"Property"}
+                </span>
+                <span style="font-size: 0.76rem; color: var(--text-muted);">
+                  Formula: Available = Total (${u.total_inventory}) − Booked − Blocked
+                </span>
+              </div>
+              <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin: 0;">
+                Real-Time Room Availability Calendar (Next 14 Days)
+              </h2>
+              <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 4px 0 0;">
+                Live stay availability with atomic blackout reservation controls to prevent double-booking.
+              </p>
+            </div>
+
+            <!-- Room Category Dropdown Selection -->
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 260px;">
+              <label for="select-room-matrix" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); white-space: nowrap;">
+                Category:
+              </label>
+              <select class="select-filter" id="select-room-matrix" style="flex: 1; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-medium); background: var(--bg-surface-secondary);">
+                ${a.map(M=>`
+                  <option value="${M.id}" ${M.id===s?"selected":""}>
+                    ${M.room_name||M.name} — (${M.total_inventory||1} units)
+                  </option>
+                `).join("")}
               </select>
             </div>
           </div>
 
-          <!-- Availability 14-day Grid -->
-          <div class="availability-grid">
-            ${y.map(n=>`
-              <div class="avail-day-card ${n.available_count===0?"fully-booked":""}">
-                <div class="avail-date-label">${new Date(n.date).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary); margin-top: 4px;">
-                  ${n.available_count} <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">avail</span>
-                </div>
-                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px;">
-                  ${n.booked_count} Booked • ${n.blocked_count} Blocked
-                </div>
-                <button class="btn btn-secondary btn-sm btn-block-date" data-date="${n.date}" data-blocked="${n.blocked_count}" style="width: 100%; margin-top: 8px; font-size: 0.7rem; padding: 3px 6px;">
-                  ${n.blocked_count>0?"Unblock":"Block Rooms"}
-                </button>
+          <!-- Summary Chips -->
+          <div class="avail-summary-bar">
+            <div class="avail-summary-chip">
+              <span class="avail-chip-label">Room Category</span>
+              <span class="avail-chip-value" style="font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${u.room_name||u.name}
+              </span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">₹${u.price_per_night||u.base_price||0} / night</span>
+            </div>
+            <div class="avail-summary-chip">
+              <span class="avail-chip-label">Total Room Inventory</span>
+              <span class="avail-chip-value" style="color: var(--color-primary);">${u.total_inventory||1} Rooms</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">Physical capacity per day</span>
+            </div>
+            <div class="avail-summary-chip">
+              <span class="avail-chip-label">14-Day Booked Units</span>
+              <span class="avail-chip-value" style="color: #2563EB;">${g} Booked</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${y} Units Blocked / Blackout</span>
+            </div>
+            <div class="avail-summary-chip">
+              <span class="avail-chip-label">Full Capacity Days</span>
+              <span class="avail-chip-value" style="color: ${S>0?"var(--status-danger)":"var(--status-success)"};">
+                ${S} / 14 Days
+              </span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${14-S} Days with Open Slots</span>
+            </div>
+          </div>
+
+          <!-- Error Alert if API failed -->
+          ${l?`
+            <div style="background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); color: var(--status-danger); padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+                <span style="font-size: 0.85rem; font-weight: 500;">${l}</span>
               </div>
-            `).join("")}
+              <button class="btn btn-secondary btn-sm" id="btn-retry-matrix" style="padding: 4px 10px;">Retry</button>
+            </div>
+          `:""}
+
+          <!-- Legend -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 14px; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.76rem;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                <span style="color: var(--text-secondary);">Available For Guests</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #3B82F6; display: inline-block;"></span>
+                <span style="color: var(--text-secondary);">Confirmed Bookings</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #F59E0B; display: inline-block;"></span>
+                <span style="color: var(--text-secondary);">Admin Blocked / Blackout</span>
+              </div>
+            </div>
+            <span style="color: var(--text-muted); font-size: 0.72rem;">* Click "Manage" or "Unblock" on any date to adjust room capacity</span>
+          </div>
+
+          <!-- 14-Day Calendar Matrix Cards -->
+          <div class="avail-grid-scroll">
+            ${m.map(M=>{const b=M.date.split("-"),k=new Date(Number(b[0]),Number(b[1])-1,Number(b[2])),H=k.toLocaleDateString("en-US",{weekday:"short"}),$=k.toLocaleDateString("en-US",{month:"short",day:"numeric"}),L=M.date===p,T=M.available_count===0,q=M.total_inventory||u.total_inventory||1,B=Math.round(M.booked_count/q*100),D=Math.round(M.blocked_count/q*100),R=Math.max(0,100-B-D);return`
+                <div class="avail-card ${L?"is-today":""} ${T?"is-zero":""}" data-date="${M.date}">
+                  <div>
+                    <div class="avail-card-date">
+                      <span>${H}</span>
+                      ${L?'<span class="badge" style="background: var(--color-primary); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">TODAY</span>':""}
+                      ${T&&!L?'<span class="badge" style="background: var(--status-danger); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">FULL</span>':""}
+                    </div>
+                    <div class="avail-card-subdate">${$}</div>
+
+                    <div class="avail-count-badge">
+                      <span class="avail-count-big">${M.available_count}</span>
+                      <span class="avail-count-unit">open / ${q}</span>
+                    </div>
+
+                    <!-- Visual Segmented Bar -->
+                    <div class="avail-breakdown-bar" title="Booked: ${M.booked_count}, Blocked: ${M.blocked_count}, Available: ${M.available_count}">
+                      <div class="avail-bar-booked" style="width: ${B}%;"></div>
+                      <div class="avail-bar-blocked" style="width: ${D}%;"></div>
+                      <div class="avail-bar-free" style="width: ${R}%;"></div>
+                    </div>
+
+                    <div class="avail-breakdown-text">
+                      <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #2563EB;">● Booked:</span>
+                        <strong>${M.booked_count}</strong>
+                      </div>
+                      <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #D97706;">● Blocked:</span>
+                        <strong>${M.blocked_count}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="avail-card-actions">
+                    ${M.blocked_count>0?`
+                      <button class="btn btn-secondary btn-sm btn-unblock-direct" 
+                        data-date="${M.date}" 
+                        data-room="${s}"
+                        title="Unblock all blocked inventory for this date"
+                        style="width: 100%; font-size: 0.72rem; padding: 4px 6px; border-color: var(--status-warning-border); color: #B45309; background: #FFFBEB;">
+                        <i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Unblock
+                      </button>
+                    `:""}
+                    <button class="btn btn-primary btn-sm btn-open-block-modal" 
+                      data-date="${M.date}" 
+                      data-room="${s}"
+                      data-available="${M.available_count}"
+                      data-booked="${M.booked_count}"
+                      data-blocked="${M.blocked_count}"
+                      data-total="${q}"
+                      style="width: 100%; font-size: 0.72rem; padding: 4px 6px;">
+                      <i data-lucide="sliders-horizontal" style="width: 12px; height: 12px;"></i> ${M.blocked_count>0?"Edit Block":"Block Rooms"}
+                    </button>
+                  </div>
+                </div>
+              `}).join("")}
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),(m=i.querySelector("#select-room-matrix"))==null||m.addEventListener("change",n=>{s=n.target.value,r()}),i.querySelectorAll(".btn-block-date").forEach(n=>{n.addEventListener("click",async()=>{const g=n.getAttribute("data-date"),b=Number(n.getAttribute("data-blocked"))>0?0:2;try{await M.blockAvailability(s,g,b),window.showToast(`Inventory updated for ${g}.`,"success"),r()}catch(f){window.showToast(f.message,"error")}})})}r()}catch(e){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${e.message}</div>`}}async function IM(i){let e=[];async function a(){i.innerHTML=`
+
+        <!-- Block Inventory Modal Mount Point -->
+        <div id="avail-modal-mount"></div>
+      `,window.lucide&&window.lucide.createIcons(),(w=i.querySelector("#btn-retry-matrix"))==null||w.addEventListener("click",()=>{r()}),(f=i.querySelector("#select-room-matrix"))==null||f.addEventListener("change",M=>{s=M.target.value,r()}),i.querySelectorAll(".btn-unblock-direct").forEach(M=>{M.addEventListener("click",async b=>{b.stopPropagation();const k=M.getAttribute("data-date");if(window.confirm(`Are you sure you want to unblock all rooms for ${k}? This will restore available inventory for guests.`)){M.disabled=!0,M.innerHTML='<i data-lucide="loader-2" style="width: 12px; height: 12px; animation: spin 1s linear infinite;"></i> Unblocking...',window.lucide&&window.lucide.createIcons();try{await x.blockAvailability(s,k,0),window.showToast&&window.showToast(`Successfully unblocked rooms for ${k}.`,"success"),await r()}catch($){M.disabled=!1,M.innerHTML='<i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Unblock',window.lucide&&window.lucide.createIcons(),window.showToast?window.showToast($.message||"Failed to unblock rooms.","error"):alert(`Error: ${$.message}`)}}})}),i.querySelectorAll(".btn-open-block-modal").forEach(M=>{M.addEventListener("click",()=>{const b=M.getAttribute("data-date"),k=Number(M.getAttribute("data-available")),H=Number(M.getAttribute("data-booked")),$=Number(M.getAttribute("data-blocked")),L=Number(M.getAttribute("data-total")),T=Math.max(0,L-H);c({roomId:s,roomName:u.room_name||u.name,date:b,available:k,booked:H,currentBlocked:$,total:L,maxBlockable:T})})})}await r()}catch(a){i.innerHTML=`
+      <div class="panel-card" style="color: var(--status-danger); padding: 30px; text-align: center;">
+        <i data-lucide="alert-circle" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Failed to initialize availability manager</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">${a.message}</p>
+      </div>
+    `,window.lucide&&window.lucide.createIcons()}}async function IM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading bookings for your hotel...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getOwnerBookings()).bookings,d()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerBookings()).bookings,d()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="card-header" style="padding: 16px 20px; margin-bottom: 0;">
           <div class="card-title-group">
@@ -10163,7 +10541,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading arrivals...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getOwnerBookings()).bookings.filter(o=>o.booking_status==="confirmed"),d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerBookings()).bookings.filter(r=>r.booking_status==="confirmed"),d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <!-- Fast Check-In Search Widget -->
       <div class="panel-card" style="max-width: 620px; margin-bottom: 24px;">
         <div class="card-header">
@@ -10204,19 +10582,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${e.length===0?`
                 <tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">No pending guest arrivals for check-in.</td></tr>
-              `:e.map(r=>`
+              `:e.map(n=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.booking_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${r.customer_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.customer_phone||r.customer_email}</div>
+                    <div style="font-weight: 600;">${n.customer_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.customer_phone||n.customer_email}</div>
                   </td>
-                  <td>${r.room_name}</td>
-                  <td><strong style="color: var(--color-primary);">${r.check_in_date}</strong></td>
-                  <td>${r.nights} nights (${r.guests_count} guests)</td>
-                  <td style="font-weight: 700;">₹${r.total_amount.toLocaleString("en-IN")}</td>
+                  <td>${n.room_name}</td>
+                  <td><strong style="color: var(--color-primary);">${n.check_in_date}</strong></td>
+                  <td>${n.nights} nights (${n.guests_count} guests)</td>
+                  <td style="font-weight: 700;">₹${n.total_amount.toLocaleString("en-IN")}</td>
                   <td>
-                    <button class="btn btn-success btn-sm btn-confirm-checkin" data-booking-id="${r.id}" data-guest-name="${r.customer_name}">
+                    <button class="btn btn-success btn-sm btn-confirm-checkin" data-booking-id="${n.id}" data-guest-name="${n.customer_name}">
                       <i data-lucide="check-circle-2"></i> Complete Check-In
                     </button>
                   </td>
@@ -10226,12 +10604,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var r;i.querySelectorAll(".btn-confirm-checkin").forEach(o=>{o.addEventListener("click",async()=>{const c=o.getAttribute("data-booking-id"),l=o.getAttribute("data-guest-name");try{await M.checkInGuest(c),window.showToast(`Guest ${l} checked in successfully!`,"success"),a()}catch(v){window.showToast(v.message,"error")}})}),(r=i.querySelector("#btn-find-booking"))==null||r.addEventListener("click",()=>{const o=i.querySelector("#checkin-search-id").value.trim().toLowerCase();if(!o)return;const c=e.filter(l=>l.booking_code.toLowerCase().includes(o)||l.customer_name.toLowerCase().includes(o));c.length===0?window.showToast("No reservation matching that reference was found.","error"):window.showToast(`Found reservation for ${c[0].customer_name}!`,"info")})}a()}async function NM(i){let e=[];async function a(){i.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var n;i.querySelectorAll(".btn-confirm-checkin").forEach(r=>{r.addEventListener("click",async()=>{const c=r.getAttribute("data-booking-id"),o=r.getAttribute("data-guest-name");try{await x.checkInGuest(c),window.showToast(`Guest ${o} checked in successfully!`,"success"),a()}catch(p){window.showToast(p.message,"error")}})}),(n=i.querySelector("#btn-find-booking"))==null||n.addEventListener("click",()=>{const r=i.querySelector("#checkin-search-id").value.trim().toLowerCase();if(!r)return;const c=e.filter(o=>o.booking_code.toLowerCase().includes(r)||o.customer_name.toLowerCase().includes(r));c.length===0?window.showToast("No reservation matching that reference was found.","error"):window.showToast(`Found reservation for ${c[0].customer_name}!`,"info")})}a()}async function NM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading in-house guests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getOwnerBookings()).bookings.filter(o=>o.booking_status==="checked_in"),d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerBookings()).bookings.filter(r=>r.booking_status==="checked_in"),d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="card-header" style="padding: 16px 20px; margin-bottom: 0;">
           <div class="card-title-group">
@@ -10256,19 +10634,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${e.length===0?`
                 <tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">No active in-house guests currently staying.</td></tr>
-              `:e.map(r=>`
+              `:e.map(n=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.booking_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${r.customer_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.customer_phone||r.customer_email}</div>
+                    <div style="font-weight: 600;">${n.customer_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.customer_phone||n.customer_email}</div>
                   </td>
-                  <td>${r.room_name}</td>
-                  <td>${r.check_in_date}</td>
-                  <td><strong style="color: var(--status-warning);">${r.check_out_date}</strong></td>
-                  <td style="font-weight: 700;">₹${r.total_amount.toLocaleString("en-IN")}</td>
+                  <td>${n.room_name}</td>
+                  <td>${n.check_in_date}</td>
+                  <td><strong style="color: var(--status-warning);">${n.check_out_date}</strong></td>
+                  <td style="font-weight: 700;">₹${n.total_amount.toLocaleString("en-IN")}</td>
                   <td>
-                    <button class="btn btn-primary btn-sm btn-confirm-checkout" data-booking-id="${r.id}" data-guest-name="${r.customer_name}">
+                    <button class="btn btn-primary btn-sm btn-confirm-checkout" data-booking-id="${n.id}" data-guest-name="${n.customer_name}">
                       <i data-lucide="log-out"></i> Complete Check-Out
                     </button>
                   </td>
@@ -10278,12 +10656,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-confirm-checkout").forEach(r=>{r.addEventListener("click",async()=>{const o=r.getAttribute("data-booking-id"),c=r.getAttribute("data-guest-name");try{await M.checkOutGuest(o),window.showToast(`Guest ${c} checked out. Room released to inventory!`,"success"),a()}catch(l){window.showToast(l.message,"error")}})})}a()}async function ZM(i){let e=null;async function a(){i.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){i.querySelectorAll(".btn-confirm-checkout").forEach(n=>{n.addEventListener("click",async()=>{const r=n.getAttribute("data-booking-id"),c=n.getAttribute("data-guest-name");try{await x.checkOutGuest(r),window.showToast(`Guest ${c} checked out. Room released to inventory!`,"success"),a()}catch(o){window.showToast(o.message,"error")}})})}a()}async function FM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner earnings ledger...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=await M.getOwnerEarnings(),d()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=await x.getOwnerEarnings(),d()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function d(){i.innerHTML=`
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-header">
@@ -10354,19 +10732,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons()}a()}async function FM(i){let e="requests",a=[],d=[],s=null,r="all";async function o(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons()}a()}async function ZM(i){let e="requests",a=[],d=[],s=null,n="all";async function r(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading pickup services & requests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{if(a=(await M.getOwnerHotels()).hotels||[],a.length>0){const n=a[0],[g,u]=await Promise.all([M.getPickups({hotel_id:n.id}),M.getHotelPickupSettings(n.id)]);d=g.pickups||[],s=u}c()}catch(m){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickup data: ${m.message}</div>`}}function c(){if(a.length===0){i.innerHTML='<div class="panel-card">Please register an active hotel first to manage pickup services.</div>';return}const m=a[0],n=s?s.pickup_service_enabled!==!1:!0,g=(s==null?void 0:s.all_locations)||m.pickup_locations||[],u=(s==null?void 0:s.all_vehicles)||m.pickup_vehicles||[],b=d.filter(f=>r==="all"?!0:f.pickup&&f.pickup.status===r);i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{if(a=(await x.getOwnerHotels()).hotels||[],a.length>0){const l=a[0],[g,y]=await Promise.all([x.getPickups({hotel_id:l.id}),x.getHotelPickupSettings(l.id)]);d=g.pickups||[],s=y}c()}catch(m){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickup data: ${m.message}</div>`}}function c(){if(a.length===0){i.innerHTML='<div class="panel-card">Please register an active hotel first to manage pickup services.</div>';return}const m=a[0],l=s?s.pickup_service_enabled!==!1:!0,g=(s==null?void 0:s.all_locations)||m.pickup_locations||[],y=(s==null?void 0:s.all_vehicles)||m.pickup_vehicles||[],S=d.filter(w=>n==="all"?!0:w.pickup&&w.pickup.status===n);i.innerHTML=`
       <!-- TOP STATUS BAR & GLOBAL TOGGLE -->
       <div class="panel-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
         <div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);">${m.name}</h2>
-            <span class="status-pill ${n?"active":"inactive"}">
-              ${n?"Pickup Service LIVE":"Pickup Service DISABLED"}
+            <span class="status-pill ${l?"active":"inactive"}">
+              ${l?"Pickup Service LIVE":"Pickup Service DISABLED"}
             </span>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
@@ -10375,9 +10753,9 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
-          <button id="btn-toggle-service" class="btn ${n?"btn-secondary":"btn-primary"}" style="font-size: 0.82rem;">
-            <i data-lucide="${n?"power-off":"check"}"></i>
-            ${n?"Disable Pickup Service":"Enable Pickup Service"}
+          <button id="btn-toggle-service" class="btn ${l?"btn-secondary":"btn-primary"}" style="font-size: 0.82rem;">
+            <i data-lucide="${l?"power-off":"check"}"></i>
+            ${l?"Disable Pickup Service":"Enable Pickup Service"}
           </button>
         </div>
       </div>
@@ -10388,7 +10766,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <i data-lucide="calendar-check"></i> Pickup Requests (${d.length})
         </button>
         <button class="btn btn-sm ${e==="vehicles"?"btn-primary":"btn-secondary"}" id="tab-btn-vehicles">
-          <i data-lucide="car"></i> Vehicle Fleet (${u.length})
+          <i data-lucide="car"></i> Vehicle Fleet (${y.length})
         </button>
         <button class="btn btn-sm ${e==="locations"?"btn-primary":"btn-secondary"}" id="tab-btn-locations">
           <i data-lucide="map-pin"></i> Pickup Locations (${g.length})
@@ -10401,14 +10779,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <div style="display: flex; gap: 8px; align-items: center;">
             <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Filter Status:</span>
             <select id="status-filter-select" class="form-control" style="padding: 4px 10px; font-size: 0.82rem; width: auto;">
-              <option value="all" ${r==="all"?"selected":""}>All Requests (${d.length})</option>
-              <option value="requested" ${r==="requested"?"selected":""}>Requested</option>
-              <option value="confirmed" ${r==="confirmed"?"selected":""}>Confirmed</option>
-              <option value="assigned" ${r==="assigned"?"selected":""}>Driver Assigned</option>
-              <option value="driver_on_way" ${r==="driver_on_way"?"selected":""}>Driver On Way</option>
-              <option value="arrived" ${r==="arrived"?"selected":""}>Arrived</option>
-              <option value="completed" ${r==="completed"?"selected":""}>Completed</option>
-              <option value="cancelled" ${r==="cancelled"?"selected":""}>Cancelled</option>
+              <option value="all" ${n==="all"?"selected":""}>All Requests (${d.length})</option>
+              <option value="requested" ${n==="requested"?"selected":""}>Requested</option>
+              <option value="confirmed" ${n==="confirmed"?"selected":""}>Confirmed</option>
+              <option value="assigned" ${n==="assigned"?"selected":""}>Driver Assigned</option>
+              <option value="driver_on_way" ${n==="driver_on_way"?"selected":""}>Driver On Way</option>
+              <option value="arrived" ${n==="arrived"?"selected":""}>Arrived</option>
+              <option value="completed" ${n==="completed"?"selected":""}>Completed</option>
+              <option value="cancelled" ${n==="cancelled"?"selected":""}>Cancelled</option>
             </select>
           </div>
         </div>
@@ -10430,55 +10808,55 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </tr>
               </thead>
               <tbody>
-                ${b.length===0?`
+                ${S.length===0?`
                   <tr><td colspan="9" style="text-align: center; padding: 36px; color: var(--text-muted);">No pickup requests found for this filter.</td></tr>
-                `:b.map(f=>{const x=f.pickup||{},w=x.driver||{},k=w.name&&w.name.trim()!=="";return`
+                `:S.map(w=>{const f=w.pickup||{},M=f.driver||{},b=M.name&&M.name.trim()!=="";return`
                     <tr>
                       <td>
-                        <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${f.booking_code}</span>
+                        <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${w.booking_code}</span>
                       </td>
                       <td>
-                        <div style="font-weight: 700;">${f.customer_name}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${f.customer_phone||f.customer_email}</div>
+                        <div style="font-weight: 700;">${w.customer_name}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${w.customer_phone||w.customer_email}</div>
                       </td>
                       <td>
                         <div style="font-weight: 700; color: var(--color-primary-dark); text-transform: capitalize;">
-                          ${x.type==="airport"?"✈️ Airport":x.type==="railway"?"🚆 Railway":x.type==="bus"?"🚌 Bus":"📍 Custom"}
+                          ${f.type==="airport"?"✈️ Airport":f.type==="railway"?"🚆 Railway":f.type==="bus"?"🚌 Bus":"📍 Custom"}
                         </div>
                         <div style="font-size: 0.75rem; color: var(--text-dark); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                          ${x.location_name||"Designated Point"}
+                          ${f.location_name||"Designated Point"}
                         </div>
-                        ${x.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${x.flight_number}</div>`:""}
-                        ${x.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${x.train_number}</div>`:""}
+                        ${f.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${f.flight_number}</div>`:""}
+                        ${f.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${f.train_number}</div>`:""}
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${x.pickup_time||"10:30 AM"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${x.pickup_date||f.check_in_date}</div>
+                        <div style="font-weight: 600;">${f.pickup_time||"10:30 AM"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${f.pickup_date||w.check_in_date}</div>
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${x.location_name||"Station Transfer"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${x.pickup_time||"10:30 AM"}</div>
+                        <div style="font-weight: 600;">${f.location_name||"Station Transfer"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${f.pickup_time||"10:30 AM"}</div>
                       </td>
                       <td>
-                        <strong style="color: #2E7D32; font-size: 0.95rem;">${x.pickup_charge===0||x.pickup_service==="FREE"||x.service==="FREE"?"FREE (₹0)":`₹${(x.pickup_charge||0).toLocaleString("en-IN")}`}</strong>
+                        <strong style="color: #2E7D32; font-size: 0.95rem;">${f.pickup_charge===0||f.pickup_service==="FREE"||f.service==="FREE"?"FREE (₹0)":`₹${(f.pickup_charge||0).toLocaleString("en-IN")}`}</strong>
                       </td>
                       <td>
-                        ${k?`
-                          <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${w.name}</div>
-                          <div style="font-size: 0.7rem; color: var(--text-muted);">${w.phone?"📞 "+w.phone:""} ${w.vehicle_number?`(${w.vehicle_number})`:""}</div>
+                        ${b?`
+                          <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${M.name}</div>
+                          <div style="font-size: 0.7rem; color: var(--text-muted);">${M.phone?"📞 "+M.phone:""} ${M.vehicle_number?`(${M.vehicle_number})`:""}</div>
                         `:`
                           <span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">Unassigned</span>
                         `}
                       </td>
                       <td>
-                        <span class="status-pill ${x.status||"confirmed"}">${(x.status||"confirmed").replace("_"," ")}</span>
+                        <span class="status-pill ${f.status||"confirmed"}">${(f.status||"confirmed").replace("_"," ")}</span>
                       </td>
                       <td>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                          <button class="btn btn-secondary btn-sm btn-assign-driver" data-booking-id="${f.booking_id}">
+                          <button class="btn btn-secondary btn-sm btn-assign-driver" data-booking-id="${w.booking_id}">
                             <i data-lucide="user-check"></i> Driver
                           </button>
-                          <button class="btn btn-primary btn-sm btn-update-status" data-booking-id="${f.booking_id}">
+                          <button class="btn btn-primary btn-sm btn-update-status" data-booking-id="${w.booking_id}">
                             <i data-lucide="refresh-cw"></i> Status
                           </button>
                         </div>
@@ -10494,7 +10872,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <!-- TAB 2: VEHICLE FLEET MANAGEMENT -->
       ${e==="vehicles"?`
         <div class="filter-bar" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 1rem; font-weight: 700;">Configured Vehicles (${u.length})</h3>
+          <h3 style="font-size: 1rem; font-weight: 700;">Configured Vehicles (${y.length})</h3>
           <button class="btn btn-primary btn-sm" id="btn-add-vehicle">
             <i data-lucide="plus"></i> Add Vehicle
           </button>
@@ -10514,24 +10892,24 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </tr>
               </thead>
               <tbody>
-                ${u.length===0?`
+                ${y.length===0?`
                   <tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">No vehicles configured yet.</td></tr>
-                `:u.map(f=>`
+                `:y.map(w=>`
                   <tr>
                     <td>
-                      <div style="font-weight: 700; color: var(--text-dark);">${f.name}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${f.type||"Sedan"}</div>
+                      <div style="font-weight: 700; color: var(--text-dark);">${w.name}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${w.type||"Sedan"}</div>
                     </td>
-                    <td><strong>${f.capacity} Passengers max</strong></td>
-                    <td><strong style="color: var(--status-success); font-size: 0.95rem;">₹${(f.price||800).toLocaleString("en-IN")}</strong></td>
-                    <td><span style="font-family: monospace; font-size: 0.8rem; font-weight: 600;">${f.vehicle_number||"N/A"}</span></td>
-                    <td><span class="status-pill ${f.active!==!1?"active":"inactive"}">${f.active!==!1?"Active":"Inactive"}</span></td>
+                    <td><strong>${w.capacity} Passengers max</strong></td>
+                    <td><strong style="color: var(--status-success); font-size: 0.95rem;">₹${(w.price||800).toLocaleString("en-IN")}</strong></td>
+                    <td><span style="font-family: monospace; font-size: 0.8rem; font-weight: 600;">${w.vehicle_number||"N/A"}</span></td>
+                    <td><span class="status-pill ${w.active!==!1?"active":"inactive"}">${w.active!==!1?"Active":"Inactive"}</span></td>
                     <td>
                       <div style="display: flex; gap: 6px;">
-                        <button class="btn btn-secondary btn-sm btn-edit-vehicle" data-vehicle-id="${f.id}">
+                        <button class="btn btn-secondary btn-sm btn-edit-vehicle" data-vehicle-id="${w.id}">
                           <i data-lucide="edit-3"></i> Edit
                         </button>
-                        <button class="btn btn-secondary btn-sm btn-delete-vehicle" data-vehicle-id="${f.id}" style="color: var(--status-danger);">
+                        <button class="btn btn-secondary btn-sm btn-delete-vehicle" data-vehicle-id="${w.id}" style="color: var(--status-danger);">
                           <i data-lucide="trash-2"></i> Delete
                         </button>
                       </div>
@@ -10568,18 +10946,18 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <tbody>
                 ${g.length===0?`
                   <tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">No locations configured yet.</td></tr>
-                `:g.map(f=>`
+                `:g.map(w=>`
                   <tr>
-                    <td><strong style="color: var(--text-dark);">${f.name}</strong></td>
-                    <td><span style="text-transform: capitalize; font-weight: 600; color: var(--color-primary);">${f.type||"Custom"}</span></td>
-                    <td><span style="font-size: 0.8rem; color: var(--text-muted);">${f.address||"N/A"}</span></td>
-                    <td><span class="status-pill ${f.active!==!1?"active":"inactive"}">${f.active!==!1?"Active":"Inactive"}</span></td>
+                    <td><strong style="color: var(--text-dark);">${w.name}</strong></td>
+                    <td><span style="text-transform: capitalize; font-weight: 600; color: var(--color-primary);">${w.type||"Custom"}</span></td>
+                    <td><span style="font-size: 0.8rem; color: var(--text-muted);">${w.address||"N/A"}</span></td>
+                    <td><span class="status-pill ${w.active!==!1?"active":"inactive"}">${w.active!==!1?"Active":"Inactive"}</span></td>
                     <td>
                       <div style="display: flex; gap: 6px;">
-                        <button class="btn btn-secondary btn-sm btn-edit-location" data-location-id="${f.id}">
+                        <button class="btn btn-secondary btn-sm btn-edit-location" data-location-id="${w.id}">
                           <i data-lucide="edit-3"></i> Edit
                         </button>
-                        <button class="btn btn-secondary btn-sm btn-delete-location" data-location-id="${f.id}" style="color: var(--status-danger);">
+                        <button class="btn btn-secondary btn-sm btn-delete-location" data-location-id="${w.id}" style="color: var(--status-danger);">
                           <i data-lucide="trash-2"></i> Delete
                         </button>
                       </div>
@@ -10594,7 +10972,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       <!-- MODAL CONTAINER -->
       <div id="pickup-modal-root"></div>
-    `,l(m.id),window.lucide&&window.lucide.createIcons()}function l(m){var n,g,u,b,f,x,w;(n=i.querySelector("#tab-btn-requests"))==null||n.addEventListener("click",()=>{e="requests",c()}),(g=i.querySelector("#tab-btn-vehicles"))==null||g.addEventListener("click",()=>{e="vehicles",c()}),(u=i.querySelector("#tab-btn-locations"))==null||u.addEventListener("click",()=>{e="locations",c()}),(b=i.querySelector("#btn-toggle-service"))==null||b.addEventListener("click",async()=>{const k=s?s.pickup_service_enabled!==!1:!0;try{await M.updateHotelPickupSettings(m,!k),window.showToast(`Pickup service ${k?"disabled":"enabled"} for ${a[0].name}.`,"success"),o()}catch(H){window.showToast(H.message,"error")}}),(f=i.querySelector("#status-filter-select"))==null||f.addEventListener("change",k=>{r=k.target.value,c()}),i.querySelectorAll(".btn-assign-driver").forEach(k=>{k.addEventListener("click",()=>{const H=k.getAttribute("data-booking-id"),A=d.find(_=>_.booking_id===H);v(H,A)})}),i.querySelectorAll(".btn-update-status").forEach(k=>{k.addEventListener("click",()=>{const H=k.getAttribute("data-booking-id"),A=d.find(_=>_.booking_id===H);h(H,A)})}),(x=i.querySelector("#btn-add-vehicle"))==null||x.addEventListener("click",()=>{p(m,null)}),i.querySelectorAll(".btn-edit-vehicle").forEach(k=>{k.addEventListener("click",()=>{const H=k.getAttribute("data-vehicle-id"),A=((s==null?void 0:s.all_vehicles)||a[0].pickup_vehicles||[]).find(_=>_.id===H);p(m,A)})}),i.querySelectorAll(".btn-delete-vehicle").forEach(k=>{k.addEventListener("click",async()=>{const H=k.getAttribute("data-vehicle-id");if(confirm("Are you sure you want to remove this vehicle from your fleet?"))try{await M.deletePickupVehicle(m,H),window.showToast("Vehicle removed from fleet.","success"),o()}catch(A){window.showToast(A.message,"error")}})}),(w=i.querySelector("#btn-add-location"))==null||w.addEventListener("click",()=>{y(m,null)}),i.querySelectorAll(".btn-edit-location").forEach(k=>{k.addEventListener("click",()=>{const H=k.getAttribute("data-location-id"),A=((s==null?void 0:s.all_locations)||a[0].pickup_locations||[]).find(_=>_.id===H);y(m,A)})}),i.querySelectorAll(".btn-delete-location").forEach(k=>{k.addEventListener("click",async()=>{const H=k.getAttribute("data-location-id");if(confirm("Are you sure you want to remove this pickup point?"))try{await M.deletePickupLocation(m,H),window.showToast("Pickup point removed.","success"),o()}catch(A){window.showToast(A.message,"error")}})})}function v(m,n){var f,x;const g=i.querySelector("#pickup-modal-root"),u=((f=n==null?void 0:n.pickup)==null?void 0:f.driver)||{};g.innerHTML=`
+    `,o(m.id),window.lucide&&window.lucide.createIcons()}function o(m){var l,g,y,S,w,f,M;(l=i.querySelector("#tab-btn-requests"))==null||l.addEventListener("click",()=>{e="requests",c()}),(g=i.querySelector("#tab-btn-vehicles"))==null||g.addEventListener("click",()=>{e="vehicles",c()}),(y=i.querySelector("#tab-btn-locations"))==null||y.addEventListener("click",()=>{e="locations",c()}),(S=i.querySelector("#btn-toggle-service"))==null||S.addEventListener("click",async()=>{const b=s?s.pickup_service_enabled!==!1:!0;try{await x.updateHotelPickupSettings(m,!b),window.showToast(`Pickup service ${b?"disabled":"enabled"} for ${a[0].name}.`,"success"),r()}catch(k){window.showToast(k.message,"error")}}),(w=i.querySelector("#status-filter-select"))==null||w.addEventListener("change",b=>{n=b.target.value,c()}),i.querySelectorAll(".btn-assign-driver").forEach(b=>{b.addEventListener("click",()=>{const k=b.getAttribute("data-booking-id"),H=d.find($=>$.booking_id===k);p(k,H)})}),i.querySelectorAll(".btn-update-status").forEach(b=>{b.addEventListener("click",()=>{const k=b.getAttribute("data-booking-id"),H=d.find($=>$.booking_id===k);h(k,H)})}),(f=i.querySelector("#btn-add-vehicle"))==null||f.addEventListener("click",()=>{v(m,null)}),i.querySelectorAll(".btn-edit-vehicle").forEach(b=>{b.addEventListener("click",()=>{const k=b.getAttribute("data-vehicle-id"),H=((s==null?void 0:s.all_vehicles)||a[0].pickup_vehicles||[]).find($=>$.id===k);v(m,H)})}),i.querySelectorAll(".btn-delete-vehicle").forEach(b=>{b.addEventListener("click",async()=>{const k=b.getAttribute("data-vehicle-id");if(confirm("Are you sure you want to remove this vehicle from your fleet?"))try{await x.deletePickupVehicle(m,k),window.showToast("Vehicle removed from fleet.","success"),r()}catch(H){window.showToast(H.message,"error")}})}),(M=i.querySelector("#btn-add-location"))==null||M.addEventListener("click",()=>{u(m,null)}),i.querySelectorAll(".btn-edit-location").forEach(b=>{b.addEventListener("click",()=>{const k=b.getAttribute("data-location-id"),H=((s==null?void 0:s.all_locations)||a[0].pickup_locations||[]).find($=>$.id===k);u(m,H)})}),i.querySelectorAll(".btn-delete-location").forEach(b=>{b.addEventListener("click",async()=>{const k=b.getAttribute("data-location-id");if(confirm("Are you sure you want to remove this pickup point?"))try{await x.deletePickupLocation(m,k),window.showToast("Pickup point removed.","success"),r()}catch(H){window.showToast(H.message,"error")}})})}function p(m,l){var w,f;const g=i.querySelector("#pickup-modal-root"),y=((w=l==null?void 0:l.pickup)==null?void 0:w.driver)||{};g.innerHTML=`
       <div class="modal-backdrop active" id="assign-driver-backdrop">
         <div class="modal-card" style="max-width: 480px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -10602,23 +10980,23 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <button class="btn btn-secondary btn-sm" id="btn-close-assign-modal">✕</button>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
-            Assign verified front-desk driver and vehicle for Booking <strong>${n==null?void 0:n.booking_code}</strong> (${n==null?void 0:n.customer_name}).
+            Assign verified front-desk driver and vehicle for Booking <strong>${l==null?void 0:l.booking_code}</strong> (${l==null?void 0:l.customer_name}).
           </p>
 
           <form id="form-assign-driver">
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Driver Full Name *</label>
-              <input type="text" id="driver-name" class="form-control" value="${u.name||""}" placeholder="e.g. Ramesh Chandra" required>
+              <input type="text" id="driver-name" class="form-control" value="${y.name||""}" placeholder="e.g. Ramesh Chandra" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Driver Phone / WhatsApp *</label>
-              <input type="text" id="driver-phone" class="form-control" value="${u.phone||""}" placeholder="e.g. +91 98300 12345" required>
+              <input type="text" id="driver-phone" class="form-control" value="${y.phone||""}" placeholder="e.g. +91 98300 12345" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Model & Plate Number</label>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <input type="text" id="driver-vehicle" class="form-control" value="${u.vehicle||((x=n==null?void 0:n.pickup)==null?void 0:x.vehicle_name)||"Executive Sedan"}" placeholder="e.g. Toyota Etios">
-                <input type="text" id="driver-vehicle-num" class="form-control" value="${u.vehicle_number||""}" placeholder="e.g. WB-30-AB-1290">
+                <input type="text" id="driver-vehicle" class="form-control" value="${y.vehicle||((f=l==null?void 0:l.pickup)==null?void 0:f.vehicle_name)||"Executive Sedan"}" placeholder="e.g. Toyota Etios">
+                <input type="text" id="driver-vehicle-num" class="form-control" value="${y.vehicle_number||""}" placeholder="e.g. WB-30-AB-1290">
               </div>
             </div>
 
@@ -10629,7 +11007,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{g.innerHTML=""};g.querySelector("#btn-close-assign-modal").addEventListener("click",b),g.querySelector("#btn-cancel-assign").addEventListener("click",b),g.querySelector("#form-assign-driver").addEventListener("submit",async w=>{w.preventDefault();const k={driver_name:g.querySelector("#driver-name").value.trim(),driver_phone:g.querySelector("#driver-phone").value.trim(),vehicle:g.querySelector("#driver-vehicle").value.trim(),vehicle_number:g.querySelector("#driver-vehicle-num").value.trim()};try{await M.assignPickupDriver(m,k),window.showToast("Driver assigned successfully.","success"),b(),o()}catch(H){window.showToast(H.message,"error")}})}function h(m,n){var f;const g=i.querySelector("#pickup-modal-root"),u=((f=n==null?void 0:n.pickup)==null?void 0:f.status)||"confirmed";g.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const S=()=>{g.innerHTML=""};g.querySelector("#btn-close-assign-modal").addEventListener("click",S),g.querySelector("#btn-cancel-assign").addEventListener("click",S),g.querySelector("#form-assign-driver").addEventListener("submit",async M=>{M.preventDefault();const b={driver_name:g.querySelector("#driver-name").value.trim(),driver_phone:g.querySelector("#driver-phone").value.trim(),vehicle:g.querySelector("#driver-vehicle").value.trim(),vehicle_number:g.querySelector("#driver-vehicle-num").value.trim()};try{await x.assignPickupDriver(m,b),window.showToast("Driver assigned successfully.","success"),S(),r()}catch(k){window.showToast(k.message,"error")}})}function h(m,l){var w;const g=i.querySelector("#pickup-modal-root"),y=((w=l==null?void 0:l.pickup)==null?void 0:w.status)||"confirmed";g.innerHTML=`
       <div class="modal-backdrop active" id="update-status-backdrop">
         <div class="modal-card" style="max-width: 440px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -10637,21 +11015,21 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <button class="btn btn-secondary btn-sm" id="btn-close-status-modal">✕</button>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
-            Update live status for Booking <strong>${n==null?void 0:n.booking_code}</strong>.
+            Update live status for Booking <strong>${l==null?void 0:l.booking_code}</strong>.
           </p>
 
           <form id="form-update-status">
             <div class="form-group" style="margin-bottom: 14px;">
               <label class="form-label">Pickup Service Status</label>
               <select id="pickup-new-status" class="form-control">
-                <option value="requested" ${u==="requested"?"selected":""}>Requested (Pending review)</option>
-                <option value="confirmed" ${u==="confirmed"?"selected":""}>Confirmed (Accepted)</option>
-                <option value="assigned" ${u==="assigned"?"selected":""}>Vehicle/Driver Assigned</option>
-                <option value="driver_on_way" ${u==="driver_on_way"?"selected":""}>Driver On Way</option>
-                <option value="arrived" ${u==="arrived"?"selected":""}>Driver Arrived at Station/Airport</option>
-                <option value="completed" ${u==="completed"?"selected":""}>Completed (Guest Dropped at Hotel)</option>
-                <option value="rejected" ${u==="rejected"?"selected":""}>Rejected</option>
-                <option value="cancelled" ${u==="cancelled"?"selected":""}>Cancelled</option>
+                <option value="requested" ${y==="requested"?"selected":""}>Requested (Pending review)</option>
+                <option value="confirmed" ${y==="confirmed"?"selected":""}>Confirmed (Accepted)</option>
+                <option value="assigned" ${y==="assigned"?"selected":""}>Vehicle/Driver Assigned</option>
+                <option value="driver_on_way" ${y==="driver_on_way"?"selected":""}>Driver On Way</option>
+                <option value="arrived" ${y==="arrived"?"selected":""}>Driver Arrived at Station/Airport</option>
+                <option value="completed" ${y==="completed"?"selected":""}>Completed (Guest Dropped at Hotel)</option>
+                <option value="rejected" ${y==="rejected"?"selected":""}>Rejected</option>
+                <option value="cancelled" ${y==="cancelled"?"selected":""}>Cancelled</option>
               </select>
             </div>
 
@@ -10667,7 +11045,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{g.innerHTML=""};g.querySelector("#btn-close-status-modal").addEventListener("click",b),g.querySelector("#btn-cancel-status").addEventListener("click",b),g.querySelector("#form-update-status").addEventListener("submit",async x=>{x.preventDefault();const w=g.querySelector("#pickup-new-status").value,k=g.querySelector("#status-notes").value.trim();try{await M.updatePickupStatus(m,w,k),window.showToast(`Pickup status updated to ${w.toUpperCase()}.`,"success"),b(),o()}catch(H){window.showToast(H.message,"error")}})}function p(m,n){const g=!!n,u=i.querySelector("#pickup-modal-root");u.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const S=()=>{g.innerHTML=""};g.querySelector("#btn-close-status-modal").addEventListener("click",S),g.querySelector("#btn-cancel-status").addEventListener("click",S),g.querySelector("#form-update-status").addEventListener("submit",async f=>{f.preventDefault();const M=g.querySelector("#pickup-new-status").value,b=g.querySelector("#status-notes").value.trim();try{await x.updatePickupStatus(m,M,b),window.showToast(`Pickup status updated to ${M.toUpperCase()}.`,"success"),S(),r()}catch(k){window.showToast(k.message,"error")}})}function v(m,l){const g=!!l,y=i.querySelector("#pickup-modal-root");y.innerHTML=`
       <div class="modal-backdrop active">
         <div class="modal-card" style="max-width: 460px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -10678,34 +11056,34 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <form id="form-vehicle-manage">
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Name / Model *</label>
-              <input type="text" id="veh-name" class="form-control" value="${(n==null?void 0:n.name)||""}" placeholder="e.g. Executive Sedan (Dzire)" required>
+              <input type="text" id="veh-name" class="form-control" value="${(l==null?void 0:l.name)||""}" placeholder="e.g. Executive Sedan (Dzire)" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Category</label>
               <select id="veh-type" class="form-control">
-                <option value="Sedan" ${(n==null?void 0:n.type)==="Sedan"?"selected":""}>Sedan</option>
-                <option value="SUV" ${(n==null?void 0:n.type)==="SUV"?"selected":""}>SUV</option>
-                <option value="Tempo Traveller" ${(n==null?void 0:n.type)==="Tempo Traveller"?"selected":""}>Tempo Traveller</option>
-                <option value="Luxury Bus" ${(n==null?void 0:n.type)==="Luxury Bus"?"selected":""}>Luxury Bus</option>
+                <option value="Sedan" ${(l==null?void 0:l.type)==="Sedan"?"selected":""}>Sedan</option>
+                <option value="SUV" ${(l==null?void 0:l.type)==="SUV"?"selected":""}>SUV</option>
+                <option value="Tempo Traveller" ${(l==null?void 0:l.type)==="Tempo Traveller"?"selected":""}>Tempo Traveller</option>
+                <option value="Luxury Bus" ${(l==null?void 0:l.type)==="Luxury Bus"?"selected":""}>Luxury Bus</option>
               </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
               <div class="form-group">
                 <label class="form-label">Max Capacity (Pax) *</label>
-                <input type="number" id="veh-capacity" class="form-control" min="1" max="50" value="${(n==null?void 0:n.capacity)||4}" required>
+                <input type="number" id="veh-capacity" class="form-control" min="1" max="50" value="${(l==null?void 0:l.capacity)||4}" required>
               </div>
               <div class="form-group">
                 <label class="form-label">Fixed Fare (₹) *</label>
-                <input type="number" id="veh-price" class="form-control" min="0" value="${(n==null?void 0:n.price)||800}" required>
+                <input type="number" id="veh-price" class="form-control" min="0" value="${(l==null?void 0:l.price)||800}" required>
               </div>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Plate / Registration Number</label>
-              <input type="text" id="veh-plate" class="form-control" value="${(n==null?void 0:n.vehicle_number)||""}" placeholder="e.g. WB-30-AB-1290">
+              <input type="text" id="veh-plate" class="form-control" value="${(l==null?void 0:l.vehicle_number)||""}" placeholder="e.g. WB-30-AB-1290">
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
-                <input type="checkbox" id="veh-active" ${n?n.active!==!1?"checked":"":"checked"}>
+                <input type="checkbox" id="veh-active" ${l?l.active!==!1?"checked":"":"checked"}>
                 Vehicle is available for active bookings
               </label>
             </div>
@@ -10717,7 +11095,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{u.innerHTML=""};u.querySelector("#btn-close-veh-modal").addEventListener("click",b),u.querySelector("#btn-cancel-veh").addEventListener("click",b),u.querySelector("#form-vehicle-manage").addEventListener("submit",async f=>{f.preventDefault();const x={name:u.querySelector("#veh-name").value.trim(),type:u.querySelector("#veh-type").value,capacity:Number(u.querySelector("#veh-capacity").value),price:Number(u.querySelector("#veh-price").value),vehicle_number:u.querySelector("#veh-plate").value.trim(),active:u.querySelector("#veh-active").checked};try{g?(await M.updatePickupVehicle(m,n.id,x),window.showToast("Vehicle updated successfully.","success")):(await M.addPickupVehicle(m,x),window.showToast("Vehicle added to fleet.","success")),b(),o()}catch(w){window.showToast(w.message,"error")}})}function y(m,n){const g=!!n,u=i.querySelector("#pickup-modal-root");u.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const S=()=>{y.innerHTML=""};y.querySelector("#btn-close-veh-modal").addEventListener("click",S),y.querySelector("#btn-cancel-veh").addEventListener("click",S),y.querySelector("#form-vehicle-manage").addEventListener("submit",async w=>{w.preventDefault();const f={name:y.querySelector("#veh-name").value.trim(),type:y.querySelector("#veh-type").value,capacity:Number(y.querySelector("#veh-capacity").value),price:Number(y.querySelector("#veh-price").value),vehicle_number:y.querySelector("#veh-plate").value.trim(),active:y.querySelector("#veh-active").checked};try{g?(await x.updatePickupVehicle(m,l.id,f),window.showToast("Vehicle updated successfully.","success")):(await x.addPickupVehicle(m,f),window.showToast("Vehicle added to fleet.","success")),S(),r()}catch(M){window.showToast(M.message,"error")}})}function u(m,l){const g=!!l,y=i.querySelector("#pickup-modal-root");y.innerHTML=`
       <div class="modal-backdrop active">
         <div class="modal-card" style="max-width: 460px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -10728,24 +11106,24 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <form id="form-location-manage">
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Location Name *</label>
-              <input type="text" id="loc-name" class="form-control" value="${(n==null?void 0:n.name)||""}" placeholder="e.g. New Digha Railway Station" required>
+              <input type="text" id="loc-name" class="form-control" value="${(l==null?void 0:l.name)||""}" placeholder="e.g. New Digha Railway Station" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Location Category</label>
               <select id="loc-type" class="form-control">
-                <option value="railway" ${(n==null?void 0:n.type)==="railway"?"selected":""}>Railway Station</option>
-                <option value="airport" ${(n==null?void 0:n.type)==="airport"?"selected":""}>Airport</option>
-                <option value="bus" ${(n==null?void 0:n.type)==="bus"?"selected":""}>Bus Stand / Terminal</option>
-                <option value="custom" ${(n==null?void 0:n.type)==="custom"?"selected":""}>Custom Landmark / Other</option>
+                <option value="railway" ${(l==null?void 0:l.type)==="railway"?"selected":""}>Railway Station</option>
+                <option value="airport" ${(l==null?void 0:l.type)==="airport"?"selected":""}>Airport</option>
+                <option value="bus" ${(l==null?void 0:l.type)==="bus"?"selected":""}>Bus Stand / Terminal</option>
+                <option value="custom" ${(l==null?void 0:l.type)==="custom"?"selected":""}>Custom Landmark / Other</option>
               </select>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Address / Landmark Details</label>
-              <input type="text" id="loc-address" class="form-control" value="${(n==null?void 0:n.address)||""}" placeholder="e.g. Near Station Exit Gate 1, New Digha">
+              <input type="text" id="loc-address" class="form-control" value="${(l==null?void 0:l.address)||""}" placeholder="e.g. Near Station Exit Gate 1, New Digha">
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
-                <input type="checkbox" id="loc-active" ${n?n.active!==!1?"checked":"":"checked"}>
+                <input type="checkbox" id="loc-active" ${l?l.active!==!1?"checked":"":"checked"}>
                 Location is active for guest bookings
               </label>
             </div>
@@ -10757,12 +11135,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{u.innerHTML=""};u.querySelector("#btn-close-loc-modal").addEventListener("click",b),u.querySelector("#btn-cancel-loc").addEventListener("click",b),u.querySelector("#form-location-manage").addEventListener("submit",async f=>{f.preventDefault();const x={name:u.querySelector("#loc-name").value.trim(),type:u.querySelector("#loc-type").value,address:u.querySelector("#loc-address").value.trim(),active:u.querySelector("#loc-active").checked};try{g?(await M.updatePickupLocation(m,n.id,x),window.showToast("Pickup point updated.","success")):(await M.addPickupLocation(m,x),window.showToast("Pickup point added.","success")),b(),o()}catch(w){window.showToast(w.message,"error")}})}o()}async function UM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const S=()=>{y.innerHTML=""};y.querySelector("#btn-close-loc-modal").addEventListener("click",S),y.querySelector("#btn-cancel-loc").addEventListener("click",S),y.querySelector("#form-location-manage").addEventListener("submit",async w=>{w.preventDefault();const f={name:y.querySelector("#loc-name").value.trim(),type:y.querySelector("#loc-type").value,address:y.querySelector("#loc-address").value.trim(),active:y.querySelector("#loc-active").checked};try{g?(await x.updatePickupLocation(m,l.id,f),window.showToast("Pickup point updated.","success")):(await x.addPickupLocation(m,f),window.showToast("Pickup point added.","success")),S(),r()}catch(M){window.showToast(M.message,"error")}})}r()}async function UM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading support tickets...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await M.getSupportTickets()).tickets,d()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getSupportTickets()).tickets,d()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function d(){i.innerHTML=`
       <div class="filter-bar">
         <h2 style="font-size: 1.1rem; font-weight: 700;">Partner Helpdesk & Platform Inquiries</h2>
         <button class="btn btn-primary" id="btn-raise-ticket">
@@ -10815,7 +11193,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="support-modal-root"></div>
-    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var c;(c=i.querySelector("#btn-raise-ticket"))==null||c.addEventListener("click",()=>{r()}),i.querySelectorAll(".btn-open-thread").forEach(l=>{l.addEventListener("click",()=>{const v=l.getAttribute("data-ticket-id");o(v)})})}function r(){var v,h,p;const c=i.querySelector("#support-modal-root");c.innerHTML=`
+    `,s(),window.lucide&&window.lucide.createIcons()}function s(){var c;(c=i.querySelector("#btn-raise-ticket"))==null||c.addEventListener("click",()=>{n()}),i.querySelectorAll(".btn-open-thread").forEach(o=>{o.addEventListener("click",()=>{const p=o.getAttribute("data-ticket-id");r(p)})})}function n(){var p,h,v;const c=i.querySelector("#support-modal-root");c.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 540px;">
           <div class="modal-header">
@@ -10853,23 +11231,23 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const l=()=>{c.innerHTML=""};(v=c.querySelector("#modal-close"))==null||v.addEventListener("click",l),(h=c.querySelector("#modal-close-action"))==null||h.addEventListener("click",l),(p=c.querySelector("#new-ticket-form"))==null||p.addEventListener("submit",async y=>{y.preventDefault();try{await M.createSupportTicket({subject:c.querySelector("#ticket-subject").value,category:c.querySelector("#ticket-category").value,message:c.querySelector("#ticket-message").value}),window.showToast("Support ticket dispatched to platform administrator.","success"),l(),a()}catch(m){window.showToast(m.message,"error")}})}function o(c){var p,y,m;const l=e.find(n=>n.id===c);if(!l)return;const v=i.querySelector("#support-modal-root");v.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const o=()=>{c.innerHTML=""};(p=c.querySelector("#modal-close"))==null||p.addEventListener("click",o),(h=c.querySelector("#modal-close-action"))==null||h.addEventListener("click",o),(v=c.querySelector("#new-ticket-form"))==null||v.addEventListener("submit",async u=>{u.preventDefault();try{await x.createSupportTicket({subject:c.querySelector("#ticket-subject").value,category:c.querySelector("#ticket-category").value,message:c.querySelector("#ticket-message").value}),window.showToast("Support ticket dispatched to platform administrator.","success"),o(),a()}catch(m){window.showToast(m.message,"error")}})}function r(c){var v,u,m;const o=e.find(l=>l.id===c);if(!o)return;const p=i.querySelector("#support-modal-root");p.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 600px;">
           <div class="modal-header">
             <div>
-              <span style="font-size: 0.7rem; font-family: monospace; color: var(--color-primary); font-weight: 700;">TICKET ${l.ticket_code}</span>
-              <h2 class="modal-title">${l.subject}</h2>
+              <span style="font-size: 0.7rem; font-family: monospace; color: var(--color-primary); font-weight: 700;">TICKET ${o.ticket_code}</span>
+              <h2 class="modal-title">${o.subject}</h2>
             </div>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
           <div class="modal-body">
             <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding: 6px; margin-bottom: 14px;">
-              ${l.messages.map(n=>`
-                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${n.sender==="admin"?"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);":"align-self: flex-end; background: var(--color-primary); color: #fff;"}">
-                  <div>${n.text}</div>
-                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${n.sender==="admin"?"🛡️ Administrator Response":"👤 You"} • ${n.time}</span>
+              ${o.messages.map(l=>`
+                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${l.sender==="admin"?"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);":"align-self: flex-end; background: var(--color-primary); color: #fff;"}">
+                  <div>${l.text}</div>
+                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${l.sender==="admin"?"🛡️ Administrator Response":"👤 You"} • ${l.time}</span>
                 </div>
               `).join("")}
             </div>
@@ -10885,7 +11263,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const h=()=>{v.innerHTML=""};(p=v.querySelector("#modal-close"))==null||p.addEventListener("click",h),(y=v.querySelector("#modal-close-action"))==null||y.addEventListener("click",h),(m=v.querySelector("#btn-send-reply"))==null||m.addEventListener("click",async()=>{const n=v.querySelector("#reply-input").value.trim();if(!n)return;await M.replySupportTicket(c,n),window.showToast("Reply added.","success"),e=(await M.getSupportTickets()).tickets,o(c)})}a()}function GM(i){let e=1;const a={name:"",hotel_type:"Boutique Hotel",description:"",phone:"",email:"",address:"",city:"",state:"",country:"India",postal_code:"",cover_image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",initial_rooms:[{room_name:"Executive Deluxe Suite",room_type:"Suite",description:"Spacious suite with king bed and city skyline view.",max_guests:2,total_inventory:10,price_per_night:6500}]};function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const h=()=>{p.innerHTML=""};(v=p.querySelector("#modal-close"))==null||v.addEventListener("click",h),(u=p.querySelector("#modal-close-action"))==null||u.addEventListener("click",h),(m=p.querySelector("#btn-send-reply"))==null||m.addEventListener("click",async()=>{const l=p.querySelector("#reply-input").value.trim();if(!l)return;await x.replySupportTicket(c,l),window.showToast("Reply added.","success"),e=(await x.getSupportTickets()).tickets,r(c)})}a()}function jM(i){let e=1;const a={name:"",hotel_type:"Boutique Hotel",description:"",phone:"",email:"",address:"",city:"",state:"",country:"India",postal_code:"",cover_image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",initial_rooms:[{room_name:"Executive Deluxe Suite",room_type:"Suite",description:"Spacious suite with king bed and city skyline view.",max_guests:2,total_inventory:10,price_per_night:6500}]};function d(){i.innerHTML=`
       <div style="max-width: 820px; margin: 0 auto;">
         
         <!-- Multi-Step Header Wizard -->
@@ -10933,7 +11311,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
 
       </div>
-    `,r(),window.lucide&&window.lucide.createIcons()}function s(){if(e===1)return`
+    `,n(),window.lucide&&window.lucide.createIcons()}function s(){if(e===1)return`
         <h3 style="font-size: 1.1rem; margin-bottom: 6px;">Step 1: Basic Hotel Information</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 18px;">Provide your property title, branding, and contact credentials</p>
 
@@ -11055,12 +11433,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <i data-lucide="info" style="width: 14px; height: 14px; display: inline; margin-right: 4px;"></i>
           Upon submission, your hotel will enter <strong>PENDING VERIFICATION</strong> state. Once the Administrator verifies your documents, your hotel will become immediately discoverable on the Customer Mobile App.
         </div>
-      `}function r(){var c,l,v;(c=i.querySelector("#btn-wizard-next"))==null||c.addEventListener("click",()=>{o(),e+=1,d()}),(l=i.querySelector("#btn-wizard-prev"))==null||l.addEventListener("click",()=>{o(),e-=1,d()}),(v=i.querySelector("#btn-wizard-submit"))==null||v.addEventListener("click",async()=>{try{await M.onboardHotel(a),window.showToast("Hotel submitted for Administrator Verification!","success"),window.navigateTo?window.navigateTo("/owner/dashboard"):window.location.hash="#/owner/dashboard"}catch(h){window.showToast(h.message,"error")}})}function o(){var c,l,v,h,p,y,m,n,g,u,b,f,x;e===1?(a.name=((c=i.querySelector("#inp-name"))==null?void 0:c.value)||a.name,a.hotel_type=((l=i.querySelector("#inp-type"))==null?void 0:l.value)||a.hotel_type,a.description=((v=i.querySelector("#inp-desc"))==null?void 0:v.value)||a.description,a.phone=((h=i.querySelector("#inp-phone"))==null?void 0:h.value)||a.phone,a.email=((p=i.querySelector("#inp-email"))==null?void 0:p.value)||a.email):e===2?(a.address=((y=i.querySelector("#inp-address"))==null?void 0:y.value)||a.address,a.city=((m=i.querySelector("#inp-city"))==null?void 0:m.value)||a.city,a.state=((n=i.querySelector("#inp-state"))==null?void 0:n.value)||a.state,a.postal_code=((g=i.querySelector("#inp-postal"))==null?void 0:g.value)||a.postal_code):e===3?a.cover_image=((u=i.querySelector("#inp-cover"))==null?void 0:u.value)||a.cover_image:e===4&&(a.initial_rooms[0].room_name=((b=i.querySelector("#inp-room-name"))==null?void 0:b.value)||a.initial_rooms[0].room_name,a.initial_rooms[0].price_per_night=Number((f=i.querySelector("#inp-room-price"))==null?void 0:f.value)||a.initial_rooms[0].price_per_night,a.initial_rooms[0].total_inventory=Number((x=i.querySelector("#inp-room-inv"))==null?void 0:x.value)||a.initial_rooms[0].total_inventory)}d()}async function jM(i){i.innerHTML=`
+      `}function n(){var c,o,p;(c=i.querySelector("#btn-wizard-next"))==null||c.addEventListener("click",()=>{r(),e+=1,d()}),(o=i.querySelector("#btn-wizard-prev"))==null||o.addEventListener("click",()=>{r(),e-=1,d()}),(p=i.querySelector("#btn-wizard-submit"))==null||p.addEventListener("click",async()=>{try{await x.onboardHotel(a),window.showToast("Hotel submitted for Administrator Verification!","success"),window.navigateTo?window.navigateTo("/owner/dashboard"):window.location.hash="#/owner/dashboard"}catch(h){window.showToast(h.message,"error")}})}function r(){var c,o,p,h,v,u,m,l,g,y,S,w,f;e===1?(a.name=((c=i.querySelector("#inp-name"))==null?void 0:c.value)||a.name,a.hotel_type=((o=i.querySelector("#inp-type"))==null?void 0:o.value)||a.hotel_type,a.description=((p=i.querySelector("#inp-desc"))==null?void 0:p.value)||a.description,a.phone=((h=i.querySelector("#inp-phone"))==null?void 0:h.value)||a.phone,a.email=((v=i.querySelector("#inp-email"))==null?void 0:v.value)||a.email):e===2?(a.address=((u=i.querySelector("#inp-address"))==null?void 0:u.value)||a.address,a.city=((m=i.querySelector("#inp-city"))==null?void 0:m.value)||a.city,a.state=((l=i.querySelector("#inp-state"))==null?void 0:l.value)||a.state,a.postal_code=((g=i.querySelector("#inp-postal"))==null?void 0:g.value)||a.postal_code):e===3?a.cover_image=((y=i.querySelector("#inp-cover"))==null?void 0:y.value)||a.cover_image:e===4&&(a.initial_rooms[0].room_name=((S=i.querySelector("#inp-room-name"))==null?void 0:S.value)||a.initial_rooms[0].room_name,a.initial_rooms[0].price_per_night=Number((w=i.querySelector("#inp-room-price"))==null?void 0:w.value)||a.initial_rooms[0].price_per_night,a.initial_rooms[0].total_inventory=Number((f=i.querySelector("#inp-room-inv"))==null?void 0:f.value)||a.initial_rooms[0].total_inventory)}d()}async function GM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner profile...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const a=(await M.getMe()).user,d=a.ownerProfile||{business_name:"Registered Hospitality Partner",pan_no:"PAN-XXXXX",gstin:"GST-XXXXX",bank_account:"Bank account configured",kyc_status:"verified"};i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const a=(await x.getMe()).user,d=a.ownerProfile||{business_name:"Registered Hospitality Partner",pan_no:"PAN-XXXXX",gstin:"GST-XXXXX",bank_account:"Bank account configured",kyc_status:"verified"};i.innerHTML=`
       <div style="max-width: 680px;">
         <div class="panel-card">
           <div class="card-header">
@@ -11113,12 +11491,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
     `,window.lucide&&window.lucide.createIcons()}catch(e){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${e.message}</div>`}}window.lucide={createIcons:(i={})=>{try{yM({icons:s1,...i})}catch(e){console.warn("Lucide icon render warning:",e.message)}},icons:s1};const KM=new Set(["super_admin","admin","support_admin","finance_admin"]),WM=new Set(["hotel_admin","owner"]);window.showToast=function(i,e="info"){const a=document.getElementById("toast-root");if(!a)return;const d=document.createElement("div");d.className=`toast ${e}`,d.innerHTML=`
     <i data-lucide="${e==="success"?"check-circle":e==="error"?"alert-circle":"info"}" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
     <span style="font-size: 0.84rem; font-weight: 500;">${i}</span>
-  `,a.appendChild(d),window.lucide&&window.lucide.createIcons(),setTimeout(()=>{d.style.opacity="0",d.style.transform="translateY(10px)",d.style.transition="all 0.3s ease",setTimeout(()=>d.remove(),300)},3500)};window.handleSignOut=function(){M.clearSession(),window.showToast("Signed out successfully.","info"),window.navigateTo("/login")};const G="hotelhub_theme";function U(i=localStorage.getItem(G)||"light"){const e=i==="dark"||i==="light"?i:"light";document.body.setAttribute("data-theme",e);const a=document.getElementById("header-theme-toggle"),d=document.getElementById("header-theme-icon");if(a&&d){const s=e==="dark";d.textContent=s?"☀️":"🌙",a.setAttribute("aria-label",s?"Switch to light mode":"Switch to dark mode"),a.setAttribute("title",s?"Switch to light mode":"Switch to dark mode")}}window.toggleAdminTheme=function(){const e=(document.body.getAttribute("data-theme")==="dark"?"dark":"light")==="dark"?"light":"dark";localStorage.setItem(G,e),U(e)};window.addEventListener("DOMContentLoaded",()=>{const i=localStorage.getItem(G);if(i==="dark"||i==="light"){U(i);return}const e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;U(e?"dark":"light")});window.addEventListener("storage",i=>{i.key===G&&(i.newValue==="dark"||i.newValue==="light")&&U(i.newValue)});const o1=document.getElementById("header-theme-toggle");o1&&o1.addEventListener("click",window.toggleAdminTheme);window.navigateTo=function(i){const e=i.startsWith("#")?i:`#${i.startsWith("/")?i:"/"+i}`;window.location.hash!==e?window.location.hash=e:W()};function JM(){let i=window.location.hash;return!i&&window.location.pathname&&window.location.pathname!=="/"&&window.location.pathname!=="/index.html"&&(i="#"+window.location.pathname),i||(i="#/login"),i.includes("?")&&(i=i.split("?")[0]),i.includes("&")&&(i=i.split("&")[0]),i.startsWith("#/")||(i.startsWith("#")?i="#/"+i.slice(1):i="#/"+i),i}function W(){const i=JM();window.location.hash!==i&&history.replaceState(null,"",i);const e=document.getElementById("app-sidebar"),a=document.getElementById("sidebar-backdrop");e&&e.classList.remove("open"),a&&a.classList.remove("active");const d=document.getElementById("view-content-area"),s=document.getElementById("header-view-title"),r=document.getElementById("header-view-subtitle"),o=document.getElementById("sidebar-nav-root"),c=document.getElementById("user-role-badge"),l=document.getElementById("user-name-display"),v=document.getElementById("sidebar-user-avatar"),h=document.getElementById("user-role-display"),p=document.getElementById("header-user-avatar"),y=document.getElementById("header-user-name"),m=document.getElementById("header-user-role"),n=document.querySelector(".top-header");if(!d)return;const g=M.currentUser,u=!!(M.token&&g),b=g&&KM.has(g.role),f=g&&WM.has(g.role),x=g&&g.role==="super_admin",w=g?g.role:null;if(["#/login","#/admin/login","#/hotel-admin/login","#/owner/login","#/","#",""].includes(i)){if(e&&(e.style.display="none"),n&&(n.style.display="none"),u){if(b){window.navigateTo("/admin/dashboard");return}else if(f){window.navigateTo("/hotel-admin/dashboard");return}}MM(d);return}if(i==="#/register"){e&&(e.style.display="none"),n&&(n.style.display="none"),xM(d);return}e&&(e.style.display="flex"),n&&(n.style.display="flex");const H=i.startsWith("#/admin"),A=i.startsWith("#/hotel-admin")||i.startsWith("#/owner");if(H){if(!u){window.navigateTo("/login");return}if(!b){if(f){window.showToast("Redirected: Hotel Admin workspace","info"),window.navigateTo("/hotel-admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(A){if(!u){window.navigateTo("/login");return}if(!f){if(b){window.showToast("Redirected: Platform Admin workspace","info"),window.navigateTo("/admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(g){const _=g.name||"Administrator",$=(g.role||"ADMIN").replace("_"," ").toUpperCase(),q=(_.split(" ").map(B=>B[0]).join("")||"AD").slice(0,2).toUpperCase();l&&(l.textContent=_),h&&(h.textContent=$),v&&(v.textContent=q),p&&(p.textContent=q),y&&(y.textContent=_),m&&(m.textContent=$)}if(H){const _=(g==null?void 0:g.role)==="super_admin"?"SUPER ADMIN":`${((g==null?void 0:g.role)||"ADMIN").replace("_"," ").toUpperCase()}`;c&&(c.textContent=_);let $=`
+  `,a.appendChild(d),window.lucide&&window.lucide.createIcons(),setTimeout(()=>{d.style.opacity="0",d.style.transform="translateY(10px)",d.style.transition="all 0.3s ease",setTimeout(()=>d.remove(),300)},3500)};window.handleSignOut=function(){x.clearSession(),window.showToast("Signed out successfully.","info"),window.navigateTo("/login")};const j="hotelhub_theme";function U(i=localStorage.getItem(j)||"light"){const e=i==="dark"||i==="light"?i:"light";document.body.setAttribute("data-theme",e);const a=document.getElementById("header-theme-toggle"),d=document.getElementById("header-theme-icon");if(a&&d){const s=e==="dark";d.textContent=s?"☀️":"🌙",a.setAttribute("aria-label",s?"Switch to light mode":"Switch to dark mode"),a.setAttribute("title",s?"Switch to light mode":"Switch to dark mode")}}window.toggleAdminTheme=function(){const e=(document.body.getAttribute("data-theme")==="dark"?"dark":"light")==="dark"?"light":"dark";localStorage.setItem(j,e),U(e)};window.addEventListener("DOMContentLoaded",()=>{const i=localStorage.getItem(j);if(i==="dark"||i==="light"){U(i);return}const e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;U(e?"dark":"light")});window.addEventListener("storage",i=>{i.key===j&&(i.newValue==="dark"||i.newValue==="light")&&U(i.newValue)});const d1=document.getElementById("header-theme-toggle");d1&&d1.addEventListener("click",window.toggleAdminTheme);window.navigateTo=function(i){const e=i.startsWith("#")?i:`#${i.startsWith("/")?i:"/"+i}`;window.location.hash!==e?window.location.hash=e:W()};function JM(){let i=window.location.hash;return!i&&window.location.pathname&&window.location.pathname!=="/"&&window.location.pathname!=="/index.html"&&(i="#"+window.location.pathname),i||(i="#/login"),i.includes("?")&&(i=i.split("?")[0]),i.includes("&")&&(i=i.split("&")[0]),i.startsWith("#/")||(i.startsWith("#")?i="#/"+i.slice(1):i="#/"+i),i}function W(){const i=JM();window.location.hash!==i&&history.replaceState(null,"",i);const e=document.getElementById("app-sidebar"),a=document.getElementById("sidebar-backdrop");e&&e.classList.remove("open"),a&&a.classList.remove("active");const d=document.getElementById("view-content-area"),s=document.getElementById("header-view-title"),n=document.getElementById("header-view-subtitle"),r=document.getElementById("sidebar-nav-root"),c=document.getElementById("user-role-badge"),o=document.getElementById("user-name-display"),p=document.getElementById("sidebar-user-avatar"),h=document.getElementById("user-role-display"),v=document.getElementById("header-user-avatar"),u=document.getElementById("header-user-name"),m=document.getElementById("header-user-role"),l=document.querySelector(".top-header");if(!d)return;const g=x.currentUser,y=!!(x.token&&g),S=g&&KM.has(g.role),w=g&&WM.has(g.role),f=g&&g.role==="super_admin",M=g?g.role:null;if(["#/login","#/admin/login","#/hotel-admin/login","#/owner/login","#/","#",""].includes(i)){if(e&&(e.style.display="none"),l&&(l.style.display="none"),y){if(S){window.navigateTo("/admin/dashboard");return}else if(w){window.navigateTo("/hotel-admin/dashboard");return}}MM(d);return}if(i==="#/register"){e&&(e.style.display="none"),l&&(l.style.display="none"),xM(d);return}e&&(e.style.display="flex"),l&&(l.style.display="flex");const k=i.startsWith("#/admin"),H=i.startsWith("#/hotel-admin")||i.startsWith("#/owner");if(k){if(!y){window.navigateTo("/login");return}if(!S){if(w){window.showToast("Redirected: Hotel Admin workspace","info"),window.navigateTo("/hotel-admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(H){if(!y){window.navigateTo("/login");return}if(!w){if(S){window.showToast("Redirected: Platform Admin workspace","info"),window.navigateTo("/admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(g){const $=g.name||"Administrator",L=(g.role||"ADMIN").replace("_"," ").toUpperCase(),T=($.split(" ").map(q=>q[0]).join("")||"AD").slice(0,2).toUpperCase();o&&(o.textContent=$),h&&(h.textContent=L),p&&(p.textContent=T),v&&(v.textContent=T),u&&(u.textContent=$),m&&(m.textContent=L)}if(k){const $=(g==null?void 0:g.role)==="super_admin"?"SUPER ADMIN":`${((g==null?void 0:g.role)||"ADMIN").replace("_"," ").toUpperCase()}`;c&&(c.textContent=$);let L=`
       <div class="nav-section-label">Core Executive</div>
       <a href="#/admin/dashboard" class="nav-item ${i==="#/admin/dashboard"?"active":""}">
         <div class="nav-item-left"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
       </a>
-    `;(x||w==="admin")&&($+=`
+    `;(f||M==="admin")&&(L+=`
         <div class="nav-section-label">Hotel Ecosystem</div>
         <a href="#/admin/hotels" class="nav-item ${i==="#/admin/hotels"?"active":""}">
           <div class="nav-item-left"><i data-lucide="building-2"></i><span>Hotels</span></div>
@@ -11126,7 +11504,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/owners" class="nav-item ${i==="#/admin/owners"?"active":""}">
           <div class="nav-item-left"><i data-lucide="shield-check"></i><span>Owner KYC</span></div>
         </a>
-      `),$+=`
+      `),L+=`
       <div class="nav-section-label">Operations</div>
       <a href="#/admin/bookings" class="nav-item ${i==="#/admin/bookings"?"active":""}">
         <div class="nav-item-left"><i data-lucide="calendar-check"></i><span>Bookings</span></div>
@@ -11134,7 +11512,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="#/admin/pickups" class="nav-item ${i==="#/admin/pickups"?"active":""}">
         <div class="nav-item-left"><i data-lucide="car"></i><span>Pickups Activity</span></div>
       </a>
-    `,(x||w==="admin"||w==="finance_admin")&&($+=`
+    `,(f||M==="admin"||M==="finance_admin")&&(L+=`
         <div class="nav-section-label">Financial Accounting</div>
         <a href="#/admin/payments" class="nav-item ${i==="#/admin/payments"?"active":""}">
           <div class="nav-item-left"><i data-lucide="credit-card"></i><span>Payments</span></div>
@@ -11148,7 +11526,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/reports" class="nav-item ${i==="#/admin/reports"||i==="#/admin/statements"?"active":""}">
           <div class="nav-item-left"><i data-lucide="file-bar-chart-2"></i><span>Statements</span></div>
         </a>
-      `),(x||w==="admin"||w==="support_admin")&&($+=`
+      `),(f||M==="admin"||M==="support_admin")&&(L+=`
         <div class="nav-section-label">Guest Experience</div>
         <a href="#/admin/customers" class="nav-item ${i==="#/admin/customers"?"active":""}">
           <div class="nav-item-left"><i data-lucide="users"></i><span>Customers</span></div>
@@ -11156,7 +11534,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/support" class="nav-item ${i==="#/admin/support"?"active":""}">
           <div class="nav-item-left"><i data-lucide="life-buoy"></i><span>Support Desk</span></div>
         </a>
-      `),x?$+=`
+      `),f?L+=`
         <div class="nav-section-label">System</div>
         <a href="#/admin/admins" class="nav-item ${i.startsWith("#/admin/admins")?"active":""}">
           <div class="nav-item-left"><i data-lucide="user-cog"></i><span>Admin Users</span></div>
@@ -11164,12 +11542,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/settings" class="nav-item ${i==="#/admin/settings"?"active":""}">
           <div class="nav-item-left"><i data-lucide="sliders"></i><span>Settings</span></div>
         </a>
-      `:w==="admin"&&($+=`
+      `:M==="admin"&&(L+=`
         <div class="nav-section-label">System</div>
         <a href="#/admin/settings" class="nav-item ${i==="#/admin/settings"?"active":""}">
           <div class="nav-item-left"><i data-lucide="sliders"></i><span>Settings</span></div>
         </a>
-      `),$+=`
+      `),L+=`
       <div class="nav-section-label">Account</div>
       <a href="#/admin/profile" class="nav-item ${i==="#/admin/profile"?"active":""}">
         <div class="nav-item-left"><i data-lucide="user"></i><span>Profile</span></div>
@@ -11177,7 +11555,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="javascript:void(0)" onclick="window.handleSignOut()" class="nav-item" style="color: #EF4444;">
         <div class="nav-item-left"><i data-lucide="log-out"></i><span>Sign Out</span></div>
       </a>
-    `,o.innerHTML=$}else A&&(c&&(c.textContent="HOTEL ADMIN"),o.innerHTML=`
+    `,r.innerHTML=L}else H&&(c&&(c.textContent="HOTEL ADMIN"),r.innerHTML=`
       <div class="nav-section-label">HOTEL MANAGEMENT</div>
       <a href="#/hotel-admin/dashboard" class="nav-item ${i==="#/hotel-admin/dashboard"||i==="#/owner/dashboard"?"active":""}">
         <div class="nav-item-left"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
@@ -11224,4 +11602,4 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="javascript:void(0)" onclick="window.handleSignOut()" class="nav-item" style="color: #EF4444;">
         <div class="nav-item-left"><i data-lucide="log-out"></i><span>Sign Out</span></div>
       </a>
-    `);switch(i){case"#/admin/dashboard":s.textContent="Executive Control Center",r.textContent="Live centralized overview of properties, bookings & financial settlements",fM(d);break;case"#/admin/hotels":s.textContent="Hotel Directory & Governance",r.textContent="Inspect properties, verify compliance documents, and control active status",bM(d);break;case"#/admin/owners":s.textContent="Hotel Owner Verification (KYC)",r.textContent="Review business registration, PAN/GSTIN documentation, and bank settlement details",wM(d);break;case"#/admin/bookings":s.textContent="Centralized Booking Ledger",r.textContent="Audit all guest reservations, stay dates, and digital invoice breakdowns",kM(d);break;case"#/admin/pickups":s.textContent="Centralized Transfer Logistics",r.textContent="Platform-wide pickup requests, hotel vehicle fleets, and transfer logs",zM(d);break;case"#/admin/payments":if(!x&&w!=="admin"&&w!=="finance_admin"){z(d,"Finance Administrator");break}s.textContent="Payment Transaction Logs",r.textContent="Real-time gateway settlements, UPI/Card transaction records, and status",HM(d);break;case"#/admin/refunds":if(!x&&w!=="admin"&&w!=="finance_admin"){z(d,"Finance Administrator");break}s.textContent="Cancellation Refund Queue",r.textContent="Process guest cancellation claims with policy fee deduction and bank settlement",SM(d);break;case"#/admin/commissions":if(!x&&w!=="admin"&&w!=="finance_admin"){z(d,"Finance Administrator");break}s.textContent="Commission Engine & Rules",r.textContent="Manage platform take-rate percentage and review auditable cut ledger",CM(d);break;case"#/admin/customers":if(!x&&w!=="admin"&&w!=="support_admin"){z(d,"Support Administrator");break}s.textContent="Customer Accounts Directory",r.textContent="Registered mobile app guests, lifetime reservations, and contact records",AM(d);break;case"#/admin/support":if(!x&&w!=="admin"&&w!=="support_admin"){z(d,"Support Administrator");break}s.textContent="Centralized Support Desk",r.textContent="Two-way resolution hub for customer and hotel partner inquiries",LM(d);break;case"#/admin/reports":case"#/admin/statements":if(!x&&w!=="admin"&&w!=="finance_admin"){z(d,"Finance Administrator");break}s.textContent="Financial Income Statements",r.textContent="Daily and monthly revenue accounting with auditable CSV export",VM(d);break;case"#/admin/settings":if(!x&&w!=="admin"){z(d,"Super Administrator");break}s.textContent="Platform Global Settings",r.textContent="Configure live maintenance modes, payment gateways, and policies",$M(d);break;case"#/admin/admins":case"#/admin/users":if(!x){z(d,"Super Administrator");break}s.textContent="Administrator Security & Roles",r.textContent="Manage administrator accounts, assign role permissions, and view audit trail",_M(d);break;case"#/admin/admins/create":if(!x){z(d,"Super Administrator");break}s.textContent="Provision New Administrator",r.textContent="Grant controlled administrative authority and assign granular operational permissions",TM(d);break;case"#/admin/profile":s.textContent="Administrator Profile & Security",r.textContent="Manage personal administrative credentials and update password",PM(d);break;case"#/admin/access-denied":s.textContent="Access Restricted",r.textContent="You do not have the required permissions to view this administrative page",z(d);break;case"#/hotel-admin/dashboard":case"#/owner/dashboard":s.textContent="Hotel Management Dashboard",r.textContent="Track room inventory, today’s arrivals, departures, and net earnings",qM(d);break;case"#/hotel-admin/property":case"#/hotel-admin/hotel":case"#/owner/hotel":s.textContent="Property Details & Media",r.textContent="Edit hotel details, address, amenities, and high-resolution photo gallery",EM(d);break;case"#/hotel-admin/banners":case"#/owner/banners":s.textContent="Customer App Banners",r.textContent="Add, arrange, and manage the promotional hero sliders shown on the app",BM(d);break;case"#/hotel-admin/rooms":case"#/owner/rooms":s.textContent="Room Categories & Inventory",r.textContent="Add room categories, set nightly tariffs, capacity, and manage available units",DM(d);break;case"#/hotel-admin/availability":case"#/owner/availability":s.textContent="Availability Matrix",r.textContent="Real-time room occupancy grid with single-click blackout date blocking",RM(d);break;case"#/hotel-admin/bookings":case"#/owner/bookings":s.textContent="Reservations Management",r.textContent="Full list of guest bookings with stay dates, guest contact, and payout details",IM(d);break;case"#/hotel-admin/pickups":case"#/owner/pickups":s.textContent="Pickup Service & Fleet Logistics",r.textContent="Manage guest transfer requests, driver allocations, and vehicle fleets",FM(d);break;case"#/hotel-admin/check-in":case"#/owner/check-in":s.textContent="Front Desk Check-In",r.textContent="Search by Booking ID to verify guest identity and confirm check-in",OM(d);break;case"#/hotel-admin/check-out":case"#/owner/check-out":s.textContent="Front Desk Check-Out",r.textContent="Check out guests, finalize billing, and release rooms back to active inventory",NM(d);break;case"#/hotel-admin/earnings":case"#/owner/earnings":s.textContent="Net Earnings & Settlements",r.textContent="Traceable 85% net earnings per reservation with platform fee deductions",ZM(d);break;case"#/hotel-admin/onboard":case"#/owner/onboard":s.textContent="Register New Property",r.textContent="5-step onboarding wizard to submit new hotels for platform review",GM(d);break;case"#/hotel-admin/profile":case"#/owner/profile":s.textContent="Owner KYC & Business Profile",r.textContent="Commercial registration, PAN, GSTIN, and bank settlement details",jM(d);break;case"#/hotel-admin/support":case"#/owner/support":s.textContent="Partner Concierge & Support",r.textContent="Direct priority messaging channel with HotelHub platform administrators",UM(d);break;default:H?window.navigateTo("/admin/dashboard"):A?window.navigateTo("/hotel-admin/dashboard"):window.navigateTo("/admin/dashboard");break}window.lucide&&window.lucide.createIcons()}function YM(){const i=document.getElementById("btn-mobile-sidebar-toggle"),e=document.getElementById("btn-close-sidebar"),a=document.getElementById("sidebar-backdrop"),d=document.getElementById("app-sidebar");i&&d&&a&&i.addEventListener("click",s=>{s.stopPropagation(),d.classList.add("open"),a.classList.add("active")}),e&&d&&a&&e.addEventListener("click",s=>{s.stopPropagation(),d.classList.remove("open"),a.classList.remove("active")}),a&&d&&a.addEventListener("click",()=>{d.classList.remove("open"),a.classList.remove("active")})}window.addEventListener("hashchange",W);window.addEventListener("DOMContentLoaded",()=>{YM(),W()});
+    `);switch(i){case"#/admin/dashboard":s.textContent="Executive Control Center",n.textContent="Live centralized overview of properties, bookings & financial settlements",fM(d);break;case"#/admin/hotels":s.textContent="Hotel Directory & Governance",n.textContent="Inspect properties, verify compliance documents, and control active status",bM(d);break;case"#/admin/owners":s.textContent="Hotel Owner Verification (KYC)",n.textContent="Review business registration, PAN/GSTIN documentation, and bank settlement details",wM(d);break;case"#/admin/bookings":s.textContent="Centralized Booking Ledger",n.textContent="Audit all guest reservations, stay dates, and digital invoice breakdowns",kM(d);break;case"#/admin/pickups":s.textContent="Centralized Transfer Logistics",n.textContent="Platform-wide pickup requests, hotel vehicle fleets, and transfer logs",zM(d);break;case"#/admin/payments":if(!f&&M!=="admin"&&M!=="finance_admin"){E(d,"Finance Administrator");break}s.textContent="Payment Transaction Logs",n.textContent="Real-time gateway settlements, UPI/Card transaction records, and status",SM(d);break;case"#/admin/refunds":if(!f&&M!=="admin"&&M!=="finance_admin"){E(d,"Finance Administrator");break}s.textContent="Cancellation Refund Queue",n.textContent="Process guest cancellation claims with policy fee deduction and bank settlement",HM(d);break;case"#/admin/commissions":if(!f&&M!=="admin"&&M!=="finance_admin"){E(d,"Finance Administrator");break}s.textContent="Commission Engine & Rules",n.textContent="Manage platform take-rate percentage and review auditable cut ledger",CM(d);break;case"#/admin/customers":if(!f&&M!=="admin"&&M!=="support_admin"){E(d,"Support Administrator");break}s.textContent="Customer Accounts Directory",n.textContent="Registered mobile app guests, lifetime reservations, and contact records",AM(d);break;case"#/admin/support":if(!f&&M!=="admin"&&M!=="support_admin"){E(d,"Support Administrator");break}s.textContent="Centralized Support Desk",n.textContent="Two-way resolution hub for customer and hotel partner inquiries",LM(d);break;case"#/admin/reports":case"#/admin/statements":if(!f&&M!=="admin"&&M!=="finance_admin"){E(d,"Finance Administrator");break}s.textContent="Financial Income Statements",n.textContent="Daily and monthly revenue accounting with auditable CSV export",$M(d);break;case"#/admin/settings":if(!f&&M!=="admin"){E(d,"Super Administrator");break}s.textContent="Platform Global Settings",n.textContent="Configure live maintenance modes, payment gateways, and policies",VM(d);break;case"#/admin/admins":case"#/admin/users":if(!f){E(d,"Super Administrator");break}s.textContent="Administrator Security & Roles",n.textContent="Manage administrator accounts, assign role permissions, and view audit trail",_M(d);break;case"#/admin/admins/create":if(!f){E(d,"Super Administrator");break}s.textContent="Provision New Administrator",n.textContent="Grant controlled administrative authority and assign granular operational permissions",TM(d);break;case"#/admin/profile":s.textContent="Administrator Profile & Security",n.textContent="Manage personal administrative credentials and update password",PM(d);break;case"#/admin/access-denied":s.textContent="Access Restricted",n.textContent="You do not have the required permissions to view this administrative page",E(d);break;case"#/hotel-admin/dashboard":case"#/owner/dashboard":s.textContent="Hotel Management Dashboard",n.textContent="Track room inventory, today’s arrivals, departures, and net earnings",qM(d);break;case"#/hotel-admin/property":case"#/hotel-admin/hotel":case"#/owner/hotel":s.textContent="Property Details & Media",n.textContent="Edit hotel details, address, amenities, and high-resolution photo gallery",EM(d);break;case"#/hotel-admin/banners":case"#/owner/banners":s.textContent="Customer App Banners",n.textContent="Add, arrange, and manage the promotional hero sliders shown on the app",BM(d);break;case"#/hotel-admin/rooms":case"#/owner/rooms":s.textContent="Room Categories & Inventory",n.textContent="Add room categories, set nightly tariffs, capacity, and manage available units",DM(d);break;case"#/hotel-admin/availability":case"#/owner/availability":s.textContent="Availability Matrix",n.textContent="Real-time room occupancy grid with single-click blackout date blocking",RM(d);break;case"#/hotel-admin/bookings":case"#/owner/bookings":s.textContent="Reservations Management",n.textContent="Full list of guest bookings with stay dates, guest contact, and payout details",IM(d);break;case"#/hotel-admin/pickups":case"#/owner/pickups":s.textContent="Pickup Service & Fleet Logistics",n.textContent="Manage guest transfer requests, driver allocations, and vehicle fleets",ZM(d);break;case"#/hotel-admin/check-in":case"#/owner/check-in":s.textContent="Front Desk Check-In",n.textContent="Search by Booking ID to verify guest identity and confirm check-in",OM(d);break;case"#/hotel-admin/check-out":case"#/owner/check-out":s.textContent="Front Desk Check-Out",n.textContent="Check out guests, finalize billing, and release rooms back to active inventory",NM(d);break;case"#/hotel-admin/earnings":case"#/owner/earnings":s.textContent="Net Earnings & Settlements",n.textContent="Traceable 85% net earnings per reservation with platform fee deductions",FM(d);break;case"#/hotel-admin/onboard":case"#/owner/onboard":s.textContent="Register New Property",n.textContent="5-step onboarding wizard to submit new hotels for platform review",jM(d);break;case"#/hotel-admin/profile":case"#/owner/profile":s.textContent="Owner KYC & Business Profile",n.textContent="Commercial registration, PAN, GSTIN, and bank settlement details",GM(d);break;case"#/hotel-admin/support":case"#/owner/support":s.textContent="Partner Concierge & Support",n.textContent="Direct priority messaging channel with HotelHub platform administrators",UM(d);break;default:k?window.navigateTo("/admin/dashboard"):H?window.navigateTo("/hotel-admin/dashboard"):window.navigateTo("/admin/dashboard");break}window.lucide&&window.lucide.createIcons()}function YM(){const i=document.getElementById("btn-mobile-sidebar-toggle"),e=document.getElementById("btn-close-sidebar"),a=document.getElementById("sidebar-backdrop"),d=document.getElementById("app-sidebar");i&&d&&a&&i.addEventListener("click",s=>{s.stopPropagation(),d.classList.add("open"),a.classList.add("active")}),e&&d&&a&&e.addEventListener("click",s=>{s.stopPropagation(),d.classList.remove("open"),a.classList.remove("active")}),a&&d&&a.addEventListener("click",()=>{d.classList.remove("open"),a.classList.remove("active")})}window.addEventListener("hashchange",W);window.addEventListener("DOMContentLoaded",()=>{YM(),W()});

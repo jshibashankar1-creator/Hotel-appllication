@@ -92,6 +92,38 @@ router.get('/owner', authenticate, requireRole('owner', 'super_admin', 'admin', 
   return res.json({ success: true, count: hotels.length, hotels });
 });
 
+// GET /api/hotels/:id/summary (Lightweight hotel summary for fast card & header preview)
+router.get('/:id/summary', (req, res) => {
+  const hotel = db.getHotelById(req.params.id);
+  if (!hotel) {
+    return res.status(404).json({ success: false, message: 'Hotel not found.' });
+  }
+
+  const rooms = db.getRoomsByHotel(hotel.id);
+  const minRoomPrice = rooms.length > 0
+    ? Math.min(...rooms.map(r => r.price_per_night || r.price || 0))
+    : (hotel.starting_price || 5000);
+  const totalRooms = rooms.reduce((acc, r) => acc + (r.total_inventory || 1), 0);
+
+  return res.json({
+    success: true,
+    summary: {
+      id: hotel.id,
+      name: hotel.name,
+      hotel_type: hotel.hotel_type,
+      city: hotel.city,
+      state: hotel.state,
+      address: hotel.address,
+      rating: hotel.rating,
+      reviews_count: hotel.reviews_count || (hotel.reviewsCount ? Number(hotel.reviewsCount) : 0),
+      cover_image: hotel.cover_image,
+      starting_price: minRoomPrice,
+      rooms_count: totalRooms,
+      status: hotel.status
+    }
+  });
+});
+
 // GET /api/hotels/:id (Single Hotel Details with Rooms, Reviews, Amenities)
 router.get('/:id', (req, res) => {
   const hotel = db.getHotelById(req.params.id);

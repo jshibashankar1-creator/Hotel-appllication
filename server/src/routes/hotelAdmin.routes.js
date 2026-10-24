@@ -466,6 +466,15 @@ router.post('/banners', requireRole('hotel_admin', 'owner', 'super_admin', 'admi
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
 
+  // Cross-hotel authorization check: Never trust arbitrary client-provided hotel_id
+  const targetHotelId = req.body.hotel_id || req.body.property_id;
+  if (targetHotelId && String(targetHotelId) !== String(hotel.id)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied: You are not authorized to create banners for another hotel property.'
+    });
+  }
+
   const { title, image_url, image_public_id, sort_order, is_active } = req.body;
   if (!image_url) {
     return res.status(400).json({ success: false, message: 'Image URL is required.' });
@@ -507,6 +516,15 @@ router.post('/banners', requireRole('hotel_admin', 'owner', 'super_admin', 'admi
 router.put('/banners/:id', requireRole('hotel_admin', 'owner', 'super_admin', 'admin'), (req, res) => {
   const hotel = getAssignedHotel(req, res);
   if (!hotel) return;
+
+  // Cross-hotel authorization check: Never allow updating banner to another hotel
+  const targetHotelId = req.body.hotel_id || req.body.property_id;
+  if (targetHotelId && String(targetHotelId) !== String(hotel.id)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied: You are not authorized to modify banners for another hotel property.'
+    });
+  }
 
   const { title, image_url, image_public_id, sort_order, is_active } = req.body;
   const bannerId = req.params.id;

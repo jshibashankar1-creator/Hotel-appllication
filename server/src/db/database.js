@@ -238,6 +238,51 @@ class RelationalDatabase {
     return (this.data.banners || []).filter(b => b.hotel_id === hotelId);
   }
 
+  getActiveBannersByHotel(hotelId) {
+    this.load();
+    const banners = (this.data.banners || [])
+      .filter(b => b.hotel_id === hotelId && b.is_active !== false);
+
+    if (banners.length > 0) {
+      banners.sort((a, b) => {
+        if (a.sort_order !== b.sort_order) return (a.sort_order || 0) - (b.sort_order || 0);
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      const hotel = this.getHotelById(hotelId);
+      return banners.map(b => {
+        const finalImage = b.image_url || b.cover_image || (hotel ? hotel.cover_image : null);
+        return {
+          ...b,
+          hotel_id: b.hotel_id || (hotel ? hotel.id : null),
+          image_url: finalImage,
+          cover_image: finalImage,
+          hotel: hotel || null,
+          fallback: false
+        };
+      });
+    }
+
+    // Fallback: If no promotional banners exist, provide the hotel's own cover image
+    const hotel = this.getHotelById(hotelId);
+    if (hotel && hotel.cover_image) {
+      return [{
+        id: `BNR-${hotel.id}`,
+        hotel_id: hotel.id,
+        title: hotel.name,
+        image_url: hotel.cover_image,
+        cover_image: hotel.cover_image,
+        sort_order: 0,
+        is_active: true,
+        created_at: hotel.created_at || new Date().toISOString(),
+        updated_at: hotel.created_at || new Date().toISOString(),
+        hotel: hotel,
+        fallback: true
+      }];
+    }
+
+    return [];
+  }
+
   getAuditLogs() {
     return this.data.audit_logs || [];
   }

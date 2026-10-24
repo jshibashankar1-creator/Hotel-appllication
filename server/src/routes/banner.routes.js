@@ -6,12 +6,25 @@ const router = Router();
 // GET /api/banners (Public endpoint for Customer App & Web discovery)
 router.get('/', (req, res) => {
   const { hotel_id } = req.query;
+
+  // When hotel_id is provided, return active banners for that hotel,
+  // or fall back to that hotel's own cover image (clearly marked fallback: true)
+  if (hotel_id) {
+    const banners = typeof db.getActiveBannersByHotel === 'function'
+      ? db.getActiveBannersByHotel(hotel_id)
+      : [];
+
+    const isFallback = banners.length > 0 && banners[0].fallback === true;
+    return res.json({
+      success: true,
+      count: banners.length,
+      banners: banners,
+      fallback: isFallback
+    });
+  }
+
   const allBanners = typeof db.getBanners === 'function' ? db.getBanners() : (db.data.banners || []);
   let activeBanners = allBanners.filter(b => b.is_active !== false);
-
-  if (hotel_id) {
-    activeBanners = activeBanners.filter(b => String(b.hotel_id) === String(hotel_id));
-  }
 
   if (activeBanners.length > 0) {
     activeBanners.sort((a, b) => {
@@ -27,7 +40,8 @@ router.get('/', (req, res) => {
         hotel_id: b.hotel_id || (hotel ? hotel.id : null),
         image_url: finalImage,
         cover_image: finalImage,
-        hotel: hotel || null
+        hotel: hotel || null,
+        fallback: false
       };
     });
 
@@ -35,16 +49,6 @@ router.get('/', (req, res) => {
       success: true,
       count: populatedBanners.length,
       banners: populatedBanners,
-      fallback: false
-    });
-  }
-
-  // If a specific hotel was requested and has no banners, do not return global fallback banners
-  if (hotel_id) {
-    return res.json({
-      success: true,
-      count: 0,
-      banners: [],
       fallback: false
     });
   }

@@ -83,6 +83,7 @@ export default function HotelBannerCarousel({ banners, onBannerPress }) {
           <Image
             source={{ uri: rawImageUrl }}
             style={styles.image}
+            resizeMode="cover"
             onError={() => {
               setFailedImages(prev => ({ ...prev, [bannerKey]: true }));
             }}
@@ -200,7 +201,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   fallbackBackground: {
     ...StyleSheet.absoluteFillObject,

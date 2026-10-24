@@ -92,6 +92,13 @@ class MobileApiService {
     return this.request(`/hotels/${id}`);
   }
 
+  async getHotelSummary(id) {
+    if (!id || id === 'undefined' || id === 'null') {
+      throw new Error(`getHotelSummary requires a valid hotel ID, received: ${id}`);
+    }
+    return this.request(`/hotels/${id}/summary`);
+  }
+
   // --- BOOKING & PAYMENTS ---
   async createRazorpayOrder(payload) {
     return this.request('/payments/create-order', {

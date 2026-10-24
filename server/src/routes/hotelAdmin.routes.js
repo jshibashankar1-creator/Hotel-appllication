@@ -483,12 +483,24 @@ router.post('/banners', requireRole('hotel_admin', 'owner', 'super_admin', 'admi
     updated_at: new Date().toISOString()
   };
 
+  let createdBanner = newBanner;
   db.transaction(data => {
     if (!data.banners) data.banners = [];
-    data.banners.push(newBanner);
+    // Avoid duplicate banner insertion if retrying with the same image_url and hotel_id within a short window
+    const existing = data.banners.find(b => b.hotel_id === hotel.id && b.image_url === image_url);
+    if (existing) {
+      if (title !== undefined) existing.title = title || '';
+      if (sort_order !== undefined) existing.sort_order = Number(sort_order) || 0;
+      if (is_active !== undefined) existing.is_active = is_active;
+      if (image_public_id !== undefined) existing.image_public_id = image_public_id;
+      existing.updated_at = new Date().toISOString();
+      createdBanner = existing;
+    } else {
+      data.banners.push(newBanner);
+    }
   });
 
-  return res.status(201).json({ success: true, message: 'Banner added successfully.', banner: newBanner });
+  return res.status(201).json({ success: true, message: 'Banner saved successfully.', banner: createdBanner });
 });
 
 // PUT /api/hotel-admin/banners/:id

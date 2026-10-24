@@ -5,8 +5,13 @@ const router = Router();
 
 // GET /api/banners (Public endpoint for Customer App & Web discovery)
 router.get('/', (req, res) => {
+  const { hotel_id } = req.query;
   const allBanners = typeof db.getBanners === 'function' ? db.getBanners() : (db.data.banners || []);
   let activeBanners = allBanners.filter(b => b.is_active !== false);
+
+  if (hotel_id) {
+    activeBanners = activeBanners.filter(b => String(b.hotel_id) === String(hotel_id));
+  }
 
   if (activeBanners.length > 0) {
     activeBanners.sort((a, b) => {
@@ -16,11 +21,12 @@ router.get('/', (req, res) => {
 
     const populatedBanners = activeBanners.map(b => {
       const hotel = b.hotel_id ? db.getHotelById(b.hotel_id) : null;
+      const finalImage = b.image_url || b.cover_image || (hotel ? hotel.cover_image : null);
       return {
         ...b,
         hotel_id: b.hotel_id || (hotel ? hotel.id : null),
-        image_url: b.image_url || (hotel ? hotel.cover_image : null),
-        cover_image: b.image_url || (hotel ? hotel.cover_image : null),
+        image_url: finalImage,
+        cover_image: finalImage,
         hotel: hotel || null
       };
     });
@@ -33,7 +39,17 @@ router.get('/', (req, res) => {
     });
   }
 
-  // Fallback: If no custom promotional banners exist, provide banners from active hotels with real cover images
+  // If a specific hotel was requested and has no banners, do not return global fallback banners
+  if (hotel_id) {
+    return res.json({
+      success: true,
+      count: 0,
+      banners: [],
+      fallback: false
+    });
+  }
+
+  // Fallback: If no custom promotional banners exist globally, provide banners from active hotels with real cover images
   const activeHotels = db.getHotels().filter(h => h.status === 'active' && h.cover_image);
   const fallbackBanners = activeHotels.slice(0, 5).map((h, idx) => ({
     id: `BNR-${h.id}`,

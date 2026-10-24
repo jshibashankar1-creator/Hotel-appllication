@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { mobileApi } from '../services/api';
+import HotelBannerCarousel from '../components/HotelBannerCarousel';
 
 const { width, height } = Dimensions.get('window');
 
@@ -51,6 +52,7 @@ export default function HotelDetailsScreen({ route, navigation }) {
   const [loading, setLoading] = useState(!hotelParam && Boolean(hotelId));
   const [fetchError, setFetchError] = useState(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [hotelBanners, setHotelBanners] = useState([]);
 
   useEffect(() => {
     async function fetchDetails() {
@@ -77,6 +79,28 @@ export default function HotelDetailsScreen({ route, navigation }) {
       }
     }
     fetchDetails();
+  }, [hotelId]);
+
+  useEffect(() => {
+    async function fetchHotelBanners() {
+      if (!hotelId) return;
+      try {
+        // Fetch banners filtered by hotel_id or all active banners
+        const res = await mobileApi.getBanners({ hotel_id: hotelId });
+        const list = Array.isArray(res?.banners) ? res.banners : [];
+        // Match banner.hotel_id to selected hotel's actual ID and ensure active
+        const matched = list.filter(b => 
+          b && 
+          b.is_active !== false && 
+          String(b.hotel_id) === String(hotelId)
+        );
+        setHotelBanners(matched);
+      } catch (err) {
+        console.warn('[HotelDetails] Could not load promotional banners:', err.message);
+        setHotelBanners([]);
+      }
+    }
+    fetchHotelBanners();
   }, [hotelId]);
 
   if (!hotelId) {
@@ -155,10 +179,27 @@ export default function HotelDetailsScreen({ route, navigation }) {
     setSelectedRoom(displayRooms[0]);
   }
 
+  const mainScrollViewRef = useRef(null);
+  const roomsSectionY = useRef(0);
+
+  const handleBannerPress = (banner) => {
+    // Scroll down to the Select Room / Booking section smoothly
+    if (mainScrollViewRef.current && roomsSectionY.current > 0) {
+      mainScrollViewRef.current.scrollTo({
+        y: roomsSectionY.current - 20,
+        animated: true,
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        ref={mainScrollViewRef}
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={styles.scrollContent}
+      >
         
         {/* HERO IMAGE */}
         <View style={styles.heroImageWrapper}>
@@ -187,6 +228,14 @@ export default function HotelDetailsScreen({ route, navigation }) {
           <Text style={styles.hotelTitle}>{fullHotel?.name || 'Digha Beach Luxury Resort'}</Text>
           <Text style={styles.locationText}>📍 {fullHotel?.city || 'New Digha'}, WB</Text>
           <Text style={styles.ratingText}>⭐ <Text style={{fontWeight:'700'}}>{fullHotel?.rating || '4.8'}</Text> <Text style={{color:'#64748b'}}>({fullHotel?.reviewsCount || '215'} Reviews)</Text></Text>
+
+          {/* PROMOTIONAL BANNER CAROUSEL (Real admin-uploaded banners for this hotel) */}
+          {hotelBanners && hotelBanners.length > 0 && (
+            <HotelBannerCarousel
+              banners={hotelBanners}
+              onBannerPress={handleBannerPress}
+            />
+          )}
 
           {/* TABS */}
           <View style={styles.tabsRow}>
@@ -243,7 +292,9 @@ export default function HotelDetailsScreen({ route, navigation }) {
           </Text>
 
           {/* SELECT ROOM */}
-          <Text style={styles.selectRoomTitle}>Select Room</Text>
+          <View onLayout={(e) => { roomsSectionY.current = e.nativeEvent.layout.y; }}>
+            <Text style={styles.selectRoomTitle}>Select Room</Text>
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 10 }}>
             {displayRooms.map((room, idx) => {
               const isSelected = selectedRoom?.id === room.id || selectedRoom?.name === room.name;

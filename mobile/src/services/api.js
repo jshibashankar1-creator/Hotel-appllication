@@ -225,8 +225,9 @@ class MobileApiService {
     return this.request('/food');
   }
 
-  async getBanners() {
-    return this.request('/banners');
+  async getBanners(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(query ? `/banners?${query}` : '/banners');
   }
 }
 

@@ -29,11 +29,16 @@ export async function renderAdminSettingsView(container) {
     `;
     if (window.lucide) window.lucide.createIcons();
 
-    // Verify and refresh current user profile if needed
-    if (!api.currentUser && api.token) {
+    // Ensure role and user profile are fully hydrated from backend /api/auth/me
+    if (api.token) {
       try {
-        await api.getMe();
-      } catch (_) {}
+        const freshUser = await api.getMe();
+        if (freshUser) {
+          api.currentUser = freshUser;
+        }
+      } catch (err) {
+        console.warn('[AdminSettingsView] Session hydration from /api/auth/me notice:', err.message);
+      }
     }
 
     try {

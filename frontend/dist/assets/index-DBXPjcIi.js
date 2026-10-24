@@ -8822,7 +8822,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading settings...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons(),!x.currentUser&&x.token)try{await x.getMe()}catch{}try{const[d,s]=await Promise.all([x.getSettings().catch(()=>({settings:{}})),x.getHomeHero().catch(()=>({image_url:null}))]);e=d.settings||{},a=(s==null?void 0:s.image_url)||(s==null?void 0:s.hero_image)||e.home_hero_bg_image||null,o()}catch(d){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${d.message}</div>`}}function o(){const d=_M(),s=n1(),p=(s==null?void 0:s.role)||"admin";i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons(),x.token)try{const d=await x.getMe();d&&(x.currentUser=d)}catch(d){console.warn("[AdminSettingsView] Session hydration from /api/auth/me notice:",d.message)}try{const[d,s]=await Promise.all([x.getSettings().catch(()=>({settings:{}})),x.getHomeHero().catch(()=>({image_url:null}))]);e=d.settings||{},a=(s==null?void 0:s.image_url)||(s==null?void 0:s.hero_image)||e.home_hero_bg_image||null,o()}catch(d){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${d.message}</div>`}}function o(){const d=_M(),s=n1(),p=(s==null?void 0:s.role)||"admin";i.innerHTML=`
       <div style="max-width: 760px; display: flex; flex-direction: column; gap: 24px;">
         <!-- Prominent Customer App Home Hero Background Management Card -->
         <div class="panel-card" id="hero-settings-card">

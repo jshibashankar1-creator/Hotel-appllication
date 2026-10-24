@@ -19,6 +19,9 @@ function isUserSuperAdmin() {
 export async function renderAdminSettingsView(container) {
   let settings = null;
   let heroImage = null;
+  let heroPublicId = null;
+  let stagedImage = null;
+  let stagedPublicId = null;
 
   async function loadData() {
     container.innerHTML = `
@@ -44,10 +47,13 @@ export async function renderAdminSettingsView(container) {
     try {
       const [res, heroRes] = await Promise.all([
         api.getSettings().catch(() => ({ settings: {} })),
-        api.getHomeHero().catch(() => ({ image_url: null }))
+        api.getHomeHero().catch(() => ({ image_url: null, public_id: null }))
       ]);
       settings = res.settings || {};
       heroImage = heroRes?.image_url || heroRes?.hero_image || settings.home_hero_bg_image || null;
+      heroPublicId = heroRes?.public_id || settings.home_hero_bg_public_id || null;
+      stagedImage = heroImage;
+      stagedPublicId = heroPublicId;
       render();
     } catch (err) {
       container.innerHTML = `<div class="panel-card" style="color: var(--status-danger);">Error: ${err.message}</div>`;
@@ -58,6 +64,7 @@ export async function renderAdminSettingsView(container) {
     const isSuperAdmin = isUserSuperAdmin();
     const currentUser = getAuthUser();
     const userRole = currentUser?.role || 'admin';
+    const activeImage = stagedImage || heroImage;
 
     container.innerHTML = `
       <div style="max-width: 760px; display: flex; flex-direction: column; gap: 24px;">
@@ -86,16 +93,13 @@ export async function renderAdminSettingsView(container) {
             <div style="margin-top: 18px;">
               <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
 
-              <div class="upload-dropzone ${heroImage ? 'has-preview' : ''}" id="hero-dropzone">
-                ${heroImage ? `
+              <div class="upload-dropzone ${activeImage ? 'has-preview' : ''}" id="hero-dropzone">
+                ${activeImage ? `
                   <div class="upload-preview-wrapper" style="position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; max-height: 260px;">
-                    <img src="${heroImage}" alt="Customer App Hero Background" id="hero-preview-img" style="width: 100%; height: 240px; object-fit: cover; display: block; border-radius: var(--radius-md);" />
+                    <img src="${activeImage}" alt="Customer App Hero Background" id="hero-preview-img" style="width: 100%; height: 240px; object-fit: cover; display: block; border-radius: var(--radius-md);" />
                     <div class="upload-preview-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity 0.2s ease;">
                       <button type="button" class="btn btn-secondary btn-sm" id="btn-change-hero" style="color: #fff; border-color: rgba(255,255,255,0.6); background: rgba(0,0,0,0.4);">
                         <i data-lucide="camera" style="width: 14px; height: 14px;"></i> Change Photo
-                      </button>
-                      <button type="button" class="btn btn-danger btn-sm" id="btn-remove-hero" style="background: #dc2626; border-color: #dc2626; color: #fff;">
-                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Remove Photo
                       </button>
                     </div>
                   </div>
@@ -126,6 +130,26 @@ export async function renderAdminSettingsView(container) {
 
               <!-- Status / Alert Message Container -->
               <div id="hero-status-box" style="display: none; margin-top: 12px; font-size: 0.85rem; padding: 10px 14px; border-radius: var(--radius-sm); align-items: center; gap: 8px;"></div>
+
+              <!-- Action Buttons Toolbar below Image Preview -->
+              <div class="hero-actions-toolbar" style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-light, #e2e8f0);">
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  id="btn-remove-hero"
+                  ${!activeImage ? 'disabled' : ''}
+                >
+                  <i data-lucide="trash-2"></i> Remove
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="btn-submit-hero"
+                  ${!activeImage ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}
+                >
+                  <i data-lucide="save"></i> Submit / Save Changes
+                </button>
+              </div>
             </div>
           `}
         </div>
@@ -207,6 +231,8 @@ export async function renderAdminSettingsView(container) {
     const progressPercent = container.querySelector('#hero-progress-percent');
     const progressLabel = container.querySelector('#hero-progress-label');
     const statusBox = container.querySelector('#hero-status-box');
+    const removeBtn = container.querySelector('#btn-remove-hero');
+    const submitBtn = container.querySelector('#btn-submit-hero');
 
     function showStatus(msg, type = 'info') {
       if (!statusBox) return;
@@ -238,10 +264,8 @@ export async function renderAdminSettingsView(container) {
       }
     }
 
-    if (!dropzone) return;
-
     // Trigger browse button
-    const triggerBtn = dropzone.querySelector('#btn-upload-hero-trigger');
+    const triggerBtn = dropzone?.querySelector('#btn-upload-hero-trigger');
     if (triggerBtn) {
       triggerBtn.onclick = (e) => {
         e.stopPropagation();
@@ -250,7 +274,7 @@ export async function renderAdminSettingsView(container) {
     }
 
     // Change photo button
-    const changeBtn = dropzone.querySelector('#btn-change-hero');
+    const changeBtn = dropzone?.querySelector('#btn-change-hero');
     if (changeBtn) {
       changeBtn.onclick = (e) => {
         e.stopPropagation();
@@ -258,52 +282,135 @@ export async function renderAdminSettingsView(container) {
       };
     }
 
-    // Remove photo button
-    const removeBtn = dropzone.querySelector('#btn-remove-hero');
-    if (removeBtn) {
-      removeBtn.onclick = async (e) => {
-        e.stopPropagation();
-        if (!confirm('Are you sure you want to remove the customer app home hero background image?')) return;
-        try {
-          await api.removeHomeHero();
-          heroImage = null;
-          showStatus('Hero background image removed successfully.', 'success');
-          window.showToast?.('Hero image removed.', 'success');
-          setTimeout(() => render(), 700);
-        } catch (err) {
-          showStatus(err.message || 'Failed to remove hero image.', 'error');
+    // Remove photo action handler
+    async function handleRemove(e) {
+      if (e) e.stopPropagation();
+      if (!confirm('Are you sure you want to remove the customer app home hero background image?')) {
+        return; // User canceled confirmation - image remains unchanged
+      }
+
+      if (removeBtn) {
+        removeBtn.disabled = true;
+        removeBtn.innerHTML = `<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Removing...`;
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      if (window.lucide) window.lucide.createIcons();
+
+      try {
+        await api.removeHomeHero();
+        heroImage = null;
+        heroPublicId = null;
+        stagedImage = null;
+        stagedPublicId = null;
+
+        window.showToast?.('Hero image removed successfully.', 'success');
+        render();
+        showStatus('Home hero background image removed successfully.', 'success');
+      } catch (err) {
+        console.error('Failed to remove hero image:', err);
+        showStatus(err.message || 'Failed to remove hero image. Please try again.', 'error');
+        window.showToast?.(err.message || 'Failed to remove hero image.', 'error');
+        if (removeBtn) {
+          removeBtn.disabled = false;
+          removeBtn.innerHTML = `<i data-lucide="trash-2"></i> Remove`;
         }
-      };
+        if (submitBtn && (heroImage || stagedImage)) submitBtn.disabled = false;
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+
+    // Submit / Save Changes action handler
+    async function handleSubmit(e) {
+      if (e) e.stopPropagation();
+      const activeUrl = stagedImage || heroImage;
+      const activePublicId = stagedPublicId || heroPublicId;
+
+      if (!activeUrl) {
+        showStatus('No hero image selected. Please choose or upload an image first.', 'error');
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...`;
+      }
+      if (removeBtn) removeBtn.disabled = true;
+      if (window.lucide) window.lucide.createIcons();
+
+      try {
+        const res = await api.updateHomeHero(activeUrl, activePublicId);
+        heroImage = res.image_url || activeUrl;
+        heroPublicId = res.public_id || activePublicId;
+        stagedImage = heroImage;
+        stagedPublicId = heroPublicId;
+
+        showStatus('Customer app home hero background image saved and active!', 'success');
+        window.showToast?.('Hero background updated successfully.', 'success');
+
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i data-lucide="check"></i> Saved`;
+        }
+        if (removeBtn) removeBtn.disabled = false;
+        if (window.lucide) window.lucide.createIcons();
+
+        setTimeout(() => {
+          if (submitBtn) {
+            submitBtn.innerHTML = `<i data-lucide="save"></i> Submit / Save Changes`;
+            if (window.lucide) window.lucide.createIcons();
+          }
+        }, 2200);
+      } catch (err) {
+        console.error('Failed to submit hero image:', err);
+        showStatus(err.message || 'Failed to save home hero background image.', 'error');
+        window.showToast?.(err.message || 'Failed to save hero background.', 'error');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i data-lucide="save"></i> Submit / Save Changes`;
+        }
+        if (removeBtn) removeBtn.disabled = false;
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+
+    if (removeBtn) {
+      removeBtn.onclick = handleRemove;
+    }
+
+    if (submitBtn) {
+      submitBtn.onclick = handleSubmit;
     }
 
     // Dropzone click
-    dropzone.onclick = () => {
-      if (!dropzone.classList.contains('has-preview') && fileInput) {
-        fileInput.click();
-      }
-    };
+    if (dropzone) {
+      dropzone.onclick = () => {
+        if (!dropzone.classList.contains('has-preview') && fileInput) {
+          fileInput.click();
+        }
+      };
 
-    // Drag and drop
-    dropzone.ondragover = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.add('drag-over');
-    };
+      // Drag and drop
+      dropzone.ondragover = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('drag-over');
+      };
 
-    dropzone.ondragleave = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove('drag-over');
-    };
+      dropzone.ondragleave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('drag-over');
+      };
 
-    dropzone.ondrop = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove('drag-over');
-      if (e.dataTransfer?.files?.length) {
-        handleFileSelection(e.dataTransfer.files[0]);
-      }
-    };
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('drag-over');
+        if (e.dataTransfer?.files?.length) {
+          handleFileSelection(e.dataTransfer.files[0]);
+        }
+      };
+    }
 
     fileInput?.addEventListener('change', (e) => {
       if (e.target.files?.length) {
@@ -343,10 +450,14 @@ export async function renderAdminSettingsView(container) {
           if (progressPercent) progressPercent.textContent = `${percent}%`;
         });
 
-        heroImage = uploadResult.secure_url || uploadResult.url;
-        showStatus('Home hero background uploaded and saved successfully!', 'success');
-        window.showToast?.('Hero background updated successfully.', 'success');
-        setTimeout(() => render(), 700);
+        stagedImage = uploadResult.secure_url || uploadResult.url;
+        stagedPublicId = uploadResult.public_id;
+        heroImage = stagedImage;
+        heroPublicId = stagedPublicId;
+
+        window.showToast?.('Image uploaded to Cloudinary. Click Submit to save.', 'info');
+        render();
+        showStatus('Image uploaded to Cloudinary successfully! Click "Submit / Save Changes" to confirm.', 'success');
       } catch (err) {
         console.error('Hero background upload failed:', err);
         showStatus(err.message || 'Hero background upload failed. Please verify Cloudinary configuration.', 'error');

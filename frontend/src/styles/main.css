@@ -1081,6 +1081,21 @@ button {
   background-color: #991b1b;
 }
 
+.btn-outline-danger {
+  background-color: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+}
+.btn-outline-danger:hover:not(:disabled) {
+  background-color: rgba(220, 38, 38, 0.08);
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+.btn-outline-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-success {
   background-color: var(--status-success);
   color: #ffffff;

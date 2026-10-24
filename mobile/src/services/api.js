@@ -237,6 +237,11 @@ class MobileApiService {
     const query = new URLSearchParams(params).toString();
     return this.request(query ? `/banners?${query}` : '/banners');
   }
+
+  // --- PLATFORM SETTINGS & HOME HERO (Super Admin managed) ---
+  async getHomeHero() {
+    return this.request('/settings/home-hero');
+  }
 }
 
 export const mobileApi = new MobileApiService();

@@ -12,6 +12,7 @@ import {
   Dimensions,
   Platform,
   ImageBackground,
+  RefreshControl,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { COLORS } from '../theme/colors';
@@ -49,6 +50,12 @@ export default function HomeScreen({ navigation }) {
   const [foodError, setFoodError] = useState(null);
   const [selectedFood, setSelectedFood] = useState(null);
   const [isFoodModalVisible, setFoodModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Super Admin Managed Home Hero Background
+  const [heroBgImage, setHeroBgImage] = useState(null);
+  const [heroImageLoading, setHeroImageLoading] = useState(true);
+  const [heroImageError, setHeroImageError] = useState(false);
 
   // Search Parameters State
   const today = new Date();
@@ -80,7 +87,37 @@ export default function HomeScreen({ navigation }) {
     fetchLiveHotels();
     fetchBanners();
     fetchFoodItems();
+    fetchHomeHero();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      fetchLiveHotels(),
+      fetchBanners(),
+      fetchFoodItems(),
+      fetchHomeHero(),
+    ]);
+    setRefreshing(false);
+  };
+
+  async function fetchHomeHero() {
+    try {
+      setHeroImageLoading(true);
+      setHeroImageError(false);
+      const res = await mobileApi.getHomeHero();
+      if (res && res.success && res.image_url) {
+        setHeroBgImage(res.image_url);
+      } else {
+        setHeroBgImage(null);
+      }
+    } catch (err) {
+      console.warn('[HOME] Error fetching home hero background:', err.message);
+      setHeroBgImage(null);
+    } finally {
+      setHeroImageLoading(false);
+    }
+  }
 
   async function fetchFoodItems() {
     try {
@@ -368,12 +405,16 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Background Hero Area */}
+      {/* Background Hero Area - Super Admin Managed */}
       <View style={styles.heroBackground}>
-        {hotels.find(h => h.coverImage) ? (
+        {heroBgImage && !heroImageError ? (
           <ImageBackground
-            source={{ uri: hotels.find(h => h.coverImage).coverImage }}
+            source={{ uri: heroBgImage }}
             style={StyleSheet.absoluteFillObject}
+            onError={() => {
+              console.warn('[HOME] Hero background image failed to load');
+              setHeroImageError(true);
+            }}
           >
             <View style={styles.heroOverlay} />
           </ImageBackground>
@@ -386,6 +427,9 @@ export default function HomeScreen({ navigation }) {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          }
         >
           {/* Header */}
           <View style={styles.headerRow}>

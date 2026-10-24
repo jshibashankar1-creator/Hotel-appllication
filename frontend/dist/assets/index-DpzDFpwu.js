@@ -1,14 +1,14 @@
-(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))d(o);new MutationObserver(o=>{for(const n of o)if(n.type==="childList")for(const r of n.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&d(r)}).observe(document,{childList:!0,subtree:!0});function a(o){const n={};return o.integrity&&(n.integrity=o.integrity),o.referrerPolicy&&(n.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?n.credentials="include":o.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function d(o){if(o.ep)return;o.ep=!0;const n=a(o);fetch(o.href,n)}})();const G="https://hotel-appllication.onrender.com/api",N=G.replace(/\/$/,"").endsWith("/api")?G.replace(/\/$/,""):`${G.replace(/\/$/,"")}/api`;class n1{constructor(){this.token=localStorage.getItem("hotelhub_auth_token")||null,this.currentUser=JSON.parse(localStorage.getItem("hotelhub_current_user")||"null")}setSession(e,a){this.token=e,this.currentUser=a,e?(localStorage.setItem("hotelhub_auth_token",e),localStorage.setItem("hotelhub_current_user",JSON.stringify(a))):(localStorage.removeItem("hotelhub_auth_token"),localStorage.removeItem("hotelhub_current_user"))}clearSession(){this.setSession(null,null)}async request(e,a={}){const d={"Content-Type":"application/json",...a.headers};this.token&&(d.Authorization=`Bearer ${this.token}`);try{const o=await fetch(`${N}${e}`,{...a,headers:d}),n=await o.json().catch(()=>({}));if(!o.ok){const r=new Error(n.message||`API request failed with status ${o.status}`);throw r.status=o.status,r.data=n,r}return n}catch(o){throw a.silent||console.error(`API Error on ${e}:`,o.message),o}}async get(e,a={}){return this.request(e,{...a,method:"GET"})}async post(e,a={},d={}){return this.request(e,{...d,method:"POST",body:JSON.stringify(a)})}async put(e,a={},d={}){return this.request(e,{...d,method:"PUT",body:JSON.stringify(a)})}async patch(e,a={},d={}){return this.request(e,{...d,method:"PATCH",body:JSON.stringify(a)})}async delete(e,a={}){return this.request(e,{...a,method:"DELETE"})}async login(e,a,d=null){const o=await this.request("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:a,requiredRole:d})});return this.setSession(o.token,o.user),o}async adminLogin(e,a){return this.login(e,a)}async hotelAdminLogin(e,a){return this.login(e,a)}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return a.token&&a.user&&a.user.status==="active"&&this.setSession(a.token,a.user),a}async adminSetup(e,a,d,o){const n=await this.request("/auth/admin/setup",{method:"POST",body:JSON.stringify({name:e,email:a,password:d,phone:o})});return this.setSession(n.token,n.user),n}async adminCreate(e){return this.request("/auth/admin/create",{method:"POST",body:JSON.stringify(e)})}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return this.setSession(a.token,a.user),a}async getMe(){try{const e=await this.request("/auth/me");return this.currentUser=e.user,localStorage.setItem("hotelhub_current_user",JSON.stringify(e.user)),e.user}catch(e){throw this.clearSession(),e}}logout(){return this.clearSession(),this.request("/auth/logout",{method:"POST"}).catch(()=>{})}async getAdminProfile(){return this.request("/admin/profile")}async updateAdminProfile(e,a){const d=await this.request("/admin/profile",{method:"PUT",body:JSON.stringify({name:e,phone:a})});return d.user&&(this.currentUser={...this.currentUser,...d.user},localStorage.setItem("hotelhub_current_user",JSON.stringify(this.currentUser))),d}async changeAdminPassword(e,a){return this.request("/admin/change-password",{method:"PUT",body:JSON.stringify({currentPassword:e,newPassword:a})})}async getAdminUsers(){return this.request("/admin/users")}async getAdminUser(e){return this.request(`/admin/users/${e}`)}async updateAdminUserStatus(e,a){return this.request(`/admin/users/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateAdminUserRole(e,a,d){return this.request(`/admin/users/${e}/role`,{method:"PUT",body:JSON.stringify({role:a,permissions:d})})}async deleteAdminUser(e){return this.request(`/admin/users/${e}`,{method:"DELETE"})}async getAuditLogs(){return this.request("/admin/audit-logs")}async getHotels(e={}){const a=new URLSearchParams(e).toString();return this.request(`/hotels${a?`?${a}`:""}`)}async getAdminHotels(){return this.request("/hotels/admin")}async getOwnerHotels(){return this.request("/hotels/owner")}async getHotelById(e){return this.request(`/hotels/${e}`)}async getHotelSummary(e){return this.request(`/hotels/${e}/summary`)}async onboardHotel(e){return this.request("/hotels/onboard",{method:"POST",body:JSON.stringify(e)})}async updateHotel(e,a){return this.request(`/hotels/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelStatus(e,a){return this.request(`/hotels/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async getRoomsByHotel(e){return this.request(`/rooms/hotel/${e}`)}async createRoom(e){return this.request("/rooms",{method:"POST",body:JSON.stringify(e)})}async updateRoom(e,a){return this.request(`/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteRoom(e){return this.request(`/rooms/${e}`,{method:"DELETE"})}async uploadRoomImage(e,a=null,d=null){return new Promise((o,n)=>{const r=new XMLHttpRequest;r.open("POST",`${N}/uploads/room-image`),this.token&&r.setRequestHeader("Authorization",`Bearer ${this.token}`),r.upload&&typeof d=="function"&&(r.upload.onprogress=s=>{if(s.lengthComputable){const p=Math.round(s.loaded/s.total*100);d(p)}}),r.onload=()=>{let s={};try{s=JSON.parse(r.responseText||"{}")}catch{s={message:r.responseText||"Upload failed"}}if(r.status>=200&&r.status<300&&s.success)o(s);else{const p=new Error(s.message||`Upload failed with HTTP ${r.status}`);p.status=r.status,p.data=s,n(p)}},r.onerror=()=>{n(new Error("Network error during image upload to server."))};const c=new FormData;c.append("image",e),a&&c.append("hotel_id",a),r.send(c)})}async uploadBannerImage(e,a=null,d=null){const o=n=>new Promise((r,c)=>{const s=new XMLHttpRequest;s.open("POST",n),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=h=>{if(h.lengthComputable){const m=Math.round(h.loaded/h.total*100);d(m)}}),s.onload=()=>{let h={};try{h=JSON.parse(s.responseText||"{}")}catch{h={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&h.success)r(h);else{const m=new Error(h.message||`Upload failed with HTTP ${s.status}`);m.status=s.status,m.data=h,c(m)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/banner-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw n}}async uploadCoverImage(e,a=null,d=null){const o=n=>new Promise((r,c)=>{const s=new XMLHttpRequest;s.open("POST",n),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=h=>{if(h.lengthComputable){const m=Math.round(h.loaded/h.total*100);d(m)}}),s.onload=()=>{let h={};try{h=JSON.parse(s.responseText||"{}")}catch{h={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&h.success)r(h);else{const m=new Error(h.message||`Upload failed with HTTP ${s.status}`);m.status=s.status,m.data=h,c(m)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/cover-image`)}catch(n){if(n.status===404)return console.warn("POST /api/uploads/cover-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw n}}async getRoomAvailability(e,a,d){let o=a,n=d;const r=h=>{if(!h)return null;if(typeof h=="string"&&/^\d{4}-\d{2}-\d{2}$/.test(h))return h;const m=new Date(h);if(isNaN(m.getTime()))return null;const y=m.getFullYear(),u=String(m.getMonth()+1).padStart(2,"0"),l=String(m.getDate()).padStart(2,"0");return`${y}-${u}-${l}`};if(typeof a=="number"||typeof a=="string"&&!isNaN(Number(a))&&a.length<5){const h=Number(a)||14,m=new Date;o=r(m);const y=new Date(m.getFullYear(),m.getMonth(),m.getDate()+h);n=r(y)}else o=r(a),n=r(d);const c=new URLSearchParams;o&&c.append("startDate",o),n&&c.append("endDate",n);const s=c.toString(),p=`/availability/room/${encodeURIComponent(e)}${s?`?${s}`:""}`;try{return await this.request(p,{silent:!0})}catch(h){if(h.status===404){const m=`/availability/${encodeURIComponent(e)}${s?`?${s}`:""}`;return await this.request(m)}throw h}}async blockAvailability(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,blocked_count:d})})}async toggleBlackoutDate(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,is_blocked:d})})}async createBooking(e){return this.request("/bookings/create",{method:"POST",body:JSON.stringify(e)})}async getMyBookings(){return this.request("/bookings/my")}async getOwnerBookings(){return this.request("/bookings/owner")}async getAdminBookings(){return this.request("/bookings/admin")}async getBookingById(e){return this.request(`/bookings/${e}`)}async checkInBooking(e){return this.request(`/bookings/${e}/checkin`,{method:"PUT"})}async checkInGuest(e){return this.checkInBooking(e)}async checkOutBooking(e){return this.request(`/bookings/${e}/checkout`,{method:"PUT"})}async checkOutGuest(e){return this.checkOutBooking(e)}async cancelBooking(e,a){return this.request(`/bookings/${e}/cancel`,{method:"POST",body:JSON.stringify({reason:a})})}async getAdminPayments(){return this.request("/payments/admin")}async getAdminRefunds(){return this.request("/refunds/admin")}async processRefund(e,a,d){return this.request(`/refunds/${e}/process`,{method:"PUT",body:JSON.stringify({status:a,admin_notes:d})})}async getCommissionLedger(){return this.request("/commissions/ledger")}async getOwnerEarnings(){return this.request("/commissions/owner-earnings")}async updateCommissionRate(e){return this.request("/commissions/rate",{method:"PUT",body:JSON.stringify({rate:e})})}async getReviews(e){return this.request(`/reviews/hotel/${e}`)}async submitReview(e){return this.request("/reviews",{method:"POST",body:JSON.stringify(e)})}async getSupportTickets(){return this.request("/support/tickets")}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateSupportTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateTicketStatus(e,a){return this.updateSupportTicketStatus(e,a)}async getMe(){return this.request("/auth/me")}async getHotelAdminDashboard(){return this.request("/hotel-admin/dashboard")}async getHotelAdminKpis(){return this.request("/hotel-admin/dashboard")}async getHotelAdminHotel(){return this.request("/hotel-admin/hotel")}async getHotelAdminProperty(){return this.request("/hotel-admin/property")}async updateHotelAdminHotel(e){return this.request("/hotel-admin/hotel",{method:"PUT",body:JSON.stringify(e)})}async updateHotelAdminProperty(e){return this.request("/hotel-admin/property",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminRooms(){return this.request("/hotel-admin/rooms")}async createHotelAdminRoom(e){return this.request("/hotel-admin/rooms",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminRoom(e,a){return this.request(`/hotel-admin/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteHotelAdminRoom(e){return this.request(`/hotel-admin/rooms/${e}`,{method:"DELETE"})}async getHotelAdminAvailability(){return this.request("/hotel-admin/availability")}async updateHotelAdminAvailability(e){return this.request("/hotel-admin/availability",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBookings(){return this.request("/hotel-admin/bookings")}async getHotelAdminCheckIns(){return this.request("/hotel-admin/check-ins")}async hotelAdminCheckIn(e){return this.request("/hotel-admin/check-in",{method:"POST",body:JSON.stringify({bookingId:e})})}async hotelAdminCheckOut(e){return this.request("/hotel-admin/check-out",{method:"POST",body:JSON.stringify({bookingId:e})})}async getHotelAdminEarnings(){return this.request("/hotel-admin/earnings")}async getHotelAdminSupport(){return this.request("/hotel-admin/support")}async getHotelAdminProfile(){return this.request("/hotel-admin/profile")}async updateHotelAdminProfile(e){return this.request("/hotel-admin/profile",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBanners(){return this.request("/hotel-admin/banners")}async createHotelAdminBanner(e){return this.request("/hotel-admin/banners",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminBanner(e,a){return this.request(`/hotel-admin/banners/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelAdminBannerStatus(e,a){return this.request(`/hotel-admin/banners/${e}/status`,{method:"PATCH",body:JSON.stringify({is_active:a})})}async deleteHotelAdminBanner(e){return this.request(`/hotel-admin/banners/${e}`,{method:"DELETE"})}async getOwnerKYCList(){return this.request("/owners/kyc")}async getOwnersKyc(){return this.request("/owners/kyc")}async updateOwnerKYCStatus(e,a,d=null){return this.request(`/owners/${e}/kyc`,{method:"PUT",body:JSON.stringify({status:a,reason:d})})}async updateOwnerKyc(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async updateOwnerKYC(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async getAdminKpis(){let e;try{e=await this.request("/reports/admin-kpis")}catch{try{e=await this.request("/admin/kpis")}catch{try{e=await this.request("/admin/dashboard")}catch{e={success:!0,data:{},kpis:{}}}}}const a=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{},d=a.total_hotels??a.totalHotels??0,o=a.verified_hotels??a.verifiedHotels??0,n=a.pending_hotels??a.underReviewHotels??0,r=a.total_bookings??a.totalBookings??0,c=a.todays_bookings??a.todayBookings??0,s=a.upcoming_checkins_count??a.upcomingCheckIns??0,p=a.total_gmv??a.grossPlatformVolume??0,h=a.platform_revenue??a.netPlatformCommission??a.platformCommission??0,m=a.active_in_house_stays??a.checked_in_bookings_count??a.activeInHouseStays??0,y=a.upcoming_checkouts_count??a.upcomingCheckOuts??0,u=a.cancelled_bookings_count??a.cancelledRefunded??0;return{success:!0,data:{totalHotels:d,verifiedHotels:o,underReviewHotels:n,totalBookings:r,todayBookings:c,upcomingCheckIns:s,grossPlatformVolume:p,netPlatformCommission:h,activeInHouseStays:m,upcomingCheckOuts:y,cancelledRefunded:u,pendingKYC:a.pending_kyc_count??a.pendingKYC??0,pendingRefunds:a.pending_refunds_count??a.pendingRefunds??0},kpis:{total_hotels:d,verified_hotels:o,pending_hotels:n,total_bookings:r,todays_bookings:c,total_gmv:p,platform_revenue:h,active_in_house_stays:m,checked_in_bookings_count:m,upcoming_checkins_count:s,upcoming_checkouts_count:y,cancelled_bookings_count:u,pending_refunds_count:a.pending_refunds_count??a.pendingRefunds??0,pending_kyc_count:a.pending_kyc_count??a.pendingKYC??0}}}async getAdminKPIs(){return this.getAdminKpis()}async getOwnerKPIs(){return this.request("/reports/owner-kpis")}async getOwnerKpis(){return this.request("/reports/owner-kpis")}async getDailyReport(){return this.request("/reports/daily")}async getMonthlyReport(){return this.request("/reports/monthly")}async getSettings(){return this.request("/settings")}async updateSettings(e){return this.request("/settings",{method:"PUT",body:JSON.stringify(e)})}async getHotelPickupSettings(e){return this.request(`/hotels/${e}/pickup-settings`)}async updateHotelPickupSettings(e,a){return this.request(`/hotels/${e}/pickup-settings`,{method:"PUT",body:JSON.stringify({pickup_service_enabled:a})})}async addPickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations`,{method:"POST",body:JSON.stringify(a)})}async updatePickupLocation(e,a,d){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"DELETE"})}async addPickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles`,{method:"POST",body:JSON.stringify(a)})}async updatePickupVehicle(e,a,d){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"DELETE"})}async getPickups(e={}){const a=new URLSearchParams(e).toString();return this.request(`/pickups?${a}`)}async getPickupDetails(e){return this.request(`/pickups/${e}`)}async updatePickupStatus(e,a,d=""){return this.request(`/pickups/${e}/status`,{method:"PATCH",body:JSON.stringify({status:a,notes:d})})}async assignPickupDriver(e,a){return this.request(`/pickups/${e}/assign-driver`,{method:"POST",body:JSON.stringify(a)})}async getSupportTickets(e=null){const a=e?`/support/tickets?user_id=${e}`:"/support/tickets";return this.request(a)}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}}const x=new n1;/**
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))d(o);new MutationObserver(o=>{for(const r of o)if(r.type==="childList")for(const n of r.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&d(n)}).observe(document,{childList:!0,subtree:!0});function a(o){const r={};return o.integrity&&(r.integrity=o.integrity),o.referrerPolicy&&(r.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?r.credentials="include":o.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function d(o){if(o.ep)return;o.ep=!0;const r=a(o);fetch(o.href,r)}})();const G="https://hotel-appllication.onrender.com/api",N=G.replace(/\/$/,"").endsWith("/api")?G.replace(/\/$/,""):`${G.replace(/\/$/,"")}/api`;class n1{constructor(){this.token=localStorage.getItem("hotelhub_auth_token")||null,this.currentUser=JSON.parse(localStorage.getItem("hotelhub_current_user")||"null")}setSession(e,a){this.token=e,this.currentUser=a,e?(localStorage.setItem("hotelhub_auth_token",e),localStorage.setItem("hotelhub_current_user",JSON.stringify(a))):(localStorage.removeItem("hotelhub_auth_token"),localStorage.removeItem("hotelhub_current_user"))}clearSession(){this.setSession(null,null)}async request(e,a={}){const d={"Content-Type":"application/json",...a.headers};this.token&&(d.Authorization=`Bearer ${this.token}`);try{const o=await fetch(`${N}${e}`,{...a,headers:d}),r=await o.json().catch(()=>({}));if(!o.ok){const n=new Error(r.message||`API request failed with status ${o.status}`);throw n.status=o.status,n.data=r,n}return r}catch(o){throw a.silent||console.error(`API Error on ${e}:`,o.message),o}}async get(e,a={}){return this.request(e,{...a,method:"GET"})}async post(e,a={},d={}){return this.request(e,{...d,method:"POST",body:JSON.stringify(a)})}async put(e,a={},d={}){return this.request(e,{...d,method:"PUT",body:JSON.stringify(a)})}async patch(e,a={},d={}){return this.request(e,{...d,method:"PATCH",body:JSON.stringify(a)})}async delete(e,a={}){return this.request(e,{...a,method:"DELETE"})}async login(e,a,d=null){const o=await this.request("/auth/login",{method:"POST",body:JSON.stringify({email:e,password:a,requiredRole:d})});return this.setSession(o.token,o.user),o}async adminLogin(e,a){return this.login(e,a)}async hotelAdminLogin(e,a){return this.login(e,a)}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return a.token&&a.user&&a.user.status==="active"&&this.setSession(a.token,a.user),a}async adminSetup(e,a,d,o){const r=await this.request("/auth/admin/setup",{method:"POST",body:JSON.stringify({name:e,email:a,password:d,phone:o})});return this.setSession(r.token,r.user),r}async adminCreate(e){return this.request("/auth/admin/create",{method:"POST",body:JSON.stringify(e)})}async register(e){const a=await this.request("/auth/register",{method:"POST",body:JSON.stringify(e)});return this.setSession(a.token,a.user),a}async getMe(){try{const e=await this.request("/auth/me");return this.currentUser=e.user,localStorage.setItem("hotelhub_current_user",JSON.stringify(e.user)),e.user}catch(e){throw this.clearSession(),e}}logout(){return this.clearSession(),this.request("/auth/logout",{method:"POST"}).catch(()=>{})}async getAdminProfile(){return this.request("/admin/profile")}async updateAdminProfile(e,a){const d=await this.request("/admin/profile",{method:"PUT",body:JSON.stringify({name:e,phone:a})});return d.user&&(this.currentUser={...this.currentUser,...d.user},localStorage.setItem("hotelhub_current_user",JSON.stringify(this.currentUser))),d}async changeAdminPassword(e,a){return this.request("/admin/change-password",{method:"PUT",body:JSON.stringify({currentPassword:e,newPassword:a})})}async getAdminUsers(){return this.request("/admin/users")}async getAdminUser(e){return this.request(`/admin/users/${e}`)}async updateAdminUserStatus(e,a){return this.request(`/admin/users/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateAdminUserRole(e,a,d){return this.request(`/admin/users/${e}/role`,{method:"PUT",body:JSON.stringify({role:a,permissions:d})})}async deleteAdminUser(e){return this.request(`/admin/users/${e}`,{method:"DELETE"})}async getAuditLogs(){return this.request("/admin/audit-logs")}async getHotels(e={}){const a=new URLSearchParams(e).toString();return this.request(`/hotels${a?`?${a}`:""}`)}async getAdminHotels(){return this.request("/hotels/admin")}async getOwnerHotels(){return this.request("/hotels/owner")}async getHotelById(e){return this.request(`/hotels/${e}`)}async getHotelSummary(e){return this.request(`/hotels/${e}/summary`)}async onboardHotel(e){return this.request("/hotels/onboard",{method:"POST",body:JSON.stringify(e)})}async updateHotel(e,a){return this.request(`/hotels/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelStatus(e,a){return this.request(`/hotels/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async getRoomsByHotel(e){return this.request(`/rooms/hotel/${e}`)}async createRoom(e){return this.request("/rooms",{method:"POST",body:JSON.stringify(e)})}async updateRoom(e,a){return this.request(`/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteRoom(e){return this.request(`/rooms/${e}`,{method:"DELETE"})}async uploadRoomImage(e,a=null,d=null){return new Promise((o,r)=>{const n=new XMLHttpRequest;n.open("POST",`${N}/uploads/room-image`),this.token&&n.setRequestHeader("Authorization",`Bearer ${this.token}`),n.upload&&typeof d=="function"&&(n.upload.onprogress=s=>{if(s.lengthComputable){const p=Math.round(s.loaded/s.total*100);d(p)}}),n.onload=()=>{let s={};try{s=JSON.parse(n.responseText||"{}")}catch{s={message:n.responseText||"Upload failed"}}if(n.status>=200&&n.status<300&&s.success)o(s);else{const p=new Error(s.message||`Upload failed with HTTP ${n.status}`);p.status=n.status,p.data=s,r(p)}},n.onerror=()=>{r(new Error("Network error during image upload to server."))};const c=new FormData;c.append("image",e),a&&c.append("hotel_id",a),n.send(c)})}async uploadBannerImage(e,a=null,d=null){const o=r=>new Promise((n,c)=>{const s=new XMLHttpRequest;s.open("POST",r),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=l=>{if(l.lengthComputable){const m=Math.round(l.loaded/l.total*100);d(m)}}),s.onload=()=>{let l={};try{l=JSON.parse(s.responseText||"{}")}catch{l={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&l.success)n(l);else{const m=new Error(l.message||`Upload failed with HTTP ${s.status}`);m.status=s.status,m.data=l,c(m)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/banner-image`)}catch(r){if(r.status===404)return console.warn("POST /api/uploads/banner-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw r}}async uploadCoverImage(e,a=null,d=null){const o=r=>new Promise((n,c)=>{const s=new XMLHttpRequest;s.open("POST",r),this.token&&s.setRequestHeader("Authorization",`Bearer ${this.token}`),s.upload&&typeof d=="function"&&(s.upload.onprogress=l=>{if(l.lengthComputable){const m=Math.round(l.loaded/l.total*100);d(m)}}),s.onload=()=>{let l={};try{l=JSON.parse(s.responseText||"{}")}catch{l={message:s.responseText||"Upload failed"}}if(s.status>=200&&s.status<300&&l.success)n(l);else{const m=new Error(l.message||`Upload failed with HTTP ${s.status}`);m.status=s.status,m.data=l,c(m)}},s.onerror=()=>{c(new Error("Network error during image upload to server."))};const p=new FormData;p.append("image",e),a&&p.append("hotel_id",a),s.send(p)});try{return await o(`${N}/uploads/cover-image`)}catch(r){if(r.status===404)return console.warn("POST /api/uploads/cover-image not deployed yet; falling back to /api/uploads/room-image"),await o(`${N}/uploads/room-image`);throw r}}async uploadHeroImage(e,a=null){return new Promise((d,o)=>{const r=new XMLHttpRequest;r.open("POST",`${N}/uploads/hero-image`),this.token&&r.setRequestHeader("Authorization",`Bearer ${this.token}`),r.upload&&typeof a=="function"&&(r.upload.onprogress=c=>{if(c.lengthComputable){const s=Math.round(c.loaded/c.total*100);a(s)}}),r.onload=()=>{let c={};try{c=JSON.parse(r.responseText||"{}")}catch{c={message:r.responseText||"Upload failed"}}if(r.status>=200&&r.status<300&&c.success)d(c);else{const s=new Error(c.message||`Upload failed with HTTP ${r.status}`);s.status=r.status,s.data=c,o(s)}},r.onerror=()=>{o(new Error("Network error during hero image upload to server."))};const n=new FormData;n.append("image",e),r.send(n)})}async getRoomAvailability(e,a,d){let o=a,r=d;const n=l=>{if(!l)return null;if(typeof l=="string"&&/^\d{4}-\d{2}-\d{2}$/.test(l))return l;const m=new Date(l);if(isNaN(m.getTime()))return null;const y=m.getFullYear(),u=String(m.getMonth()+1).padStart(2,"0"),h=String(m.getDate()).padStart(2,"0");return`${y}-${u}-${h}`};if(typeof a=="number"||typeof a=="string"&&!isNaN(Number(a))&&a.length<5){const l=Number(a)||14,m=new Date;o=n(m);const y=new Date(m.getFullYear(),m.getMonth(),m.getDate()+l);r=n(y)}else o=n(a),r=n(d);const c=new URLSearchParams;o&&c.append("startDate",o),r&&c.append("endDate",r);const s=c.toString(),p=`/availability/room/${encodeURIComponent(e)}${s?`?${s}`:""}`;try{return await this.request(p,{silent:!0})}catch(l){if(l.status===404){const m=`/availability/${encodeURIComponent(e)}${s?`?${s}`:""}`;return await this.request(m)}throw l}}async blockAvailability(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,blocked_count:d})})}async toggleBlackoutDate(e,a,d){return this.request("/availability/block",{method:"POST",body:JSON.stringify({room_id:e,date:a,is_blocked:d})})}async createBooking(e){return this.request("/bookings/create",{method:"POST",body:JSON.stringify(e)})}async getMyBookings(){return this.request("/bookings/my")}async getOwnerBookings(){return this.request("/bookings/owner")}async getAdminBookings(){return this.request("/bookings/admin")}async getBookingById(e){return this.request(`/bookings/${e}`)}async checkInBooking(e){return this.request(`/bookings/${e}/checkin`,{method:"PUT"})}async checkInGuest(e){return this.checkInBooking(e)}async checkOutBooking(e){return this.request(`/bookings/${e}/checkout`,{method:"PUT"})}async checkOutGuest(e){return this.checkOutBooking(e)}async cancelBooking(e,a){return this.request(`/bookings/${e}/cancel`,{method:"POST",body:JSON.stringify({reason:a})})}async getAdminPayments(){return this.request("/payments/admin")}async getAdminRefunds(){return this.request("/refunds/admin")}async processRefund(e,a,d){return this.request(`/refunds/${e}/process`,{method:"PUT",body:JSON.stringify({status:a,admin_notes:d})})}async getCommissionLedger(){return this.request("/commissions/ledger")}async getOwnerEarnings(){return this.request("/commissions/owner-earnings")}async updateCommissionRate(e){return this.request("/commissions/rate",{method:"PUT",body:JSON.stringify({rate:e})})}async getReviews(e){return this.request(`/reviews/hotel/${e}`)}async submitReview(e){return this.request("/reviews",{method:"POST",body:JSON.stringify(e)})}async getSupportTickets(){return this.request("/support/tickets")}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateSupportTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}async updateTicketStatus(e,a){return this.updateSupportTicketStatus(e,a)}async getMe(){return this.request("/auth/me")}async getHotelAdminDashboard(){return this.request("/hotel-admin/dashboard")}async getHotelAdminKpis(){return this.request("/hotel-admin/dashboard")}async getHotelAdminHotel(){return this.request("/hotel-admin/hotel")}async getHotelAdminProperty(){return this.request("/hotel-admin/property")}async updateHotelAdminHotel(e){return this.request("/hotel-admin/hotel",{method:"PUT",body:JSON.stringify(e)})}async updateHotelAdminProperty(e){return this.request("/hotel-admin/property",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminRooms(){return this.request("/hotel-admin/rooms")}async createHotelAdminRoom(e){return this.request("/hotel-admin/rooms",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminRoom(e,a){return this.request(`/hotel-admin/rooms/${e}`,{method:"PUT",body:JSON.stringify(a)})}async deleteHotelAdminRoom(e){return this.request(`/hotel-admin/rooms/${e}`,{method:"DELETE"})}async getHotelAdminAvailability(){return this.request("/hotel-admin/availability")}async updateHotelAdminAvailability(e){return this.request("/hotel-admin/availability",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBookings(){return this.request("/hotel-admin/bookings")}async getHotelAdminCheckIns(){return this.request("/hotel-admin/check-ins")}async hotelAdminCheckIn(e){return this.request("/hotel-admin/check-in",{method:"POST",body:JSON.stringify({bookingId:e})})}async hotelAdminCheckOut(e){return this.request("/hotel-admin/check-out",{method:"POST",body:JSON.stringify({bookingId:e})})}async getHotelAdminEarnings(){return this.request("/hotel-admin/earnings")}async getHotelAdminSupport(){return this.request("/hotel-admin/support")}async getHotelAdminProfile(){return this.request("/hotel-admin/profile")}async updateHotelAdminProfile(e){return this.request("/hotel-admin/profile",{method:"PUT",body:JSON.stringify(e)})}async getHotelAdminBanners(){return this.request("/hotel-admin/banners")}async createHotelAdminBanner(e){return this.request("/hotel-admin/banners",{method:"POST",body:JSON.stringify(e)})}async updateHotelAdminBanner(e,a){return this.request(`/hotel-admin/banners/${e}`,{method:"PUT",body:JSON.stringify(a)})}async updateHotelAdminBannerStatus(e,a){return this.request(`/hotel-admin/banners/${e}/status`,{method:"PATCH",body:JSON.stringify({is_active:a})})}async deleteHotelAdminBanner(e){return this.request(`/hotel-admin/banners/${e}`,{method:"DELETE"})}async getOwnerKYCList(){return this.request("/owners/kyc")}async getOwnersKyc(){return this.request("/owners/kyc")}async updateOwnerKYCStatus(e,a,d=null){return this.request(`/owners/${e}/kyc`,{method:"PUT",body:JSON.stringify({status:a,reason:d})})}async updateOwnerKyc(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async updateOwnerKYC(e,a,d=null){return this.updateOwnerKYCStatus(e,a,d)}async getAdminKpis(){let e;try{e=await this.request("/reports/admin-kpis")}catch{try{e=await this.request("/admin/kpis")}catch{try{e=await this.request("/admin/dashboard")}catch{e={success:!0,data:{},kpis:{}}}}}const a=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{},d=a.total_hotels??a.totalHotels??0,o=a.verified_hotels??a.verifiedHotels??0,r=a.pending_hotels??a.underReviewHotels??0,n=a.total_bookings??a.totalBookings??0,c=a.todays_bookings??a.todayBookings??0,s=a.upcoming_checkins_count??a.upcomingCheckIns??0,p=a.total_gmv??a.grossPlatformVolume??0,l=a.platform_revenue??a.netPlatformCommission??a.platformCommission??0,m=a.active_in_house_stays??a.checked_in_bookings_count??a.activeInHouseStays??0,y=a.upcoming_checkouts_count??a.upcomingCheckOuts??0,u=a.cancelled_bookings_count??a.cancelledRefunded??0;return{success:!0,data:{totalHotels:d,verifiedHotels:o,underReviewHotels:r,totalBookings:n,todayBookings:c,upcomingCheckIns:s,grossPlatformVolume:p,netPlatformCommission:l,activeInHouseStays:m,upcomingCheckOuts:y,cancelledRefunded:u,pendingKYC:a.pending_kyc_count??a.pendingKYC??0,pendingRefunds:a.pending_refunds_count??a.pendingRefunds??0},kpis:{total_hotels:d,verified_hotels:o,pending_hotels:r,total_bookings:n,todays_bookings:c,total_gmv:p,platform_revenue:l,active_in_house_stays:m,checked_in_bookings_count:m,upcoming_checkins_count:s,upcoming_checkouts_count:y,cancelled_bookings_count:u,pending_refunds_count:a.pending_refunds_count??a.pendingRefunds??0,pending_kyc_count:a.pending_kyc_count??a.pendingKYC??0}}}async getAdminKPIs(){return this.getAdminKpis()}async getOwnerKPIs(){return this.request("/reports/owner-kpis")}async getOwnerKpis(){return this.request("/reports/owner-kpis")}async getDailyReport(){return this.request("/reports/daily")}async getMonthlyReport(){return this.request("/reports/monthly")}async getSettings(){return this.request("/settings")}async updateSettings(e){return this.request("/settings",{method:"PUT",body:JSON.stringify(e)})}async getHomeHero(){return this.request("/settings/home-hero")}async updateHomeHero(e,a=null){return this.request("/settings/home-hero",{method:"PUT",body:JSON.stringify({image_url:e,public_id:a})})}async removeHomeHero(){return this.request("/settings/home-hero",{method:"DELETE"})}async getHotelPickupSettings(e){return this.request(`/hotels/${e}/pickup-settings`)}async updateHotelPickupSettings(e,a){return this.request(`/hotels/${e}/pickup-settings`,{method:"PUT",body:JSON.stringify({pickup_service_enabled:a})})}async addPickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations`,{method:"POST",body:JSON.stringify(a)})}async updatePickupLocation(e,a,d){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupLocation(e,a){return this.request(`/hotels/${e}/pickup-locations/${a}`,{method:"DELETE"})}async addPickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles`,{method:"POST",body:JSON.stringify(a)})}async updatePickupVehicle(e,a,d){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"PUT",body:JSON.stringify(d)})}async deletePickupVehicle(e,a){return this.request(`/hotels/${e}/pickup-vehicles/${a}`,{method:"DELETE"})}async getPickups(e={}){const a=new URLSearchParams(e).toString();return this.request(`/pickups?${a}`)}async getPickupDetails(e){return this.request(`/pickups/${e}`)}async updatePickupStatus(e,a,d=""){return this.request(`/pickups/${e}/status`,{method:"PATCH",body:JSON.stringify({status:a,notes:d})})}async assignPickupDriver(e,a){return this.request(`/pickups/${e}/assign-driver`,{method:"POST",body:JSON.stringify(a)})}async getSupportTickets(e=null){const a=e?`/support/tickets?user_id=${e}`:"/support/tickets";return this.request(a)}async createSupportTicket(e){return this.request("/support/tickets",{method:"POST",body:JSON.stringify(e)})}async replySupportTicket(e,a,d=null){return this.request(`/support/tickets/${e}/reply`,{method:"POST",body:JSON.stringify({text:a,new_status:d})})}async updateTicketStatus(e,a){return this.request(`/support/tickets/${e}/status`,{method:"PUT",body:JSON.stringify({status:a})})}}const f=new n1;/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const r1=(i,e,a=[])=>{const d=document.createElementNS("http://www.w3.org/2000/svg",i);return Object.keys(e).forEach(o=>{d.setAttribute(o,String(e[o]))}),a.length&&a.forEach(o=>{const n=r1(...o);d.appendChild(n)}),d};var c1=([i,e,a])=>r1(i,e,a);/**
+ */const r1=(i,e,a=[])=>{const d=document.createElementNS("http://www.w3.org/2000/svg",i);return Object.keys(e).forEach(o=>{d.setAttribute(o,String(e[o]))}),a.length&&a.forEach(o=>{const r=r1(...o);d.appendChild(r)}),d};var c1=([i,e,a])=>r1(i,e,a);/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l1=i=>Array.from(i.attributes).reduce((e,a)=>(e[a.name]=a.value,e),{}),h1=i=>typeof i=="string"?i:!i||!i.class?"":i.class&&typeof i.class=="string"?i.class.split(" "):i.class&&Array.isArray(i.class)?i.class:"",p1=i=>i.flatMap(h1).map(a=>a.trim()).filter(Boolean).filter((a,d,o)=>o.indexOf(a)===d).join(" "),v1=i=>i.replace(/(\w)(\w*)(_|-|\s*)/g,(e,a,d)=>a.toUpperCase()+d.toLowerCase()),J=(i,{nameAttr:e,icons:a,attrs:d})=>{var l;const o=i.getAttribute(e);if(o==null)return;const n=v1(o),r=a[n];if(!r)return console.warn(`${i.outerHTML} icon name was not found in the provided icons object.`);const c=l1(i),[s,p,h]=r,m={...p,"data-lucide":o,...d,...c},y=p1(["lucide",`lucide-${o}`,c,d]);y&&Object.assign(m,{class:y});const u=c1([s,m,h]);return(l=i.parentNode)==null?void 0:l.replaceChild(u,i)};/**
+ */const l1=i=>Array.from(i.attributes).reduce((e,a)=>(e[a.name]=a.value,e),{}),h1=i=>typeof i=="string"?i:!i||!i.class?"":i.class&&typeof i.class=="string"?i.class.split(" "):i.class&&Array.isArray(i.class)?i.class:"",p1=i=>i.flatMap(h1).map(a=>a.trim()).filter(Boolean).filter((a,d,o)=>o.indexOf(a)===d).join(" "),v1=i=>i.replace(/(\w)(\w*)(_|-|\s*)/g,(e,a,d)=>a.toUpperCase()+d.toLowerCase()),K=(i,{nameAttr:e,icons:a,attrs:d})=>{var h;const o=i.getAttribute(e);if(o==null)return;const r=v1(o),n=a[r];if(!n)return console.warn(`${i.outerHTML} icon name was not found in the provided icons object.`);const c=l1(i),[s,p,l]=n,m={...p,"data-lucide":o,...d,...c},y=p1(["lucide",`lucide-${o}`,c,d]);y&&Object.assign(m,{class:y});const u=c1([s,m,l]);return(h=i.parentNode)==null?void 0:h.replaceChild(u,i)};/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -123,12 +123,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T1=["svg",t,[["rect",{width:"6",height:"14",x:"4",y:"5",rx:"2"}],["rect",{width:"6",height:"10",x:"14",y:"7",rx:"2"}],["path",{d:"M4 2v20"}],["path",{d:"M14 2v20"}]]];/**
+ */const P1=["svg",t,[["rect",{width:"6",height:"14",x:"4",y:"5",rx:"2"}],["rect",{width:"6",height:"10",x:"14",y:"7",rx:"2"}],["path",{d:"M4 2v20"}],["path",{d:"M14 2v20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P1=["svg",t,[["rect",{width:"6",height:"14",x:"2",y:"5",rx:"2"}],["rect",{width:"6",height:"10",x:"16",y:"7",rx:"2"}],["path",{d:"M12 2v20"}]]];/**
+ */const T1=["svg",t,[["rect",{width:"6",height:"14",x:"2",y:"5",rx:"2"}],["rect",{width:"6",height:"10",x:"16",y:"7",rx:"2"}],["path",{d:"M12 2v20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -203,17 +203,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"16",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"6",rx:"2"}],["path",{d:"M2 2h20"}]]];/**
+ */const J1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"16",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"6",rx:"2"}],["path",{d:"M2 2h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K1=["svg",t,[["rect",{width:"10",height:"6",x:"7",y:"9",rx:"2"}],["path",{d:"M22 20H2"}],["path",{d:"M22 4H2"}]]];/**
+ */const W1=["svg",t,[["rect",{width:"10",height:"6",x:"7",y:"9",rx:"2"}],["path",{d:"M22 20H2"}],["path",{d:"M22 4H2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"15",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"3",rx:"2"}],["path",{d:"M2 21h20"}],["path",{d:"M2 3h20"}]]];/**
+ */const K1=["svg",t,[["rect",{width:"14",height:"6",x:"5",y:"15",rx:"2"}],["rect",{width:"10",height:"6",x:"7",y:"3",rx:"2"}],["path",{d:"M2 21h20"}],["path",{d:"M2 3h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -408,12 +408,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T2=["svg",t,[["path",{d:"m9 6-6 6 6 6"}],["path",{d:"M3 12h14"}],["path",{d:"M21 19V5"}]]];/**
+ */const P2=["svg",t,[["path",{d:"m9 6-6 6 6 6"}],["path",{d:"M3 12h14"}],["path",{d:"M21 19V5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P2=["svg",t,[["path",{d:"M8 3 4 7l4 4"}],["path",{d:"M4 7h16"}],["path",{d:"m16 21 4-4-4-4"}],["path",{d:"M20 17H4"}]]];/**
+ */const T2=["svg",t,[["path",{d:"M8 3 4 7l4 4"}],["path",{d:"M4 7h16"}],["path",{d:"m16 21 4-4-4-4"}],["path",{d:"M20 17H4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -498,7 +498,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W2=["svg",t,[["path",{d:"m3 8 4-4 4 4"}],["path",{d:"M7 4v16"}],["path",{d:"M11 12h10"}],["path",{d:"M11 16h7"}],["path",{d:"M11 20h4"}]]];/**
+ */const J2=["svg",t,[["path",{d:"m3 8 4-4 4 4"}],["path",{d:"M7 4v16"}],["path",{d:"M11 12h10"}],["path",{d:"M11 16h7"}],["path",{d:"M11 20h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -508,12 +508,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K2=["svg",t,[["path",{d:"m5 12 7-7 7 7"}],["path",{d:"M12 19V5"}]]];/**
+ */const W2=["svg",t,[["path",{d:"m5 12 7-7 7 7"}],["path",{d:"M12 19V5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J2=["svg",t,[["path",{d:"m4 6 3-3 3 3"}],["path",{d:"M7 17V3"}],["path",{d:"m14 6 3-3 3 3"}],["path",{d:"M17 17V3"}],["path",{d:"M4 21h16"}]]];/**
+ */const K2=["svg",t,[["path",{d:"m4 6 3-3 3 3"}],["path",{d:"M7 17V3"}],["path",{d:"m14 6 3-3 3 3"}],["path",{d:"M17 17V3"}],["path",{d:"M4 21h16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -703,12 +703,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ti=["svg",t,[["line",{x1:"12",x2:"12",y1:"20",y2:"10"}],["line",{x1:"18",x2:"18",y1:"20",y2:"4"}],["line",{x1:"6",x2:"6",y1:"20",y2:"16"}]]];/**
+ */const Pi=["svg",t,[["line",{x1:"12",x2:"12",y1:"20",y2:"10"}],["line",{x1:"18",x2:"18",y1:"20",y2:"4"}],["line",{x1:"6",x2:"6",y1:"20",y2:"16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pi=["svg",t,[["path",{d:"M3 5v14"}],["path",{d:"M8 5v14"}],["path",{d:"M12 5v14"}],["path",{d:"M17 5v14"}],["path",{d:"M21 5v14"}]]];/**
+ */const Ti=["svg",t,[["path",{d:"M3 5v14"}],["path",{d:"M8 5v14"}],["path",{d:"M12 5v14"}],["path",{d:"M17 5v14"}],["path",{d:"M21 5v14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -783,17 +783,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wi=["svg",t,[["circle",{cx:"12.5",cy:"8.5",r:"2.5"}],["path",{d:"M12.5 2a6.5 6.5 0 0 0-6.22 4.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3A6.5 6.5 0 0 0 12.5 2Z"}],["path",{d:"m18.5 6 2.19 4.5a6.48 6.48 0 0 1 .31 2 6.49 6.49 0 0 1-2.6 5.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5"}]]];/**
+ */const Ji=["svg",t,[["circle",{cx:"12.5",cy:"8.5",r:"2.5"}],["path",{d:"M12.5 2a6.5 6.5 0 0 0-6.22 4.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3A6.5 6.5 0 0 0 12.5 2Z"}],["path",{d:"m18.5 6 2.19 4.5a6.48 6.48 0 0 1 .31 2 6.49 6.49 0 0 1-2.6 5.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ki=["svg",t,[["path",{d:"M13 13v5"}],["path",{d:"M17 11.47V8"}],["path",{d:"M17 11h1a3 3 0 0 1 2.745 4.211"}],["path",{d:"m2 2 20 20"}],["path",{d:"M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3"}],["path",{d:"M7.536 7.535C6.766 7.649 6.154 8 5.5 8a2.5 2.5 0 0 1-1.768-4.268"}],["path",{d:"M8.727 3.204C9.306 2.767 9.885 2 11 2c1.56 0 2 1.5 3 1.5s1.72-.5 2.5-.5a1 1 0 1 1 0 5c-.78 0-1.5-.5-2.5-.5a3.149 3.149 0 0 0-.842.12"}],["path",{d:"M9 14.6V18"}]]];/**
+ */const Wi=["svg",t,[["path",{d:"M13 13v5"}],["path",{d:"M17 11.47V8"}],["path",{d:"M17 11h1a3 3 0 0 1 2.745 4.211"}],["path",{d:"m2 2 20 20"}],["path",{d:"M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3"}],["path",{d:"M7.536 7.535C6.766 7.649 6.154 8 5.5 8a2.5 2.5 0 0 1-1.768-4.268"}],["path",{d:"M8.727 3.204C9.306 2.767 9.885 2 11 2c1.56 0 2 1.5 3 1.5s1.72-.5 2.5-.5a1 1 0 1 1 0 5c-.78 0-1.5-.5-2.5-.5a3.149 3.149 0 0 0-.842.12"}],["path",{d:"M9 14.6V18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ji=["svg",t,[["path",{d:"M17 11h1a3 3 0 0 1 0 6h-1"}],["path",{d:"M9 12v6"}],["path",{d:"M13 12v6"}],["path",{d:"M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"}],["path",{d:"M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"}]]];/**
+ */const Ki=["svg",t,[["path",{d:"M17 11h1a3 3 0 0 1 0 6h-1"}],["path",{d:"M9 12v6"}],["path",{d:"M13 12v6"}],["path",{d:"M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"}],["path",{d:"M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -988,12 +988,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ts=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H10"}],["path",{d:"M20 15v7H6.5a2.5 2.5 0 0 1 0-5H20"}],["rect",{width:"8",height:"5",x:"12",y:"6",rx:"1"}],["path",{d:"M18 6V4a2 2 0 1 0-4 0v2"}]]];/**
+ */const Ps=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H10"}],["path",{d:"M20 15v7H6.5a2.5 2.5 0 0 1 0-5H20"}],["rect",{width:"8",height:"5",x:"12",y:"6",rx:"1"}],["path",{d:"M18 6V4a2 2 0 1 0-4 0v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ps=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["polyline",{points:"10 2 10 10 13 7 16 10 16 2"}]]];/**
+ */const Ts=["svg",t,[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"}],["polyline",{points:"10 2 10 10 13 7 16 10 16 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1068,17 +1068,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ws=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"}],["line",{x1:"12",x2:"12",y1:"7",y2:"13"}],["line",{x1:"15",x2:"9",y1:"10",y2:"10"}]]];/**
+ */const Js=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"}],["line",{x1:"12",x2:"12",y1:"7",y2:"13"}],["line",{x1:"15",x2:"9",y1:"10",y2:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ks=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"}],["path",{d:"m14.5 7.5-5 5"}],["path",{d:"m9.5 7.5 5 5"}]]];/**
+ */const Ws=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"}],["path",{d:"m14.5 7.5-5 5"}],["path",{d:"m9.5 7.5 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Js=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"}]]];/**
+ */const Ks=["svg",t,[["path",{d:"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1258,12 +1258,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const To=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 17V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11Z"}],["path",{d:"M3 10h18"}],["path",{d:"M15 22v-4a2 2 0 0 1 2-2h4"}]]];/**
+ */const Po=["svg",t,[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21 17V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11Z"}],["path",{d:"M3 10h18"}],["path",{d:"M15 22v-4a2 2 0 0 1 2-2h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Po=["svg",t,[["path",{d:"M3 10h18V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"}],["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21.29 14.7a2.43 2.43 0 0 0-2.65-.52c-.3.12-.57.3-.8.53l-.34.34-.35-.34a2.43 2.43 0 0 0-2.65-.53c-.3.12-.56.3-.79.53-.95.94-1 2.53.2 3.74L17.5 22l3.6-3.55c1.2-1.21 1.14-2.8.19-3.74Z"}]]];/**
+ */const To=["svg",t,[["path",{d:"M3 10h18V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"}],["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["path",{d:"M21.29 14.7a2.43 2.43 0 0 0-2.65-.52c-.3.12-.57.3-.8.53l-.34.34-.35-.34a2.43 2.43 0 0 0-2.65-.53c-.3.12-.56.3-.79.53-.95.94-1 2.53.2 3.74L17.5 22l3.6-3.55c1.2-1.21 1.14-2.8.19-3.74Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1338,17 +1338,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wo=["svg",t,[["path",{d:"m8.5 8.5-1 1a4.95 4.95 0 0 0 7 7l1-1"}],["path",{d:"M11.843 6.187A4.947 4.947 0 0 1 16.5 7.5a4.947 4.947 0 0 1 1.313 4.657"}],["path",{d:"M14 16.5V14"}],["path",{d:"M14 6.5v1.843"}],["path",{d:"M10 10v7.5"}],["path",{d:"m16 7 1-5 1.367.683A3 3 0 0 0 19.708 3H21v1.292a3 3 0 0 0 .317 1.341L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.367-.683A3 3 0 0 0 4.292 21H3v-1.292a3 3 0 0 0-.317-1.341L2 17l5-1"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const Jo=["svg",t,[["path",{d:"m8.5 8.5-1 1a4.95 4.95 0 0 0 7 7l1-1"}],["path",{d:"M11.843 6.187A4.947 4.947 0 0 1 16.5 7.5a4.947 4.947 0 0 1 1.313 4.657"}],["path",{d:"M14 16.5V14"}],["path",{d:"M14 6.5v1.843"}],["path",{d:"M10 10v7.5"}],["path",{d:"m16 7 1-5 1.367.683A3 3 0 0 0 19.708 3H21v1.292a3 3 0 0 0 .317 1.341L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.367-.683A3 3 0 0 0 4.292 21H3v-1.292a3 3 0 0 0-.317-1.341L2 17l5-1"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ko=["svg",t,[["path",{d:"m9.5 7.5-2 2a4.95 4.95 0 1 0 7 7l2-2a4.95 4.95 0 1 0-7-7Z"}],["path",{d:"M14 6.5v10"}],["path",{d:"M10 7.5v10"}],["path",{d:"m16 7 1-5 1.37.68A3 3 0 0 0 19.7 3H21v1.3c0 .46.1.92.32 1.33L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.37-.68A3 3 0 0 0 4.3 21H3v-1.3a3 3 0 0 0-.32-1.33L2 17l5-1"}]]];/**
+ */const Wo=["svg",t,[["path",{d:"m9.5 7.5-2 2a4.95 4.95 0 1 0 7 7l2-2a4.95 4.95 0 1 0-7-7Z"}],["path",{d:"M14 6.5v10"}],["path",{d:"M10 7.5v10"}],["path",{d:"m16 7 1-5 1.37.68A3 3 0 0 0 19.7 3H21v1.3c0 .46.1.92.32 1.33L22 7l-5 1"}],["path",{d:"m8 17-1 5-1.37-.68A3 3 0 0 0 4.3 21H3v-1.3a3 3 0 0 0-.32-1.33L2 17l5-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jo=["svg",t,[["path",{d:"M12 22v-4"}],["path",{d:"M7 12c-1.5 0-4.5 1.5-5 3 3.5 1.5 6 1 6 1-1.5 1.5-2 3.5-2 5 2.5 0 4.5-1.5 6-3 1.5 1.5 3.5 3 6 3 0-1.5-.5-3.5-2-5 0 0 2.5.5 6-1-.5-1.5-3.5-3-5-3 1.5-1 4-4 4-6-2.5 0-5.5 1.5-7 3 0-2.5-.5-5-2-7-1.5 2-2 4.5-2 7-1.5-1.5-4.5-3-7-3 0 2 2.5 5 4 6"}]]];/**
+ */const Ko=["svg",t,[["path",{d:"M12 22v-4"}],["path",{d:"M7 12c-1.5 0-4.5 1.5-5 3 3.5 1.5 6 1 6 1-1.5 1.5-2 3.5-2 5 2.5 0 4.5-1.5 6-3 1.5 1.5 3.5 3 6 3 0-1.5-.5-3.5-2-5 0 0 2.5.5 6-1-.5-1.5-3.5-3-5-3 1.5-1 4-4 4-6-2.5 0-5.5 1.5-7 3 0-2.5-.5-5-2-7-1.5 2-2 4.5-2 7-1.5-1.5-4.5-3-7-3 0 2 2.5 5 4 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1533,7 +1533,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Td=["svg",t,[["path",{d:"M18 12H2v4h16"}],["path",{d:"M22 12v4"}],["path",{d:"M7 12v4"}],["path",{d:"M18 8c0-2.5-2-2.5-2-5"}],["path",{d:"M22 8c0-2.5-2-2.5-2-5"}]]];/**
+ */const Pd=["svg",t,[["path",{d:"M18 12H2v4h16"}],["path",{d:"M22 12v4"}],["path",{d:"M7 12v4"}],["path",{d:"M18 8c0-2.5-2-2.5-2-5"}],["path",{d:"M22 8c0-2.5-2-2.5-2-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1613,7 +1613,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pd=["svg",t,[["path",{d:"M10.1 2.182a10 10 0 0 1 3.8 0"}],["path",{d:"M13.9 21.818a10 10 0 0 1-3.8 0"}],["path",{d:"M17.609 3.721a10 10 0 0 1 2.69 2.7"}],["path",{d:"M2.182 13.9a10 10 0 0 1 0-3.8"}],["path",{d:"M20.279 17.609a10 10 0 0 1-2.7 2.69"}],["path",{d:"M21.818 10.1a10 10 0 0 1 0 3.8"}],["path",{d:"M3.721 6.391a10 10 0 0 1 2.7-2.69"}],["path",{d:"M6.391 20.279a10 10 0 0 1-2.69-2.7"}]]];/**
+ */const Td=["svg",t,[["path",{d:"M10.1 2.182a10 10 0 0 1 3.8 0"}],["path",{d:"M13.9 21.818a10 10 0 0 1-3.8 0"}],["path",{d:"M17.609 3.721a10 10 0 0 1 2.69 2.7"}],["path",{d:"M2.182 13.9a10 10 0 0 1 0-3.8"}],["path",{d:"M20.279 17.609a10 10 0 0 1-2.7 2.69"}],["path",{d:"M21.818 10.1a10 10 0 0 1 0 3.8"}],["path",{d:"M3.721 6.391a10 10 0 0 1 2.7-2.69"}],["path",{d:"M6.391 20.279a10 10 0 0 1-2.69-2.7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1673,12 +1673,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tt=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m5 5 14 14"}],["path",{d:"M13 13a3 3 0 1 0 0-6H9v2"}],["path",{d:"M9 17v-2.34"}]]];/**
+ */const Pt=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m5 5 14 14"}],["path",{d:"M13 13a3 3 0 1 0 0-6H9v2"}],["path",{d:"M9 17v-2.34"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pt=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9 17V7h4a3 3 0 0 1 0 6H9"}]]];/**
+ */const Tt=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9 17V7h4a3 3 0 0 1 0 6H9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1768,17 +1768,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M12 11h4"}],["path",{d:"M12 16h4"}],["path",{d:"M8 11h.01"}],["path",{d:"M8 16h.01"}]]];/**
+ */const Jd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M12 11h4"}],["path",{d:"M12 16h4"}],["path",{d:"M8 11h.01"}],["path",{d:"M8 16h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 14h6"}]]];/**
+ */const Wd=["svg",t,[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],["path",{d:"M9 14h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jd=["svg",t,[["path",{d:"M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1Z"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M16 4h2a2 2 0 0 1 2 2v2M11 14h10"}],["path",{d:"m17 10 4 4-4 4"}]]];/**
+ */const Kd=["svg",t,[["path",{d:"M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1Z"}],["path",{d:"M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M16 4h2a2 2 0 0 1 2 2v2M11 14h10"}],["path",{d:"m17 10 4 4-4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1973,7 +1973,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wt=["svg",t,[["path",{d:"m18 16 4-4-4-4"}],["path",{d:"m6 8-4 4 4 4"}],["path",{d:"m14.5 4-5 16"}]]];/**
+ */const Jt=["svg",t,[["path",{d:"m18 16 4-4-4-4"}],["path",{d:"m6 8-4 4 4 4"}],["path",{d:"m14.5 4-5 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -1983,12 +1983,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tr=["svg",t,[["polygon",{points:"12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"}],["line",{x1:"12",x2:"12",y1:"22",y2:"15.5"}],["polyline",{points:"22 8.5 12 15.5 2 8.5"}],["polyline",{points:"2 15.5 12 8.5 22 15.5"}],["line",{x1:"12",x2:"12",y1:"2",y2:"8.5"}]]];/**
+ */const Pr=["svg",t,[["polygon",{points:"12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"}],["line",{x1:"12",x2:"12",y1:"22",y2:"15.5"}],["polyline",{points:"22 8.5 12 15.5 2 8.5"}],["polyline",{points:"2 15.5 12 8.5 22 15.5"}],["line",{x1:"12",x2:"12",y1:"2",y2:"8.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pr=["svg",t,[["path",{d:"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"}],["polyline",{points:"7.5 4.21 12 6.81 16.5 4.21"}],["polyline",{points:"7.5 19.79 7.5 14.6 3 12"}],["polyline",{points:"21 12 16.5 14.6 16.5 19.79"}],["polyline",{points:"3.27 6.96 12 12.01 20.73 6.96"}],["line",{x1:"12",x2:"12",y1:"22.08",y2:"12"}]]];/**
+ */const Tr=["svg",t,[["path",{d:"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"}],["polyline",{points:"7.5 4.21 12 6.81 16.5 4.21"}],["polyline",{points:"7.5 19.79 7.5 14.6 3 12"}],["polyline",{points:"21 12 16.5 14.6 16.5 19.79"}],["polyline",{points:"3.27 6.96 12 12.01 20.73 6.96"}],["line",{x1:"12",x2:"12",y1:"22.08",y2:"12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2008,12 +2008,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kt=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 3v18"}]]];/**
+ */const Wt=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jt=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}],["path",{d:"M15 3v18"}]]];/**
+ */const Kt=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}],["path",{d:"M15 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2078,17 +2078,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wr=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M12 18a6 6 0 0 0 0-12v12z"}]]];/**
+ */const Jr=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M12 18a6 6 0 0 0 0-12v12z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kr=["svg",t,[["path",{d:"M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"}],["path",{d:"M8.5 8.5v.01"}],["path",{d:"M16 15.5v.01"}],["path",{d:"M12 12v.01"}],["path",{d:"M11 17v.01"}],["path",{d:"M7 14v.01"}]]];/**
+ */const Wr=["svg",t,[["path",{d:"M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"}],["path",{d:"M8.5 8.5v.01"}],["path",{d:"M16 15.5v.01"}],["path",{d:"M12 12v.01"}],["path",{d:"M11 17v.01"}],["path",{d:"M7 14v.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jr=["svg",t,[["path",{d:"M2 12h20"}],["path",{d:"M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"}],["path",{d:"m4 8 16-4"}],["path",{d:"m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"}]]];/**
+ */const Kr=["svg",t,[["path",{d:"M2 12h20"}],["path",{d:"M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"}],["path",{d:"m4 8 16-4"}],["path",{d:"m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2108,162 +2108,162 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const t0=["svg",t,[["line",{x1:"12",x2:"18",y1:"18",y2:"12"}],["rect",{width:"14",height:"14",x:"8",y:"8",rx:"2",ry:"2"}],["path",{d:"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"}]]];/**
+ */const tn=["svg",t,[["line",{x1:"12",x2:"18",y1:"18",y2:"12"}],["rect",{width:"14",height:"14",x:"8",y:"8",rx:"2",ry:"2"}],["path",{d:"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const e0=["svg",t,[["line",{x1:"12",x2:"18",y1:"12",y2:"18"}],["line",{x1:"12",x2:"18",y1:"18",y2:"12"}],["rect",{width:"14",height:"14",x:"8",y:"8",rx:"2",ry:"2"}],["path",{d:"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"}]]];/**
+ */const en=["svg",t,[["line",{x1:"12",x2:"18",y1:"12",y2:"18"}],["line",{x1:"12",x2:"18",y1:"18",y2:"12"}],["rect",{width:"14",height:"14",x:"8",y:"8",rx:"2",ry:"2"}],["path",{d:"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const a0=["svg",t,[["rect",{width:"14",height:"14",x:"8",y:"8",rx:"2",ry:"2"}],["path",{d:"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"}]]];/**
+ */const an=["svg",t,[["rect",{width:"14",height:"14",x:"8",y:"8",rx:"2",ry:"2"}],["path",{d:"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const i0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9.17 14.83a4 4 0 1 0 0-5.66"}]]];/**
+ */const sn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9.17 14.83a4 4 0 1 0 0-5.66"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const s0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M14.83 14.83a4 4 0 1 1 0-5.66"}]]];/**
+ */const on=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M14.83 14.83a4 4 0 1 1 0-5.66"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const o0=["svg",t,[["polyline",{points:"9 10 4 15 9 20"}],["path",{d:"M20 4v7a4 4 0 0 1-4 4H4"}]]];/**
+ */const dn=["svg",t,[["polyline",{points:"9 10 4 15 9 20"}],["path",{d:"M20 4v7a4 4 0 0 1-4 4H4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const d0=["svg",t,[["polyline",{points:"15 10 20 15 15 20"}],["path",{d:"M4 4v7a4 4 0 0 0 4 4h12"}]]];/**
+ */const rn=["svg",t,[["polyline",{points:"15 10 20 15 15 20"}],["path",{d:"M4 4v7a4 4 0 0 0 4 4h12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const r0=["svg",t,[["polyline",{points:"14 15 9 20 4 15"}],["path",{d:"M20 4h-7a4 4 0 0 0-4 4v12"}]]];/**
+ */const nn=["svg",t,[["polyline",{points:"14 15 9 20 4 15"}],["path",{d:"M20 4h-7a4 4 0 0 0-4 4v12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const n0=["svg",t,[["polyline",{points:"14 9 9 4 4 9"}],["path",{d:"M20 20h-7a4 4 0 0 1-4-4V4"}]]];/**
+ */const cn=["svg",t,[["polyline",{points:"14 9 9 4 4 9"}],["path",{d:"M20 20h-7a4 4 0 0 1-4-4V4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const c0=["svg",t,[["polyline",{points:"10 15 15 20 20 15"}],["path",{d:"M4 4h7a4 4 0 0 1 4 4v12"}]]];/**
+ */const ln=["svg",t,[["polyline",{points:"10 15 15 20 20 15"}],["path",{d:"M4 4h7a4 4 0 0 1 4 4v12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const l0=["svg",t,[["polyline",{points:"10 9 15 4 20 9"}],["path",{d:"M4 20h7a4 4 0 0 0 4-4V4"}]]];/**
+ */const hn=["svg",t,[["polyline",{points:"10 9 15 4 20 9"}],["path",{d:"M4 20h7a4 4 0 0 0 4-4V4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const h0=["svg",t,[["polyline",{points:"9 14 4 9 9 4"}],["path",{d:"M20 20v-7a4 4 0 0 0-4-4H4"}]]];/**
+ */const pn=["svg",t,[["polyline",{points:"9 14 4 9 9 4"}],["path",{d:"M20 20v-7a4 4 0 0 0-4-4H4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const p0=["svg",t,[["polyline",{points:"15 14 20 9 15 4"}],["path",{d:"M4 20v-7a4 4 0 0 1 4-4h12"}]]];/**
+ */const vn=["svg",t,[["polyline",{points:"15 14 20 9 15 4"}],["path",{d:"M4 20v-7a4 4 0 0 1 4-4h12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const v0=["svg",t,[["rect",{width:"16",height:"16",x:"4",y:"4",rx:"2"}],["rect",{width:"6",height:"6",x:"9",y:"9",rx:"1"}],["path",{d:"M15 2v2"}],["path",{d:"M15 20v2"}],["path",{d:"M2 15h2"}],["path",{d:"M2 9h2"}],["path",{d:"M20 15h2"}],["path",{d:"M20 9h2"}],["path",{d:"M9 2v2"}],["path",{d:"M9 20v2"}]]];/**
+ */const mn=["svg",t,[["rect",{width:"16",height:"16",x:"4",y:"4",rx:"2"}],["rect",{width:"6",height:"6",x:"9",y:"9",rx:"1"}],["path",{d:"M15 2v2"}],["path",{d:"M15 20v2"}],["path",{d:"M2 15h2"}],["path",{d:"M2 9h2"}],["path",{d:"M20 15h2"}],["path",{d:"M20 9h2"}],["path",{d:"M9 2v2"}],["path",{d:"M9 20v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const m0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M10 9.3a2.8 2.8 0 0 0-3.5 1 3.1 3.1 0 0 0 0 3.4 2.7 2.7 0 0 0 3.5 1"}],["path",{d:"M17 9.3a2.8 2.8 0 0 0-3.5 1 3.1 3.1 0 0 0 0 3.4 2.7 2.7 0 0 0 3.5 1"}]]];/**
+ */const gn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M10 9.3a2.8 2.8 0 0 0-3.5 1 3.1 3.1 0 0 0 0 3.4 2.7 2.7 0 0 0 3.5 1"}],["path",{d:"M17 9.3a2.8 2.8 0 0 0-3.5 1 3.1 3.1 0 0 0 0 3.4 2.7 2.7 0 0 0 3.5 1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const g0=["svg",t,[["rect",{width:"20",height:"14",x:"2",y:"5",rx:"2"}],["line",{x1:"2",x2:"22",y1:"10",y2:"10"}]]];/**
+ */const un=["svg",t,[["rect",{width:"20",height:"14",x:"2",y:"5",rx:"2"}],["line",{x1:"2",x2:"22",y1:"10",y2:"10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const u0=["svg",t,[["path",{d:"m4.6 13.11 5.79-3.21c1.89-1.05 4.79 1.78 3.71 3.71l-3.22 5.81C8.8 23.16.79 15.23 4.6 13.11Z"}],["path",{d:"m10.5 9.5-1-2.29C9.2 6.48 8.8 6 8 6H4.5C2.79 6 2 6.5 2 8.5a7.71 7.71 0 0 0 2 4.83"}],["path",{d:"M8 6c0-1.55.24-4-2-4-2 0-2.5 2.17-2.5 4"}],["path",{d:"m14.5 13.5 2.29 1c.73.3 1.21.7 1.21 1.5v3.5c0 1.71-.5 2.5-2.5 2.5a7.71 7.71 0 0 1-4.83-2"}],["path",{d:"M18 16c1.55 0 4-.24 4 2 0 2-2.17 2.5-4 2.5"}]]];/**
+ */const yn=["svg",t,[["path",{d:"m4.6 13.11 5.79-3.21c1.89-1.05 4.79 1.78 3.71 3.71l-3.22 5.81C8.8 23.16.79 15.23 4.6 13.11Z"}],["path",{d:"m10.5 9.5-1-2.29C9.2 6.48 8.8 6 8 6H4.5C2.79 6 2 6.5 2 8.5a7.71 7.71 0 0 0 2 4.83"}],["path",{d:"M8 6c0-1.55.24-4-2-4-2 0-2.5 2.17-2.5 4"}],["path",{d:"m14.5 13.5 2.29 1c.73.3 1.21.7 1.21 1.5v3.5c0 1.71-.5 2.5-2.5 2.5a7.71 7.71 0 0 1-4.83-2"}],["path",{d:"M18 16c1.55 0 4-.24 4 2 0 2-2.17 2.5-4 2.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const y0=["svg",t,[["path",{d:"M6 2v14a2 2 0 0 0 2 2h14"}],["path",{d:"M18 22V8a2 2 0 0 0-2-2H2"}]]];/**
+ */const Mn=["svg",t,[["path",{d:"M6 2v14a2 2 0 0 0 2 2h14"}],["path",{d:"M18 22V8a2 2 0 0 0-2-2H2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const M0=["svg",t,[["path",{d:"M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"}]]];/**
+ */const xn=["svg",t,[["path",{d:"M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const x0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"22",x2:"18",y1:"12",y2:"12"}],["line",{x1:"6",x2:"2",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"6",y2:"2"}],["line",{x1:"12",x2:"12",y1:"22",y2:"18"}]]];/**
+ */const fn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"22",x2:"18",y1:"12",y2:"12"}],["line",{x1:"6",x2:"2",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"6",y2:"2"}],["line",{x1:"12",x2:"12",y1:"22",y2:"18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const f0=["svg",t,[["path",{d:"M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"}],["path",{d:"M5 21h14"}]]];/**
+ */const bn=["svg",t,[["path",{d:"M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"}],["path",{d:"M5 21h14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const b0=["svg",t,[["path",{d:"m21.12 6.4-6.05-4.06a2 2 0 0 0-2.17-.05L2.95 8.41a2 2 0 0 0-.95 1.7v5.82a2 2 0 0 0 .88 1.66l6.05 4.07a2 2 0 0 0 2.17.05l9.95-6.12a2 2 0 0 0 .95-1.7V8.06a2 2 0 0 0-.88-1.66Z"}],["path",{d:"M10 22v-8L2.25 9.15"}],["path",{d:"m10 14 11.77-6.87"}]]];/**
+ */const wn=["svg",t,[["path",{d:"m21.12 6.4-6.05-4.06a2 2 0 0 0-2.17-.05L2.95 8.41a2 2 0 0 0-.95 1.7v5.82a2 2 0 0 0 .88 1.66l6.05 4.07a2 2 0 0 0 2.17.05l9.95-6.12a2 2 0 0 0 .95-1.7V8.06a2 2 0 0 0-.88-1.66Z"}],["path",{d:"M10 22v-8L2.25 9.15"}],["path",{d:"m10 14 11.77-6.87"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const w0=["svg",t,[["path",{d:"m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"}],["path",{d:"M5 8h14"}],["path",{d:"M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"}],["path",{d:"m12 8 1-6h2"}]]];/**
+ */const kn=["svg",t,[["path",{d:"m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"}],["path",{d:"M5 8h14"}],["path",{d:"M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"}],["path",{d:"m12 8 1-6h2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const k0=["svg",t,[["circle",{cx:"12",cy:"12",r:"8"}],["line",{x1:"3",x2:"6",y1:"3",y2:"6"}],["line",{x1:"21",x2:"18",y1:"3",y2:"6"}],["line",{x1:"3",x2:"6",y1:"21",y2:"18"}],["line",{x1:"21",x2:"18",y1:"21",y2:"18"}]]];/**
+ */const Sn=["svg",t,[["circle",{cx:"12",cy:"12",r:"8"}],["line",{x1:"3",x2:"6",y1:"3",y2:"6"}],["line",{x1:"21",x2:"18",y1:"3",y2:"6"}],["line",{x1:"3",x2:"6",y1:"21",y2:"18"}],["line",{x1:"21",x2:"18",y1:"21",y2:"18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const S0=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5v14a9 3 0 0 0 18 0V5"}]]];/**
+ */const Hn=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5v14a9 3 0 0 0 18 0V5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const H0=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 12a9 3 0 0 0 5 2.69"}],["path",{d:"M21 9.3V5"}],["path",{d:"M3 5v14a9 3 0 0 0 6.47 2.88"}],["path",{d:"M12 12v4h4"}],["path",{d:"M13 20a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L12 16"}]]];/**
+ */const Cn=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 12a9 3 0 0 0 5 2.69"}],["path",{d:"M21 9.3V5"}],["path",{d:"M3 5v14a9 3 0 0 0 6.47 2.88"}],["path",{d:"M12 12v4h4"}],["path",{d:"M13 20a5 5 0 0 0 9-3 4.5 4.5 0 0 0-4.5-4.5c-1.33 0-2.54.54-3.41 1.41L12 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const C0=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5V19A9 3 0 0 0 15 21.84"}],["path",{d:"M21 5V8"}],["path",{d:"M21 12L18 17H22L19 22"}],["path",{d:"M3 12A9 3 0 0 0 14.59 14.87"}]]];/**
+ */const An=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5V19A9 3 0 0 0 15 21.84"}],["path",{d:"M21 5V8"}],["path",{d:"M21 12L18 17H22L19 22"}],["path",{d:"M3 12A9 3 0 0 0 14.59 14.87"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const A0=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5V19A9 3 0 0 0 21 19V5"}],["path",{d:"M3 12A9 3 0 0 0 21 12"}]]];/**
+ */const Ln=["svg",t,[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5V19A9 3 0 0 0 21 19V5"}],["path",{d:"M3 12A9 3 0 0 0 21 12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const L0=["svg",t,[["path",{d:"M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"}],["line",{x1:"18",x2:"12",y1:"9",y2:"15"}],["line",{x1:"12",x2:"18",y1:"9",y2:"15"}]]];/**
+ */const $n=["svg",t,[["path",{d:"M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"}],["line",{x1:"18",x2:"12",y1:"9",y2:"15"}],["line",{x1:"12",x2:"18",y1:"9",y2:"15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $0=["svg",t,[["circle",{cx:"12",cy:"4",r:"2"}],["path",{d:"M10.2 3.2C5.5 4 2 8.1 2 13a2 2 0 0 0 4 0v-1a2 2 0 0 1 4 0v4a2 2 0 0 0 4 0v-4a2 2 0 0 1 4 0v1a2 2 0 0 0 4 0c0-4.9-3.5-9-8.2-9.8"}],["path",{d:"M3.2 14.8a9 9 0 0 0 17.6 0"}]]];/**
+ */const Vn=["svg",t,[["circle",{cx:"12",cy:"4",r:"2"}],["path",{d:"M10.2 3.2C5.5 4 2 8.1 2 13a2 2 0 0 0 4 0v-1a2 2 0 0 1 4 0v4a2 2 0 0 0 4 0v-4a2 2 0 0 1 4 0v1a2 2 0 0 0 4 0c0-4.9-3.5-9-8.2-9.8"}],["path",{d:"M3.2 14.8a9 9 0 0 0 17.6 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const V0=["svg",t,[["circle",{cx:"19",cy:"19",r:"2"}],["circle",{cx:"5",cy:"5",r:"2"}],["path",{d:"M6.48 3.66a10 10 0 0 1 13.86 13.86"}],["path",{d:"m6.41 6.41 11.18 11.18"}],["path",{d:"M3.66 6.48a10 10 0 0 0 13.86 13.86"}]]];/**
+ */const _n=["svg",t,[["circle",{cx:"19",cy:"19",r:"2"}],["circle",{cx:"5",cy:"5",r:"2"}],["path",{d:"M6.48 3.66a10 10 0 0 1 13.86 13.86"}],["path",{d:"m6.41 6.41 11.18 11.18"}],["path",{d:"M3.66 6.48a10 10 0 0 0 13.86 13.86"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _0=["svg",t,[["path",{d:"M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z"}],["path",{d:"M8 12h8"}]]];/**
+ */const Pn=["svg",t,[["path",{d:"M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z"}],["path",{d:"M8 12h8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2273,187 +2273,187 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T0=["svg",t,[["path",{d:"M12 8v8"}],["path",{d:"M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z"}],["path",{d:"M8 12h8"}]]];/**
+ */const Tn=["svg",t,[["path",{d:"M12 8v8"}],["path",{d:"M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z"}],["path",{d:"M8 12h8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P0=["svg",t,[["path",{d:"M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"}]]];/**
+ */const zn=["svg",t,[["path",{d:"M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const z0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M12 12h.01"}]]];/**
+ */const qn=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M12 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const q0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M15 9h.01"}],["path",{d:"M9 15h.01"}]]];/**
+ */const En=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M15 9h.01"}],["path",{d:"M9 15h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const E0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M8 16h.01"}]]];/**
+ */const Bn=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M8 16h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const B0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M8 8h.01"}],["path",{d:"M8 16h.01"}],["path",{d:"M16 16h.01"}]]];/**
+ */const Dn=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M8 8h.01"}],["path",{d:"M8 16h.01"}],["path",{d:"M16 16h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const D0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M8 8h.01"}],["path",{d:"M8 16h.01"}],["path",{d:"M16 16h.01"}],["path",{d:"M12 12h.01"}]]];/**
+ */const Rn=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M8 8h.01"}],["path",{d:"M8 16h.01"}],["path",{d:"M16 16h.01"}],["path",{d:"M12 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const R0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M16 12h.01"}],["path",{d:"M16 16h.01"}],["path",{d:"M8 8h.01"}],["path",{d:"M8 12h.01"}],["path",{d:"M8 16h.01"}]]];/**
+ */const In=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M16 8h.01"}],["path",{d:"M16 12h.01"}],["path",{d:"M16 16h.01"}],["path",{d:"M8 8h.01"}],["path",{d:"M8 12h.01"}],["path",{d:"M8 16h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const I0=["svg",t,[["rect",{width:"12",height:"12",x:"2",y:"10",rx:"2",ry:"2"}],["path",{d:"m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"}],["path",{d:"M6 18h.01"}],["path",{d:"M10 14h.01"}],["path",{d:"M15 6h.01"}],["path",{d:"M18 9h.01"}]]];/**
+ */const On=["svg",t,[["rect",{width:"12",height:"12",x:"2",y:"10",rx:"2",ry:"2"}],["path",{d:"m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"}],["path",{d:"M6 18h.01"}],["path",{d:"M10 14h.01"}],["path",{d:"M15 6h.01"}],["path",{d:"M18 9h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const O0=["svg",t,[["path",{d:"M12 3v14"}],["path",{d:"M5 10h14"}],["path",{d:"M5 21h14"}]]];/**
+ */const Nn=["svg",t,[["path",{d:"M12 3v14"}],["path",{d:"M5 10h14"}],["path",{d:"M5 21h14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const N0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 12h.01"}]]];/**
+ */const Fn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const F0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M6 12c0-1.7.7-3.2 1.8-4.2"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M18 12c0 1.7-.7 3.2-1.8 4.2"}]]];/**
+ */const Zn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M6 12c0-1.7.7-3.2 1.8-4.2"}],["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M18 12c0 1.7-.7 3.2-1.8 4.2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Z0=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["circle",{cx:"12",cy:"12",r:"5"}],["path",{d:"M12 12h.01"}]]];/**
+ */const Un=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["circle",{cx:"12",cy:"12",r:"5"}],["path",{d:"M12 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const U0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"2"}]]];/**
+ */const jn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const j0=["svg",t,[["circle",{cx:"12",cy:"6",r:"1"}],["line",{x1:"5",x2:"19",y1:"12",y2:"12"}],["circle",{cx:"12",cy:"18",r:"1"}]]];/**
+ */const Gn=["svg",t,[["circle",{cx:"12",cy:"6",r:"1"}],["line",{x1:"5",x2:"19",y1:"12",y2:"12"}],["circle",{cx:"12",cy:"18",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const G0=["svg",t,[["path",{d:"M15 2c-1.35 1.5-2.092 3-2.5 4.5L14 8"}],["path",{d:"m17 6-2.891-2.891"}],["path",{d:"M2 15c3.333-3 6.667-3 10-3"}],["path",{d:"m2 2 20 20"}],["path",{d:"m20 9 .891.891"}],["path",{d:"M22 9c-1.5 1.35-3 2.092-4.5 2.5l-1-1"}],["path",{d:"M3.109 14.109 4 15"}],["path",{d:"m6.5 12.5 1 1"}],["path",{d:"m7 18 2.891 2.891"}],["path",{d:"M9 22c1.35-1.5 2.092-3 2.5-4.5L10 16"}]]];/**
+ */const Jn=["svg",t,[["path",{d:"M15 2c-1.35 1.5-2.092 3-2.5 4.5L14 8"}],["path",{d:"m17 6-2.891-2.891"}],["path",{d:"M2 15c3.333-3 6.667-3 10-3"}],["path",{d:"m2 2 20 20"}],["path",{d:"m20 9 .891.891"}],["path",{d:"M22 9c-1.5 1.35-3 2.092-4.5 2.5l-1-1"}],["path",{d:"M3.109 14.109 4 15"}],["path",{d:"m6.5 12.5 1 1"}],["path",{d:"m7 18 2.891 2.891"}],["path",{d:"M9 22c1.35-1.5 2.092-3 2.5-4.5L10 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W0=["svg",t,[["path",{d:"m10 16 1.5 1.5"}],["path",{d:"m14 8-1.5-1.5"}],["path",{d:"M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"}],["path",{d:"m16.5 10.5 1 1"}],["path",{d:"m17 6-2.891-2.891"}],["path",{d:"M2 15c6.667-6 13.333 0 20-6"}],["path",{d:"m20 9 .891.891"}],["path",{d:"M3.109 14.109 4 15"}],["path",{d:"m6.5 12.5 1 1"}],["path",{d:"m7 18 2.891 2.891"}],["path",{d:"M9 22c1.798-1.998 2.518-3.995 2.807-5.993"}]]];/**
+ */const Wn=["svg",t,[["path",{d:"m10 16 1.5 1.5"}],["path",{d:"m14 8-1.5-1.5"}],["path",{d:"M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"}],["path",{d:"m16.5 10.5 1 1"}],["path",{d:"m17 6-2.891-2.891"}],["path",{d:"M2 15c6.667-6 13.333 0 20-6"}],["path",{d:"m20 9 .891.891"}],["path",{d:"M3.109 14.109 4 15"}],["path",{d:"m6.5 12.5 1 1"}],["path",{d:"m7 18 2.891 2.891"}],["path",{d:"M9 22c1.798-1.998 2.518-3.995 2.807-5.993"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K0=["svg",t,[["path",{d:"M2 8h20"}],["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 16h12"}]]];/**
+ */const Kn=["svg",t,[["path",{d:"M2 8h20"}],["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 16h12"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J0=["svg",t,[["path",{d:"M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"}],["path",{d:"M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"}],["path",{d:"M8 14v.5"}],["path",{d:"M16 14v.5"}],["path",{d:"M11.25 16.25h1.5L12 17l-.75-.75Z"}],["path",{d:"M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444c0-1.061-.162-2.2-.493-3.309m-9.243-6.082A8.801 8.801 0 0 1 12 5c.78 0 1.5.108 2.161.306"}]]];/**
+ */const Yn=["svg",t,[["path",{d:"M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"}],["path",{d:"M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"}],["path",{d:"M8 14v.5"}],["path",{d:"M16 14v.5"}],["path",{d:"M11.25 16.25h1.5L12 17l-.75-.75Z"}],["path",{d:"M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444c0-1.061-.162-2.2-.493-3.309m-9.243-6.082A8.801 8.801 0 0 1 12 5c.78 0 1.5.108 2.161.306"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Y0=["svg",t,[["line",{x1:"12",x2:"12",y1:"2",y2:"22"}],["path",{d:"M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"}]]];/**
+ */const Xn=["svg",t,[["line",{x1:"12",x2:"12",y1:"2",y2:"22"}],["path",{d:"M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const X0=["svg",t,[["path",{d:"M20.5 10a2.5 2.5 0 0 1-2.4-3H18a2.95 2.95 0 0 1-2.6-4.4 10 10 0 1 0 6.3 7.1c-.3.2-.8.3-1.2.3"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
+ */const Qn=["svg",t,[["path",{d:"M20.5 10a2.5 2.5 0 0 1-2.4-3H18a2.95 2.95 0 0 1-2.6-4.4 10 10 0 1 0 6.3 7.1c-.3.2-.8.3-1.2.3"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Q0=["svg",t,[["path",{d:"M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"}],["path",{d:"M2 20h20"}],["path",{d:"M14 12v.01"}]]];/**
+ */const t0=["svg",t,[["path",{d:"M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"}],["path",{d:"M2 20h20"}],["path",{d:"M14 12v.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const tn=["svg",t,[["path",{d:"M13 4h3a2 2 0 0 1 2 2v14"}],["path",{d:"M2 20h3"}],["path",{d:"M13 20h9"}],["path",{d:"M10 12v.01"}],["path",{d:"M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"}]]];/**
+ */const e0=["svg",t,[["path",{d:"M13 4h3a2 2 0 0 1 2 2v14"}],["path",{d:"M2 20h3"}],["path",{d:"M13 20h9"}],["path",{d:"M10 12v.01"}],["path",{d:"M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const en=["svg",t,[["circle",{cx:"12.1",cy:"12.1",r:"1"}]]];/**
+ */const a0=["svg",t,[["circle",{cx:"12.1",cy:"12.1",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const an=["svg",t,[["path",{d:"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"}],["polyline",{points:"7 10 12 15 17 10"}],["line",{x1:"12",x2:"12",y1:"15",y2:"3"}]]];/**
+ */const i0=["svg",t,[["path",{d:"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"}],["polyline",{points:"7 10 12 15 17 10"}],["line",{x1:"12",x2:"12",y1:"15",y2:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const sn=["svg",t,[["circle",{cx:"12",cy:"5",r:"2"}],["path",{d:"m3 21 8.02-14.26"}],["path",{d:"m12.99 6.74 1.93 3.44"}],["path",{d:"M19 12c-3.87 4-10.13 4-14 0"}],["path",{d:"m21 21-2.16-3.84"}]]];/**
+ */const s0=["svg",t,[["circle",{cx:"12",cy:"5",r:"2"}],["path",{d:"m3 21 8.02-14.26"}],["path",{d:"m12.99 6.74 1.93 3.44"}],["path",{d:"M19 12c-3.87 4-10.13 4-14 0"}],["path",{d:"m21 21-2.16-3.84"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const on=["svg",t,[["path",{d:"M10 11h.01"}],["path",{d:"M14 6h.01"}],["path",{d:"M18 6h.01"}],["path",{d:"M6.5 13.1h.01"}],["path",{d:"M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"}],["path",{d:"M17.4 9.9c-.8.8-2 .8-2.8 0"}],["path",{d:"M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"}],["path",{d:"M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"}]]];/**
+ */const o0=["svg",t,[["path",{d:"M10 11h.01"}],["path",{d:"M14 6h.01"}],["path",{d:"M18 6h.01"}],["path",{d:"M6.5 13.1h.01"}],["path",{d:"M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"}],["path",{d:"M17.4 9.9c-.8.8-2 .8-2.8 0"}],["path",{d:"M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"}],["path",{d:"M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const dn=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M19.13 5.09C15.22 9.14 10 10.44 2.25 10.94"}],["path",{d:"M21.75 12.84c-6.62-1.41-12.14 1-16.38 6.32"}],["path",{d:"M8.56 2.75c4.37 6 6 9.42 8 17.72"}]]];/**
+ */const d0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M19.13 5.09C15.22 9.14 10 10.44 2.25 10.94"}],["path",{d:"M21.75 12.84c-6.62-1.41-12.14 1-16.38 6.32"}],["path",{d:"M8.56 2.75c4.37 6 6 9.42 8 17.72"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const rn=["svg",t,[["path",{d:"M14 9c0 .6-.4 1-1 1H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9c.6 0 1 .4 1 1Z"}],["path",{d:"M18 6h4"}],["path",{d:"M14 4h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3"}],["path",{d:"m5 10-2 8"}],["path",{d:"M12 10v3c0 .6-.4 1-1 1H8"}],["path",{d:"m7 18 2-8"}],["path",{d:"M5 22c-1.7 0-3-1.3-3-3 0-.6.4-1 1-1h7c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1Z"}]]];/**
+ */const r0=["svg",t,[["path",{d:"M14 9c0 .6-.4 1-1 1H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9c.6 0 1 .4 1 1Z"}],["path",{d:"M18 6h4"}],["path",{d:"M14 4h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3"}],["path",{d:"m5 10-2 8"}],["path",{d:"M12 10v3c0 .6-.4 1-1 1H8"}],["path",{d:"m7 18 2-8"}],["path",{d:"M5 22c-1.7 0-3-1.3-3-3 0-.6.4-1 1-1h7c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const nn=["svg",t,[["path",{d:"M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"}]]];/**
+ */const n0=["svg",t,[["path",{d:"M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const cn=["svg",t,[["path",{d:"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"}],["path",{d:"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"}]]];/**
+ */const c0=["svg",t,[["path",{d:"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"}],["path",{d:"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const ln=["svg",t,[["path",{d:"m2 2 8 8"}],["path",{d:"m22 2-8 8"}],["ellipse",{cx:"12",cy:"9",rx:"10",ry:"5"}],["path",{d:"M7 13.4v7.9"}],["path",{d:"M12 14v8"}],["path",{d:"M17 13.4v7.9"}],["path",{d:"M2 9v8a10 5 0 0 0 20 0V9"}]]];/**
+ */const l0=["svg",t,[["path",{d:"m2 2 8 8"}],["path",{d:"m22 2-8 8"}],["ellipse",{cx:"12",cy:"9",rx:"10",ry:"5"}],["path",{d:"M7 13.4v7.9"}],["path",{d:"M12 14v8"}],["path",{d:"M17 13.4v7.9"}],["path",{d:"M2 9v8a10 5 0 0 0 20 0V9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const hn=["svg",t,[["path",{d:"M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"}],["path",{d:"m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"}]]];/**
+ */const h0=["svg",t,[["path",{d:"M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"}],["path",{d:"m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const pn=["svg",t,[["path",{d:"M14.4 14.4 9.6 9.6"}],["path",{d:"M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"}],["path",{d:"m21.5 21.5-1.4-1.4"}],["path",{d:"M3.9 3.9 2.5 2.5"}],["path",{d:"M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"}]]];/**
+ */const p0=["svg",t,[["path",{d:"M14.4 14.4 9.6 9.6"}],["path",{d:"M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"}],["path",{d:"m21.5 21.5-1.4-1.4"}],["path",{d:"M3.9 3.9 2.5 2.5"}],["path",{d:"M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const vn=["svg",t,[["path",{d:"M6 18.5a3.5 3.5 0 1 0 7 0c0-1.57.92-2.52 2.04-3.46"}],["path",{d:"M6 8.5c0-.75.13-1.47.36-2.14"}],["path",{d:"M8.8 3.15A6.5 6.5 0 0 1 19 8.5c0 1.63-.44 2.81-1.09 3.76"}],["path",{d:"M12.5 6A2.5 2.5 0 0 1 15 8.5M10 13a2 2 0 0 0 1.82-1.18"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const v0=["svg",t,[["path",{d:"M6 18.5a3.5 3.5 0 1 0 7 0c0-1.57.92-2.52 2.04-3.46"}],["path",{d:"M6 8.5c0-.75.13-1.47.36-2.14"}],["path",{d:"M8.8 3.15A6.5 6.5 0 0 1 19 8.5c0 1.63-.44 2.81-1.09 3.76"}],["path",{d:"M12.5 6A2.5 2.5 0 0 1 15 8.5M10 13a2 2 0 0 0 1.82-1.18"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const mn=["svg",t,[["path",{d:"M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"}],["path",{d:"M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"}]]];/**
+ */const m0=["svg",t,[["path",{d:"M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"}],["path",{d:"M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const gn=["svg",t,[["path",{d:"M7 3.34V5a3 3 0 0 0 3 3"}],["path",{d:"M11 21.95V18a2 2 0 0 0-2-2 2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"}],["path",{d:"M21.54 15H17a2 2 0 0 0-2 2v4.54"}],["path",{d:"M12 2a10 10 0 1 0 9.54 13"}],["path",{d:"M20 6V4a2 2 0 1 0-4 0v2"}],["rect",{width:"8",height:"5",x:"14",y:"6",rx:"1"}]]];/**
+ */const g0=["svg",t,[["path",{d:"M7 3.34V5a3 3 0 0 0 3 3"}],["path",{d:"M11 21.95V18a2 2 0 0 0-2-2 2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"}],["path",{d:"M21.54 15H17a2 2 0 0 0-2 2v4.54"}],["path",{d:"M12 2a10 10 0 1 0 9.54 13"}],["path",{d:"M20 6V4a2 2 0 1 0-4 0v2"}],["rect",{width:"8",height:"5",x:"14",y:"6",rx:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2463,22 +2463,22 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const un=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M12 2a7 7 0 1 0 10 10"}]]];/**
+ */const u0=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M12 2a7 7 0 1 0 10 10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const yn=["svg",t,[["circle",{cx:"11.5",cy:"12.5",r:"3.5"}],["path",{d:"M3 8c0-3.5 2.5-6 6.5-6 5 0 4.83 3 7.5 5s5 2 5 6c0 4.5-2.5 6.5-7 6.5-2.5 0-2.5 2.5-6 2.5s-7-2-7-5.5c0-3 1.5-3 1.5-5C3.5 10 3 9 3 8Z"}]]];/**
+ */const y0=["svg",t,[["circle",{cx:"11.5",cy:"12.5",r:"3.5"}],["path",{d:"M3 8c0-3.5 2.5-6 6.5-6 5 0 4.83 3 7.5 5s5 2 5 6c0 4.5-2.5 6.5-7 6.5-2.5 0-2.5 2.5-6 2.5s-7-2-7-5.5c0-3 1.5-3 1.5-5C3.5 10 3 9 3 8Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Mn=["svg",t,[["path",{d:"M6.399 6.399C5.362 8.157 4.65 10.189 4.5 12c-.37 4.43 1.27 9.95 7.5 10 3.256-.026 5.259-1.547 6.375-3.625"}],["path",{d:"M19.532 13.875A14.07 14.07 0 0 0 19.5 12c-.36-4.34-3.95-9.96-7.5-10-1.04.012-2.082.502-3.046 1.297"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const M0=["svg",t,[["path",{d:"M6.399 6.399C5.362 8.157 4.65 10.189 4.5 12c-.37 4.43 1.27 9.95 7.5 10 3.256-.026 5.259-1.547 6.375-3.625"}],["path",{d:"M19.532 13.875A14.07 14.07 0 0 0 19.5 12c-.36-4.34-3.95-9.96-7.5-10-1.04.012-2.082.502-3.046 1.297"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const xn=["svg",t,[["path",{d:"M12 22c6.23-.05 7.87-5.57 7.5-10-.36-4.34-3.95-9.96-7.5-10-3.55.04-7.14 5.66-7.5 10-.37 4.43 1.27 9.95 7.5 10z"}]]];/**
+ */const x0=["svg",t,[["path",{d:"M12 22c6.23-.05 7.87-5.57 7.5-10-.36-4.34-3.95-9.96-7.5-10-3.55.04-7.14 5.66-7.5 10-.37 4.43 1.27 9.95 7.5 10z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2493,97 +2493,97 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const fn=["svg",t,[["line",{x1:"5",x2:"19",y1:"9",y2:"9"}],["line",{x1:"5",x2:"19",y1:"15",y2:"15"}],["line",{x1:"19",x2:"5",y1:"5",y2:"19"}]]];/**
+ */const f0=["svg",t,[["line",{x1:"5",x2:"19",y1:"9",y2:"9"}],["line",{x1:"5",x2:"19",y1:"15",y2:"15"}],["line",{x1:"19",x2:"5",y1:"5",y2:"19"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const bn=["svg",t,[["line",{x1:"5",x2:"19",y1:"9",y2:"9"}],["line",{x1:"5",x2:"19",y1:"15",y2:"15"}]]];/**
+ */const b0=["svg",t,[["line",{x1:"5",x2:"19",y1:"9",y2:"9"}],["line",{x1:"5",x2:"19",y1:"15",y2:"15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const wn=["svg",t,[["path",{d:"m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"}],["path",{d:"M22 21H7"}],["path",{d:"m5 11 9 9"}]]];/**
+ */const w0=["svg",t,[["path",{d:"m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"}],["path",{d:"M22 21H7"}],["path",{d:"m5 11 9 9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const kn=["svg",t,[["path",{d:"M4 10h12"}],["path",{d:"M4 14h9"}],["path",{d:"M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"}]]];/**
+ */const k0=["svg",t,[["path",{d:"M4 10h12"}],["path",{d:"M4 14h9"}],["path",{d:"M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Sn=["svg",t,[["path",{d:"m21 21-6-6m6 6v-4.8m0 4.8h-4.8"}],["path",{d:"M3 16.2V21m0 0h4.8M3 21l6-6"}],["path",{d:"M21 7.8V3m0 0h-4.8M21 3l-6 6"}],["path",{d:"M3 7.8V3m0 0h4.8M3 3l6 6"}]]];/**
+ */const S0=["svg",t,[["path",{d:"m21 21-6-6m6 6v-4.8m0 4.8h-4.8"}],["path",{d:"M3 16.2V21m0 0h4.8M3 21l6-6"}],["path",{d:"M21 7.8V3m0 0h-4.8M21 3l-6 6"}],["path",{d:"M3 7.8V3m0 0h4.8M3 3l6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Hn=["svg",t,[["path",{d:"M15 3h6v6"}],["path",{d:"M10 14 21 3"}],["path",{d:"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"}]]];/**
+ */const H0=["svg",t,[["path",{d:"M15 3h6v6"}],["path",{d:"M10 14 21 3"}],["path",{d:"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Cn=["svg",t,[["path",{d:"M9.88 9.88a3 3 0 1 0 4.24 4.24"}],["path",{d:"M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"}],["path",{d:"M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const C0=["svg",t,[["path",{d:"M9.88 9.88a3 3 0 1 0 4.24 4.24"}],["path",{d:"M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"}],["path",{d:"M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const An=["svg",t,[["path",{d:"M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
+ */const A0=["svg",t,[["path",{d:"M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ln=["svg",t,[["path",{d:"M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"}]]];/**
+ */const L0=["svg",t,[["path",{d:"M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const $n=["svg",t,[["path",{d:"M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M17 18h1"}],["path",{d:"M12 18h1"}],["path",{d:"M7 18h1"}]]];/**
+ */const $0=["svg",t,[["path",{d:"M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"}],["path",{d:"M17 18h1"}],["path",{d:"M12 18h1"}],["path",{d:"M7 18h1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Vn=["svg",t,[["path",{d:"M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"}],["path",{d:"M12 12v.01"}]]];/**
+ */const V0=["svg",t,[["path",{d:"M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"}],["path",{d:"M12 12v.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const _n=["svg",t,[["polygon",{points:"13 19 22 12 13 5 13 19"}],["polygon",{points:"2 19 11 12 2 5 2 19"}]]];/**
+ */const _0=["svg",t,[["polygon",{points:"13 19 22 12 13 5 13 19"}],["polygon",{points:"2 19 11 12 2 5 2 19"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tn=["svg",t,[["path",{d:"M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"}],["path",{d:"M16 8 2 22"}],["path",{d:"M17.5 15H9"}]]];/**
+ */const P0=["svg",t,[["path",{d:"M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"}],["path",{d:"M16 8 2 22"}],["path",{d:"M17.5 15H9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pn=["svg",t,[["path",{d:"M4 3 2 5v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"}],["path",{d:"M6 8h4"}],["path",{d:"M6 18h4"}],["path",{d:"m12 3-2 2v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"}],["path",{d:"M14 8h4"}],["path",{d:"M14 18h4"}],["path",{d:"m20 3-2 2v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"}]]];/**
+ */const T0=["svg",t,[["path",{d:"M4 3 2 5v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"}],["path",{d:"M6 8h4"}],["path",{d:"M6 18h4"}],["path",{d:"m12 3-2 2v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"}],["path",{d:"M14 8h4"}],["path",{d:"M14 18h4"}],["path",{d:"m20 3-2 2v15c0 .6.4 1 1 1h2c.6 0 1-.4 1-1V5Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const zn=["svg",t,[["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M12 2v4"}],["path",{d:"m6.8 15-3.5 2"}],["path",{d:"m20.7 7-3.5 2"}],["path",{d:"M6.8 9 3.3 7"}],["path",{d:"m20.7 17-3.5-2"}],["path",{d:"m9 22 3-8 3 8"}],["path",{d:"M8 22h8"}],["path",{d:"M18 18.7a9 9 0 1 0-12 0"}]]];/**
+ */const z0=["svg",t,[["circle",{cx:"12",cy:"12",r:"2"}],["path",{d:"M12 2v4"}],["path",{d:"m6.8 15-3.5 2"}],["path",{d:"m20.7 7-3.5 2"}],["path",{d:"M6.8 9 3.3 7"}],["path",{d:"m20.7 17-3.5-2"}],["path",{d:"m9 22 3-8 3 8"}],["path",{d:"M8 22h8"}],["path",{d:"M18 18.7a9 9 0 1 0-12 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const qn=["svg",t,[["path",{d:"M5 5.5A3.5 3.5 0 0 1 8.5 2H12v7H8.5A3.5 3.5 0 0 1 5 5.5z"}],["path",{d:"M12 2h3.5a3.5 3.5 0 1 1 0 7H12V2z"}],["path",{d:"M12 12.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 1 1-7 0z"}],["path",{d:"M5 19.5A3.5 3.5 0 0 1 8.5 16H12v3.5a3.5 3.5 0 1 1-7 0z"}],["path",{d:"M5 12.5A3.5 3.5 0 0 1 8.5 9H12v7H8.5A3.5 3.5 0 0 1 5 12.5z"}]]];/**
+ */const q0=["svg",t,[["path",{d:"M5 5.5A3.5 3.5 0 0 1 8.5 2H12v7H8.5A3.5 3.5 0 0 1 5 5.5z"}],["path",{d:"M12 2h3.5a3.5 3.5 0 1 1 0 7H12V2z"}],["path",{d:"M12 12.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 1 1-7 0z"}],["path",{d:"M5 19.5A3.5 3.5 0 0 1 8.5 16H12v3.5a3.5 3.5 0 1 1-7 0z"}],["path",{d:"M5 12.5A3.5 3.5 0 0 1 8.5 9H12v7H8.5A3.5 3.5 0 0 1 5 12.5z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const En=["svg",t,[["path",{d:"M10 12v-1"}],["path",{d:"M10 18v-2"}],["path",{d:"M10 7V6"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M15.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v16a2 2 0 0 0 .274 1.01"}],["circle",{cx:"10",cy:"20",r:"2"}]]];/**
+ */const E0=["svg",t,[["path",{d:"M10 12v-1"}],["path",{d:"M10 18v-2"}],["path",{d:"M10 7V6"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M15.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v16a2 2 0 0 0 .274 1.01"}],["circle",{cx:"10",cy:"20",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Bn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v2"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"3",cy:"17",r:"1"}],["path",{d:"M2 17v-3a4 4 0 0 1 8 0v3"}],["circle",{cx:"9",cy:"17",r:"1"}]]];/**
+ */const B0=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v2"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"3",cy:"17",r:"1"}],["path",{d:"M2 17v-3a4 4 0 0 1 8 0v3"}],["circle",{cx:"9",cy:"17",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Dn=["svg",t,[["path",{d:"M17.5 22h.5a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M2 19a2 2 0 1 1 4 0v1a2 2 0 1 1-4 0v-4a6 6 0 0 1 12 0v4a2 2 0 1 1-4 0v-1a2 2 0 1 1 4 0"}]]];/**
+ */const D0=["svg",t,[["path",{d:"M17.5 22h.5a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M2 19a2 2 0 1 1 4 0v1a2 2 0 1 1-4 0v-4a6 6 0 0 1 12 0v4a2 2 0 1 1-4 0v-1a2 2 0 1 1 4 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2593,52 +2593,52 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Rn=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["circle",{cx:"12",cy:"10",r:"3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m14 12.5 1 5.5-3-1-3 1 1-5.5"}]]];/**
+ */const R0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["circle",{cx:"12",cy:"10",r:"3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m14 12.5 1 5.5-3-1-3 1 1-5.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const In=["svg",t,[["path",{d:"M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M5 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"}],["path",{d:"M7 16.5 8 22l-3-1-3 1 1-5.5"}]]];/**
+ */const I0=["svg",t,[["path",{d:"M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M5 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"}],["path",{d:"M7 16.5 8 22l-3-1-3 1 1-5.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const On=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 18v-1"}],["path",{d:"M12 18v-6"}],["path",{d:"M16 18v-3"}]]];/**
+ */const O0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 18v-1"}],["path",{d:"M12 18v-6"}],["path",{d:"M16 18v-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Nn=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 18v-2"}],["path",{d:"M12 18v-4"}],["path",{d:"M16 18v-6"}]]];/**
+ */const N0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M8 18v-2"}],["path",{d:"M12 18v-4"}],["path",{d:"M16 18v-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Fn=["svg",t,[["path",{d:"M14.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M3 13.1a2 2 0 0 0-1 1.76v3.24a2 2 0 0 0 .97 1.78L6 21.7a2 2 0 0 0 2.03.01L11 19.9a2 2 0 0 0 1-1.76V14.9a2 2 0 0 0-.97-1.78L8 11.3a2 2 0 0 0-2.03-.01Z"}],["path",{d:"M7 17v5"}],["path",{d:"M11.7 14.2 7 17l-4.7-2.8"}]]];/**
+ */const F0=["svg",t,[["path",{d:"M14.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M3 13.1a2 2 0 0 0-1 1.76v3.24a2 2 0 0 0 .97 1.78L6 21.7a2 2 0 0 0 2.03.01L11 19.9a2 2 0 0 0 1-1.76V14.9a2 2 0 0 0-.97-1.78L8 11.3a2 2 0 0 0-2.03-.01Z"}],["path",{d:"M7 17v5"}],["path",{d:"M11.7 14.2 7 17l-4.7-2.8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Zn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m3 15 2 2 4-4"}]]];/**
+ */const Z0=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m3 15 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Un=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m9 15 2 2 4-4"}]]];/**
+ */const U0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m9 15 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const jn=["svg",t,[["path",{d:"M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"8",cy:"16",r:"6"}],["path",{d:"M9.5 17.5 8 16.25V14"}]]];/**
+ */const j0=["svg",t,[["path",{d:"M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"8",cy:"16",r:"6"}],["path",{d:"M9.5 17.5 8 16.25V14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Gn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m5 12-3 3 3 3"}],["path",{d:"m9 18 3-3-3-3"}]]];/**
+ */const G0=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m5 12-3 3 3 3"}],["path",{d:"m9 18 3-3-3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wn=["svg",t,[["path",{d:"M10 12.5 8 15l2 2.5"}],["path",{d:"m14 12.5 2 2.5-2 2.5"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"}]]];/**
+ */const J0=["svg",t,[["path",{d:"M10 12.5 8 15l2 2.5"}],["path",{d:"m14 12.5 2 2.5-2 2.5"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2648,27 +2648,27 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kn=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M9 10h6"}],["path",{d:"M12 13V7"}],["path",{d:"M9 17h6"}]]];/**
+ */const W0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M9 10h6"}],["path",{d:"M12 13V7"}],["path",{d:"M9 17h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["rect",{width:"4",height:"6",x:"2",y:"12",rx:"2"}],["path",{d:"M10 12h2v6"}],["path",{d:"M10 18h4"}]]];/**
+ */const K0=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["rect",{width:"4",height:"6",x:"2",y:"12",rx:"2"}],["path",{d:"M10 12h2v6"}],["path",{d:"M10 18h4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Yn=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M12 18v-6"}],["path",{d:"m9 15 3 3 3-3"}]]];/**
+ */const Y0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M12 18v-6"}],["path",{d:"m9 15 3 3 3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Xn=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v2"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M10.29 10.7a2.43 2.43 0 0 0-2.66-.52c-.29.12-.56.3-.78.53l-.35.34-.35-.34a2.43 2.43 0 0 0-2.65-.53c-.3.12-.56.3-.79.53-.95.94-1 2.53.2 3.74L6.5 18l3.6-3.55c1.2-1.21 1.14-2.8.19-3.74Z"}]]];/**
+ */const X0=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v2"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"M10.29 10.7a2.43 2.43 0 0 0-2.66-.52c-.29.12-.56.3-.78.53l-.35.34-.35-.34a2.43 2.43 0 0 0-2.65-.53c-.3.12-.56.3-.79.53-.95.94-1 2.53.2 3.74L6.5 18l3.6-3.55c1.2-1.21 1.14-2.8.19-3.74Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Qn=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"10",cy:"12",r:"2"}],["path",{d:"m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"}]]];/**
+ */const Q0=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["circle",{cx:"10",cy:"12",r:"2"}],["path",{d:"m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2843,12 +2843,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M12 9v4"}],["path",{d:"M12 17h.01"}]]];/**
+ */const Pc=["svg",t,[["path",{d:"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"}],["path",{d:"M12 9v4"}],["path",{d:"M12 17h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pc=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m8 12.5-5 5"}],["path",{d:"m3 12.5 5 5"}]]];/**
+ */const Tc=["svg",t,[["path",{d:"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"}],["path",{d:"M14 2v4a2 2 0 0 0 2 2h4"}],["path",{d:"m8 12.5-5 5"}],["path",{d:"m3 12.5 5 5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -2923,17 +2923,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wc=["svg",t,[["path",{d:"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"}],["line",{x1:"4",x2:"4",y1:"22",y2:"15"}]]];/**
+ */const Jc=["svg",t,[["path",{d:"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"}],["line",{x1:"4",x2:"4",y1:"22",y2:"15"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kc=["svg",t,[["path",{d:"M12 2c1 3 2.5 3.5 3.5 4.5A5 5 0 0 1 17 10a5 5 0 1 1-10 0c0-.3 0-.6.1-.9a2 2 0 1 0 3.3-2C8 4.5 11 2 12 2Z"}],["path",{d:"m5 22 14-4"}],["path",{d:"m5 18 14 4"}]]];/**
+ */const Wc=["svg",t,[["path",{d:"M12 2c1 3 2.5 3.5 3.5 4.5A5 5 0 0 1 17 10a5 5 0 1 1-10 0c0-.3 0-.6.1-.9a2 2 0 1 0 3.3-2C8 4.5 11 2 12 2Z"}],["path",{d:"m5 22 14-4"}],["path",{d:"m5 18 14 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jc=["svg",t,[["path",{d:"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"}]]];/**
+ */const Kc=["svg",t,[["path",{d:"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3123,12 +3123,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tl=["svg",t,[["path",{d:"M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h7"}],["path",{d:"m8 16 3-3-3-3"}]]];/**
+ */const Pl=["svg",t,[["path",{d:"M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h7"}],["path",{d:"m8 16 3-3-3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pl=["svg",t,[["path",{d:"M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v.5"}],["path",{d:"M12 10v4h4"}],["path",{d:"m12 14 1.535-1.605a5 5 0 0 1 8 1.5"}],["path",{d:"M22 22v-4h-4"}],["path",{d:"m22 18-1.535 1.605a5 5 0 0 1-8-1.5"}]]];/**
+ */const Tl=["svg",t,[["path",{d:"M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v.5"}],["path",{d:"M12 10v4h4"}],["path",{d:"m12 14 1.535-1.605a5 5 0 0 1 8 1.5"}],["path",{d:"M22 22v-4h-4"}],["path",{d:"m22 18-1.535 1.605a5 5 0 0 1-8-1.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3203,17 +3203,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wl=["svg",t,[["path",{d:"M2 3v18"}],["rect",{width:"12",height:"18",x:"6",y:"3",rx:"2"}],["path",{d:"M22 3v18"}]]];/**
+ */const Jl=["svg",t,[["path",{d:"M2 3v18"}],["rect",{width:"12",height:"18",x:"6",y:"3",rx:"2"}],["path",{d:"M22 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kl=["svg",t,[["rect",{width:"18",height:"14",x:"3",y:"3",rx:"2"}],["path",{d:"M4 21h1"}],["path",{d:"M9 21h1"}],["path",{d:"M14 21h1"}],["path",{d:"M19 21h1"}]]];/**
+ */const Wl=["svg",t,[["rect",{width:"18",height:"14",x:"3",y:"3",rx:"2"}],["path",{d:"M4 21h1"}],["path",{d:"M9 21h1"}],["path",{d:"M14 21h1"}],["path",{d:"M19 21h1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jl=["svg",t,[["path",{d:"M7 2h10"}],["path",{d:"M5 6h14"}],["rect",{width:"18",height:"12",x:"3",y:"10",rx:"2"}]]];/**
+ */const Kl=["svg",t,[["path",{d:"M7 2h10"}],["path",{d:"M5 6h14"}],["rect",{width:"18",height:"12",x:"3",y:"10",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3403,17 +3403,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"M3 15h18"}],["path",{d:"M9 3v18"}],["path",{d:"M15 3v18"}]]];/**
+ */const J=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"M3 15h18"}],["path",{d:"M9 3v18"}],["path",{d:"M15 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Th=["svg",t,[["circle",{cx:"12",cy:"9",r:"1"}],["circle",{cx:"19",cy:"9",r:"1"}],["circle",{cx:"5",cy:"9",r:"1"}],["circle",{cx:"12",cy:"15",r:"1"}],["circle",{cx:"19",cy:"15",r:"1"}],["circle",{cx:"5",cy:"15",r:"1"}]]];/**
+ */const Ph=["svg",t,[["circle",{cx:"12",cy:"9",r:"1"}],["circle",{cx:"19",cy:"9",r:"1"}],["circle",{cx:"5",cy:"9",r:"1"}],["circle",{cx:"12",cy:"15",r:"1"}],["circle",{cx:"19",cy:"15",r:"1"}],["circle",{cx:"5",cy:"15",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ph=["svg",t,[["circle",{cx:"9",cy:"12",r:"1"}],["circle",{cx:"9",cy:"5",r:"1"}],["circle",{cx:"9",cy:"19",r:"1"}],["circle",{cx:"15",cy:"12",r:"1"}],["circle",{cx:"15",cy:"5",r:"1"}],["circle",{cx:"15",cy:"19",r:"1"}]]];/**
+ */const Th=["svg",t,[["circle",{cx:"9",cy:"12",r:"1"}],["circle",{cx:"9",cy:"5",r:"1"}],["circle",{cx:"9",cy:"19",r:"1"}],["circle",{cx:"15",cy:"12",r:"1"}],["circle",{cx:"15",cy:"5",r:"1"}],["circle",{cx:"15",cy:"19",r:"1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3493,17 +3493,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wh=["svg",t,[["path",{d:"M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"}],["path",{d:"M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"}],["path",{d:"M4 15v-3a6 6 0 0 1 6-6"}],["path",{d:"M14 6a6 6 0 0 1 6 6v3"}]]];/**
+ */const Jh=["svg",t,[["path",{d:"M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"}],["path",{d:"M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"}],["path",{d:"M4 15v-3a6 6 0 0 1 6-6"}],["path",{d:"M14 6a6 6 0 0 1 6 6v3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kh=["svg",t,[["line",{x1:"4",x2:"20",y1:"9",y2:"9"}],["line",{x1:"4",x2:"20",y1:"15",y2:"15"}],["line",{x1:"10",x2:"8",y1:"3",y2:"21"}],["line",{x1:"16",x2:"14",y1:"3",y2:"21"}]]];/**
+ */const Wh=["svg",t,[["line",{x1:"4",x2:"20",y1:"9",y2:"9"}],["line",{x1:"4",x2:"20",y1:"15",y2:"15"}],["line",{x1:"10",x2:"8",y1:"3",y2:"21"}],["line",{x1:"16",x2:"14",y1:"3",y2:"21"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jh=["svg",t,[["path",{d:"m5.2 6.2 1.4 1.4"}],["path",{d:"M2 13h2"}],["path",{d:"M20 13h2"}],["path",{d:"m17.4 7.6 1.4-1.4"}],["path",{d:"M22 17H2"}],["path",{d:"M22 21H2"}],["path",{d:"M16 13a4 4 0 0 0-8 0"}],["path",{d:"M12 5V2.5"}]]];/**
+ */const Kh=["svg",t,[["path",{d:"m5.2 6.2 1.4 1.4"}],["path",{d:"M2 13h2"}],["path",{d:"M20 13h2"}],["path",{d:"m17.4 7.6 1.4-1.4"}],["path",{d:"M22 17H2"}],["path",{d:"M22 21H2"}],["path",{d:"M16 13a4 4 0 0 0-8 0"}],["path",{d:"M12 5V2.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3703,12 +3703,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tp=["svg",t,[["path",{d:"M6 3h12"}],["path",{d:"M6 8h12"}],["path",{d:"m6 13 8.5 8"}],["path",{d:"M6 13h3"}],["path",{d:"M9 13c6.667 0 6.667-10 0-10"}]]];/**
+ */const Pp=["svg",t,[["path",{d:"M6 3h12"}],["path",{d:"M6 8h12"}],["path",{d:"m6 13 8.5 8"}],["path",{d:"M6 13h3"}],["path",{d:"M9 13c6.667 0 6.667-10 0-10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pp=["svg",t,[["path",{d:"M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"}]]];/**
+ */const Tp=["svg",t,[["path",{d:"M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3783,17 +3783,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wp=["svg",t,[["path",{d:"M10 8h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M14 8h.01"}],["path",{d:"M16 12h.01"}],["path",{d:"M18 8h.01"}],["path",{d:"M6 8h.01"}],["path",{d:"M7 16h10"}],["path",{d:"M8 12h.01"}],["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}]]];/**
+ */const Jp=["svg",t,[["path",{d:"M10 8h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M14 8h.01"}],["path",{d:"M16 12h.01"}],["path",{d:"M18 8h.01"}],["path",{d:"M6 8h.01"}],["path",{d:"M7 16h10"}],["path",{d:"M8 12h.01"}],["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kp=["svg",t,[["path",{d:"M12 2v5"}],["path",{d:"M6 7h12l4 9H2l4-9Z"}],["path",{d:"M9.17 16a3 3 0 1 0 5.66 0"}]]];/**
+ */const Wp=["svg",t,[["path",{d:"M12 2v5"}],["path",{d:"M6 7h12l4 9H2l4-9Z"}],["path",{d:"M9.17 16a3 3 0 1 0 5.66 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jp=["svg",t,[["path",{d:"m14 5-3 3 2 7 8-8-7-2Z"}],["path",{d:"m14 5-3 3-3-3 3-3 3 3Z"}],["path",{d:"M9.5 6.5 4 12l3 6"}],["path",{d:"M3 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H3Z"}]]];/**
+ */const Kp=["svg",t,[["path",{d:"m14 5-3 3 2 7 8-8-7-2Z"}],["path",{d:"m14 5-3 3-3-3 3-3 3 3Z"}],["path",{d:"M9.5 6.5 4 12l3 6"}],["path",{d:"M3 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H3Z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -3978,12 +3978,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tv=["svg",t,[["path",{d:"m3 10 2.5-2.5L3 5"}],["path",{d:"m3 19 2.5-2.5L3 14"}],["path",{d:"M10 6h11"}],["path",{d:"M10 12h11"}],["path",{d:"M10 18h11"}]]];/**
+ */const Pv=["svg",t,[["path",{d:"m3 10 2.5-2.5L3 5"}],["path",{d:"m3 19 2.5-2.5L3 14"}],["path",{d:"M10 6h11"}],["path",{d:"M10 12h11"}],["path",{d:"M10 18h11"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pv=["svg",t,[["path",{d:"M16 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M10 18H3"}],["path",{d:"M21 6v10a2 2 0 0 1-2 2h-5"}],["path",{d:"m16 16-2 2 2 2"}]]];/**
+ */const Tv=["svg",t,[["path",{d:"M16 12H3"}],["path",{d:"M16 6H3"}],["path",{d:"M10 18H3"}],["path",{d:"M21 6v10a2 2 0 0 1-2 2h-5"}],["path",{d:"m16 16-2 2 2 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4063,17 +4063,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
+ */const Jv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}],["circle",{cx:"12",cy:"12",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["path",{d:"M7.11 7.11C5.83 8.39 5 10.1 5 12c0 3.87 3.13 7 7 7 1.9 0 3.61-.83 4.89-2.11"}],["path",{d:"M18.71 13.96c.19-.63.29-1.29.29-1.96 0-3.87-3.13-7-7-7-.67 0-1.33.1-1.96.29"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
+ */const Wv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["path",{d:"M7.11 7.11C5.83 8.39 5 10.1 5 12c0 3.87 3.13 7 7 7 1.9 0 3.61-.83 4.89-2.11"}],["path",{d:"M18.71 13.96c.19-.63.29-1.29.29-1.96 0-3.87-3.13-7-7-7-.67 0-1.33.1-1.96.29"}],["line",{x1:"2",x2:"22",y1:"2",y2:"22"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}]]];/**
+ */const Kv=["svg",t,[["line",{x1:"2",x2:"5",y1:"12",y2:"12"}],["line",{x1:"19",x2:"22",y1:"12",y2:"12"}],["line",{x1:"12",x2:"12",y1:"2",y2:"5"}],["line",{x1:"12",x2:"12",y1:"19",y2:"22"}],["circle",{cx:"12",cy:"12",r:"7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4263,12 +4263,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M8 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M16 12h.01"}]]];/**
+ */const P4=["svg",t,[["path",{d:"M7.9 20A9 9 0 1 0 4 16.1L2 22Z"}],["path",{d:"M8 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M16 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P4=["svg",t,[["path",{d:"M20.5 14.9A9 9 0 0 0 9.1 3.5"}],["path",{d:"m2 2 20 20"}],["path",{d:"M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"}]]];/**
+ */const T4=["svg",t,[["path",{d:"M20.5 14.9A9 9 0 0 0 9.1 3.5"}],["path",{d:"m2 2 20 20"}],["path",{d:"M5.6 5.6C3 8.3 2.2 12.5 4 16l-2 6 6-2c3.4 1.8 7.6 1.1 10.3-1.7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4343,17 +4343,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M8 12a2 2 0 0 0 2-2V8H8"}],["path",{d:"M14 12a2 2 0 0 0 2-2V8h-2"}]]];/**
+ */const J4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"M8 12a2 2 0 0 0 2-2V8H8"}],["path",{d:"M14 12a2 2 0 0 0 2-2V8h-2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"m10 7-3 3 3 3"}],["path",{d:"M17 13v-1a2 2 0 0 0-2-2H7"}]]];/**
+ */const W4=["svg",t,[["path",{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}],["path",{d:"m10 7-3 3 3 3"}],["path",{d:"M17 13v-1a2 2 0 0 0-2-2H7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J4=["svg",t,[["path",{d:"M21 12v3a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h7"}],["path",{d:"M16 3h5v5"}],["path",{d:"m16 8 5-5"}]]];/**
+ */const K4=["svg",t,[["path",{d:"M21 12v3a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h7"}],["path",{d:"M16 3h5v5"}],["path",{d:"m16 8 5-5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4538,12 +4538,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T5=["svg",t,[["path",{d:"m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"}],["path",{d:"m13 13 6 6"}]]];/**
+ */const P5=["svg",t,[["path",{d:"m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"}],["path",{d:"m13 13 6 6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P5=["svg",t,[["rect",{x:"5",y:"2",width:"14",height:"20",rx:"7"}],["path",{d:"M12 6v4"}]]];/**
+ */const T5=["svg",t,[["rect",{x:"5",y:"2",width:"14",height:"20",rx:"7"}],["path",{d:"M12 6v4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4623,17 +4623,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W5=["svg",t,[["circle",{cx:"12",cy:"18",r:"4"}],["path",{d:"M16 18V2"}]]];/**
+ */const J5=["svg",t,[["circle",{cx:"12",cy:"18",r:"4"}],["path",{d:"M16 18V2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K5=["svg",t,[["path",{d:"M9 18V5l12-2v13"}],["path",{d:"m9 9 12-2"}],["circle",{cx:"6",cy:"18",r:"3"}],["circle",{cx:"18",cy:"16",r:"3"}]]];/**
+ */const W5=["svg",t,[["path",{d:"M9 18V5l12-2v13"}],["path",{d:"m9 9 12-2"}],["circle",{cx:"6",cy:"18",r:"3"}],["circle",{cx:"18",cy:"16",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J5=["svg",t,[["path",{d:"M9 18V5l12-2v13"}],["circle",{cx:"6",cy:"18",r:"3"}],["circle",{cx:"18",cy:"16",r:"3"}]]];/**
+ */const K5=["svg",t,[["path",{d:"M9 18V5l12-2v13"}],["circle",{cx:"6",cy:"18",r:"3"}],["circle",{cx:"18",cy:"16",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4863,12 +4863,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}],["path",{d:"m10 15-3-3 3-3"}]]];/**
+ */const Pm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}],["path",{d:"m10 15-3-3 3-3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}]]];/**
+ */const Tm=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M15 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4903,7 +4903,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Te=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"M9 21V9"}]]];/**
+ */const Pe=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}],["path",{d:"M9 21V9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4943,7 +4943,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pe=["svg",t,[["path",{d:"M12 20h9"}],["path",{d:"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"}]]];/**
+ */const Te=["svg",t,[["path",{d:"M12 20h9"}],["path",{d:"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -4963,17 +4963,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wm=["svg",t,[["path",{d:"M12 20h9"}],["path",{d:"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"}],["path",{d:"m15 5 3 3"}]]];/**
+ */const Jm=["svg",t,[["path",{d:"M12 20h9"}],["path",{d:"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"}],["path",{d:"m15 5 3 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Km=["svg",t,[["path",{d:"m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982"}],["path",{d:"m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353"}],["path",{d:"m15 5 4 4"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const Wm=["svg",t,[["path",{d:"m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982"}],["path",{d:"m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353"}],["path",{d:"m15 5 4 4"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jm=["svg",t,[["path",{d:"M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"}],["path",{d:"m8 6 2-2"}],["path",{d:"m18 16 2-2"}],["path",{d:"m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17"}],["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"}],["path",{d:"m15 5 4 4"}]]];/**
+ */const Km=["svg",t,[["path",{d:"M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"}],["path",{d:"m8 6 2-2"}],["path",{d:"m18 16 2-2"}],["path",{d:"m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17"}],["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"}],["path",{d:"m15 5 4 4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5153,12 +5153,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tg=["svg",t,[["path",{d:"M5 12h14"}],["path",{d:"M12 5v14"}]]];/**
+ */const Pg=["svg",t,[["path",{d:"M5 12h14"}],["path",{d:"M12 5v14"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pg=["svg",t,[["path",{d:"M3 2v1c0 1 2 1 2 2S3 6 3 7s2 1 2 2-2 1-2 2 2 1 2 2"}],["path",{d:"M18 6h.01"}],["path",{d:"M6 18h.01"}],["path",{d:"M20.83 8.83a4 4 0 0 0-5.66-5.66l-12 12a4 4 0 1 0 5.66 5.66Z"}],["path",{d:"M18 11.66V22a4 4 0 0 0 4-4V6"}]]];/**
+ */const Tg=["svg",t,[["path",{d:"M3 2v1c0 1 2 1 2 2S3 6 3 7s2 1 2 2-2 1-2 2 2 1 2 2"}],["path",{d:"M18 6h.01"}],["path",{d:"M6 18h.01"}],["path",{d:"M20.83 8.83a4 4 0 0 0-5.66-5.66l-12 12a4 4 0 1 0 5.66 5.66Z"}],["path",{d:"M18 11.66V22a4 4 0 0 0 4-4V6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5233,17 +5233,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wg=["svg",t,[["path",{d:"M2.5 16.88a1 1 0 0 1-.32-1.43l9-13.02a1 1 0 0 1 1.64 0l9 13.01a1 1 0 0 1-.32 1.44l-8.51 4.86a2 2 0 0 1-1.98 0Z"}],["path",{d:"M12 2v20"}]]];/**
+ */const Jg=["svg",t,[["path",{d:"M2.5 16.88a1 1 0 0 1-.32-1.43l9-13.02a1 1 0 0 1 1.64 0l9 13.01a1 1 0 0 1-.32 1.44l-8.51 4.86a2 2 0 0 1-1.98 0Z"}],["path",{d:"M12 2v20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Kg=["svg",t,[["rect",{width:"5",height:"5",x:"3",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"16",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"3",y:"16",rx:"1"}],["path",{d:"M21 16h-3a2 2 0 0 0-2 2v3"}],["path",{d:"M21 21v.01"}],["path",{d:"M12 7v3a2 2 0 0 1-2 2H7"}],["path",{d:"M3 12h.01"}],["path",{d:"M12 3h.01"}],["path",{d:"M12 16v.01"}],["path",{d:"M16 12h1"}],["path",{d:"M21 12v.01"}],["path",{d:"M12 21v-1"}]]];/**
+ */const Wg=["svg",t,[["rect",{width:"5",height:"5",x:"3",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"16",y:"3",rx:"1"}],["rect",{width:"5",height:"5",x:"3",y:"16",rx:"1"}],["path",{d:"M21 16h-3a2 2 0 0 0-2 2v3"}],["path",{d:"M21 21v.01"}],["path",{d:"M12 7v3a2 2 0 0 1-2 2H7"}],["path",{d:"M3 12h.01"}],["path",{d:"M12 3h.01"}],["path",{d:"M12 16v.01"}],["path",{d:"M16 12h1"}],["path",{d:"M21 12v.01"}],["path",{d:"M12 21v-1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jg=["svg",t,[["path",{d:"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}],["path",{d:"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}]]];/**
+ */const Kg=["svg",t,[["path",{d:"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}],["path",{d:"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5428,12 +5428,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Tu=["svg",t,[["path",{d:"m2 9 3-3 3 3"}],["path",{d:"M13 18H7a2 2 0 0 1-2-2V6"}],["path",{d:"m22 15-3 3-3-3"}],["path",{d:"M11 6h6a2 2 0 0 1 2 2v10"}]]];/**
+ */const Pu=["svg",t,[["path",{d:"m2 9 3-3 3 3"}],["path",{d:"M13 18H7a2 2 0 0 1-2-2V6"}],["path",{d:"m22 15-3 3-3-3"}],["path",{d:"M11 6h6a2 2 0 0 1 2 2v10"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pu=["svg",t,[["path",{d:"m17 2 4 4-4 4"}],["path",{d:"M3 11v-1a4 4 0 0 1 4-4h14"}],["path",{d:"m7 22-4-4 4-4"}],["path",{d:"M21 13v1a4 4 0 0 1-4 4H3"}]]];/**
+ */const Tu=["svg",t,[["path",{d:"m17 2 4 4-4 4"}],["path",{d:"M3 11v-1a4 4 0 0 1 4-4h14"}],["path",{d:"m7 22-4-4 4-4"}],["path",{d:"M21 13v1a4 4 0 0 1-4 4H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5513,12 +5513,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wu=["svg",t,[["circle",{cx:"6",cy:"19",r:"3"}],["path",{d:"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"}],["circle",{cx:"18",cy:"5",r:"3"}]]];/**
+ */const Ju=["svg",t,[["circle",{cx:"6",cy:"19",r:"3"}],["path",{d:"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"}],["circle",{cx:"18",cy:"5",r:"3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ku=["svg",t,[["rect",{width:"20",height:"8",x:"2",y:"14",rx:"2"}],["path",{d:"M6.01 18H6"}],["path",{d:"M10.01 18H10"}],["path",{d:"M15 10v4"}],["path",{d:"M17.84 7.17a4 4 0 0 0-5.66 0"}],["path",{d:"M20.66 4.34a8 8 0 0 0-11.31 0"}]]];/**
+ */const Wu=["svg",t,[["rect",{width:"20",height:"8",x:"2",y:"14",rx:"2"}],["path",{d:"M6.01 18H6"}],["path",{d:"M10.01 18H10"}],["path",{d:"M15 10v4"}],["path",{d:"M17.84 7.17a4 4 0 0 0-5.66 0"}],["path",{d:"M20.66 4.34a8 8 0 0 0-11.31 0"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5533,7 +5533,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ju=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M21 7.5H3"}],["path",{d:"M21 12H3"}],["path",{d:"M21 16.5H3"}]]];/**
+ */const Ku=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M21 7.5H3"}],["path",{d:"M21 12H3"}],["path",{d:"M21 16.5H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5723,12 +5723,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T3=["svg",t,[["line",{x1:"3",x2:"21",y1:"12",y2:"12"}],["polyline",{points:"8 8 12 4 16 8"}],["polyline",{points:"16 16 12 20 8 16"}]]];/**
+ */const P3=["svg",t,[["line",{x1:"3",x2:"21",y1:"12",y2:"12"}],["polyline",{points:"8 8 12 4 16 8"}],["polyline",{points:"16 16 12 20 8 16"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P3=["svg",t,[["line",{x1:"12",x2:"12",y1:"3",y2:"21"}],["polyline",{points:"8 8 4 12 8 16"}],["polyline",{points:"16 16 20 12 16 8"}]]];/**
+ */const T3=["svg",t,[["line",{x1:"12",x2:"12",y1:"3",y2:"21"}],["polyline",{points:"8 8 4 12 8 16"}],["polyline",{points:"16 16 20 12 16 8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -5803,17 +5803,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W3=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"M8 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M16 12h.01"}]]];/**
+ */const J3=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"M8 12h.01"}],["path",{d:"M12 12h.01"}],["path",{d:"M16 12h.01"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K3=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"M12 22V2"}]]];/**
+ */const W3=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"M12 22V2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J3=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"M9 12h6"}]]];/**
+ */const K3=["svg",t,[["path",{d:"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"}],["path",{d:"M9 12h6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6003,12 +6003,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T6=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M8 14s1.5 2 4 2 4-2 4-2"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
+ */const P6=["svg",t,[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M8 14s1.5 2 4 2 4-2 4-2"}],["line",{x1:"9",x2:"9.01",y1:"9",y2:"9"}],["line",{x1:"15",x2:"15.01",y1:"9",y2:"9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P6=["svg",t,[["path",{d:"M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"}],["circle",{cx:"10",cy:"13",r:"8"}],["path",{d:"M2 21h12c4.4 0 8-3.6 8-8V7a2 2 0 1 0-4 0v6"}],["path",{d:"M18 3 19.1 5.2"}],["path",{d:"M22 3 20.9 5.2"}]]];/**
+ */const T6=["svg",t,[["path",{d:"M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"}],["circle",{cx:"10",cy:"13",r:"8"}],["path",{d:"M2 21h12c4.4 0 8-3.6 8-8V7a2 2 0 1 0-4 0v6"}],["path",{d:"M18 3 19.1 5.2"}],["path",{d:"M22 3 20.9 5.2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6108,17 +6108,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const We=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m12 8-4 4 4 4"}],["path",{d:"M16 12H8"}]]];/**
+ */const Je=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"m12 8-4 4 4 4"}],["path",{d:"M16 12H8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ke=["svg",t,[["path",{d:"M13 21h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6"}],["path",{d:"m3 21 9-9"}],["path",{d:"M9 21H3v-6"}]]];/**
+ */const We=["svg",t,[["path",{d:"M13 21h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6"}],["path",{d:"m3 21 9-9"}],["path",{d:"M9 21H3v-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Je=["svg",t,[["path",{d:"M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"}],["path",{d:"m21 21-9-9"}],["path",{d:"M21 15v6h-6"}]]];/**
+ */const Ke=["svg",t,[["path",{d:"M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"}],["path",{d:"m21 21-9-9"}],["path",{d:"M21 15v6h-6"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6198,12 +6198,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W6=["svg",t,[["path",{d:"M10 9.5 8 12l2 2.5"}],["path",{d:"M14 21h1"}],["path",{d:"m14 9.5 2 2.5-2 2.5"}],["path",{d:"M5 21a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2"}],["path",{d:"M9 21h1"}]]];/**
+ */const J6=["svg",t,[["path",{d:"M10 9.5 8 12l2 2.5"}],["path",{d:"M14 21h1"}],["path",{d:"m14 9.5 2 2.5-2 2.5"}],["path",{d:"M5 21a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2"}],["path",{d:"M9 21h1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K6=["svg",t,[["path",{d:"M5 21a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2"}],["path",{d:"M9 21h1"}],["path",{d:"M14 21h1"}]]];/**
+ */const W6=["svg",t,[["path",{d:"M5 21a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2"}],["path",{d:"M9 21h1"}],["path",{d:"M14 21h1"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6313,17 +6313,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ta=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 7v5"}],["path",{d:"M8 9a5.14 5.14 0 0 0 4 8 4.95 4.95 0 0 0 4-8"}]]];/**
+ */const Pa=["svg",t,[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 7v5"}],["path",{d:"M8 9a5.14 5.14 0 0 0 4 8 4.95 4.95 0 0 0 4-8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J6=["svg",t,[["path",{d:"M7 12h2l2 5 2-10h4"}],["rect",{x:"3",y:"3",width:"18",height:"18",rx:"2"}]]];/**
+ */const K6=["svg",t,[["path",{d:"M7 12h2l2 5 2-10h4"}],["rect",{x:"3",y:"3",width:"18",height:"18",rx:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Pa=["svg",t,[["rect",{width:"20",height:"20",x:"2",y:"2",rx:"2"}],["circle",{cx:"8",cy:"8",r:"2"}],["path",{d:"M9.414 9.414 12 12"}],["path",{d:"M14.8 14.8 18 18"}],["circle",{cx:"8",cy:"16",r:"2"}],["path",{d:"m18 6-8.586 8.586"}]]];/**
+ */const Ta=["svg",t,[["rect",{width:"20",height:"20",x:"2",y:"2",rx:"2"}],["circle",{cx:"8",cy:"8",r:"2"}],["path",{d:"M9.414 9.414 12 12"}],["path",{d:"M14.8 14.8 18 18"}],["circle",{cx:"8",cy:"16",r:"2"}],["path",{d:"m18 6-8.586 8.586"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6543,12 +6543,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ty=["svg",t,[["path",{d:"M14 14v2"}],["path",{d:"M14 20v2"}],["path",{d:"M14 2v2"}],["path",{d:"M14 8v2"}],["path",{d:"M2 15h8"}],["path",{d:"M2 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H2"}],["path",{d:"M2 9h8"}],["path",{d:"M22 15h-4"}],["path",{d:"M22 3h-2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"}],["path",{d:"M22 9h-4"}],["path",{d:"M5 3v18"}]]];/**
+ */const Py=["svg",t,[["path",{d:"M14 14v2"}],["path",{d:"M14 20v2"}],["path",{d:"M14 2v2"}],["path",{d:"M14 8v2"}],["path",{d:"M2 15h8"}],["path",{d:"M2 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H2"}],["path",{d:"M2 9h8"}],["path",{d:"M22 15h-4"}],["path",{d:"M22 3h-2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"}],["path",{d:"M22 9h-4"}],["path",{d:"M5 3v18"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Py=["svg",t,[["path",{d:"M15 3v18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M21 9H3"}],["path",{d:"M21 15H3"}]]];/**
+ */const Ty=["svg",t,[["path",{d:"M15 3v18"}],["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M21 9H3"}],["path",{d:"M21 15H3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6623,17 +6623,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wy=["svg",t,[["path",{d:"m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"}],["path",{d:"m13.56 11.747 4.332-.924"}],["path",{d:"m16 21-3.105-6.21"}],["path",{d:"M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"}],["path",{d:"m6.158 8.633 1.114 4.456"}],["path",{d:"m8 21 3.105-6.21"}],["circle",{cx:"12",cy:"13",r:"2"}]]];/**
+ */const Jy=["svg",t,[["path",{d:"m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"}],["path",{d:"m13.56 11.747 4.332-.924"}],["path",{d:"m16 21-3.105-6.21"}],["path",{d:"M16.485 5.94a2 2 0 0 1 1.455-2.425l1.09-.272a1 1 0 0 1 1.212.727l1.515 6.06a1 1 0 0 1-.727 1.213l-1.09.272a2 2 0 0 1-2.425-1.455z"}],["path",{d:"m6.158 8.633 1.114 4.456"}],["path",{d:"m8 21 3.105-6.21"}],["circle",{cx:"12",cy:"13",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ky=["svg",t,[["circle",{cx:"4",cy:"4",r:"2"}],["path",{d:"m14 5 3-3 3 3"}],["path",{d:"m14 10 3-3 3 3"}],["path",{d:"M17 14V2"}],["path",{d:"M17 14H7l-5 8h20Z"}],["path",{d:"M8 14v8"}],["path",{d:"m9 14 5 8"}]]];/**
+ */const Wy=["svg",t,[["circle",{cx:"4",cy:"4",r:"2"}],["path",{d:"m14 5 3-3 3 3"}],["path",{d:"m14 10 3-3 3 3"}],["path",{d:"M17 14V2"}],["path",{d:"M17 14H7l-5 8h20Z"}],["path",{d:"M8 14v8"}],["path",{d:"m9 14 5 8"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Jy=["svg",t,[["path",{d:"M3.5 21 14 3"}],["path",{d:"M20.5 21 10 3"}],["path",{d:"M15.5 21 12 15l-3.5 6"}],["path",{d:"M2 21h20"}]]];/**
+ */const Ky=["svg",t,[["path",{d:"M3.5 21 14 3"}],["path",{d:"M20.5 21 10 3"}],["path",{d:"M15.5 21 12 15l-3.5 6"}],["path",{d:"M2 21h20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6823,12 +6823,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T8=["svg",t,[["path",{d:"M8 3.1V7a4 4 0 0 0 8 0V3.1"}],["path",{d:"m9 15-1-1"}],["path",{d:"m15 15 1-1"}],["path",{d:"M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"}],["path",{d:"m8 19-2 3"}],["path",{d:"m16 19 2 3"}]]];/**
+ */const P8=["svg",t,[["path",{d:"M8 3.1V7a4 4 0 0 0 8 0V3.1"}],["path",{d:"m9 15-1-1"}],["path",{d:"m15 15 1-1"}],["path",{d:"M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"}],["path",{d:"m8 19-2 3"}],["path",{d:"m16 19 2 3"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P8=["svg",t,[["path",{d:"M2 17 17 2"}],["path",{d:"m2 14 8 8"}],["path",{d:"m5 11 8 8"}],["path",{d:"m8 8 8 8"}],["path",{d:"m11 5 8 8"}],["path",{d:"m14 2 8 8"}],["path",{d:"M7 22 22 7"}]]];/**
+ */const T8=["svg",t,[["path",{d:"M2 17 17 2"}],["path",{d:"m2 14 8 8"}],["path",{d:"m5 11 8 8"}],["path",{d:"m8 8 8 8"}],["path",{d:"m11 5 8 8"}],["path",{d:"m14 2 8 8"}],["path",{d:"M7 22 22 7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6923,17 +6923,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W8=["svg",t,[["rect",{width:"20",height:"15",x:"2",y:"7",rx:"2",ry:"2"}],["polyline",{points:"17 2 12 7 7 2"}]]];/**
+ */const J8=["svg",t,[["rect",{width:"20",height:"15",x:"2",y:"7",rx:"2",ry:"2"}],["polyline",{points:"17 2 12 7 7 2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K8=["svg",t,[["path",{d:"M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"}]]];/**
+ */const W8=["svg",t,[["path",{d:"M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J8=["svg",t,[["path",{d:"M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"}]]];/**
+ */const K8=["svg",t,[["path",{d:"M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -6988,7 +6988,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Wa=["svg",t,[["circle",{cx:"12",cy:"10",r:"1"}],["path",{d:"M22 20V8h-4l-6-4-6 4H2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2"}],["path",{d:"M6 17v.01"}],["path",{d:"M6 13v.01"}],["path",{d:"M18 17v.01"}],["path",{d:"M18 13v.01"}],["path",{d:"M14 22v-5a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5"}]]];/**
+ */const Ja=["svg",t,[["circle",{cx:"12",cy:"10",r:"1"}],["path",{d:"M22 20V8h-4l-6-4-6 4H2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2"}],["path",{d:"M6 17v.01"}],["path",{d:"M6 13v.01"}],["path",{d:"M18 17v.01"}],["path",{d:"M18 13v.01"}],["path",{d:"M14 22v-5a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7038,12 +7038,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ka=["svg",t,[["path",{d:"M2 21a8 8 0 0 1 13.292-6"}],["circle",{cx:"10",cy:"8",r:"5"}],["path",{d:"m16 19 2 2 4-4"}]]];/**
+ */const Wa=["svg",t,[["path",{d:"M2 21a8 8 0 0 1 13.292-6"}],["circle",{cx:"10",cy:"8",r:"5"}],["path",{d:"m16 19 2 2 4-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const Ja=["svg",t,[["path",{d:"M2 21a8 8 0 0 1 10.434-7.62"}],["circle",{cx:"10",cy:"8",r:"5"}],["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"m19.5 14.3-.4.9"}],["path",{d:"m16.9 20.8-.4.9"}],["path",{d:"m21.7 19.5-.9-.4"}],["path",{d:"m15.2 16.9-.9-.4"}],["path",{d:"m21.7 16.5-.9.4"}],["path",{d:"m15.2 19.1-.9.4"}],["path",{d:"m19.5 21.7-.4-.9"}],["path",{d:"m16.9 15.2-.4-.9"}]]];/**
+ */const Ka=["svg",t,[["path",{d:"M2 21a8 8 0 0 1 10.434-7.62"}],["circle",{cx:"10",cy:"8",r:"5"}],["circle",{cx:"18",cy:"18",r:"3"}],["path",{d:"m19.5 14.3-.4.9"}],["path",{d:"m16.9 20.8-.4.9"}],["path",{d:"m21.7 19.5-.9-.4"}],["path",{d:"m15.2 16.9-.9-.4"}],["path",{d:"m21.7 16.5-.9.4"}],["path",{d:"m15.2 19.1-.9.4"}],["path",{d:"m19.5 21.7-.4-.9"}],["path",{d:"m16.9 15.2-.4-.9"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7153,12 +7153,12 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const T7=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M2 8h20"}],["circle",{cx:"8",cy:"14",r:"2"}],["path",{d:"M8 12h8"}],["circle",{cx:"16",cy:"14",r:"2"}]]];/**
+ */const P7=["svg",t,[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M2 8h20"}],["circle",{cx:"8",cy:"14",r:"2"}],["path",{d:"M8 12h8"}],["circle",{cx:"16",cy:"14",r:"2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const P7=["svg",t,[["path",{d:"M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z"}],["path",{d:"M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"}],["path",{d:"M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2"}],["path",{d:"M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"}]]];/**
+ */const T7=["svg",t,[["path",{d:"M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z"}],["path",{d:"M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"}],["path",{d:"M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2"}],["path",{d:"M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7243,17 +7243,17 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const W7=["svg",t,[["circle",{cx:"12",cy:"4.5",r:"2.5"}],["path",{d:"m10.2 6.3-3.9 3.9"}],["circle",{cx:"4.5",cy:"12",r:"2.5"}],["path",{d:"M7 12h10"}],["circle",{cx:"19.5",cy:"12",r:"2.5"}],["path",{d:"m13.8 17.7 3.9-3.9"}],["circle",{cx:"12",cy:"19.5",r:"2.5"}]]];/**
+ */const J7=["svg",t,[["circle",{cx:"12",cy:"4.5",r:"2.5"}],["path",{d:"m10.2 6.3-3.9 3.9"}],["circle",{cx:"4.5",cy:"12",r:"2.5"}],["path",{d:"M7 12h10"}],["circle",{cx:"19.5",cy:"12",r:"2.5"}],["path",{d:"m13.8 17.7 3.9-3.9"}],["circle",{cx:"12",cy:"19.5",r:"2.5"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const K7=["svg",t,[["circle",{cx:"12",cy:"10",r:"8"}],["circle",{cx:"12",cy:"10",r:"3"}],["path",{d:"M7 22h10"}],["path",{d:"M12 22v-4"}]]];/**
+ */const W7=["svg",t,[["circle",{cx:"12",cy:"10",r:"8"}],["circle",{cx:"12",cy:"10",r:"3"}],["path",{d:"M7 22h10"}],["path",{d:"M12 22v-4"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const J7=["svg",t,[["path",{d:"M17 17h-5c-1.09-.02-1.94.92-2.5 1.9A3 3 0 1 1 2.57 15"}],["path",{d:"M9 3.4a4 4 0 0 1 6.52.66"}],["path",{d:"m6 17 3.1-5.8a2.5 2.5 0 0 0 .057-2.05"}],["path",{d:"M20.3 20.3a4 4 0 0 1-2.3.7"}],["path",{d:"M18.6 13a4 4 0 0 1 3.357 3.414"}],["path",{d:"m12 6 .6 1"}],["path",{d:"m2 2 20 20"}]]];/**
+ */const K7=["svg",t,[["path",{d:"M17 17h-5c-1.09-.02-1.94.92-2.5 1.9A3 3 0 1 1 2.57 15"}],["path",{d:"M9 3.4a4 4 0 0 1 6.52.66"}],["path",{d:"m6 17 3.1-5.8a2.5 2.5 0 0 0 .057-2.05"}],["path",{d:"M20.3 20.3a4 4 0 0 1-2.3.7"}],["path",{d:"M18.6 13a4 4 0 0 1 3.357 3.414"}],["path",{d:"m12 6 .6 1"}],["path",{d:"m2 2 20 20"}]]];/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7358,7 +7358,7 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const s1=Object.freeze(Object.defineProperty({__proto__:null,AArrowDown:m1,AArrowUp:g1,ALargeSmall:u1,Accessibility:y1,Activity:M1,ActivitySquare:Ze,AirVent:x1,Airplay:f1,AlarmCheck:Y,AlarmClock:w1,AlarmClockCheck:Y,AlarmClockMinus:X,AlarmClockOff:b1,AlarmClockPlus:Q,AlarmMinus:X,AlarmPlus:Q,AlarmSmoke:k1,Album:S1,AlertCircle:vt,AlertOctagon:be,AlertTriangle:ja,AlignCenter:A1,AlignCenterHorizontal:H1,AlignCenterVertical:C1,AlignEndHorizontal:L1,AlignEndVertical:$1,AlignHorizontalDistributeCenter:V1,AlignHorizontalDistributeEnd:_1,AlignHorizontalDistributeStart:T1,AlignHorizontalJustifyCenter:P1,AlignHorizontalJustifyEnd:z1,AlignHorizontalJustifyStart:q1,AlignHorizontalSpaceAround:E1,AlignHorizontalSpaceBetween:B1,AlignJustify:D1,AlignLeft:R1,AlignRight:I1,AlignStartHorizontal:O1,AlignStartVertical:N1,AlignVerticalDistributeCenter:F1,AlignVerticalDistributeEnd:Z1,AlignVerticalDistributeStart:U1,AlignVerticalJustifyCenter:j1,AlignVerticalJustifyEnd:G1,AlignVerticalJustifyStart:W1,AlignVerticalSpaceAround:K1,AlignVerticalSpaceBetween:J1,Ambulance:Y1,Ampersand:X1,Ampersands:Q1,Anchor:t2,Angry:e2,Annoyed:a2,Antenna:i2,Anvil:s2,Aperture:o2,AppWindow:r2,AppWindowMac:d2,Apple:n2,Archive:h2,ArchiveRestore:c2,ArchiveX:l2,AreaChart:p2,Armchair:v2,ArrowBigDown:g2,ArrowBigDownDash:m2,ArrowBigLeft:y2,ArrowBigLeftDash:u2,ArrowBigRight:x2,ArrowBigRightDash:M2,ArrowBigUp:b2,ArrowBigUpDash:f2,ArrowDown:_2,ArrowDown01:w2,ArrowDown10:k2,ArrowDownAZ:tt,ArrowDownAz:tt,ArrowDownCircle:mt,ArrowDownFromLine:S2,ArrowDownLeft:H2,ArrowDownLeftFromCircle:ut,ArrowDownLeftFromSquare:Ke,ArrowDownLeftSquare:Ue,ArrowDownNarrowWide:C2,ArrowDownRight:A2,ArrowDownRightFromCircle:yt,ArrowDownRightFromSquare:Je,ArrowDownRightSquare:je,ArrowDownSquare:Ge,ArrowDownToDot:L2,ArrowDownToLine:$2,ArrowDownUp:V2,ArrowDownWideNarrow:et,ArrowDownZA:at,ArrowDownZa:at,ArrowLeft:q2,ArrowLeftCircle:gt,ArrowLeftFromLine:T2,ArrowLeftRight:P2,ArrowLeftSquare:We,ArrowLeftToLine:z2,ArrowRight:R2,ArrowRightCircle:ft,ArrowRightFromLine:E2,ArrowRightLeft:B2,ArrowRightSquare:Qe,ArrowRightToLine:D2,ArrowUp:K2,ArrowUp01:I2,ArrowUp10:O2,ArrowUpAZ:it,ArrowUpAz:it,ArrowUpCircle:bt,ArrowUpDown:N2,ArrowUpFromDot:F2,ArrowUpFromLine:Z2,ArrowUpLeft:U2,ArrowUpLeftFromCircle:Mt,ArrowUpLeftFromSquare:Ye,ArrowUpLeftSquare:ta,ArrowUpNarrowWide:st,ArrowUpRight:j2,ArrowUpRightFromCircle:xt,ArrowUpRightFromSquare:Xe,ArrowUpRightSquare:ea,ArrowUpSquare:aa,ArrowUpToLine:G2,ArrowUpWideNarrow:W2,ArrowUpZA:ot,ArrowUpZa:ot,ArrowsUpFromLine:J2,Asterisk:Y2,AsteriskSquare:ia,AtSign:X2,Atom:Q2,AudioLines:ti,AudioWaveform:ei,Award:ai,Axe:ii,Axis3D:dt,Axis3d:dt,Baby:si,Backpack:oi,Badge:bi,BadgeAlert:di,BadgeCent:ri,BadgeCheck:rt,BadgeDollarSign:ni,BadgeEuro:ci,BadgeHelp:li,BadgeIndianRupee:hi,BadgeInfo:pi,BadgeJapaneseYen:vi,BadgeMinus:mi,BadgePercent:gi,BadgePlus:ui,BadgePoundSterling:yi,BadgeRussianRuble:Mi,BadgeSwissFranc:xi,BadgeX:fi,BaggageClaim:wi,Ban:ki,Banana:Si,Banknote:Hi,BarChart:Ti,BarChart2:Ci,BarChart3:Ai,BarChart4:Li,BarChartBig:$i,BarChartHorizontal:_i,BarChartHorizontalBig:Vi,Barcode:Pi,Baseline:zi,Bath:qi,Battery:Oi,BatteryCharging:Ei,BatteryFull:Bi,BatteryLow:Di,BatteryMedium:Ri,BatteryWarning:Ii,Beaker:Ni,Bean:Zi,BeanOff:Fi,Bed:Gi,BedDouble:Ui,BedSingle:ji,Beef:Wi,Beer:Ji,BeerOff:Ki,Bell:is,BellDot:Yi,BellElectric:Xi,BellMinus:Qi,BellOff:ts,BellPlus:es,BellRing:as,BetweenHorizonalEnd:nt,BetweenHorizonalStart:ct,BetweenHorizontalEnd:nt,BetweenHorizontalStart:ct,BetweenVerticalEnd:ss,BetweenVerticalStart:os,BicepsFlexed:ds,Bike:rs,Binary:ns,Biohazard:cs,Bird:ls,Bitcoin:hs,Blend:ps,Blinds:vs,Blocks:ms,Bluetooth:Ms,BluetoothConnected:gs,BluetoothOff:us,BluetoothSearching:ys,Bold:xs,Bolt:fs,Bomb:bs,Bone:ws,Book:Us,BookA:ks,BookAudio:Ss,BookCheck:Hs,BookCopy:Cs,BookDashed:lt,BookDown:As,BookHeadphones:Ls,BookHeart:$s,BookImage:Vs,BookKey:_s,BookLock:Ts,BookMarked:Ps,BookMinus:zs,BookOpen:Bs,BookOpenCheck:qs,BookOpenText:Es,BookPlus:Ds,BookTemplate:lt,BookText:Rs,BookType:Is,BookUp:Ns,BookUp2:Os,BookUser:Fs,BookX:Zs,Bookmark:Js,BookmarkCheck:js,BookmarkMinus:Gs,BookmarkPlus:Ws,BookmarkX:Ks,BoomBox:Ys,Bot:to,BotMessageSquare:Xs,BotOff:Qs,Box:ao,BoxSelect:eo,Boxes:io,Braces:ht,Brackets:so,Brain:no,BrainCircuit:oo,BrainCog:ro,BrickWall:co,Briefcase:po,BriefcaseBusiness:lo,BriefcaseMedical:ho,BringToFront:vo,Brush:mo,Bug:yo,BugOff:go,BugPlay:uo,Building:xo,Building2:Mo,Bus:bo,BusFront:fo,Cable:ko,CableCar:wo,Cake:Ho,CakeSlice:So,Calculator:Co,Calendar:Fo,CalendarCheck:Lo,CalendarCheck2:Ao,CalendarClock:$o,CalendarCog:Vo,CalendarDays:_o,CalendarFold:To,CalendarHeart:Po,CalendarMinus:qo,CalendarMinus2:zo,CalendarOff:Eo,CalendarPlus:Do,CalendarPlus2:Bo,CalendarRange:Ro,CalendarSearch:Io,CalendarX:No,CalendarX2:Oo,Camera:Uo,CameraOff:Zo,CandlestickChart:jo,Candy:Ko,CandyCane:Go,CandyOff:Wo,Cannabis:Jo,Captions:pt,CaptionsOff:Yo,Car:td,CarFront:Xo,CarTaxiFront:Qo,Caravan:ed,Carrot:ad,CaseLower:id,CaseSensitive:sd,CaseUpper:od,CassetteTape:dd,Cast:rd,Castle:nd,Cat:cd,Cctv:ld,Check:pd,CheckCheck:hd,CheckCircle:wt,CheckCircle2:kt,CheckSquare:oa,CheckSquare2:da,ChefHat:vd,Cherry:md,ChevronDown:gd,ChevronDownCircle:St,ChevronDownSquare:ra,ChevronFirst:ud,ChevronLast:yd,ChevronLeft:Md,ChevronLeftCircle:Ht,ChevronLeftSquare:na,ChevronRight:xd,ChevronRightCircle:Ct,ChevronRightSquare:ca,ChevronUp:fd,ChevronUpCircle:At,ChevronUpSquare:la,ChevronsDown:wd,ChevronsDownUp:bd,ChevronsLeft:Sd,ChevronsLeftRight:kd,ChevronsRight:Cd,ChevronsRightLeft:Hd,ChevronsUp:Ld,ChevronsUpDown:Ad,Chrome:$d,Church:Vd,Cigarette:Td,CigaretteOff:_d,Circle:Nd,CircleAlert:vt,CircleArrowDown:mt,CircleArrowLeft:gt,CircleArrowOutDownLeft:ut,CircleArrowOutDownRight:yt,CircleArrowOutUpLeft:Mt,CircleArrowOutUpRight:xt,CircleArrowRight:ft,CircleArrowUp:bt,CircleCheck:kt,CircleCheckBig:wt,CircleChevronDown:St,CircleChevronLeft:Ht,CircleChevronRight:Ct,CircleChevronUp:At,CircleDashed:Pd,CircleDivide:Lt,CircleDollarSign:zd,CircleDot:Ed,CircleDotDashed:qd,CircleEllipsis:Bd,CircleEqual:Dd,CircleFadingPlus:Rd,CircleGauge:$t,CircleHelp:Vt,CircleMinus:_t,CircleOff:Id,CircleParking:Pt,CircleParkingOff:Tt,CirclePause:zt,CirclePercent:qt,CirclePlay:Et,CirclePlus:Bt,CirclePower:Dt,CircleSlash:Od,CircleSlash2:Rt,CircleSlashed:Rt,CircleStop:It,CircleUser:Nt,CircleUserRound:Ot,CircleX:Ft,CircuitBoard:Fd,Citrus:Zd,Clapperboard:Ud,Clipboard:tr,ClipboardCheck:jd,ClipboardCopy:Gd,ClipboardEdit:Ut,ClipboardList:Wd,ClipboardMinus:Kd,ClipboardPaste:Jd,ClipboardPen:Ut,ClipboardPenLine:Zt,ClipboardPlus:Yd,ClipboardSignature:Zt,ClipboardType:Xd,ClipboardX:Qd,Clock:vr,Clock1:er,Clock10:ar,Clock11:ir,Clock12:sr,Clock2:or,Clock3:dr,Clock4:rr,Clock5:nr,Clock6:cr,Clock7:lr,Clock8:hr,Clock9:pr,Cloud:Ar,CloudCog:mr,CloudDownload:jt,CloudDrizzle:gr,CloudFog:ur,CloudHail:yr,CloudLightning:Mr,CloudMoon:fr,CloudMoonRain:xr,CloudOff:br,CloudRain:kr,CloudRainWind:wr,CloudSnow:Sr,CloudSun:Cr,CloudSunRain:Hr,CloudUpload:Gt,Cloudy:Lr,Clover:$r,Club:Vr,Code:_r,Code2:Wt,CodeSquare:ha,CodeXml:Wt,Codepen:Tr,Codesandbox:Pr,Coffee:zr,Cog:qr,Coins:Er,Columns:Kt,Columns2:Kt,Columns3:Jt,Columns4:Br,Combine:Dr,Command:Rr,Compass:Ir,Component:Or,Computer:Nr,ConciergeBell:Fr,Cone:Zr,Construction:Ur,Contact:jr,Contact2:Yt,ContactRound:Yt,Container:Gr,Contrast:Wr,Cookie:Kr,CookingPot:Jr,Copy:a0,CopyCheck:Yr,CopyMinus:Xr,CopyPlus:Qr,CopySlash:t0,CopyX:e0,Copyleft:i0,Copyright:s0,CornerDownLeft:o0,CornerDownRight:d0,CornerLeftDown:r0,CornerLeftUp:n0,CornerRightDown:c0,CornerRightUp:l0,CornerUpLeft:h0,CornerUpRight:p0,Cpu:v0,CreativeCommons:m0,CreditCard:g0,Croissant:u0,Crop:y0,Cross:M0,Crosshair:x0,Crown:f0,Cuboid:b0,CupSoda:w0,CurlyBraces:ht,Currency:k0,Cylinder:S0,Database:A0,DatabaseBackup:H0,DatabaseZap:C0,Delete:L0,Dessert:$0,Diameter:V0,Diamond:P0,DiamondMinus:_0,DiamondPercent:Xt,DiamondPlus:T0,Dice1:z0,Dice2:q0,Dice3:E0,Dice4:B0,Dice5:D0,Dice6:R0,Dices:I0,Diff:O0,Disc:U0,Disc2:N0,Disc3:F0,DiscAlbum:Z0,Divide:j0,DivideCircle:Lt,DivideSquare:ma,Dna:W0,DnaOff:G0,Dock:K0,Dog:J0,DollarSign:Y0,Donut:X0,DoorClosed:Q0,DoorOpen:tn,Dot:en,DotSquare:ga,Download:an,DownloadCloud:jt,DraftingCompass:sn,Drama:on,Dribbble:dn,Drill:rn,Droplet:nn,Droplets:cn,Drum:ln,Drumstick:hn,Dumbbell:pn,Ear:mn,EarOff:vn,Earth:Qt,EarthLock:gn,Eclipse:un,Edit:Z,Edit2:ze,Edit3:Pe,Egg:xn,EggFried:yn,EggOff:Mn,Ellipsis:ee,EllipsisVertical:te,Equal:bn,EqualNot:fn,EqualSquare:ua,Eraser:wn,Euro:kn,Expand:Sn,ExternalLink:Hn,Eye:An,EyeOff:Cn,Facebook:Ln,Factory:$n,Fan:Vn,FastForward:_n,Feather:Tn,Fence:Pn,FerrisWheel:zn,Figma:qn,File:qc,FileArchive:En,FileAudio:Dn,FileAudio2:Bn,FileAxis3D:ae,FileAxis3d:ae,FileBadge:In,FileBadge2:Rn,FileBarChart:Nn,FileBarChart2:On,FileBox:Fn,FileCheck:Un,FileCheck2:Zn,FileClock:jn,FileCode:Wn,FileCode2:Gn,FileCog:ie,FileCog2:ie,FileDiff:Kn,FileDigit:Jn,FileDown:Yn,FileEdit:oe,FileHeart:Xn,FileImage:Qn,FileInput:tc,FileJson:ac,FileJson2:ec,FileKey:sc,FileKey2:ic,FileLineChart:oc,FileLock:rc,FileLock2:dc,FileMinus:cc,FileMinus2:nc,FileMusic:lc,FileOutput:hc,FilePen:oe,FilePenLine:se,FilePieChart:pc,FilePlus:mc,FilePlus2:vc,FileQuestion:gc,FileScan:uc,FileSearch:Mc,FileSearch2:yc,FileSignature:se,FileSliders:xc,FileSpreadsheet:fc,FileStack:bc,FileSymlink:wc,FileTerminal:kc,FileText:Sc,FileType:Cc,FileType2:Hc,FileUp:Ac,FileVideo:$c,FileVideo2:Lc,FileVolume:_c,FileVolume2:Vc,FileWarning:Tc,FileX:zc,FileX2:Pc,Files:Ec,Film:Bc,Filter:Rc,FilterX:Dc,Fingerprint:Ic,FireExtinguisher:Oc,Fish:Zc,FishOff:Nc,FishSymbol:Fc,Flag:Wc,FlagOff:Uc,FlagTriangleLeft:jc,FlagTriangleRight:Gc,Flame:Jc,FlameKindling:Kc,Flashlight:Xc,FlashlightOff:Yc,FlaskConical:tl,FlaskConicalOff:Qc,FlaskRound:el,FlipHorizontal:il,FlipHorizontal2:al,FlipVertical:ol,FlipVertical2:sl,Flower:rl,Flower2:dl,Focus:nl,FoldHorizontal:cl,FoldVertical:ll,Folder:Bl,FolderArchive:hl,FolderCheck:pl,FolderClock:vl,FolderClosed:ml,FolderCog:de,FolderCog2:de,FolderDot:gl,FolderDown:ul,FolderEdit:re,FolderGit:Ml,FolderGit2:yl,FolderHeart:xl,FolderInput:fl,FolderKanban:bl,FolderKey:wl,FolderLock:kl,FolderMinus:Sl,FolderOpen:Cl,FolderOpenDot:Hl,FolderOutput:Al,FolderPen:re,FolderPlus:Ll,FolderRoot:$l,FolderSearch:_l,FolderSearch2:Vl,FolderSymlink:Tl,FolderSync:Pl,FolderTree:zl,FolderUp:ql,FolderX:El,Folders:Dl,Footprints:Rl,Forklift:Il,FormInput:qe,Forward:Ol,Frame:Nl,Framer:Fl,Frown:Zl,Fuel:Ul,Fullscreen:jl,FunctionSquare:ya,GalleryHorizontal:Wl,GalleryHorizontalEnd:Gl,GalleryThumbnails:Kl,GalleryVertical:Yl,GalleryVerticalEnd:Jl,Gamepad:Ql,Gamepad2:Xl,GanttChart:th,GanttChartSquare:Ma,Gauge:eh,GaugeCircle:$t,Gavel:ah,Gem:ih,Ghost:sh,Gift:oh,GitBranch:rh,GitBranchPlus:dh,GitCommit:ne,GitCommitHorizontal:ne,GitCommitVertical:nh,GitCompare:lh,GitCompareArrows:ch,GitFork:hh,GitGraph:ph,GitMerge:vh,GitPullRequest:xh,GitPullRequestArrow:mh,GitPullRequestClosed:gh,GitPullRequestCreate:yh,GitPullRequestCreateArrow:uh,GitPullRequestDraft:Mh,Github:fh,Gitlab:bh,GlassWater:wh,Glasses:kh,Globe:Hh,Globe2:Qt,GlobeLock:Sh,Goal:Ch,Grab:Ah,GraduationCap:Lh,Grape:$h,Grid:W,Grid2X2:ce,Grid2x2:ce,Grid2x2Check:Vh,Grid2x2X:_h,Grid3X3:W,Grid3x3:W,Grip:zh,GripHorizontal:Th,GripVertical:Ph,Group:qh,Guitar:Eh,Ham:Bh,Hammer:Dh,Hand:Fh,HandCoins:Rh,HandHeart:Ih,HandHelping:le,HandMetal:Oh,HandPlatter:Nh,Handshake:Zh,HardDrive:Gh,HardDriveDownload:Uh,HardDriveUpload:jh,HardHat:Wh,Hash:Kh,Haze:Jh,HdmiPort:Yh,Heading:sp,Heading1:Xh,Heading2:Qh,Heading3:tp,Heading4:ep,Heading5:ap,Heading6:ip,Headphones:op,Headset:dp,Heart:hp,HeartCrack:rp,HeartHandshake:np,HeartOff:cp,HeartPulse:lp,Heater:pp,HelpCircle:Vt,HelpingHand:le,Hexagon:vp,Highlighter:mp,History:gp,Home:up,Hop:Mp,HopOff:yp,Hospital:xp,Hotel:fp,Hourglass:bp,IceCream:pe,IceCream2:he,IceCreamBowl:he,IceCreamCone:pe,Image:Lp,ImageDown:wp,ImageMinus:kp,ImageOff:Sp,ImagePlay:Hp,ImagePlus:Cp,ImageUp:Ap,Images:$p,Import:Vp,Inbox:_p,Indent:me,IndentDecrease:ve,IndentIncrease:me,IndianRupee:Tp,Infinity:Pp,Info:zp,Inspect:Sa,InspectionPanel:qp,Instagram:Ep,Italic:Bp,IterationCcw:Dp,IterationCw:Rp,JapaneseYen:Ip,Joystick:Op,Kanban:Np,KanbanSquare:xa,KanbanSquareDashed:pa,Key:Up,KeyRound:Fp,KeySquare:Zp,Keyboard:Wp,KeyboardMusic:jp,KeyboardOff:Gp,Lamp:tv,LampCeiling:Kp,LampDesk:Jp,LampFloor:Yp,LampWallDown:Xp,LampWallUp:Qp,LandPlot:ev,Landmark:av,Languages:iv,Laptop:sv,Laptop2:ge,LaptopMinimal:ge,Lasso:dv,LassoSelect:ov,Laugh:rv,Layers:lv,Layers2:nv,Layers3:cv,Layout:Te,LayoutDashboard:hv,LayoutGrid:pv,LayoutList:vv,LayoutPanelLeft:mv,LayoutPanelTop:gv,LayoutTemplate:uv,Leaf:yv,LeafyGreen:Mv,Lectern:xv,Library:bv,LibraryBig:fv,LibrarySquare:fa,LifeBuoy:wv,Ligature:kv,Lightbulb:Hv,LightbulbOff:Sv,LineChart:Cv,Link:$v,Link2:Lv,Link2Off:Av,Linkedin:Vv,List:Uv,ListChecks:_v,ListCollapse:Tv,ListEnd:Pv,ListFilter:zv,ListMinus:qv,ListMusic:Ev,ListOrdered:Bv,ListPlus:Dv,ListRestart:Rv,ListStart:Iv,ListTodo:Ov,ListTree:Nv,ListVideo:Fv,ListX:Zv,Loader:Gv,Loader2:ue,LoaderCircle:ue,LoaderPinwheel:jv,Locate:Jv,LocateFixed:Wv,LocateOff:Kv,Lock:Xv,LockKeyhole:Yv,LockKeyholeOpen:ye,LockOpen:Me,LogIn:Qv,LogOut:t4,Lollipop:e4,Luggage:a4,MSquare:ba,Magnet:i4,Mail:p4,MailCheck:s4,MailMinus:o4,MailOpen:d4,MailPlus:r4,MailQuestion:n4,MailSearch:c4,MailWarning:l4,MailX:h4,Mailbox:v4,Mails:m4,Map:M4,MapPin:u4,MapPinOff:g4,MapPinned:y4,Martini:x4,Maximize:b4,Maximize2:f4,Medal:w4,Megaphone:S4,MegaphoneOff:k4,Meh:H4,MemoryStick:C4,Menu:A4,MenuSquare:wa,Merge:L4,MessageCircle:R4,MessageCircleCode:$4,MessageCircleDashed:V4,MessageCircleHeart:_4,MessageCircleMore:T4,MessageCircleOff:P4,MessageCirclePlus:z4,MessageCircleQuestion:q4,MessageCircleReply:E4,MessageCircleWarning:B4,MessageCircleX:D4,MessageSquare:t5,MessageSquareCode:I4,MessageSquareDashed:O4,MessageSquareDiff:N4,MessageSquareDot:F4,MessageSquareHeart:Z4,MessageSquareMore:U4,MessageSquareOff:j4,MessageSquarePlus:G4,MessageSquareQuote:W4,MessageSquareReply:K4,MessageSquareShare:J4,MessageSquareText:Y4,MessageSquareWarning:X4,MessageSquareX:Q4,MessagesSquare:e5,Mic:i5,Mic2:xe,MicOff:a5,MicVocal:xe,Microscope:s5,Microwave:o5,Milestone:d5,Milk:n5,MilkOff:r5,Minimize:l5,Minimize2:c5,Minus:h5,MinusCircle:_t,MinusSquare:ka,Monitor:k5,MonitorCheck:p5,MonitorDot:v5,MonitorDown:m5,MonitorOff:g5,MonitorPause:u5,MonitorPlay:y5,MonitorSmartphone:M5,MonitorSpeaker:x5,MonitorStop:f5,MonitorUp:b5,MonitorX:w5,Moon:H5,MoonStar:S5,MoreHorizontal:ee,MoreVertical:te,Mountain:A5,MountainSnow:C5,Mouse:P5,MouseOff:L5,MousePointer:T5,MousePointer2:$5,MousePointerBan:V5,MousePointerClick:_5,MousePointerSquareDashed:va,Move:j5,Move3D:fe,Move3d:fe,MoveDiagonal:q5,MoveDiagonal2:z5,MoveDown:D5,MoveDownLeft:E5,MoveDownRight:B5,MoveHorizontal:R5,MoveLeft:I5,MoveRight:O5,MoveUp:Z5,MoveUpLeft:N5,MoveUpRight:F5,MoveVertical:U5,Music:J5,Music2:G5,Music3:W5,Music4:K5,Navigation:tm,Navigation2:X5,Navigation2Off:Y5,NavigationOff:Q5,Network:em,Newspaper:am,Nfc:im,Notebook:rm,NotebookPen:sm,NotebookTabs:om,NotebookText:dm,NotepadText:cm,NotepadTextDashed:nm,Nut:hm,NutOff:lm,Octagon:pm,OctagonAlert:be,OctagonPause:we,OctagonX:ke,Option:vm,Orbit:mm,Origami:gm,Outdent:ve,Package:km,Package2:um,PackageCheck:ym,PackageMinus:Mm,PackageOpen:xm,PackagePlus:fm,PackageSearch:bm,PackageX:wm,PaintBucket:Sm,PaintRoller:Hm,Paintbrush:Cm,Paintbrush2:Se,PaintbrushVertical:Se,Palette:Am,Palmtree:Ua,PanelBottom:Vm,PanelBottomClose:Lm,PanelBottomDashed:He,PanelBottomInactive:He,PanelBottomOpen:$m,PanelLeft:$e,PanelLeftClose:Ce,PanelLeftDashed:Ae,PanelLeftInactive:Ae,PanelLeftOpen:Le,PanelRight:Pm,PanelRightClose:_m,PanelRightDashed:Ve,PanelRightInactive:Ve,PanelRightOpen:Tm,PanelTop:Em,PanelTopClose:zm,PanelTopDashed:_e,PanelTopInactive:_e,PanelTopOpen:qm,PanelsLeftBottom:Bm,PanelsLeftRight:Jt,PanelsRightBottom:Dm,PanelsTopBottom:De,PanelsTopLeft:Te,Paperclip:Rm,Parentheses:Im,ParkingCircle:Pt,ParkingCircleOff:Tt,ParkingMeter:Om,ParkingSquare:Ca,ParkingSquareOff:Ha,PartyPopper:Nm,Pause:Fm,PauseCircle:zt,PauseOctagon:we,PawPrint:Zm,PcCase:Um,Pen:ze,PenBox:Z,PenLine:Pe,PenOff:jm,PenSquare:Z,PenTool:Gm,Pencil:Ym,PencilLine:Wm,PencilOff:Km,PencilRuler:Jm,Pentagon:Xm,Percent:Qm,PercentCircle:qt,PercentDiamond:Xt,PercentSquare:Aa,PersonStanding:tg,Phone:rg,PhoneCall:eg,PhoneForwarded:ag,PhoneIncoming:ig,PhoneMissed:sg,PhoneOff:og,PhoneOutgoing:dg,Pi:ng,PiSquare:La,Piano:cg,Pickaxe:lg,PictureInPicture:pg,PictureInPicture2:hg,PieChart:vg,PiggyBank:mg,Pilcrow:yg,PilcrowLeft:gg,PilcrowRight:ug,PilcrowSquare:$a,Pill:xg,PillBottle:Mg,Pin:bg,PinOff:fg,Pipette:wg,Pizza:kg,Plane:Cg,PlaneLanding:Sg,PlaneTakeoff:Hg,Play:Ag,PlayCircle:Et,PlaySquare:Va,Plug:_g,Plug2:Lg,PlugZap:Vg,PlugZap2:$g,Plus:Tg,PlusCircle:Bt,PlusSquare:_a,Pocket:zg,PocketKnife:Pg,Podcast:qg,Pointer:Bg,PointerOff:Eg,Popcorn:Dg,Popsicle:Rg,PoundSterling:Ig,Power:Ng,PowerCircle:Dt,PowerOff:Og,PowerSquare:Ta,Presentation:Fg,Printer:Zg,Projector:Ug,Proportions:jg,Puzzle:Gg,Pyramid:Wg,QrCode:Kg,Quote:Jg,Rabbit:Yg,Radar:Xg,Radiation:Qg,Radical:tu,Radio:iu,RadioReceiver:eu,RadioTower:au,Radius:su,RailSymbol:ou,Rainbow:du,Rat:ru,Ratio:nu,Receipt:yu,ReceiptCent:cu,ReceiptEuro:lu,ReceiptIndianRupee:hu,ReceiptJapaneseYen:pu,ReceiptPoundSterling:vu,ReceiptRussianRuble:mu,ReceiptSwissFranc:gu,ReceiptText:uu,RectangleEllipsis:qe,RectangleHorizontal:Mu,RectangleVertical:xu,Recycle:fu,Redo:ku,Redo2:bu,RedoDot:wu,RefreshCcw:Hu,RefreshCcwDot:Su,RefreshCw:Au,RefreshCwOff:Cu,Refrigerator:Lu,Regex:$u,RemoveFormatting:Vu,Repeat:Pu,Repeat1:_u,Repeat2:Tu,Replace:qu,ReplaceAll:zu,Reply:Bu,ReplyAll:Eu,Rewind:Du,Ribbon:Ru,Rocket:Iu,RockingChair:Ou,RollerCoaster:Nu,Rotate3D:Ee,Rotate3d:Ee,RotateCcw:Zu,RotateCcwSquare:Fu,RotateCw:ju,RotateCwSquare:Uu,Route:Wu,RouteOff:Gu,Router:Ku,Rows:Be,Rows2:Be,Rows3:De,Rows4:Ju,Rss:Yu,Ruler:Xu,RussianRuble:Qu,Sailboat:t3,Salad:e3,Sandwich:a3,Satellite:s3,SatelliteDish:i3,Save:d3,SaveAll:o3,Scale:r3,Scale3D:Re,Scale3d:Re,Scaling:n3,Scan:g3,ScanBarcode:c3,ScanEye:l3,ScanFace:h3,ScanLine:p3,ScanSearch:v3,ScanText:m3,ScatterChart:u3,School:y3,School2:Wa,Scissors:x3,ScissorsLineDashed:M3,ScissorsSquare:Pa,ScissorsSquareDashedBottom:sa,ScreenShare:b3,ScreenShareOff:f3,Scroll:k3,ScrollText:w3,Search:L3,SearchCheck:S3,SearchCode:H3,SearchSlash:C3,SearchX:A3,Section:$3,Send:_3,SendHorizonal:Ie,SendHorizontal:Ie,SendToBack:V3,SeparatorHorizontal:T3,SeparatorVertical:P3,Server:B3,ServerCog:z3,ServerCrash:q3,ServerOff:E3,Settings:R3,Settings2:D3,Shapes:I3,Share:N3,Share2:O3,Sheet:F3,Shell:Z3,Shield:t6,ShieldAlert:U3,ShieldBan:j3,ShieldCheck:G3,ShieldClose:Oe,ShieldEllipsis:W3,ShieldHalf:K3,ShieldMinus:J3,ShieldOff:Y3,ShieldPlus:X3,ShieldQuestion:Q3,ShieldX:Oe,Ship:a6,ShipWheel:e6,Shirt:i6,ShoppingBag:s6,ShoppingBasket:o6,ShoppingCart:d6,Shovel:r6,ShowerHead:n6,Shrink:c6,Shrub:l6,Shuffle:h6,Sidebar:$e,SidebarClose:Ce,SidebarOpen:Le,Sigma:p6,SigmaSquare:za,Signal:y6,SignalHigh:v6,SignalLow:m6,SignalMedium:g6,SignalZero:u6,Signpost:x6,SignpostBig:M6,Siren:f6,SkipBack:b6,SkipForward:w6,Skull:k6,Slack:S6,Slash:H6,SlashSquare:qa,Slice:C6,Sliders:Ne,SlidersHorizontal:A6,SlidersVertical:Ne,Smartphone:V6,SmartphoneCharging:L6,SmartphoneNfc:$6,Smile:T6,SmilePlus:_6,Snail:P6,Snowflake:z6,Sofa:q6,SortAsc:st,SortDesc:et,Soup:E6,Space:B6,Spade:D6,Sparkle:R6,Sparkles:Fe,Speaker:I6,Speech:O6,SpellCheck:F6,SpellCheck2:N6,Spline:Z6,Split:U6,SplitSquareHorizontal:Ea,SplitSquareVertical:Ba,SprayCan:j6,Sprout:G6,Square:X6,SquareActivity:Ze,SquareArrowDown:Ge,SquareArrowDownLeft:Ue,SquareArrowDownRight:je,SquareArrowLeft:We,SquareArrowOutDownLeft:Ke,SquareArrowOutDownRight:Je,SquareArrowOutUpLeft:Ye,SquareArrowOutUpRight:Xe,SquareArrowRight:Qe,SquareArrowUp:aa,SquareArrowUpLeft:ta,SquareArrowUpRight:ea,SquareAsterisk:ia,SquareBottomDashedScissors:sa,SquareCheck:da,SquareCheckBig:oa,SquareChevronDown:ra,SquareChevronLeft:na,SquareChevronRight:ca,SquareChevronUp:la,SquareCode:ha,SquareDashedBottom:K6,SquareDashedBottomCode:W6,SquareDashedKanban:pa,SquareDashedMousePointer:va,SquareDivide:ma,SquareDot:ga,SquareEqual:ua,SquareFunction:ya,SquareGanttChart:Ma,SquareKanban:xa,SquareLibrary:fa,SquareM:ba,SquareMenu:wa,SquareMinus:ka,SquareMousePointer:Sa,SquareParking:Ca,SquareParkingOff:Ha,SquarePen:Z,SquarePercent:Aa,SquarePi:La,SquarePilcrow:$a,SquarePlay:Va,SquarePlus:_a,SquarePower:Ta,SquareRadical:J6,SquareScissors:Pa,SquareSigma:za,SquareSlash:qa,SquareSplitHorizontal:Ea,SquareSplitVertical:Ba,SquareStack:Y6,SquareTerminal:Da,SquareUser:Ia,SquareUserRound:Ra,SquareX:Oa,Squircle:Q6,Squirrel:ty,Stamp:ey,Star:sy,StarHalf:ay,StarOff:iy,Stars:Fe,StepBack:oy,StepForward:dy,Stethoscope:ry,Sticker:ny,StickyNote:cy,StopCircle:It,Store:ly,StretchHorizontal:hy,StretchVertical:py,Strikethrough:vy,Subscript:my,Subtitles:pt,Sun:xy,SunDim:gy,SunMedium:uy,SunMoon:yy,SunSnow:My,Sunrise:fy,Sunset:by,Superscript:wy,SwatchBook:ky,SwissFranc:Sy,SwitchCamera:Hy,Sword:Cy,Swords:Ay,Syringe:Ly,Table:qy,Table2:$y,TableCellsMerge:Vy,TableCellsSplit:_y,TableColumnsSplit:Ty,TableProperties:Py,TableRowsSplit:zy,Tablet:By,TabletSmartphone:Ey,Tablets:Dy,Tag:Ry,Tags:Iy,Tally1:Oy,Tally2:Ny,Tally3:Fy,Tally4:Zy,Tally5:Uy,Tangent:jy,Target:Gy,Telescope:Wy,Tent:Jy,TentTree:Ky,Terminal:Yy,TerminalSquare:Da,TestTube:Xy,TestTube2:Na,TestTubeDiagonal:Na,TestTubes:Qy,Text:s8,TextCursor:e8,TextCursorInput:t8,TextQuote:a8,TextSearch:i8,TextSelect:Fa,TextSelection:Fa,Theater:o8,Thermometer:n8,ThermometerSnowflake:d8,ThermometerSun:r8,ThumbsDown:c8,ThumbsUp:l8,Ticket:y8,TicketCheck:h8,TicketMinus:p8,TicketPercent:v8,TicketPlus:m8,TicketSlash:g8,TicketX:u8,Timer:f8,TimerOff:M8,TimerReset:x8,ToggleLeft:b8,ToggleRight:w8,Tornado:k8,Torus:S8,Touchpad:C8,TouchpadOff:H8,TowerControl:A8,ToyBrick:L8,Tractor:$8,TrafficCone:V8,Train:Za,TrainFront:T8,TrainFrontTunnel:_8,TrainTrack:P8,TramFront:Za,Trash:q8,Trash2:z8,TreeDeciduous:E8,TreePalm:Ua,TreePine:B8,Trees:D8,Trello:R8,TrendingDown:I8,TrendingUp:O8,Triangle:F8,TriangleAlert:ja,TriangleRight:N8,Trophy:Z8,Truck:U8,Turtle:j8,Tv:W8,Tv2:Ga,TvMinimal:Ga,TvMinimalPlay:G8,Twitch:K8,Twitter:J8,Type:Y8,Umbrella:Q8,UmbrellaOff:X8,Underline:t7,Undo:i7,Undo2:e7,UndoDot:a7,UnfoldHorizontal:s7,UnfoldVertical:o7,Ungroup:d7,University:Wa,Unlink:n7,Unlink2:r7,Unlock:Me,UnlockKeyhole:ye,Unplug:c7,Upload:l7,UploadCloud:Gt,Usb:h7,User:x7,User2:t1,UserCheck:p7,UserCheck2:Ka,UserCircle:Nt,UserCircle2:Ot,UserCog:v7,UserCog2:Ja,UserMinus:m7,UserMinus2:Ya,UserPlus:g7,UserPlus2:Xa,UserRound:t1,UserRoundCheck:Ka,UserRoundCog:Ja,UserRoundMinus:Ya,UserRoundPlus:Xa,UserRoundSearch:u7,UserRoundX:Qa,UserSearch:y7,UserSquare:Ia,UserSquare2:Ra,UserX:M7,UserX2:Qa,Users:f7,Users2:e1,UsersRound:e1,Utensils:w7,UtensilsCrossed:b7,UtilityPole:k7,Variable:S7,Vault:H7,Vegan:C7,VenetianMask:A7,Verified:rt,Vibrate:$7,VibrateOff:L7,Video:_7,VideoOff:V7,Videotape:T7,View:P7,Voicemail:z7,Volume:D7,Volume1:q7,Volume2:E7,VolumeX:B7,Vote:R7,Wallet:O7,Wallet2:a1,WalletCards:I7,WalletMinimal:a1,Wallpaper:N7,Wand:F7,Wand2:i1,WandSparkles:i1,Warehouse:Z7,WashingMachine:U7,Watch:j7,Waves:G7,Waypoints:W7,Webcam:K7,Webhook:Y7,WebhookOff:J7,Weight:X7,Wheat:tM,WheatOff:Q7,WholeWord:eM,Wifi:iM,WifiOff:aM,Wind:sM,Wine:dM,WineOff:oM,Workflow:rM,Worm:nM,WrapText:cM,Wrench:lM,X:hM,XCircle:Ft,XOctagon:ke,XSquare:Oa,Youtube:pM,Zap:mM,ZapOff:vM,ZoomIn:gM,ZoomOut:uM},Symbol.toStringTag,{value:"Module"}));/**
+ */const s1=Object.freeze(Object.defineProperty({__proto__:null,AArrowDown:m1,AArrowUp:g1,ALargeSmall:u1,Accessibility:y1,Activity:M1,ActivitySquare:Ze,AirVent:x1,Airplay:f1,AlarmCheck:Y,AlarmClock:w1,AlarmClockCheck:Y,AlarmClockMinus:X,AlarmClockOff:b1,AlarmClockPlus:Q,AlarmMinus:X,AlarmPlus:Q,AlarmSmoke:k1,Album:S1,AlertCircle:vt,AlertOctagon:be,AlertTriangle:ja,AlignCenter:A1,AlignCenterHorizontal:H1,AlignCenterVertical:C1,AlignEndHorizontal:L1,AlignEndVertical:$1,AlignHorizontalDistributeCenter:V1,AlignHorizontalDistributeEnd:_1,AlignHorizontalDistributeStart:P1,AlignHorizontalJustifyCenter:T1,AlignHorizontalJustifyEnd:z1,AlignHorizontalJustifyStart:q1,AlignHorizontalSpaceAround:E1,AlignHorizontalSpaceBetween:B1,AlignJustify:D1,AlignLeft:R1,AlignRight:I1,AlignStartHorizontal:O1,AlignStartVertical:N1,AlignVerticalDistributeCenter:F1,AlignVerticalDistributeEnd:Z1,AlignVerticalDistributeStart:U1,AlignVerticalJustifyCenter:j1,AlignVerticalJustifyEnd:G1,AlignVerticalJustifyStart:J1,AlignVerticalSpaceAround:W1,AlignVerticalSpaceBetween:K1,Ambulance:Y1,Ampersand:X1,Ampersands:Q1,Anchor:t2,Angry:e2,Annoyed:a2,Antenna:i2,Anvil:s2,Aperture:o2,AppWindow:r2,AppWindowMac:d2,Apple:n2,Archive:h2,ArchiveRestore:c2,ArchiveX:l2,AreaChart:p2,Armchair:v2,ArrowBigDown:g2,ArrowBigDownDash:m2,ArrowBigLeft:y2,ArrowBigLeftDash:u2,ArrowBigRight:x2,ArrowBigRightDash:M2,ArrowBigUp:b2,ArrowBigUpDash:f2,ArrowDown:_2,ArrowDown01:w2,ArrowDown10:k2,ArrowDownAZ:tt,ArrowDownAz:tt,ArrowDownCircle:mt,ArrowDownFromLine:S2,ArrowDownLeft:H2,ArrowDownLeftFromCircle:ut,ArrowDownLeftFromSquare:We,ArrowDownLeftSquare:Ue,ArrowDownNarrowWide:C2,ArrowDownRight:A2,ArrowDownRightFromCircle:yt,ArrowDownRightFromSquare:Ke,ArrowDownRightSquare:je,ArrowDownSquare:Ge,ArrowDownToDot:L2,ArrowDownToLine:$2,ArrowDownUp:V2,ArrowDownWideNarrow:et,ArrowDownZA:at,ArrowDownZa:at,ArrowLeft:q2,ArrowLeftCircle:gt,ArrowLeftFromLine:P2,ArrowLeftRight:T2,ArrowLeftSquare:Je,ArrowLeftToLine:z2,ArrowRight:R2,ArrowRightCircle:ft,ArrowRightFromLine:E2,ArrowRightLeft:B2,ArrowRightSquare:Qe,ArrowRightToLine:D2,ArrowUp:W2,ArrowUp01:I2,ArrowUp10:O2,ArrowUpAZ:it,ArrowUpAz:it,ArrowUpCircle:bt,ArrowUpDown:N2,ArrowUpFromDot:F2,ArrowUpFromLine:Z2,ArrowUpLeft:U2,ArrowUpLeftFromCircle:Mt,ArrowUpLeftFromSquare:Ye,ArrowUpLeftSquare:ta,ArrowUpNarrowWide:st,ArrowUpRight:j2,ArrowUpRightFromCircle:xt,ArrowUpRightFromSquare:Xe,ArrowUpRightSquare:ea,ArrowUpSquare:aa,ArrowUpToLine:G2,ArrowUpWideNarrow:J2,ArrowUpZA:ot,ArrowUpZa:ot,ArrowsUpFromLine:K2,Asterisk:Y2,AsteriskSquare:ia,AtSign:X2,Atom:Q2,AudioLines:ti,AudioWaveform:ei,Award:ai,Axe:ii,Axis3D:dt,Axis3d:dt,Baby:si,Backpack:oi,Badge:bi,BadgeAlert:di,BadgeCent:ri,BadgeCheck:rt,BadgeDollarSign:ni,BadgeEuro:ci,BadgeHelp:li,BadgeIndianRupee:hi,BadgeInfo:pi,BadgeJapaneseYen:vi,BadgeMinus:mi,BadgePercent:gi,BadgePlus:ui,BadgePoundSterling:yi,BadgeRussianRuble:Mi,BadgeSwissFranc:xi,BadgeX:fi,BaggageClaim:wi,Ban:ki,Banana:Si,Banknote:Hi,BarChart:Pi,BarChart2:Ci,BarChart3:Ai,BarChart4:Li,BarChartBig:$i,BarChartHorizontal:_i,BarChartHorizontalBig:Vi,Barcode:Ti,Baseline:zi,Bath:qi,Battery:Oi,BatteryCharging:Ei,BatteryFull:Bi,BatteryLow:Di,BatteryMedium:Ri,BatteryWarning:Ii,Beaker:Ni,Bean:Zi,BeanOff:Fi,Bed:Gi,BedDouble:Ui,BedSingle:ji,Beef:Ji,Beer:Ki,BeerOff:Wi,Bell:is,BellDot:Yi,BellElectric:Xi,BellMinus:Qi,BellOff:ts,BellPlus:es,BellRing:as,BetweenHorizonalEnd:nt,BetweenHorizonalStart:ct,BetweenHorizontalEnd:nt,BetweenHorizontalStart:ct,BetweenVerticalEnd:ss,BetweenVerticalStart:os,BicepsFlexed:ds,Bike:rs,Binary:ns,Biohazard:cs,Bird:ls,Bitcoin:hs,Blend:ps,Blinds:vs,Blocks:ms,Bluetooth:Ms,BluetoothConnected:gs,BluetoothOff:us,BluetoothSearching:ys,Bold:xs,Bolt:fs,Bomb:bs,Bone:ws,Book:Us,BookA:ks,BookAudio:Ss,BookCheck:Hs,BookCopy:Cs,BookDashed:lt,BookDown:As,BookHeadphones:Ls,BookHeart:$s,BookImage:Vs,BookKey:_s,BookLock:Ps,BookMarked:Ts,BookMinus:zs,BookOpen:Bs,BookOpenCheck:qs,BookOpenText:Es,BookPlus:Ds,BookTemplate:lt,BookText:Rs,BookType:Is,BookUp:Ns,BookUp2:Os,BookUser:Fs,BookX:Zs,Bookmark:Ks,BookmarkCheck:js,BookmarkMinus:Gs,BookmarkPlus:Js,BookmarkX:Ws,BoomBox:Ys,Bot:to,BotMessageSquare:Xs,BotOff:Qs,Box:ao,BoxSelect:eo,Boxes:io,Braces:ht,Brackets:so,Brain:no,BrainCircuit:oo,BrainCog:ro,BrickWall:co,Briefcase:po,BriefcaseBusiness:lo,BriefcaseMedical:ho,BringToFront:vo,Brush:mo,Bug:yo,BugOff:go,BugPlay:uo,Building:xo,Building2:Mo,Bus:bo,BusFront:fo,Cable:ko,CableCar:wo,Cake:Ho,CakeSlice:So,Calculator:Co,Calendar:Fo,CalendarCheck:Lo,CalendarCheck2:Ao,CalendarClock:$o,CalendarCog:Vo,CalendarDays:_o,CalendarFold:Po,CalendarHeart:To,CalendarMinus:qo,CalendarMinus2:zo,CalendarOff:Eo,CalendarPlus:Do,CalendarPlus2:Bo,CalendarRange:Ro,CalendarSearch:Io,CalendarX:No,CalendarX2:Oo,Camera:Uo,CameraOff:Zo,CandlestickChart:jo,Candy:Wo,CandyCane:Go,CandyOff:Jo,Cannabis:Ko,Captions:pt,CaptionsOff:Yo,Car:td,CarFront:Xo,CarTaxiFront:Qo,Caravan:ed,Carrot:ad,CaseLower:id,CaseSensitive:sd,CaseUpper:od,CassetteTape:dd,Cast:rd,Castle:nd,Cat:cd,Cctv:ld,Check:pd,CheckCheck:hd,CheckCircle:wt,CheckCircle2:kt,CheckSquare:oa,CheckSquare2:da,ChefHat:vd,Cherry:md,ChevronDown:gd,ChevronDownCircle:St,ChevronDownSquare:ra,ChevronFirst:ud,ChevronLast:yd,ChevronLeft:Md,ChevronLeftCircle:Ht,ChevronLeftSquare:na,ChevronRight:xd,ChevronRightCircle:Ct,ChevronRightSquare:ca,ChevronUp:fd,ChevronUpCircle:At,ChevronUpSquare:la,ChevronsDown:wd,ChevronsDownUp:bd,ChevronsLeft:Sd,ChevronsLeftRight:kd,ChevronsRight:Cd,ChevronsRightLeft:Hd,ChevronsUp:Ld,ChevronsUpDown:Ad,Chrome:$d,Church:Vd,Cigarette:Pd,CigaretteOff:_d,Circle:Nd,CircleAlert:vt,CircleArrowDown:mt,CircleArrowLeft:gt,CircleArrowOutDownLeft:ut,CircleArrowOutDownRight:yt,CircleArrowOutUpLeft:Mt,CircleArrowOutUpRight:xt,CircleArrowRight:ft,CircleArrowUp:bt,CircleCheck:kt,CircleCheckBig:wt,CircleChevronDown:St,CircleChevronLeft:Ht,CircleChevronRight:Ct,CircleChevronUp:At,CircleDashed:Td,CircleDivide:Lt,CircleDollarSign:zd,CircleDot:Ed,CircleDotDashed:qd,CircleEllipsis:Bd,CircleEqual:Dd,CircleFadingPlus:Rd,CircleGauge:$t,CircleHelp:Vt,CircleMinus:_t,CircleOff:Id,CircleParking:Tt,CircleParkingOff:Pt,CirclePause:zt,CirclePercent:qt,CirclePlay:Et,CirclePlus:Bt,CirclePower:Dt,CircleSlash:Od,CircleSlash2:Rt,CircleSlashed:Rt,CircleStop:It,CircleUser:Nt,CircleUserRound:Ot,CircleX:Ft,CircuitBoard:Fd,Citrus:Zd,Clapperboard:Ud,Clipboard:tr,ClipboardCheck:jd,ClipboardCopy:Gd,ClipboardEdit:Ut,ClipboardList:Jd,ClipboardMinus:Wd,ClipboardPaste:Kd,ClipboardPen:Ut,ClipboardPenLine:Zt,ClipboardPlus:Yd,ClipboardSignature:Zt,ClipboardType:Xd,ClipboardX:Qd,Clock:vr,Clock1:er,Clock10:ar,Clock11:ir,Clock12:sr,Clock2:or,Clock3:dr,Clock4:rr,Clock5:nr,Clock6:cr,Clock7:lr,Clock8:hr,Clock9:pr,Cloud:Ar,CloudCog:mr,CloudDownload:jt,CloudDrizzle:gr,CloudFog:ur,CloudHail:yr,CloudLightning:Mr,CloudMoon:fr,CloudMoonRain:xr,CloudOff:br,CloudRain:kr,CloudRainWind:wr,CloudSnow:Sr,CloudSun:Cr,CloudSunRain:Hr,CloudUpload:Gt,Cloudy:Lr,Clover:$r,Club:Vr,Code:_r,Code2:Jt,CodeSquare:ha,CodeXml:Jt,Codepen:Pr,Codesandbox:Tr,Coffee:zr,Cog:qr,Coins:Er,Columns:Wt,Columns2:Wt,Columns3:Kt,Columns4:Br,Combine:Dr,Command:Rr,Compass:Ir,Component:Or,Computer:Nr,ConciergeBell:Fr,Cone:Zr,Construction:Ur,Contact:jr,Contact2:Yt,ContactRound:Yt,Container:Gr,Contrast:Jr,Cookie:Wr,CookingPot:Kr,Copy:an,CopyCheck:Yr,CopyMinus:Xr,CopyPlus:Qr,CopySlash:tn,CopyX:en,Copyleft:sn,Copyright:on,CornerDownLeft:dn,CornerDownRight:rn,CornerLeftDown:nn,CornerLeftUp:cn,CornerRightDown:ln,CornerRightUp:hn,CornerUpLeft:pn,CornerUpRight:vn,Cpu:mn,CreativeCommons:gn,CreditCard:un,Croissant:yn,Crop:Mn,Cross:xn,Crosshair:fn,Crown:bn,Cuboid:wn,CupSoda:kn,CurlyBraces:ht,Currency:Sn,Cylinder:Hn,Database:Ln,DatabaseBackup:Cn,DatabaseZap:An,Delete:$n,Dessert:Vn,Diameter:_n,Diamond:zn,DiamondMinus:Pn,DiamondPercent:Xt,DiamondPlus:Tn,Dice1:qn,Dice2:En,Dice3:Bn,Dice4:Dn,Dice5:Rn,Dice6:In,Dices:On,Diff:Nn,Disc:jn,Disc2:Fn,Disc3:Zn,DiscAlbum:Un,Divide:Gn,DivideCircle:Lt,DivideSquare:ma,Dna:Wn,DnaOff:Jn,Dock:Kn,Dog:Yn,DollarSign:Xn,Donut:Qn,DoorClosed:t0,DoorOpen:e0,Dot:a0,DotSquare:ga,Download:i0,DownloadCloud:jt,DraftingCompass:s0,Drama:o0,Dribbble:d0,Drill:r0,Droplet:n0,Droplets:c0,Drum:l0,Drumstick:h0,Dumbbell:p0,Ear:m0,EarOff:v0,Earth:Qt,EarthLock:g0,Eclipse:u0,Edit:Z,Edit2:ze,Edit3:Te,Egg:x0,EggFried:y0,EggOff:M0,Ellipsis:ee,EllipsisVertical:te,Equal:b0,EqualNot:f0,EqualSquare:ua,Eraser:w0,Euro:k0,Expand:S0,ExternalLink:H0,Eye:A0,EyeOff:C0,Facebook:L0,Factory:$0,Fan:V0,FastForward:_0,Feather:P0,Fence:T0,FerrisWheel:z0,Figma:q0,File:qc,FileArchive:E0,FileAudio:D0,FileAudio2:B0,FileAxis3D:ae,FileAxis3d:ae,FileBadge:I0,FileBadge2:R0,FileBarChart:N0,FileBarChart2:O0,FileBox:F0,FileCheck:U0,FileCheck2:Z0,FileClock:j0,FileCode:J0,FileCode2:G0,FileCog:ie,FileCog2:ie,FileDiff:W0,FileDigit:K0,FileDown:Y0,FileEdit:oe,FileHeart:X0,FileImage:Q0,FileInput:tc,FileJson:ac,FileJson2:ec,FileKey:sc,FileKey2:ic,FileLineChart:oc,FileLock:rc,FileLock2:dc,FileMinus:cc,FileMinus2:nc,FileMusic:lc,FileOutput:hc,FilePen:oe,FilePenLine:se,FilePieChart:pc,FilePlus:mc,FilePlus2:vc,FileQuestion:gc,FileScan:uc,FileSearch:Mc,FileSearch2:yc,FileSignature:se,FileSliders:xc,FileSpreadsheet:fc,FileStack:bc,FileSymlink:wc,FileTerminal:kc,FileText:Sc,FileType:Cc,FileType2:Hc,FileUp:Ac,FileVideo:$c,FileVideo2:Lc,FileVolume:_c,FileVolume2:Vc,FileWarning:Pc,FileX:zc,FileX2:Tc,Files:Ec,Film:Bc,Filter:Rc,FilterX:Dc,Fingerprint:Ic,FireExtinguisher:Oc,Fish:Zc,FishOff:Nc,FishSymbol:Fc,Flag:Jc,FlagOff:Uc,FlagTriangleLeft:jc,FlagTriangleRight:Gc,Flame:Kc,FlameKindling:Wc,Flashlight:Xc,FlashlightOff:Yc,FlaskConical:tl,FlaskConicalOff:Qc,FlaskRound:el,FlipHorizontal:il,FlipHorizontal2:al,FlipVertical:ol,FlipVertical2:sl,Flower:rl,Flower2:dl,Focus:nl,FoldHorizontal:cl,FoldVertical:ll,Folder:Bl,FolderArchive:hl,FolderCheck:pl,FolderClock:vl,FolderClosed:ml,FolderCog:de,FolderCog2:de,FolderDot:gl,FolderDown:ul,FolderEdit:re,FolderGit:Ml,FolderGit2:yl,FolderHeart:xl,FolderInput:fl,FolderKanban:bl,FolderKey:wl,FolderLock:kl,FolderMinus:Sl,FolderOpen:Cl,FolderOpenDot:Hl,FolderOutput:Al,FolderPen:re,FolderPlus:Ll,FolderRoot:$l,FolderSearch:_l,FolderSearch2:Vl,FolderSymlink:Pl,FolderSync:Tl,FolderTree:zl,FolderUp:ql,FolderX:El,Folders:Dl,Footprints:Rl,Forklift:Il,FormInput:qe,Forward:Ol,Frame:Nl,Framer:Fl,Frown:Zl,Fuel:Ul,Fullscreen:jl,FunctionSquare:ya,GalleryHorizontal:Jl,GalleryHorizontalEnd:Gl,GalleryThumbnails:Wl,GalleryVertical:Yl,GalleryVerticalEnd:Kl,Gamepad:Ql,Gamepad2:Xl,GanttChart:th,GanttChartSquare:Ma,Gauge:eh,GaugeCircle:$t,Gavel:ah,Gem:ih,Ghost:sh,Gift:oh,GitBranch:rh,GitBranchPlus:dh,GitCommit:ne,GitCommitHorizontal:ne,GitCommitVertical:nh,GitCompare:lh,GitCompareArrows:ch,GitFork:hh,GitGraph:ph,GitMerge:vh,GitPullRequest:xh,GitPullRequestArrow:mh,GitPullRequestClosed:gh,GitPullRequestCreate:yh,GitPullRequestCreateArrow:uh,GitPullRequestDraft:Mh,Github:fh,Gitlab:bh,GlassWater:wh,Glasses:kh,Globe:Hh,Globe2:Qt,GlobeLock:Sh,Goal:Ch,Grab:Ah,GraduationCap:Lh,Grape:$h,Grid:J,Grid2X2:ce,Grid2x2:ce,Grid2x2Check:Vh,Grid2x2X:_h,Grid3X3:J,Grid3x3:J,Grip:zh,GripHorizontal:Ph,GripVertical:Th,Group:qh,Guitar:Eh,Ham:Bh,Hammer:Dh,Hand:Fh,HandCoins:Rh,HandHeart:Ih,HandHelping:le,HandMetal:Oh,HandPlatter:Nh,Handshake:Zh,HardDrive:Gh,HardDriveDownload:Uh,HardDriveUpload:jh,HardHat:Jh,Hash:Wh,Haze:Kh,HdmiPort:Yh,Heading:sp,Heading1:Xh,Heading2:Qh,Heading3:tp,Heading4:ep,Heading5:ap,Heading6:ip,Headphones:op,Headset:dp,Heart:hp,HeartCrack:rp,HeartHandshake:np,HeartOff:cp,HeartPulse:lp,Heater:pp,HelpCircle:Vt,HelpingHand:le,Hexagon:vp,Highlighter:mp,History:gp,Home:up,Hop:Mp,HopOff:yp,Hospital:xp,Hotel:fp,Hourglass:bp,IceCream:pe,IceCream2:he,IceCreamBowl:he,IceCreamCone:pe,Image:Lp,ImageDown:wp,ImageMinus:kp,ImageOff:Sp,ImagePlay:Hp,ImagePlus:Cp,ImageUp:Ap,Images:$p,Import:Vp,Inbox:_p,Indent:me,IndentDecrease:ve,IndentIncrease:me,IndianRupee:Pp,Infinity:Tp,Info:zp,Inspect:Sa,InspectionPanel:qp,Instagram:Ep,Italic:Bp,IterationCcw:Dp,IterationCw:Rp,JapaneseYen:Ip,Joystick:Op,Kanban:Np,KanbanSquare:xa,KanbanSquareDashed:pa,Key:Up,KeyRound:Fp,KeySquare:Zp,Keyboard:Jp,KeyboardMusic:jp,KeyboardOff:Gp,Lamp:tv,LampCeiling:Wp,LampDesk:Kp,LampFloor:Yp,LampWallDown:Xp,LampWallUp:Qp,LandPlot:ev,Landmark:av,Languages:iv,Laptop:sv,Laptop2:ge,LaptopMinimal:ge,Lasso:dv,LassoSelect:ov,Laugh:rv,Layers:lv,Layers2:nv,Layers3:cv,Layout:Pe,LayoutDashboard:hv,LayoutGrid:pv,LayoutList:vv,LayoutPanelLeft:mv,LayoutPanelTop:gv,LayoutTemplate:uv,Leaf:yv,LeafyGreen:Mv,Lectern:xv,Library:bv,LibraryBig:fv,LibrarySquare:fa,LifeBuoy:wv,Ligature:kv,Lightbulb:Hv,LightbulbOff:Sv,LineChart:Cv,Link:$v,Link2:Lv,Link2Off:Av,Linkedin:Vv,List:Uv,ListChecks:_v,ListCollapse:Pv,ListEnd:Tv,ListFilter:zv,ListMinus:qv,ListMusic:Ev,ListOrdered:Bv,ListPlus:Dv,ListRestart:Rv,ListStart:Iv,ListTodo:Ov,ListTree:Nv,ListVideo:Fv,ListX:Zv,Loader:Gv,Loader2:ue,LoaderCircle:ue,LoaderPinwheel:jv,Locate:Kv,LocateFixed:Jv,LocateOff:Wv,Lock:Xv,LockKeyhole:Yv,LockKeyholeOpen:ye,LockOpen:Me,LogIn:Qv,LogOut:t4,Lollipop:e4,Luggage:a4,MSquare:ba,Magnet:i4,Mail:p4,MailCheck:s4,MailMinus:o4,MailOpen:d4,MailPlus:r4,MailQuestion:n4,MailSearch:c4,MailWarning:l4,MailX:h4,Mailbox:v4,Mails:m4,Map:M4,MapPin:u4,MapPinOff:g4,MapPinned:y4,Martini:x4,Maximize:b4,Maximize2:f4,Medal:w4,Megaphone:S4,MegaphoneOff:k4,Meh:H4,MemoryStick:C4,Menu:A4,MenuSquare:wa,Merge:L4,MessageCircle:R4,MessageCircleCode:$4,MessageCircleDashed:V4,MessageCircleHeart:_4,MessageCircleMore:P4,MessageCircleOff:T4,MessageCirclePlus:z4,MessageCircleQuestion:q4,MessageCircleReply:E4,MessageCircleWarning:B4,MessageCircleX:D4,MessageSquare:t5,MessageSquareCode:I4,MessageSquareDashed:O4,MessageSquareDiff:N4,MessageSquareDot:F4,MessageSquareHeart:Z4,MessageSquareMore:U4,MessageSquareOff:j4,MessageSquarePlus:G4,MessageSquareQuote:J4,MessageSquareReply:W4,MessageSquareShare:K4,MessageSquareText:Y4,MessageSquareWarning:X4,MessageSquareX:Q4,MessagesSquare:e5,Mic:i5,Mic2:xe,MicOff:a5,MicVocal:xe,Microscope:s5,Microwave:o5,Milestone:d5,Milk:n5,MilkOff:r5,Minimize:l5,Minimize2:c5,Minus:h5,MinusCircle:_t,MinusSquare:ka,Monitor:k5,MonitorCheck:p5,MonitorDot:v5,MonitorDown:m5,MonitorOff:g5,MonitorPause:u5,MonitorPlay:y5,MonitorSmartphone:M5,MonitorSpeaker:x5,MonitorStop:f5,MonitorUp:b5,MonitorX:w5,Moon:H5,MoonStar:S5,MoreHorizontal:ee,MoreVertical:te,Mountain:A5,MountainSnow:C5,Mouse:T5,MouseOff:L5,MousePointer:P5,MousePointer2:$5,MousePointerBan:V5,MousePointerClick:_5,MousePointerSquareDashed:va,Move:j5,Move3D:fe,Move3d:fe,MoveDiagonal:q5,MoveDiagonal2:z5,MoveDown:D5,MoveDownLeft:E5,MoveDownRight:B5,MoveHorizontal:R5,MoveLeft:I5,MoveRight:O5,MoveUp:Z5,MoveUpLeft:N5,MoveUpRight:F5,MoveVertical:U5,Music:K5,Music2:G5,Music3:J5,Music4:W5,Navigation:tm,Navigation2:X5,Navigation2Off:Y5,NavigationOff:Q5,Network:em,Newspaper:am,Nfc:im,Notebook:rm,NotebookPen:sm,NotebookTabs:om,NotebookText:dm,NotepadText:cm,NotepadTextDashed:nm,Nut:hm,NutOff:lm,Octagon:pm,OctagonAlert:be,OctagonPause:we,OctagonX:ke,Option:vm,Orbit:mm,Origami:gm,Outdent:ve,Package:km,Package2:um,PackageCheck:ym,PackageMinus:Mm,PackageOpen:xm,PackagePlus:fm,PackageSearch:bm,PackageX:wm,PaintBucket:Sm,PaintRoller:Hm,Paintbrush:Cm,Paintbrush2:Se,PaintbrushVertical:Se,Palette:Am,Palmtree:Ua,PanelBottom:Vm,PanelBottomClose:Lm,PanelBottomDashed:He,PanelBottomInactive:He,PanelBottomOpen:$m,PanelLeft:$e,PanelLeftClose:Ce,PanelLeftDashed:Ae,PanelLeftInactive:Ae,PanelLeftOpen:Le,PanelRight:Tm,PanelRightClose:_m,PanelRightDashed:Ve,PanelRightInactive:Ve,PanelRightOpen:Pm,PanelTop:Em,PanelTopClose:zm,PanelTopDashed:_e,PanelTopInactive:_e,PanelTopOpen:qm,PanelsLeftBottom:Bm,PanelsLeftRight:Kt,PanelsRightBottom:Dm,PanelsTopBottom:De,PanelsTopLeft:Pe,Paperclip:Rm,Parentheses:Im,ParkingCircle:Tt,ParkingCircleOff:Pt,ParkingMeter:Om,ParkingSquare:Ca,ParkingSquareOff:Ha,PartyPopper:Nm,Pause:Fm,PauseCircle:zt,PauseOctagon:we,PawPrint:Zm,PcCase:Um,Pen:ze,PenBox:Z,PenLine:Te,PenOff:jm,PenSquare:Z,PenTool:Gm,Pencil:Ym,PencilLine:Jm,PencilOff:Wm,PencilRuler:Km,Pentagon:Xm,Percent:Qm,PercentCircle:qt,PercentDiamond:Xt,PercentSquare:Aa,PersonStanding:tg,Phone:rg,PhoneCall:eg,PhoneForwarded:ag,PhoneIncoming:ig,PhoneMissed:sg,PhoneOff:og,PhoneOutgoing:dg,Pi:ng,PiSquare:La,Piano:cg,Pickaxe:lg,PictureInPicture:pg,PictureInPicture2:hg,PieChart:vg,PiggyBank:mg,Pilcrow:yg,PilcrowLeft:gg,PilcrowRight:ug,PilcrowSquare:$a,Pill:xg,PillBottle:Mg,Pin:bg,PinOff:fg,Pipette:wg,Pizza:kg,Plane:Cg,PlaneLanding:Sg,PlaneTakeoff:Hg,Play:Ag,PlayCircle:Et,PlaySquare:Va,Plug:_g,Plug2:Lg,PlugZap:Vg,PlugZap2:$g,Plus:Pg,PlusCircle:Bt,PlusSquare:_a,Pocket:zg,PocketKnife:Tg,Podcast:qg,Pointer:Bg,PointerOff:Eg,Popcorn:Dg,Popsicle:Rg,PoundSterling:Ig,Power:Ng,PowerCircle:Dt,PowerOff:Og,PowerSquare:Pa,Presentation:Fg,Printer:Zg,Projector:Ug,Proportions:jg,Puzzle:Gg,Pyramid:Jg,QrCode:Wg,Quote:Kg,Rabbit:Yg,Radar:Xg,Radiation:Qg,Radical:tu,Radio:iu,RadioReceiver:eu,RadioTower:au,Radius:su,RailSymbol:ou,Rainbow:du,Rat:ru,Ratio:nu,Receipt:yu,ReceiptCent:cu,ReceiptEuro:lu,ReceiptIndianRupee:hu,ReceiptJapaneseYen:pu,ReceiptPoundSterling:vu,ReceiptRussianRuble:mu,ReceiptSwissFranc:gu,ReceiptText:uu,RectangleEllipsis:qe,RectangleHorizontal:Mu,RectangleVertical:xu,Recycle:fu,Redo:ku,Redo2:bu,RedoDot:wu,RefreshCcw:Hu,RefreshCcwDot:Su,RefreshCw:Au,RefreshCwOff:Cu,Refrigerator:Lu,Regex:$u,RemoveFormatting:Vu,Repeat:Tu,Repeat1:_u,Repeat2:Pu,Replace:qu,ReplaceAll:zu,Reply:Bu,ReplyAll:Eu,Rewind:Du,Ribbon:Ru,Rocket:Iu,RockingChair:Ou,RollerCoaster:Nu,Rotate3D:Ee,Rotate3d:Ee,RotateCcw:Zu,RotateCcwSquare:Fu,RotateCw:ju,RotateCwSquare:Uu,Route:Ju,RouteOff:Gu,Router:Wu,Rows:Be,Rows2:Be,Rows3:De,Rows4:Ku,Rss:Yu,Ruler:Xu,RussianRuble:Qu,Sailboat:t3,Salad:e3,Sandwich:a3,Satellite:s3,SatelliteDish:i3,Save:d3,SaveAll:o3,Scale:r3,Scale3D:Re,Scale3d:Re,Scaling:n3,Scan:g3,ScanBarcode:c3,ScanEye:l3,ScanFace:h3,ScanLine:p3,ScanSearch:v3,ScanText:m3,ScatterChart:u3,School:y3,School2:Ja,Scissors:x3,ScissorsLineDashed:M3,ScissorsSquare:Ta,ScissorsSquareDashedBottom:sa,ScreenShare:b3,ScreenShareOff:f3,Scroll:k3,ScrollText:w3,Search:L3,SearchCheck:S3,SearchCode:H3,SearchSlash:C3,SearchX:A3,Section:$3,Send:_3,SendHorizonal:Ie,SendHorizontal:Ie,SendToBack:V3,SeparatorHorizontal:P3,SeparatorVertical:T3,Server:B3,ServerCog:z3,ServerCrash:q3,ServerOff:E3,Settings:R3,Settings2:D3,Shapes:I3,Share:N3,Share2:O3,Sheet:F3,Shell:Z3,Shield:t6,ShieldAlert:U3,ShieldBan:j3,ShieldCheck:G3,ShieldClose:Oe,ShieldEllipsis:J3,ShieldHalf:W3,ShieldMinus:K3,ShieldOff:Y3,ShieldPlus:X3,ShieldQuestion:Q3,ShieldX:Oe,Ship:a6,ShipWheel:e6,Shirt:i6,ShoppingBag:s6,ShoppingBasket:o6,ShoppingCart:d6,Shovel:r6,ShowerHead:n6,Shrink:c6,Shrub:l6,Shuffle:h6,Sidebar:$e,SidebarClose:Ce,SidebarOpen:Le,Sigma:p6,SigmaSquare:za,Signal:y6,SignalHigh:v6,SignalLow:m6,SignalMedium:g6,SignalZero:u6,Signpost:x6,SignpostBig:M6,Siren:f6,SkipBack:b6,SkipForward:w6,Skull:k6,Slack:S6,Slash:H6,SlashSquare:qa,Slice:C6,Sliders:Ne,SlidersHorizontal:A6,SlidersVertical:Ne,Smartphone:V6,SmartphoneCharging:L6,SmartphoneNfc:$6,Smile:P6,SmilePlus:_6,Snail:T6,Snowflake:z6,Sofa:q6,SortAsc:st,SortDesc:et,Soup:E6,Space:B6,Spade:D6,Sparkle:R6,Sparkles:Fe,Speaker:I6,Speech:O6,SpellCheck:F6,SpellCheck2:N6,Spline:Z6,Split:U6,SplitSquareHorizontal:Ea,SplitSquareVertical:Ba,SprayCan:j6,Sprout:G6,Square:X6,SquareActivity:Ze,SquareArrowDown:Ge,SquareArrowDownLeft:Ue,SquareArrowDownRight:je,SquareArrowLeft:Je,SquareArrowOutDownLeft:We,SquareArrowOutDownRight:Ke,SquareArrowOutUpLeft:Ye,SquareArrowOutUpRight:Xe,SquareArrowRight:Qe,SquareArrowUp:aa,SquareArrowUpLeft:ta,SquareArrowUpRight:ea,SquareAsterisk:ia,SquareBottomDashedScissors:sa,SquareCheck:da,SquareCheckBig:oa,SquareChevronDown:ra,SquareChevronLeft:na,SquareChevronRight:ca,SquareChevronUp:la,SquareCode:ha,SquareDashedBottom:W6,SquareDashedBottomCode:J6,SquareDashedKanban:pa,SquareDashedMousePointer:va,SquareDivide:ma,SquareDot:ga,SquareEqual:ua,SquareFunction:ya,SquareGanttChart:Ma,SquareKanban:xa,SquareLibrary:fa,SquareM:ba,SquareMenu:wa,SquareMinus:ka,SquareMousePointer:Sa,SquareParking:Ca,SquareParkingOff:Ha,SquarePen:Z,SquarePercent:Aa,SquarePi:La,SquarePilcrow:$a,SquarePlay:Va,SquarePlus:_a,SquarePower:Pa,SquareRadical:K6,SquareScissors:Ta,SquareSigma:za,SquareSlash:qa,SquareSplitHorizontal:Ea,SquareSplitVertical:Ba,SquareStack:Y6,SquareTerminal:Da,SquareUser:Ia,SquareUserRound:Ra,SquareX:Oa,Squircle:Q6,Squirrel:ty,Stamp:ey,Star:sy,StarHalf:ay,StarOff:iy,Stars:Fe,StepBack:oy,StepForward:dy,Stethoscope:ry,Sticker:ny,StickyNote:cy,StopCircle:It,Store:ly,StretchHorizontal:hy,StretchVertical:py,Strikethrough:vy,Subscript:my,Subtitles:pt,Sun:xy,SunDim:gy,SunMedium:uy,SunMoon:yy,SunSnow:My,Sunrise:fy,Sunset:by,Superscript:wy,SwatchBook:ky,SwissFranc:Sy,SwitchCamera:Hy,Sword:Cy,Swords:Ay,Syringe:Ly,Table:qy,Table2:$y,TableCellsMerge:Vy,TableCellsSplit:_y,TableColumnsSplit:Py,TableProperties:Ty,TableRowsSplit:zy,Tablet:By,TabletSmartphone:Ey,Tablets:Dy,Tag:Ry,Tags:Iy,Tally1:Oy,Tally2:Ny,Tally3:Fy,Tally4:Zy,Tally5:Uy,Tangent:jy,Target:Gy,Telescope:Jy,Tent:Ky,TentTree:Wy,Terminal:Yy,TerminalSquare:Da,TestTube:Xy,TestTube2:Na,TestTubeDiagonal:Na,TestTubes:Qy,Text:s8,TextCursor:e8,TextCursorInput:t8,TextQuote:a8,TextSearch:i8,TextSelect:Fa,TextSelection:Fa,Theater:o8,Thermometer:n8,ThermometerSnowflake:d8,ThermometerSun:r8,ThumbsDown:c8,ThumbsUp:l8,Ticket:y8,TicketCheck:h8,TicketMinus:p8,TicketPercent:v8,TicketPlus:m8,TicketSlash:g8,TicketX:u8,Timer:f8,TimerOff:M8,TimerReset:x8,ToggleLeft:b8,ToggleRight:w8,Tornado:k8,Torus:S8,Touchpad:C8,TouchpadOff:H8,TowerControl:A8,ToyBrick:L8,Tractor:$8,TrafficCone:V8,Train:Za,TrainFront:P8,TrainFrontTunnel:_8,TrainTrack:T8,TramFront:Za,Trash:q8,Trash2:z8,TreeDeciduous:E8,TreePalm:Ua,TreePine:B8,Trees:D8,Trello:R8,TrendingDown:I8,TrendingUp:O8,Triangle:F8,TriangleAlert:ja,TriangleRight:N8,Trophy:Z8,Truck:U8,Turtle:j8,Tv:J8,Tv2:Ga,TvMinimal:Ga,TvMinimalPlay:G8,Twitch:W8,Twitter:K8,Type:Y8,Umbrella:Q8,UmbrellaOff:X8,Underline:t7,Undo:i7,Undo2:e7,UndoDot:a7,UnfoldHorizontal:s7,UnfoldVertical:o7,Ungroup:d7,University:Ja,Unlink:n7,Unlink2:r7,Unlock:Me,UnlockKeyhole:ye,Unplug:c7,Upload:l7,UploadCloud:Gt,Usb:h7,User:x7,User2:t1,UserCheck:p7,UserCheck2:Wa,UserCircle:Nt,UserCircle2:Ot,UserCog:v7,UserCog2:Ka,UserMinus:m7,UserMinus2:Ya,UserPlus:g7,UserPlus2:Xa,UserRound:t1,UserRoundCheck:Wa,UserRoundCog:Ka,UserRoundMinus:Ya,UserRoundPlus:Xa,UserRoundSearch:u7,UserRoundX:Qa,UserSearch:y7,UserSquare:Ia,UserSquare2:Ra,UserX:M7,UserX2:Qa,Users:f7,Users2:e1,UsersRound:e1,Utensils:w7,UtensilsCrossed:b7,UtilityPole:k7,Variable:S7,Vault:H7,Vegan:C7,VenetianMask:A7,Verified:rt,Vibrate:$7,VibrateOff:L7,Video:_7,VideoOff:V7,Videotape:P7,View:T7,Voicemail:z7,Volume:D7,Volume1:q7,Volume2:E7,VolumeX:B7,Vote:R7,Wallet:O7,Wallet2:a1,WalletCards:I7,WalletMinimal:a1,Wallpaper:N7,Wand:F7,Wand2:i1,WandSparkles:i1,Warehouse:Z7,WashingMachine:U7,Watch:j7,Waves:G7,Waypoints:J7,Webcam:W7,Webhook:Y7,WebhookOff:K7,Weight:X7,Wheat:tM,WheatOff:Q7,WholeWord:eM,Wifi:iM,WifiOff:aM,Wind:sM,Wine:dM,WineOff:oM,Workflow:rM,Worm:nM,WrapText:cM,Wrench:lM,X:hM,XCircle:Ft,XOctagon:ke,XSquare:Oa,Youtube:pM,Zap:mM,ZapOff:vM,ZoomIn:gM,ZoomOut:uM},Symbol.toStringTag,{value:"Module"}));/**
  * @license lucide v0.395.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -7366,7 +7366,7 @@
  */const yM=({icons:i={},nameAttr:e="data-lucide",attrs:a={}}={})=>{if(!Object.values(i).length)throw new Error(`Please provide an icons object.
 If you want to use all the icons you can import it like:
  \`import { createIcons, icons } from 'lucide';
-lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`createIcons()` only works in a browser environment.");const d=document.querySelectorAll(`[${e}]`);if(Array.from(d).forEach(o=>J(o,{nameAttr:e,icons:i,attrs:a})),e==="data-lucide"){const o=document.querySelectorAll("[icon-name]");o.length>0&&(console.warn("[Lucide] Some icons were found with the now deprecated icon-name attribute. These will still be replaced for backwards compatibility, but will no longer be supported in v1.0 and you should switch to data-lucide"),Array.from(o).forEach(n=>J(n,{nameAttr:"icon-name",icons:i,attrs:a})))}};function MM(i){i.innerHTML=`
+lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`createIcons()` only works in a browser environment.");const d=document.querySelectorAll(`[${e}]`);if(Array.from(d).forEach(o=>K(o,{nameAttr:e,icons:i,attrs:a})),e==="data-lucide"){const o=document.querySelectorAll("[icon-name]");o.length>0&&(console.warn("[Lucide] Some icons were found with the now deprecated icon-name attribute. These will still be replaced for backwards compatibility, but will no longer be supported in v1.0 and you should switch to data-lucide"),Array.from(o).forEach(r=>K(r,{nameAttr:"icon-name",icons:i,attrs:a})))}};function MM(i){i.innerHTML=`
     <div style="min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background-color: var(--bg-app);">
       <div style="width: 100%; max-width: 440px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-md); overflow: hidden;">
         
@@ -7476,7 +7476,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#login-password"),a=i.querySelector("#btn-toggle-pwd");a&&e&&a.addEventListener("click",s=>{s.preventDefault(),e.type==="password"?(e.type="text",a.textContent="Hide"):(e.type="password",a.textContent="Show")});const d=i.querySelector("#unified-login-form"),o=i.querySelector("#login-alert"),n=i.querySelector("#btn-submit-unified-login"),r=i.querySelector("#btn-submit-text");function c(s,p="danger"){o&&(o.style.display="block",p==="danger"?(o.style.background="var(--status-danger-bg)",o.style.border="1px solid var(--status-danger-border)",o.style.color="var(--status-danger)"):(o.style.background="var(--status-success-bg)",o.style.border="1px solid var(--status-success-border)",o.style.color="var(--status-success)"),o.innerHTML=s)}d&&d.addEventListener("submit",async s=>{var m,y;s.preventDefault(),s.stopPropagation();const p=(m=i.querySelector("#login-email"))==null?void 0:m.value.trim(),h=(y=i.querySelector("#login-password"))==null?void 0:y.value;if(!p||!h){c("Please enter both email and password.");return}o.style.display="none",n.disabled=!0,r.textContent="Signing in...";try{const u=await x.login(p,h);if(!u.success||!u.token)throw new Error(u.message||"Authentication failed. Please verify credentials.");const l=u.user||{},v=l.role;if(v==="customer"){x.clearSession(),c("Customer accounts are for the HotelHub Mobile App. Please use the mobile application to manage guest bookings.","danger"),n.disabled=!1,r.textContent="Sign In";return}c(`Welcome back, <strong>${l.name||"User"}</strong>! Redirecting to workspace...`,"success"),setTimeout(()=>{let g="/admin/dashboard";v==="hotel_admin"||v==="owner"?g="/hotel-admin/dashboard":v==="support_admin"?g="/admin/support":v==="finance_admin"&&(g="/admin/payments"),typeof window.navigateTo=="function"?window.navigateTo(g):window.location.hash=`#${g}`},350)}catch(u){console.error("Unified login error:",u),c(u.message||"Invalid email or password."),n.disabled=!1,r.textContent="Sign In",window.lucide&&window.lucide.createIcons()}})}function xM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#login-password"),a=i.querySelector("#btn-toggle-pwd");a&&e&&a.addEventListener("click",s=>{s.preventDefault(),e.type==="password"?(e.type="text",a.textContent="Hide"):(e.type="password",a.textContent="Show")});const d=i.querySelector("#unified-login-form"),o=i.querySelector("#login-alert"),r=i.querySelector("#btn-submit-unified-login"),n=i.querySelector("#btn-submit-text");function c(s,p="danger"){o&&(o.style.display="block",p==="danger"?(o.style.background="var(--status-danger-bg)",o.style.border="1px solid var(--status-danger-border)",o.style.color="var(--status-danger)"):(o.style.background="var(--status-success-bg)",o.style.border="1px solid var(--status-success-border)",o.style.color="var(--status-success)"),o.innerHTML=s)}d&&d.addEventListener("submit",async s=>{var m,y;s.preventDefault(),s.stopPropagation();const p=(m=i.querySelector("#login-email"))==null?void 0:m.value.trim(),l=(y=i.querySelector("#login-password"))==null?void 0:y.value;if(!p||!l){c("Please enter both email and password.");return}o.style.display="none",r.disabled=!0,n.textContent="Signing in...";try{const u=await f.login(p,l);if(!u.success||!u.token)throw new Error(u.message||"Authentication failed. Please verify credentials.");const h=u.user||{},v=h.role;if(v==="customer"){f.clearSession(),c("Customer accounts are for the HotelHub Mobile App. Please use the mobile application to manage guest bookings.","danger"),r.disabled=!1,n.textContent="Sign In";return}c(`Welcome back, <strong>${h.name||"User"}</strong>! Redirecting to workspace...`,"success"),setTimeout(()=>{let g="/admin/dashboard";v==="hotel_admin"||v==="owner"?g="/hotel-admin/dashboard":v==="support_admin"?g="/admin/support":v==="finance_admin"&&(g="/admin/payments"),typeof window.navigateTo=="function"?window.navigateTo(g):window.location.hash=`#${g}`},350)}catch(u){console.error("Unified login error:",u),c(u.message||"Invalid email or password."),r.disabled=!1,n.textContent="Sign In",window.lucide&&window.lucide.createIcons()}})}function xM(i){i.innerHTML=`
     <div style="min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background-color: var(--bg-app);">
       <div style="width: 100%; max-width: 520px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-md); overflow: hidden;">
         
@@ -7629,7 +7629,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#partner-register-form"),a=i.querySelector("#register-alert"),d=i.querySelector("#btn-submit-register"),o=i.querySelector("#btn-register-text");function n(r,c="danger"){a&&(a.style.display="block",c==="danger"?(a.style.background="var(--status-danger-bg)",a.style.border="1px solid var(--status-danger-border)",a.style.color="var(--status-danger)"):(a.style.background="var(--status-success-bg)",a.style.border="1px solid var(--status-success-border)",a.style.color="var(--status-success)"),a.innerHTML=r)}e&&e.addEventListener("submit",async r=>{var l,v,g,b,S,w,M;r.preventDefault(),r.stopPropagation();const c=(l=i.querySelector("#reg-name"))==null?void 0:l.value.trim(),s=(v=i.querySelector("#reg-phone"))==null?void 0:v.value.trim(),p=(g=i.querySelector("#reg-email"))==null?void 0:g.value.trim(),h=(b=i.querySelector("#reg-hotel-name"))==null?void 0:b.value.trim(),m=(S=i.querySelector("#reg-hotel-address"))==null?void 0:S.value.trim(),y=(w=i.querySelector("#reg-password"))==null?void 0:w.value,u=(M=i.querySelector("#reg-confirm-password"))==null?void 0:M.value;if(!c||!p||!y||!h){n("Please fill in all required fields.");return}if(y!==u){n("Passwords do not match. Please re-enter.");return}a.style.display="none",d.disabled=!0,o.textContent="Registering property...";try{const f=await x.register({name:c,phone:s,email:p,password:y,role:"hotel_admin",hotel_name:h,hotel_address:m});if(!f.success)throw new Error(f.message||"Registration failed.");n("<strong>Registration submitted!</strong> Your hotel partner dossier is under administrative review. Redirecting to login...","success"),setTimeout(()=>{typeof window.navigateTo=="function"?window.navigateTo("/login"):window.location.hash="#/login"},1200)}catch(f){console.error("Registration error:",f),n(f.message||"Registration failed. Please try again."),d.disabled=!1,o.textContent="Submit Partner Registration",window.lucide&&window.lucide.createIcons()}})}function I(i,e="Administrator"){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=i.querySelector("#partner-register-form"),a=i.querySelector("#register-alert"),d=i.querySelector("#btn-submit-register"),o=i.querySelector("#btn-register-text");function r(n,c="danger"){a&&(a.style.display="block",c==="danger"?(a.style.background="var(--status-danger-bg)",a.style.border="1px solid var(--status-danger-border)",a.style.color="var(--status-danger)"):(a.style.background="var(--status-success-bg)",a.style.border="1px solid var(--status-success-border)",a.style.color="var(--status-success)"),a.innerHTML=n)}e&&e.addEventListener("submit",async n=>{var h,v,g,w,S,k,M;n.preventDefault(),n.stopPropagation();const c=(h=i.querySelector("#reg-name"))==null?void 0:h.value.trim(),s=(v=i.querySelector("#reg-phone"))==null?void 0:v.value.trim(),p=(g=i.querySelector("#reg-email"))==null?void 0:g.value.trim(),l=(w=i.querySelector("#reg-hotel-name"))==null?void 0:w.value.trim(),m=(S=i.querySelector("#reg-hotel-address"))==null?void 0:S.value.trim(),y=(k=i.querySelector("#reg-password"))==null?void 0:k.value,u=(M=i.querySelector("#reg-confirm-password"))==null?void 0:M.value;if(!c||!p||!y||!l){r("Please fill in all required fields.");return}if(y!==u){r("Passwords do not match. Please re-enter.");return}a.style.display="none",d.disabled=!0,o.textContent="Registering property...";try{const b=await f.register({name:c,phone:s,email:p,password:y,role:"hotel_admin",hotel_name:l,hotel_address:m});if(!b.success)throw new Error(b.message||"Registration failed.");r("<strong>Registration submitted!</strong> Your hotel partner dossier is under administrative review. Redirecting to login...","success"),setTimeout(()=>{typeof window.navigateTo=="function"?window.navigateTo("/login"):window.location.hash="#/login"},1200)}catch(b){console.error("Registration error:",b),r(b.message||"Registration failed. Please try again."),d.disabled=!1,o.textContent="Submit Partner Registration",window.lucide&&window.lucide.createIcons()}})}function I(i,e="Administrator"){i.innerHTML=`
     <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
       <div style="width: 100%; max-width: 540px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center; box-shadow: var(--shadow-md);">
         
@@ -7662,12 +7662,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons()}function o1(i,e,a){if(!i||!e)return"—";try{const d=new Date(i),o=new Date(e);if(isNaN(d.getTime())||isNaN(o.getTime()))return`${i} → ${e}`;const n=d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),r=o.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),c=a?` • ${a} ${a===1?"night":"nights"}`:"";return`${n} → ${r}${c}`}catch{return`${i} → ${e}`}}async function fM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons()}function o1(i,e,a){if(!i||!e)return"—";try{const d=new Date(i),o=new Date(e);if(isNaN(d.getTime())||isNaN(o.getTime()))return`${i} → ${e}`;const r=d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),n=o.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),c=a?` • ${a} ${a===1?"night":"nights"}`:"";return`${r} → ${n}${c}`}catch{return`${i} → ${e}`}}async function fM(i){i.innerHTML=`
     <div style="text-align: center; padding: 48px 20px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.85rem;">Loading live platform metrics...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d,o,n]=await Promise.all([x.getAdminKpis(),x.getAdminBookings(),x.getAdminRefunds(),x.getOwnersKyc(),x.getSupportTickets()]),r=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_hotels:0,verified_hotels:0,pending_hotels:0,total_bookings:0,todays_bookings:0,upcoming_checkins_count:0,checked_in_bookings_count:0,upcoming_checkouts_count:0,cancelled_bookings_count:0,total_gmv:0,platform_revenue:0,pending_refunds_count:0,pending_kyc_count:0},c=((a==null?void 0:a.bookings)||[]).slice(0,6),s=((d==null?void 0:d.refunds)||[]).filter(m=>m.status==="pending"),p=((o==null?void 0:o.owners)||[]).filter(m=>m.kyc_status==="pending"),h=((n==null?void 0:n.tickets)||[]).filter(m=>m.status==="open"||m.status==="in_progress");i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d,o,r]=await Promise.all([f.getAdminKpis(),f.getAdminBookings(),f.getAdminRefunds(),f.getOwnersKyc(),f.getSupportTickets()]),n=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_hotels:0,verified_hotels:0,pending_hotels:0,total_bookings:0,todays_bookings:0,upcoming_checkins_count:0,checked_in_bookings_count:0,upcoming_checkouts_count:0,cancelled_bookings_count:0,total_gmv:0,platform_revenue:0,pending_refunds_count:0,pending_kyc_count:0},c=((a==null?void 0:a.bookings)||[]).slice(0,6),s=((d==null?void 0:d.refunds)||[]).filter(m=>m.status==="pending"),p=((o==null?void 0:o.owners)||[]).filter(m=>m.kyc_status==="pending"),l=((r==null?void 0:r.tickets)||[]).filter(m=>m.status==="open"||m.status==="in_progress");i.innerHTML=`
       <!-- 1. TOP 4-COLUMN KPI CARDS (Desktop: 4 cols, Tablet: 2 cols, Mobile: 1 col) -->
       <div class="metrics-grid">
         <!-- TOTAL HOTELS -->
@@ -7676,10 +7676,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Total Hotels</span>
             <div class="metric-icon-box"><i data-lucide="building-2"></i></div>
           </div>
-          <div class="metric-value">${r.total_hotels||0}</div>
+          <div class="metric-value">${n.total_hotels||0}</div>
           <div class="metric-footer">
-            <span style="color: var(--status-success); font-weight: 600;">${r.verified_hotels||0} Verified</span>
-            <span>• ${r.pending_hotels||0} Under Review</span>
+            <span style="color: var(--status-success); font-weight: 600;">${n.verified_hotels||0} Verified</span>
+            <span>• ${n.pending_hotels||0} Under Review</span>
           </div>
         </div>
 
@@ -7689,10 +7689,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Total Bookings</span>
             <div class="metric-icon-box"><i data-lucide="calendar-check"></i></div>
           </div>
-          <div class="metric-value">${r.total_bookings||0}</div>
+          <div class="metric-value">${n.total_bookings||0}</div>
           <div class="metric-footer">
-            <span style="color: var(--color-accent-dark); font-weight: 600;">${r.todays_bookings||0} Today</span>
-            <span>• ${r.upcoming_checkins_count||0} Incoming Check-ins</span>
+            <span style="color: var(--color-accent-dark); font-weight: 600;">${n.todays_bookings||0} Today</span>
+            <span>• ${n.upcoming_checkins_count||0} Incoming Check-ins</span>
           </div>
         </div>
 
@@ -7702,7 +7702,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Gross Platform Volume</span>
             <div class="metric-icon-box gold"><i data-lucide="wallet"></i></div>
           </div>
-          <div class="metric-value">₹${(r.total_gmv||0).toLocaleString("en-IN")}</div>
+          <div class="metric-value">₹${(n.total_gmv||0).toLocaleString("en-IN")}</div>
           <div class="metric-footer">
             <span>Total bookings processed</span>
           </div>
@@ -7714,7 +7714,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <span class="metric-title">Net Platform Commission</span>
             <div class="metric-icon-box success"><i data-lucide="badge-percent"></i></div>
           </div>
-          <div class="metric-value" style="color: var(--status-success);">₹${(r.platform_revenue||0).toLocaleString("en-IN")}</div>
+          <div class="metric-value" style="color: var(--status-success);">₹${(n.platform_revenue||0).toLocaleString("en-IN")}</div>
           <div class="metric-footer">
             <span style="color: var(--status-success); font-weight: 600;">15% Platform Take-Rate</span>
           </div>
@@ -7733,23 +7733,23 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <div class="ops-metrics-grid">
           <div class="ops-item">
             <div class="ops-item-label">Today's Bookings</div>
-            <div class="ops-item-value">${r.todays_bookings||0}</div>
+            <div class="ops-item-value">${n.todays_bookings||0}</div>
           </div>
           <div class="ops-item">
             <div class="ops-item-label">Upcoming Check-Ins</div>
-            <div class="ops-item-value" style="color: var(--status-info);">${r.upcoming_checkins_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-info);">${n.upcoming_checkins_count||0}</div>
           </div>
           <div class="ops-item">
             <div class="ops-item-label">Active In-House Stays</div>
-            <div class="ops-item-value" style="color: var(--status-success);">${r.checked_in_bookings_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-success);">${n.checked_in_bookings_count||0}</div>
           </div>
           <div class="ops-item">
             <div class="ops-item-label">Upcoming Check-Outs</div>
-            <div class="ops-item-value" style="color: var(--status-warning);">${r.upcoming_checkouts_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-warning);">${n.upcoming_checkouts_count||0}</div>
           </div>
           <div class="ops-item ops-item-full">
             <div class="ops-item-label">Cancelled / Refunded</div>
-            <div class="ops-item-value" style="color: var(--status-danger);">${r.cancelled_bookings_count||0}</div>
+            <div class="ops-item-value" style="color: var(--status-danger);">${n.cancelled_bookings_count||0}</div>
           </div>
         </div>
       </div>
@@ -7912,10 +7912,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                   <i data-lucide="headphones" style="width: 16px; height: 16px; color: var(--status-info);"></i>
                   <span>Open Support Tickets</span>
                 </span>
-                <span class="nav-badge info">${h.length} Open</span>
+                <span class="nav-badge info">${l.length} Open</span>
               </div>
               <p class="action-card-desc">
-                ${h.length>0?`Ticket ${h[0].ticket_code||"TCK-001"}: "${h[0].subject||"Guest inquiry"}" awaiting administrative resolution.`:"No unresolved guest or hotel partner support inquiries."}
+                ${l.length>0?`Ticket ${l[0].ticket_code||"TCK-001"}: "${l[0].subject||"Guest inquiry"}" awaiting administrative resolution.`:"No unresolved guest or hotel partner support inquiries."}
               </p>
               <a href="#/admin/support" class="btn btn-secondary btn-sm" style="width: 100%;">
                 <span>Open Support Desk</span>
@@ -7937,16 +7937,16 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <span>Retry Loading</span>
         </button>
       </div>
-    `,window.lucide&&window.lucide.createIcons()}}async function bM(i){let e=[],a="all",d="all",o="";async function n(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons()}}async function bM(i){let e=[],a="all",d="all",o="";async function r(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotels...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminHotels()).hotels,r()}catch(p){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getAdminHotels()).hotels,n()}catch(p){i.innerHTML=`
         <div style="background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); padding: 20px; border-radius: var(--radius-sm); color: var(--status-danger);">
           <strong>Error loading hotels:</strong> ${p.message}
         </div>
-      `}}function r(){const p=e.filter(h=>{const m=h.name.toLowerCase().includes(o.toLowerCase())||h.city.toLowerCase().includes(o.toLowerCase())||h.owner_name.toLowerCase().includes(o.toLowerCase()),y=a==="all"||h.city.toLowerCase()===a.toLowerCase(),u=d==="all"||h.status.toLowerCase()===d.toLowerCase();return m&&y&&u});i.innerHTML=`
+      `}}function n(){const p=e.filter(l=>{const m=l.name.toLowerCase().includes(o.toLowerCase())||l.city.toLowerCase().includes(o.toLowerCase())||l.owner_name.toLowerCase().includes(o.toLowerCase()),y=a==="all"||l.city.toLowerCase()===a.toLowerCase(),u=d==="all"||l.status.toLowerCase()===d.toLowerCase();return m&&y&&u});i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div class="search-input-box">
@@ -7992,44 +7992,44 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                     No hotels match the selected criteria.
                   </td>
                 </tr>
-              `:p.map(h=>`
+              `:p.map(l=>`
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 12px;">
-                      <img src="${h.cover_image}" style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover;">
+                      <img src="${l.cover_image}" style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover;">
                       <div>
-                        <div style="font-weight: 700; color: var(--text-main);">${h.name}</div>
-                        <div style="font-size: 0.72rem; font-family: monospace; color: var(--color-primary);">${h.id}</div>
+                        <div style="font-weight: 700; color: var(--text-main);">${l.name}</div>
+                        <div style="font-size: 0.72rem; font-family: monospace; color: var(--color-primary);">${l.id}</div>
                       </div>
                     </div>
                   </td>
-                  <td>${h.city}, ${h.state}</td>
+                  <td>${l.city}, ${l.state}</td>
                   <td>
-                    <div style="font-weight: 600;">${h.owner_name}</div>
-                    <span class="status-pill ${h.owner_kyc_status}" style="font-size: 0.65rem; margin-top: 2px;">KYC: ${h.owner_kyc_status}</span>
+                    <div style="font-weight: 600;">${l.owner_name}</div>
+                    <span class="status-pill ${l.owner_kyc_status}" style="font-size: 0.65rem; margin-top: 2px;">KYC: ${l.owner_kyc_status}</span>
                   </td>
                   <td>
                     <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: var(--color-accent-dark);">
                       <i data-lucide="star" style="width: 14px; height: 14px; fill: var(--color-accent);"></i>
-                      <span>${h.rating}</span>
-                      <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">(${h.reviews_count})</span>
+                      <span>${l.rating}</span>
+                      <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">(${l.reviews_count})</span>
                     </div>
                   </td>
-                  <td>${h.rooms?h.rooms.length:0} room categories</td>
+                  <td>${l.rooms?l.rooms.length:0} room categories</td>
                   <td>
-                    <span class="status-pill ${h.status}">${h.status.replace("_"," ")}</span>
+                    <span class="status-pill ${l.status}">${l.status.replace("_"," ")}</span>
                   </td>
                   <td>
                     <div style="display: flex; gap: 6px;">
-                      <button class="btn btn-secondary btn-sm btn-inspect-hotel" data-hotel-id="${h.id}">
+                      <button class="btn btn-secondary btn-sm btn-inspect-hotel" data-hotel-id="${l.id}">
                         <i data-lucide="eye"></i> Details
                       </button>
-                      ${h.status==="active"?`
-                        <button class="btn btn-danger btn-sm btn-set-status" data-hotel-id="${h.id}" data-status="suspended">
+                      ${l.status==="active"?`
+                        <button class="btn btn-danger btn-sm btn-set-status" data-hotel-id="${l.id}" data-status="suspended">
                           Suspend
                         </button>
                       `:`
-                        <button class="btn btn-success btn-sm btn-set-status" data-hotel-id="${h.id}" data-status="active">
+                        <button class="btn btn-success btn-sm btn-set-status" data-hotel-id="${l.id}" data-status="active">
                           Approve Live
                         </button>
                       `}
@@ -8043,51 +8043,51 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="hotel-modal-root"></div>
-    `,c(),window.lucide&&window.lucide.createIcons()}function c(){var p,h,m;(p=i.querySelector("#hotel-search-input"))==null||p.addEventListener("input",y=>{o=y.target.value,r()}),(h=i.querySelector("#city-filter"))==null||h.addEventListener("change",y=>{a=y.target.value,r()}),(m=i.querySelector("#status-filter"))==null||m.addEventListener("change",y=>{d=y.target.value,r()}),i.querySelectorAll(".btn-set-status").forEach(y=>{y.addEventListener("click",async()=>{const u=y.getAttribute("data-hotel-id"),l=y.getAttribute("data-status");try{await x.updateHotelStatus(u,l),window.showToast(`Hotel status updated to ${l.toUpperCase()}`,"success"),n()}catch(v){window.showToast(v.message,"error")}})}),i.querySelectorAll(".btn-inspect-hotel").forEach(y=>{y.addEventListener("click",()=>{const u=y.getAttribute("data-hotel-id");s(u)})})}function s(p){var u,l,v,g;const h=e.find(b=>b.id===p);if(!h)return;const m=i.querySelector("#hotel-modal-root");m.innerHTML=`
+    `,c(),window.lucide&&window.lucide.createIcons()}function c(){var p,l,m;(p=i.querySelector("#hotel-search-input"))==null||p.addEventListener("input",y=>{o=y.target.value,n()}),(l=i.querySelector("#city-filter"))==null||l.addEventListener("change",y=>{a=y.target.value,n()}),(m=i.querySelector("#status-filter"))==null||m.addEventListener("change",y=>{d=y.target.value,n()}),i.querySelectorAll(".btn-set-status").forEach(y=>{y.addEventListener("click",async()=>{const u=y.getAttribute("data-hotel-id"),h=y.getAttribute("data-status");try{await f.updateHotelStatus(u,h),window.showToast(`Hotel status updated to ${h.toUpperCase()}`,"success"),r()}catch(v){window.showToast(v.message,"error")}})}),i.querySelectorAll(".btn-inspect-hotel").forEach(y=>{y.addEventListener("click",()=>{const u=y.getAttribute("data-hotel-id");s(u)})})}function s(p){var u,h,v,g;const l=e.find(w=>w.id===p);if(!l)return;const m=i.querySelector("#hotel-modal-root");m.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container">
           <div class="modal-header">
             <div>
-              <div style="font-size: 0.72rem; font-family: monospace; color: var(--color-primary); font-weight: 700;">${h.id}</div>
-              <h2 class="modal-title">${h.name}</h2>
+              <div style="font-size: 0.72rem; font-family: monospace; color: var(--color-primary); font-weight: 700;">${l.id}</div>
+              <h2 class="modal-title">${l.name}</h2>
             </div>
             <button class="modal-close-btn" id="modal-close"><i data-lucide="x"></i></button>
           </div>
 
           <div class="modal-body">
             <div style="height: 200px; border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 18px; position: relative;">
-              <img src="${h.cover_image}" style="width: 100%; height: 100%; object-fit: cover;">
+              <img src="${l.cover_image}" style="width: 100%; height: 100%; object-fit: cover;">
               <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(15,23,42,0.8); padding: 4px 10px; border-radius: var(--radius-xs); color: #fff; font-size: 0.75rem;">
-                <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline;"></i> ${h.address}, ${h.city}, ${h.state}
+                <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline;"></i> ${l.address}, ${l.city}, ${l.state}
               </div>
             </div>
 
             <div class="form-grid" style="margin-bottom: 16px;">
               <div style="background: var(--bg-surface-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Owner & Management</div>
-                <div style="font-weight: 700; color: var(--text-main); margin-top: 2px;">${h.owner_name}</div>
-                <div style="font-size: 0.75rem; color: var(--text-secondary);">${h.owner_email||"Verified Owner"}</div>
+                <div style="font-weight: 700; color: var(--text-main); margin-top: 2px;">${l.owner_name}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">${l.owner_email||"Verified Owner"}</div>
               </div>
               <div style="background: var(--bg-surface-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Hotel Category & Type</div>
-                <div style="font-weight: 700; color: var(--text-main); margin-top: 2px;">${h.hotel_type||"Luxury Stay"}</div>
-                <div style="font-size: 0.75rem; color: var(--text-secondary);">${h.star_category} Star Rated</div>
+                <div style="font-weight: 700; color: var(--text-main); margin-top: 2px;">${l.hotel_type||"Luxury Stay"}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">${l.star_category} Star Rated</div>
               </div>
             </div>
 
             <div style="margin-bottom: 16px;">
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Description</div>
               <p style="font-size: 0.82rem; color: var(--text-main); line-height: 1.5; background: var(--bg-surface-secondary); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-                ${h.description}
+                ${l.description}
               </p>
             </div>
 
             <div>
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">Configured Amenities</div>
               <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                ${h.amenities.map(b=>`
+                ${l.amenities.map(w=>`
                   <span style="background: var(--bg-surface-secondary); border: 1px solid var(--border-light); font-size: 0.72rem; padding: 3px 8px; border-radius: var(--radius-full); color: var(--text-main);">
-                    ✓ ${b}
+                    ✓ ${w}
                   </span>
                 `).join("")}
               </div>
@@ -8096,10 +8096,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
           <div class="modal-footer">
             <span style="margin-right: auto; font-size: 0.78rem; color: var(--text-secondary);">
-              Status: <span class="status-pill ${h.status}">${h.status.replace("_"," ")}</span>
+              Status: <span class="status-pill ${l.status}">${l.status.replace("_"," ")}</span>
             </span>
             <button class="btn btn-secondary" id="modal-close-action">Close</button>
-            ${h.status==="active"?`
+            ${l.status==="active"?`
               <button class="btn btn-danger" id="modal-suspend-btn">Suspend Hotel</button>
             `:`
               <button class="btn btn-success" id="modal-approve-btn">Approve & Make Live</button>
@@ -8107,12 +8107,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const y=()=>{m.innerHTML=""};(u=m.querySelector("#modal-close"))==null||u.addEventListener("click",y),(l=m.querySelector("#modal-close-action"))==null||l.addEventListener("click",y),(v=m.querySelector("#modal-suspend-btn"))==null||v.addEventListener("click",async()=>{await x.updateHotelStatus(p,"suspended"),window.showToast("Hotel suspended from customer application.","warning"),y(),n()}),(g=m.querySelector("#modal-approve-btn"))==null||g.addEventListener("click",async()=>{await x.updateHotelStatus(p,"active"),window.showToast("Hotel is now LIVE on customer app!","success"),y(),n()})}n()}async function wM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const y=()=>{m.innerHTML=""};(u=m.querySelector("#modal-close"))==null||u.addEventListener("click",y),(h=m.querySelector("#modal-close-action"))==null||h.addEventListener("click",y),(v=m.querySelector("#modal-suspend-btn"))==null||v.addEventListener("click",async()=>{await f.updateHotelStatus(p,"suspended"),window.showToast("Hotel suspended from customer application.","warning"),y(),r()}),(g=m.querySelector("#modal-approve-btn"))==null||g.addEventListener("click",async()=>{await f.updateHotelStatus(p,"active"),window.showToast("Hotel is now LIVE on customer app!","success"),y(),r()})}r()}async function wM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner KYC applications...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnersKyc()).owners,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getOwnersKyc()).owners,d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8128,33 +8128,33 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.map(r=>`
+              ${e.map(n=>`
                 <tr>
                   <td>
-                    <div style="font-weight: 700; color: var(--text-main);">${r.name}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${r.email}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.phone}</div>
+                    <div style="font-weight: 700; color: var(--text-main);">${n.name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${n.email}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.phone}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 600;">${r.business_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">PAN: <strong>${r.pan_no}</strong> • GST: <strong>${r.gstin}</strong></div>
+                    <div style="font-weight: 600;">${n.business_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">PAN: <strong>${n.pan_no}</strong> • GST: <strong>${n.gstin}</strong></div>
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem; color: var(--text-main);">${r.bank_account}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.address}</div>
+                    <div style="font-size: 0.78rem; color: var(--text-main);">${n.bank_account}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.address}</div>
                   </td>
                   <td>
-                    <span style="font-weight: 600;">${r.hotels_count} properties</span>
+                    <span style="font-weight: 600;">${n.hotels_count} properties</span>
                   </td>
                   <td>
-                    <span class="status-pill ${r.kyc_status}">${r.kyc_status}</span>
-                    ${r.rejection_reason?`<div style="font-size: 0.68rem; color: var(--status-danger); margin-top: 2px;">${r.rejection_reason}</div>`:""}
+                    <span class="status-pill ${n.kyc_status}">${n.kyc_status}</span>
+                    ${n.rejection_reason?`<div style="font-size: 0.68rem; color: var(--status-danger); margin-top: 2px;">${n.rejection_reason}</div>`:""}
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(r.submitted_at).toLocaleDateString()}</div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(n.submitted_at).toLocaleDateString()}</div>
                   </td>
                   <td>
-                    <button class="btn btn-primary btn-sm btn-inspect-owner" data-owner-id="${r.user_id}">
+                    <button class="btn btn-primary btn-sm btn-inspect-owner" data-owner-id="${n.user_id}">
                       <i data-lucide="shield"></i> Inspect KYC
                     </button>
                   </td>
@@ -8166,7 +8166,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="owner-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-inspect-owner").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-owner-id");n(c)})})}function n(r){var h,m,y,u;const c=e.find(l=>l.user_id===r);if(!c)return;const s=i.querySelector("#owner-modal-root");s.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-inspect-owner").forEach(n=>{n.addEventListener("click",()=>{const c=n.getAttribute("data-owner-id");r(c)})})}function r(n){var l,m,y,u;const c=e.find(h=>h.user_id===n);if(!c)return;const s=i.querySelector("#owner-modal-root");s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container">
           <div class="modal-header">
@@ -8205,12 +8205,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#modal-approve-btn"))==null||y.addEventListener("click",async()=>{const l=s.querySelector("#modal-approve-btn");l&&(l.disabled=!0);try{await x.updateOwnerKyc(r,"verified"),window.showToast(`Owner ${c.name} verified successfully! Associated hotel is now active.`,"success"),p(),a()}catch(v){l&&(l.disabled=!1),window.showToast(v.message||"Failed to approve owner KYC.","error")}}),(u=s.querySelector("#modal-reject-btn"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#reject-box"),v=s.querySelector("#modal-reject-btn");if(l.style.display==="none")l.style.display="block",v&&(v.textContent="Confirm Rejection");else{const g=s.querySelector("#reject-reason").value||"Documentation incomplete.";v&&(v.disabled=!0);try{await x.updateOwnerKyc(r,"rejected",g),window.showToast(`KYC application for ${c.name} rejected.`,"error"),p(),a()}catch(b){v&&(v.disabled=!1),window.showToast(b.message||"Failed to reject owner KYC.","error")}}})}a()}async function kM(i){let e=[],a="",d="all";async function o(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(l=s.querySelector("#modal-close"))==null||l.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#modal-approve-btn"))==null||y.addEventListener("click",async()=>{const h=s.querySelector("#modal-approve-btn");h&&(h.disabled=!0);try{await f.updateOwnerKyc(n,"verified"),window.showToast(`Owner ${c.name} verified successfully! Associated hotel is now active.`,"success"),p(),a()}catch(v){h&&(h.disabled=!1),window.showToast(v.message||"Failed to approve owner KYC.","error")}}),(u=s.querySelector("#modal-reject-btn"))==null||u.addEventListener("click",async()=>{const h=s.querySelector("#reject-box"),v=s.querySelector("#modal-reject-btn");if(h.style.display==="none")h.style.display="block",v&&(v.textContent="Confirm Rejection");else{const g=s.querySelector("#reject-reason").value||"Documentation incomplete.";v&&(v.disabled=!0);try{await f.updateOwnerKyc(n,"rejected",g),window.showToast(`KYC application for ${c.name} rejected.`,"error"),p(),a()}catch(w){v&&(v.disabled=!1),window.showToast(w.message||"Failed to reject owner KYC.","error")}}})}a()}async function kM(i){let e=[],a="",d="all";async function o(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading bookings...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminBookings()).bookings,n()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function n(){const s=e.filter(p=>{const h=p.booking_code.toLowerCase().includes(a.toLowerCase())||p.customer_name.toLowerCase().includes(a.toLowerCase())||p.hotel_name.toLowerCase().includes(a.toLowerCase()),m=d==="all"||p.booking_status===d;return h&&m});i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getAdminBookings()).bookings,r()}catch(s){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${s.message}</div>`}}function r(){const s=e.filter(p=>{const l=p.booking_code.toLowerCase().includes(a.toLowerCase())||p.customer_name.toLowerCase().includes(a.toLowerCase())||p.hotel_name.toLowerCase().includes(a.toLowerCase()),m=d==="all"||p.booking_status===d;return l&&m});i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div class="search-input-box">
@@ -8286,7 +8286,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="booking-modal-root"></div>
-    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var s,p;(s=i.querySelector("#booking-search-input"))==null||s.addEventListener("input",h=>{a=h.target.value,n()}),(p=i.querySelector("#booking-status-filter"))==null||p.addEventListener("change",h=>{d=h.target.value,n()}),i.querySelectorAll(".btn-view-invoice").forEach(h=>{h.addEventListener("click",()=>{const m=h.getAttribute("data-booking-id");c(m)})})}function c(s){var y,u;const p=e.find(l=>l.id===s);if(!p)return;const h=i.querySelector("#booking-modal-root");h.innerHTML=`
+    `,n(),window.lucide&&window.lucide.createIcons()}function n(){var s,p;(s=i.querySelector("#booking-search-input"))==null||s.addEventListener("input",l=>{a=l.target.value,r()}),(p=i.querySelector("#booking-status-filter"))==null||p.addEventListener("change",l=>{d=l.target.value,r()}),i.querySelectorAll(".btn-view-invoice").forEach(l=>{l.addEventListener("click",()=>{const m=l.getAttribute("data-booking-id");c(m)})})}function c(s){var y,u;const p=e.find(h=>h.id===s);if(!p)return;const l=i.querySelector("#booking-modal-root");l.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 600px;">
           <div class="modal-header">
@@ -8351,12 +8351,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const m=()=>{h.innerHTML=""};(y=h.querySelector("#modal-close"))==null||y.addEventListener("click",m),(u=h.querySelector("#modal-close-action"))==null||u.addEventListener("click",m)}o()}async function SM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const m=()=>{l.innerHTML=""};(y=l.querySelector("#modal-close"))==null||y.addEventListener("click",m),(u=l.querySelector("#modal-close-action"))==null||u.addEventListener("click",m)}o()}async function SM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading payment transactions...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminPayments()).payments,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getAdminPayments()).payments,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8411,7 +8411,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading refund requests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getAdminRefunds()).refunds,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getAdminRefunds()).refunds,d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8428,36 +8428,36 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.map(r=>`
+              ${e.map(n=>`
                 <tr>
                   <td>
-                    <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.refund_code}</span>
+                    <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.refund_code}</span>
                   </td>
                   <td>
-                    <div style="font-weight: 700; font-family: monospace;">${r.booking_code}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.hotel_name}</div>
+                    <div style="font-weight: 700; font-family: monospace;">${n.booking_code}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.hotel_name}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 600;">${r.customer_name}</div>
+                    <div style="font-weight: 600;">${n.customer_name}</div>
                     <div style="font-size: 0.72rem; color: var(--text-muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                      "${r.reason}"
+                      "${n.reason}"
                     </div>
                   </td>
                   <td>
-                    <div style="font-size: 0.82rem;">₹${r.booking_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-size: 0.82rem;">₹${n.booking_amount.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <div style="font-size: 0.78rem; color: var(--status-danger);">- ₹${r.fee_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-size: 0.78rem; color: var(--status-danger);">- ₹${n.fee_amount.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <div style="font-weight: 700; color: var(--status-success); font-size: 0.95rem;">₹${r.refund_amount.toLocaleString("en-IN")}</div>
+                    <div style="font-weight: 700; color: var(--status-success); font-size: 0.95rem;">₹${n.refund_amount.toLocaleString("en-IN")}</div>
                   </td>
                   <td>
-                    <span class="status-pill ${r.status}">${r.status}</span>
+                    <span class="status-pill ${n.status}">${n.status}</span>
                   </td>
                   <td>
-                    ${r.status==="pending"?`
-                      <button class="btn btn-primary btn-sm btn-process-refund" data-refund-id="${r.id}">
+                    ${n.status==="pending"?`
+                      <button class="btn btn-primary btn-sm btn-process-refund" data-refund-id="${n.id}">
                         Process Refund
                       </button>
                     `:`
@@ -8472,7 +8472,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="refund-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-process-refund").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-refund-id");n(c)})})}function n(r){var h,m,y,u;const c=e.find(l=>l.id===r);if(!c)return;const s=i.querySelector("#refund-modal-root");s.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-process-refund").forEach(n=>{n.addEventListener("click",()=>{const c=n.getAttribute("data-refund-id");r(c)})})}function r(n){var l,m,y,u;const c=e.find(h=>h.id===n);if(!c)return;const s=i.querySelector("#refund-modal-root");s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px;">
           <div class="modal-header">
@@ -8517,12 +8517,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#modal-approve-refund"))==null||y.addEventListener("click",async()=>{const l=s.querySelector("#refund-admin-notes").value||"Approved under cancellation policy.";await x.processRefund(r,"approved",l),window.showToast(`Refund of ₹${c.refund_amount.toLocaleString("en-IN")} approved successfully.`,"success"),p(),a()}),(u=s.querySelector("#modal-reject-refund"))==null||u.addEventListener("click",async()=>{const l=s.querySelector("#refund-admin-notes").value||"Refund rejected.";await x.processRefund(r,"rejected",l),window.showToast("Refund rejected.","error"),p(),a()})}a()}async function CM(i){let e=null;async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(l=s.querySelector("#modal-close"))==null||l.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#modal-approve-refund"))==null||y.addEventListener("click",async()=>{const h=s.querySelector("#refund-admin-notes").value||"Approved under cancellation policy.";await f.processRefund(n,"approved",h),window.showToast(`Refund of ₹${c.refund_amount.toLocaleString("en-IN")} approved successfully.`,"success"),p(),a()}),(u=s.querySelector("#modal-reject-refund"))==null||u.addEventListener("click",async()=>{const h=s.querySelector("#refund-admin-notes").value||"Refund rejected.";await f.processRefund(n,"rejected",h),window.showToast("Refund rejected.","error"),p(),a()})}a()}async function CM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading commission ledger...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=await x.getCommissionLedger(),d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=await f.getCommissionLedger(),d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
       <!-- Top Overview Metrics -->
       <div class="metrics-grid">
         <div class="metric-card">
@@ -8600,28 +8600,28 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.ledger.map(n=>`
+              ${e.ledger.map(r=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span></td>
-                  <td><div style="font-weight: 600;">${n.hotel_name}</div></td>
-                  <td>${n.customer_name}</td>
-                  <td style="font-weight: 700;">₹${n.total_amount.toLocaleString("en-IN")}</td>
-                  <td><span style="font-weight: 600; color: var(--status-warning);">${n.commission_rate}%</span></td>
-                  <td style="font-weight: 700; color: var(--status-success);">+ ₹${n.commission_amount.toLocaleString("en-IN")}</td>
-                  <td style="font-weight: 600;">₹${n.owner_payout.toLocaleString("en-IN")}</td>
-                  <td><span class="status-pill ${n.payment_status}">${n.payment_status}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.booking_code}</span></td>
+                  <td><div style="font-weight: 600;">${r.hotel_name}</div></td>
+                  <td>${r.customer_name}</td>
+                  <td style="font-weight: 700;">₹${r.total_amount.toLocaleString("en-IN")}</td>
+                  <td><span style="font-weight: 600; color: var(--status-warning);">${r.commission_rate}%</span></td>
+                  <td style="font-weight: 700; color: var(--status-success);">+ ₹${r.commission_amount.toLocaleString("en-IN")}</td>
+                  <td style="font-weight: 600;">₹${r.owner_payout.toLocaleString("en-IN")}</td>
+                  <td><span class="status-pill ${r.payment_status}">${r.payment_status}</span></td>
                 </tr>
               `).join("")}
             </tbody>
           </table>
         </div>
       </div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var n;(n=i.querySelector("#btn-save-commission-rate"))==null||n.addEventListener("click",async()=>{const r=Number(i.querySelector("#input-commission-rate").value);try{await x.updateCommissionRate(r),window.showToast(`Platform Commission Rate set to ${r}%.`,"success"),a()}catch(c){window.showToast(c.message,"error")}})}a()}async function AM(i){i.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var r;(r=i.querySelector("#btn-save-commission-rate"))==null||r.addEventListener("click",async()=>{const n=Number(i.querySelector("#input-commission-rate").value);try{await f.updateCommissionRate(n),window.showToast(`Platform Commission Rate set to ${n}%.`,"success"),a()}catch(c){window.showToast(c.message,"error")}})}a()}async function AM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading customer accounts...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const a=(await x.getAdminBookings()).bookings,d={};a.forEach(n=>{d[n.customer_email]||(d[n.customer_email]={name:n.customer_name,email:n.customer_email,phone:n.customer_phone,bookings_count:0,total_spent:0,last_booking_date:n.created_at}),d[n.customer_email].bookings_count+=1,d[n.customer_email].total_spent+=n.total_amount||0});const o=Object.values(d);i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const a=(await f.getAdminBookings()).bookings,d={};a.forEach(r=>{d[r.customer_email]||(d[r.customer_email]={name:r.customer_name,email:r.customer_email,phone:r.customer_phone,bookings_count:0,total_spent:0,last_booking_date:r.created_at}),d[r.customer_email].bookings_count+=1,d[r.customer_email].total_spent+=r.total_amount||0});const o=Object.values(d);i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8636,14 +8636,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${o.map(n=>`
+              ${o.map(r=>`
                 <tr>
-                  <td><div style="font-weight: 700;">${n.name}</div></td>
-                  <td>${n.email}</td>
-                  <td>${n.phone||"N/A"}</td>
-                  <td><span style="font-weight: 600;">${n.bookings_count} bookings</span></td>
-                  <td style="font-weight: 700; color: var(--color-primary);">₹${n.total_spent.toLocaleString("en-IN")}</td>
-                  <td><div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(n.last_booking_date).toLocaleDateString()}</div></td>
+                  <td><div style="font-weight: 700;">${r.name}</div></td>
+                  <td>${r.email}</td>
+                  <td>${r.phone||"N/A"}</td>
+                  <td><span style="font-weight: 600;">${r.bookings_count} bookings</span></td>
+                  <td style="font-weight: 700; color: var(--color-primary);">₹${r.total_spent.toLocaleString("en-IN")}</td>
+                  <td><div style="font-size: 0.78rem; color: var(--text-secondary);">${new Date(r.last_booking_date).toLocaleDateString()}</div></td>
                 </tr>
               `).join("")}
             </tbody>
@@ -8655,7 +8655,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading support desk tickets...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getSupportTickets()).tickets,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getSupportTickets()).tickets,d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
           <table class="commercial-table">
@@ -8671,31 +8671,31 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${e.map(r=>`
+              ${e.map(n=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.ticket_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.ticket_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${r.user_name} (${r.user_role})</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.user_email}</div>
-                    ${r.booking_code?`<div style="font-size: 0.7rem; font-family: monospace; color: var(--color-primary);">Ref: ${r.booking_code}</div>`:""}
+                    <div style="font-weight: 600;">${n.user_name} (${n.user_role})</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.user_email}</div>
+                    ${n.booking_code?`<div style="font-size: 0.7rem; font-family: monospace; color: var(--color-primary);">Ref: ${n.booking_code}</div>`:""}
                   </td>
                   <td>
-                    <div style="font-weight: 600; max-width: 240px;">${r.subject}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.category}</div>
+                    <div style="font-weight: 600; max-width: 240px;">${n.subject}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.category}</div>
                   </td>
                   <td>
-                    <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-xs); ${r.priority==="high"?"background: var(--status-danger-bg); color: var(--status-danger);":r.priority==="medium"?"background: var(--status-warning-bg); color: var(--status-warning);":"background: var(--status-info-bg); color: var(--status-info);"}">
-                      ${r.priority}
+                    <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-xs); ${n.priority==="high"?"background: var(--status-danger-bg); color: var(--status-danger);":n.priority==="medium"?"background: var(--status-warning-bg); color: var(--status-warning);":"background: var(--status-info-bg); color: var(--status-info);"}">
+                      ${n.priority}
                     </span>
                   </td>
                   <td>
-                    <span class="status-pill ${r.status}">${r.status.replace("_"," ")}</span>
+                    <span class="status-pill ${n.status}">${n.status.replace("_"," ")}</span>
                   </td>
                   <td>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${new Date(r.created_at).toLocaleDateString()}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${new Date(n.created_at).toLocaleDateString()}</div>
                   </td>
                   <td>
-                    <button class="btn btn-primary btn-sm btn-open-ticket" data-ticket-id="${r.id}">
+                    <button class="btn btn-primary btn-sm btn-open-ticket" data-ticket-id="${n.id}">
                       <i data-lucide="message-square"></i> Open Thread
                     </button>
                   </td>
@@ -8707,7 +8707,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="support-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-open-ticket").forEach(r=>{r.addEventListener("click",()=>{const c=r.getAttribute("data-ticket-id");n(c)})})}function n(r){var h,m,y,u;const c=e.find(l=>l.id===r);if(!c)return;const s=i.querySelector("#support-modal-root");s.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-open-ticket").forEach(n=>{n.addEventListener("click",()=>{const c=n.getAttribute("data-ticket-id");r(c)})})}function r(n){var l,m,y,u;const c=e.find(h=>h.id===n);if(!c)return;const s=i.querySelector("#support-modal-root");s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 620px;">
           <div class="modal-header">
@@ -8726,10 +8726,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
             <!-- Messages Stream -->
             <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding: 6px; margin-bottom: 14px;">
-              ${c.messages.map(l=>`
-                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${l.sender==="admin"?"align-self: flex-end; background: var(--color-primary); color: #fff;":"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);"}">
-                  <div>${l.text}</div>
-                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${l.sender==="admin"?"🛡️ Administrator":"👤 Customer"} • ${l.time}</span>
+              ${c.messages.map(h=>`
+                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${h.sender==="admin"?"align-self: flex-end; background: var(--color-primary); color: #fff;":"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);"}">
+                  <div>${h.text}</div>
+                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${h.sender==="admin"?"🛡️ Administrator":"👤 Customer"} • ${h.time}</span>
                 </div>
               `).join("")}
             </div>
@@ -8752,12 +8752,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(h=s.querySelector("#modal-close"))==null||h.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#btn-send-reply"))==null||y.addEventListener("click",async()=>{const l=s.querySelector("#reply-input"),v=l?l.value.trim():"";if(v)try{await x.replySupportTicket(r,v),window.showToast("Reply dispatched to ticket.","success"),e=(await x.getSupportTickets()).tickets||[],n(r)}catch(g){window.showToast(g.message||"Failed to dispatch reply.","error")}}),(u=s.querySelector("#btn-resolve-ticket"))==null||u.addEventListener("click",async()=>{try{await x.updateTicketStatus(r,"resolved"),window.showToast("Ticket marked as RESOLVED.","success"),p(),a()}catch(l){window.showToast(l.message||"Failed to update ticket status.","error")}})}a()}async function $M(i){let e="daily",a=[],d=[];async function o(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const p=()=>{s.innerHTML=""};(l=s.querySelector("#modal-close"))==null||l.addEventListener("click",p),(m=s.querySelector("#modal-close-action"))==null||m.addEventListener("click",p),(y=s.querySelector("#btn-send-reply"))==null||y.addEventListener("click",async()=>{const h=s.querySelector("#reply-input"),v=h?h.value.trim():"";if(v)try{await f.replySupportTicket(n,v),window.showToast("Reply dispatched to ticket.","success"),e=(await f.getSupportTickets()).tickets||[],r(n)}catch(g){window.showToast(g.message||"Failed to dispatch reply.","error")}}),(u=s.querySelector("#btn-resolve-ticket"))==null||u.addEventListener("click",async()=>{try{await f.updateTicketStatus(n,"resolved"),window.showToast("Ticket marked as RESOLVED.","success"),p(),a()}catch(h){window.showToast(h.message||"Failed to update ticket status.","error")}})}a()}async function $M(i){let e="daily",a=[],d=[];async function o(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading financial statements...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{const[c,s]=await Promise.all([x.getDailyReport(),x.getMonthlyReport()]);a=c.daily_report,d=s.monthly_report,n()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function n(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{const[c,s]=await Promise.all([f.getDailyReport(),f.getMonthlyReport()]);a=c.daily_report,d=s.monthly_report,r()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function r(){i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
           <div style="background: var(--bg-surface-secondary); padding: 3px; border-radius: var(--radius-sm); display: flex;">
@@ -8816,14 +8816,88 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,r(),window.lucide&&window.lucide.createIcons()}function r(){var c,s,p;(c=i.querySelector("#tab-daily"))==null||c.addEventListener("click",()=>{e="daily",n()}),(s=i.querySelector("#tab-monthly"))==null||s.addEventListener("click",()=>{e="monthly",n()}),(p=i.querySelector("#btn-export-csv"))==null||p.addEventListener("click",()=>{const h=e==="daily",m=[h?"Date":"Month","Bookings Count","Gross Volume","Platform Commission","Owner Payout","Refunds"],y=h?a.map(g=>[g.date,g.bookings_count,g.gross_amount,g.commission_earned,g.owner_payout,g.refunds_amount]):d.map(g=>[g.month,g.bookings_count,g.gross_amount,g.commission_earned,g.owner_payout,g.refunds_amount]),u="data:text/csv;charset=utf-8,"+[m.join(","),...y.map(g=>g.join(","))].join(`
-`),l=encodeURI(u),v=document.createElement("a");v.setAttribute("href",l),v.setAttribute("download",`hotelhub_${e}_report_${new Date().toISOString().slice(0,10)}.csv`),document.body.appendChild(v),v.click(),document.body.removeChild(v),window.showToast("Financial CSV report exported successfully.","success")})}o()}async function VM(i){let e=null;async function a(){i.innerHTML=`
+    `,n(),window.lucide&&window.lucide.createIcons()}function n(){var c,s,p;(c=i.querySelector("#tab-daily"))==null||c.addEventListener("click",()=>{e="daily",r()}),(s=i.querySelector("#tab-monthly"))==null||s.addEventListener("click",()=>{e="monthly",r()}),(p=i.querySelector("#btn-export-csv"))==null||p.addEventListener("click",()=>{const l=e==="daily",m=[l?"Date":"Month","Bookings Count","Gross Volume","Platform Commission","Owner Payout","Refunds"],y=l?a.map(g=>[g.date,g.bookings_count,g.gross_amount,g.commission_earned,g.owner_payout,g.refunds_amount]):d.map(g=>[g.month,g.bookings_count,g.gross_amount,g.commission_earned,g.owner_payout,g.refunds_amount]),u="data:text/csv;charset=utf-8,"+[m.join(","),...y.map(g=>g.join(","))].join(`
+`),h=encodeURI(u),v=document.createElement("a");v.setAttribute("href",h),v.setAttribute("download",`hotelhub_${e}_report_${new Date().toISOString().slice(0,10)}.csv`),document.body.appendChild(v),v.click(),document.body.removeChild(v),window.showToast("Financial CSV report exported successfully.","success")})}o()}async function VM(i){var s;let e=null,a=null;const d=((s=f.currentUser)==null?void 0:s.role)==="super_admin";async function o(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading settings...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getSettings()).settings,d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
-      <div style="max-width: 720px;">
+    `,window.lucide&&window.lucide.createIcons();try{const[p,l]=await Promise.all([f.getSettings(),f.getHomeHero().catch(()=>({image_url:null}))]);e=p.settings,a=l.image_url||e.home_hero_bg_image||null,r()}catch(p){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${p.message}</div>`}}function r(){var p;i.innerHTML=`
+      <div style="max-width: 760px; display: flex; flex-direction: column; gap: 24px;">
+        <!-- Super Admin Home Hero Background Management Card -->
+        <div class="panel-card" id="hero-settings-card">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+            <div class="card-title-group">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h2 style="margin: 0;">Customer App Home Hero Background</h2>
+                <span class="badge ${d?"badge-primary":"badge-warning"}" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; font-weight: 600;">
+                  ${d?"Super Admin Only":"Restricted (Super Admin)"}
+                </span>
+              </div>
+              <p style="margin-top: 4px; color: var(--text-muted); font-size: 0.85rem;">
+                Hero background image displayed behind "Find Your Perfect Stay" on the customer mobile app home screen.
+              </p>
+            </div>
+          </div>
+
+          ${d?"":`
+            <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: var(--radius-md); padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; gap: 10px; color: #b45309; font-size: 0.85rem;">
+              <i data-lucide="shield-alert" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+              <span>You are logged in as <strong>${((p=f.currentUser)==null?void 0:p.role)||"admin"}</strong>. Only <strong>Super Admin</strong> can upload, replace, or remove the customer app home hero background.</span>
+            </div>
+          `}
+
+          <div style="margin-top: 18px;">
+            <input type="file" id="hero-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;" ${d?"":"disabled"}>
+
+            <div class="upload-dropzone ${a?"has-preview":""}" id="hero-dropzone" style="${d?"":"cursor: not-allowed; opacity: 0.7;"}">
+              ${a?`
+                <div class="upload-preview-wrapper" style="position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; max-height: 260px;">
+                  <img src="${a}" alt="Customer App Hero Background" id="hero-preview-img" style="width: 100%; height: 240px; object-fit: cover; display: block; border-radius: var(--radius-md);" />
+                  <div class="upload-preview-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity 0.2s ease;">
+                    ${d?`
+                      <button type="button" class="btn btn-secondary btn-sm" id="btn-change-hero" style="color: #fff; border-color: rgba(255,255,255,0.6); background: rgba(0,0,0,0.4);">
+                        <i data-lucide="camera" style="width: 14px; height: 14px;"></i> Change Photo
+                      </button>
+                      <button type="button" class="btn btn-danger btn-sm" id="btn-remove-hero" style="background: #dc2626; border-color: #dc2626; color: #fff;">
+                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Remove Photo
+                      </button>
+                    `:""}
+                  </div>
+                </div>
+              `:`
+                <div class="upload-dropzone-content" id="hero-empty-content">
+                  <div class="upload-dropzone-icon">
+                    <i data-lucide="image" style="width: 28px; height: 28px;"></i>
+                  </div>
+                  <div class="upload-dropzone-text" style="font-weight: 600; margin-top: 8px;">Drag & drop home hero background image here</div>
+                  <div class="upload-dropzone-subtext" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Supports JPG, JPEG, PNG, and WebP (Max 5 MB)</div>
+                  ${d?`
+                    <button type="button" class="upload-btn-trigger" id="btn-upload-hero-trigger">
+                      <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Hero Image
+                    </button>
+                  `:""}
+                </div>
+              `}
+            </div>
+
+            <!-- Upload Progress Bar -->
+            <div class="upload-progress-container" id="hero-progress-box" style="display: none; margin-top: 12px;">
+              <div class="upload-progress-info" style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+                <span id="hero-progress-label">Uploading to Cloudinary...</span>
+                <span id="hero-progress-percent" style="font-weight: 600;">0%</span>
+              </div>
+              <div class="upload-progress-bar-bg" style="width: 100%; height: 6px; background: var(--bg-surface-secondary); border-radius: 999px; overflow: hidden;">
+                <div class="upload-progress-bar-fill" id="hero-progress-fill" style="width: 0%; height: 100%; background: var(--color-primary); transition: width 0.2s ease;"></div>
+              </div>
+            </div>
+
+            <!-- Status / Alert Message Container -->
+            <div id="hero-status-box" style="display: none; margin-top: 12px; font-size: 0.85rem; padding: 10px 14px; border-radius: var(--radius-sm); align-items: center; gap: 8px;"></div>
+          </div>
+        </div>
+
+        <!-- Platform & App Configurations Form -->
         <div class="panel-card">
           <div class="card-header">
             <div class="card-title-group">
@@ -8883,7 +8957,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var n;(n=i.querySelector("#settings-form"))==null||n.addEventListener("submit",async r=>{r.preventDefault();const c={app_mode:i.querySelector("#setting-app-mode").value,payment_mode:i.querySelector("#setting-payment-mode").value,commission_rate:Number(i.querySelector("#setting-commission-rate").value),cancel_fee_pct:Number(i.querySelector("#setting-cancel-fee").value),support_email:i.querySelector("#setting-support-email").value,support_phone:i.querySelector("#setting-support-phone").value};try{await x.updateSettings(c),window.showToast("Platform configurations saved successfully.","success"),a()}catch(s){window.showToast(s.message,"error")}})}a()}async function _M(i){i.innerHTML=`
+    `,c(),n(),window.lucide&&window.lucide.createIcons()}function n(){const p=i.querySelector("#hero-file-input"),l=i.querySelector("#hero-dropzone"),m=i.querySelector("#hero-progress-box"),y=i.querySelector("#hero-progress-fill"),u=i.querySelector("#hero-progress-percent"),h=i.querySelector("#hero-progress-label"),v=i.querySelector("#hero-status-box");function g(x,H="info"){v&&(v.style.display="flex",H==="error"?(v.style.background="rgba(239, 68, 68, 0.1)",v.style.color="#dc2626",v.style.border="1px solid rgba(239, 68, 68, 0.25)"):H==="success"?(v.style.background="rgba(34, 197, 94, 0.1)",v.style.color="#16a34a",v.style.border="1px solid rgba(34, 197, 94, 0.25)"):(v.style.background="var(--bg-surface-secondary)",v.style.color="var(--text-main)",v.style.border="1px solid var(--border-light)"),v.innerHTML=`
+        <i data-lucide="${H==="error"?"alert-triangle":H==="success"?"check-circle-2":"info"}" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>${x}</span>
+      `,window.lucide&&window.lucide.createIcons())}function w(){v&&(v.style.display="none",v.innerHTML="")}if(!d||!l)return;const S=l.querySelector("#btn-upload-hero-trigger");S&&(S.onclick=x=>{x.stopPropagation(),p==null||p.click()});const k=l.querySelector("#btn-change-hero");k&&(k.onclick=x=>{x.stopPropagation(),p==null||p.click()});const M=l.querySelector("#btn-remove-hero");M&&(M.onclick=async x=>{var H;if(x.stopPropagation(),!!confirm("Are you sure you want to remove the customer app home hero background image?"))try{await f.removeHomeHero(),a=null,g("Hero background image removed successfully.","success"),(H=window.showToast)==null||H.call(window,"Hero image removed.","success"),setTimeout(()=>r(),800)}catch(V){g(V.message||"Failed to remove hero image.","error")}}),l.onclick=()=>{!l.classList.contains("has-preview")&&p&&p.click()},l.ondragover=x=>{x.preventDefault(),x.stopPropagation(),l.classList.add("drag-over")},l.ondragleave=x=>{x.preventDefault(),x.stopPropagation(),l.classList.remove("drag-over")},l.ondrop=x=>{var H,V;x.preventDefault(),x.stopPropagation(),l.classList.remove("drag-over"),(V=(H=x.dataTransfer)==null?void 0:H.files)!=null&&V.length&&b(x.dataTransfer.files[0])},p==null||p.addEventListener("change",x=>{var H;(H=x.target.files)!=null&&H.length&&b(x.target.files[0])});async function b(x){var C;if(!x)return;const H=["image/jpeg","image/jpg","image/png","image/webp"],V=x.name?x.name.split(".").pop().toLowerCase():"",P=["jpg","jpeg","png","webp"],q=H.includes((x.type||"").toLowerCase()),E=P.includes(V);if(!q&&!E){g("Invalid file format. Please upload a JPG, JPEG, PNG, or WebP image.","error");return}const R=5*1024*1024;if(x.size>R){g(`File size exceeds 5 MB limit (${(x.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}w(),m.style.display="block",y.style.width="0%",u.textContent="0%",h.textContent=`Uploading ${x.name} to Cloudinary...`;try{const L=await f.uploadHeroImage(x,z=>{y.style.width=`${z}%`,u.textContent=`${z}%`});a=L.secure_url||L.url,g("Home hero background uploaded and saved successfully!","success"),(C=window.showToast)==null||C.call(window,"Hero background updated successfully.","success"),setTimeout(()=>r(),800)}catch(L){console.error("Hero background upload failed:",L),g(L.message||"Hero background upload failed. Please verify Cloudinary configuration.","error")}finally{m.style.display="none",p&&(p.value="")}}}function c(){var p;(p=i.querySelector("#settings-form"))==null||p.addEventListener("submit",async l=>{l.preventDefault();const m={app_mode:i.querySelector("#setting-app-mode").value,payment_mode:i.querySelector("#setting-payment-mode").value,commission_rate:Number(i.querySelector("#setting-commission-rate").value),cancel_fee_pct:Number(i.querySelector("#setting-cancel-fee").value),support_email:i.querySelector("#setting-support-email").value,support_phone:i.querySelector("#setting-support-phone").value};try{await f.updateSettings(m),window.showToast("Platform configurations saved successfully.","success"),o()}catch(y){window.showToast(y.message,"error")}})}o()}async function _M(i){i.innerHTML=`
     <div style="display: flex; flex-direction: column; gap: 1.75rem;">
       
       <!-- Top Action Bar -->
@@ -8981,73 +9058,73 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </form>
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("admin-users-table-body"),a=document.getElementById("users-action-alert"),d=document.getElementById("audit-logs-container");async function o(){try{const[r,c]=await Promise.all([x.getAdminUsers(),x.getAuditLogs()]),s=r.users,p=c.logs;s.length===0?e.innerHTML='<tr><td colspan="7" style="text-align: center; padding: 2rem;">No administrator accounts found.</td></tr>':e.innerHTML=s.map(h=>{const m={super_admin:"background: #0B192C; color: #C5A880; font-weight: 700;",admin:"background: rgba(59, 130, 246, 0.15); color: #1D4ED8;",finance_admin:"background: rgba(16, 185, 129, 0.15); color: #065F46;",support_admin:"background: rgba(245, 158, 11, 0.15); color: #92400E;",hotel_admin:"background: rgba(139, 92, 246, 0.15); color: #5B21B6;"}[h.role]||"background: var(--bg-surface-secondary); color: var(--text-secondary);",y={active:'<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #065F46;">Active</span>',suspended:'<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #991B1B;">Suspended</span>',inactive:'<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">Inactive</span>',pending:'<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #92400E;">Pending</span>'}[h.status]||`<span class="badge">${h.status}</span>`,u=h.permissions?h.permissions.length:0;return`
+  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("admin-users-table-body"),a=document.getElementById("users-action-alert"),d=document.getElementById("audit-logs-container");async function o(){try{const[n,c]=await Promise.all([f.getAdminUsers(),f.getAuditLogs()]),s=n.users,p=c.logs;s.length===0?e.innerHTML='<tr><td colspan="7" style="text-align: center; padding: 2rem;">No administrator accounts found.</td></tr>':e.innerHTML=s.map(l=>{const m={super_admin:"background: #0B192C; color: #C5A880; font-weight: 700;",admin:"background: rgba(59, 130, 246, 0.15); color: #1D4ED8;",finance_admin:"background: rgba(16, 185, 129, 0.15); color: #065F46;",support_admin:"background: rgba(245, 158, 11, 0.15); color: #92400E;",hotel_admin:"background: rgba(139, 92, 246, 0.15); color: #5B21B6;"}[l.role]||"background: var(--bg-surface-secondary); color: var(--text-secondary);",y={active:'<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #065F46;">Active</span>',suspended:'<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #991B1B;">Suspended</span>',inactive:'<span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #475569;">Inactive</span>',pending:'<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #92400E;">Pending</span>'}[l.status]||`<span class="badge">${l.status}</span>`,u=l.permissions?l.permissions.length:0;return`
             <tr>
               <td>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                   <div style="width: 36px; height: 36px; border-radius: var(--radius-full); background: #0B192C; color: #C5A880; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
-                    ${h.name.split(" ").map(l=>l[0]).join("").slice(0,2).toUpperCase()}
+                    ${l.name.split(" ").map(h=>h[0]).join("").slice(0,2).toUpperCase()}
                   </div>
                   <div>
-                    <div style="font-weight: 600; color: var(--text-primary); font-size: 0.88rem;">${h.name}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">${h.email}</div>
+                    <div style="font-weight: 600; color: var(--text-primary); font-size: 0.88rem;">${l.name}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${l.email}</div>
                   </div>
                 </div>
               </td>
               <td>
                 <span class="badge" style="${m}; font-size: 0.75rem; text-transform: uppercase;">
-                  ${h.role.replace("_"," ")}
+                  ${l.role.replace("_"," ")}
                 </span>
               </td>
               <td>${y}</td>
               <td>
                 <span style="font-size: 0.8rem; color: var(--text-secondary);">
-                  ${h.role==="super_admin"?"Full Authority (All)":`${u} permissions`}
+                  ${l.role==="super_admin"?"Full Authority (All)":`${u} permissions`}
                 </span>
               </td>
               <td style="font-size: 0.8rem; color: var(--text-muted);">
-                ${h.lastLoginAt?new Date(h.lastLoginAt).toLocaleDateString():"Never"}
+                ${l.lastLoginAt?new Date(l.lastLoginAt).toLocaleDateString():"Never"}
               </td>
               <td style="font-size: 0.8rem; color: var(--text-muted);">
-                ${new Date(h.created_at||Date.now()).toLocaleDateString()}
+                ${new Date(l.created_at||Date.now()).toLocaleDateString()}
               </td>
               <td style="text-align: right;">
                 <div style="display: inline-flex; gap: 6px;">
-                  <button class="btn btn-secondary btn-sm" onclick="window.openRoleModal('${h.id}', '${h.name}', '${h.role}')" title="Change Role" style="padding: 4px 8px; font-size: 0.75rem;">
+                  <button class="btn btn-secondary btn-sm" onclick="window.openRoleModal('${l.id}', '${l.name}', '${l.role}')" title="Change Role" style="padding: 4px 8px; font-size: 0.75rem;">
                     <i data-lucide="shield" style="width: 13px; height: 13px;"></i>
                     <span>Role</span>
                   </button>
                   
-                  ${h.status==="active"?`
-                    <button class="btn btn-secondary btn-sm" onclick="window.toggleAdminStatus('${h.id}', 'suspended', '${h.name}')" title="Suspend Admin" style="padding: 4px 8px; font-size: 0.75rem; color: #DC2626;">
+                  ${l.status==="active"?`
+                    <button class="btn btn-secondary btn-sm" onclick="window.toggleAdminStatus('${l.id}', 'suspended', '${l.name}')" title="Suspend Admin" style="padding: 4px 8px; font-size: 0.75rem; color: #DC2626;">
                       <i data-lucide="ban" style="width: 13px; height: 13px;"></i>
                       <span>Suspend</span>
                     </button>
                   `:`
-                    <button class="btn btn-secondary btn-sm" onclick="window.toggleAdminStatus('${h.id}', 'active', '${h.name}')" title="Activate Admin" style="padding: 4px 8px; font-size: 0.75rem; color: #16A34A;">
+                    <button class="btn btn-secondary btn-sm" onclick="window.toggleAdminStatus('${l.id}', 'active', '${l.name}')" title="Activate Admin" style="padding: 4px 8px; font-size: 0.75rem; color: #16A34A;">
                       <i data-lucide="check-circle" style="width: 13px; height: 13px;"></i>
                       <span>Activate</span>
                     </button>
                   `}
 
-                  <button class="btn btn-secondary btn-sm" onclick="window.deleteAdmin('${h.id}', '${h.name}')" title="Delete Account" style="padding: 4px 8px; font-size: 0.75rem; color: #DC2626;">
+                  <button class="btn btn-secondary btn-sm" onclick="window.deleteAdmin('${l.id}', '${l.name}')" title="Delete Account" style="padding: 4px 8px; font-size: 0.75rem; color: #DC2626;">
                     <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
                   </button>
                 </div>
               </td>
             </tr>
-          `}).join(""),p.length===0?d.innerHTML='<div style="font-size: 0.8rem; color: var(--text-muted); padding: 0.5rem 0;">No recorded audit events yet.</div>':d.innerHTML=p.slice(0,5).map(h=>`
+          `}).join(""),p.length===0?d.innerHTML='<div style="font-size: 0.8rem; color: var(--text-muted); padding: 0.5rem 0;">No recorded audit events yet.</div>':d.innerHTML=p.slice(0,5).map(l=>`
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--bg-surface-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 0.8rem;">
             <div style="display: flex; align-items: center; gap: 0.6rem;">
-              <span class="badge" style="background: rgba(11, 25, 44, 0.1); color: #0B192C; font-family: monospace; font-size: 0.7rem;">${h.action}</span>
-              <span style="color: var(--text-primary); font-weight: 500;">${h.details}</span>
+              <span class="badge" style="background: rgba(11, 25, 44, 0.1); color: #0B192C; font-family: monospace; font-size: 0.7rem;">${l.action}</span>
+              <span style="color: var(--text-primary); font-weight: 500;">${l.details}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 1rem; color: var(--text-muted); font-size: 0.75rem;">
-              <span>By <strong>${h.admin_name}</strong> (${h.admin_role})</span>
-              <span>${new Date(h.timestamp).toLocaleTimeString()}</span>
+              <span>By <strong>${l.admin_name}</strong> (${l.admin_role})</span>
+              <span>${new Date(l.timestamp).toLocaleTimeString()}</span>
             </div>
           </div>
-        `).join(""),window.lucide&&window.lucide.createIcons()}catch(r){e.innerHTML=`<tr><td colspan="7" style="text-align: center; color: #DC2626; padding: 2rem;">${r.message||"Error loading administrators"}</td></tr>`}}window.openRoleModal=(r,c,s)=>{document.getElementById("modal-target-admin-id").value=r,document.getElementById("role-modal-target-info").textContent=`Modifying role permissions for ${c}`,document.getElementById("modal-select-role").value=s,document.getElementById("edit-role-modal").style.display="flex"};const n=()=>{document.getElementById("edit-role-modal").style.display="none"};document.getElementById("btn-close-role-modal").addEventListener("click",n),document.getElementById("btn-cancel-role-modal").addEventListener("click",n),document.getElementById("edit-role-form").addEventListener("submit",async r=>{r.preventDefault();const c=document.getElementById("modal-target-admin-id").value,s=document.getElementById("modal-select-role").value;try{await x.updateAdminUserRole(c,s),n(),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin role updated to ${s} successfully.`,o(),setTimeout(()=>{a.style.display="none"},3e3)}catch(p){alert(p.message||"Failed to update role")}}),window.toggleAdminStatus=async(r,c,s)=>{if(confirm(`Are you sure you want to ${c==="suspended"?"suspend":"activate"} administrator '${s}'?`))try{await x.updateAdminUserStatus(r,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin status updated to ${c}.`,o(),setTimeout(()=>{a.style.display="none"},3e3)}catch(h){alert(h.message||"Failed to change status")}},window.deleteAdmin=async(r,c)=>{if(confirm(`CAUTION: Permanently delete administrator '${c}'? This action cannot be undone.`))try{await x.deleteAdminUser(r),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${c}' deleted successfully.`,o(),setTimeout(()=>{a.style.display="none"},3e3)}catch(s){alert(s.message||"Failed to delete administrator")}},o()}function TM(i){i.innerHTML=`
+        `).join(""),window.lucide&&window.lucide.createIcons()}catch(n){e.innerHTML=`<tr><td colspan="7" style="text-align: center; color: #DC2626; padding: 2rem;">${n.message||"Error loading administrators"}</td></tr>`}}window.openRoleModal=(n,c,s)=>{document.getElementById("modal-target-admin-id").value=n,document.getElementById("role-modal-target-info").textContent=`Modifying role permissions for ${c}`,document.getElementById("modal-select-role").value=s,document.getElementById("edit-role-modal").style.display="flex"};const r=()=>{document.getElementById("edit-role-modal").style.display="none"};document.getElementById("btn-close-role-modal").addEventListener("click",r),document.getElementById("btn-cancel-role-modal").addEventListener("click",r),document.getElementById("edit-role-form").addEventListener("submit",async n=>{n.preventDefault();const c=document.getElementById("modal-target-admin-id").value,s=document.getElementById("modal-select-role").value;try{await f.updateAdminUserRole(c,s),r(),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin role updated to ${s} successfully.`,o(),setTimeout(()=>{a.style.display="none"},3e3)}catch(p){alert(p.message||"Failed to update role")}}),window.toggleAdminStatus=async(n,c,s)=>{if(confirm(`Are you sure you want to ${c==="suspended"?"suspend":"activate"} administrator '${s}'?`))try{await f.updateAdminUserStatus(n,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Admin status updated to ${c}.`,o(),setTimeout(()=>{a.style.display="none"},3e3)}catch(l){alert(l.message||"Failed to change status")}},window.deleteAdmin=async(n,c)=>{if(confirm(`CAUTION: Permanently delete administrator '${c}'? This action cannot be undone.`))try{await f.deleteAdminUser(n),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${c}' deleted successfully.`,o(),setTimeout(()=>{a.style.display="none"},3e3)}catch(s){alert(s.message||"Failed to delete administrator")}},o()}function PM(i){i.innerHTML=`
     <div style="display: flex; justify-content: center; padding: 2rem 0;">
       <div style="width: 100%; max-width: 740px; display: flex; flex-direction: column; gap: 1.5rem;">
         
@@ -9191,7 +9268,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("create-admin-form"),a=document.getElementById("create-admin-alert"),d=document.getElementById("btn-submit-create");e.addEventListener("submit",async o=>{o.preventDefault();const n=document.getElementById("admin-name").value.trim(),r=document.getElementById("admin-email").value.trim(),c=document.getElementById("admin-phone").value.trim(),s=document.getElementById("admin-password").value,p=document.getElementById("admin-role-select").value,h=document.getElementById("admin-status-select").value,m=Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(y=>y.value);d.disabled=!0,d.innerHTML="<span>Creating...</span>",a.style.display="none";try{await x.adminCreate({name:n,email:r,phone:c,password:s,role:p,status:h,permissions:m}),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${n}' created successfully! Redirecting...`,setTimeout(()=>{window.navigateTo?window.navigateTo("/admin/admins"):window.location.hash="#/admin/admins"},1200)}catch(y){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=y.message||"Failed to create administrator.",d.disabled=!1,d.innerHTML='<i data-lucide="shield-check" style="width: 16px; height: 16px;"></i><span>Provision Administrator</span>',window.lucide&&window.lucide.createIcons()}})}async function PM(i){i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const e=document.getElementById("create-admin-form"),a=document.getElementById("create-admin-alert"),d=document.getElementById("btn-submit-create");e.addEventListener("submit",async o=>{o.preventDefault();const r=document.getElementById("admin-name").value.trim(),n=document.getElementById("admin-email").value.trim(),c=document.getElementById("admin-phone").value.trim(),s=document.getElementById("admin-password").value,p=document.getElementById("admin-role-select").value,l=document.getElementById("admin-status-select").value,m=Array.from(document.querySelectorAll('input[name="perm"]:checked')).map(y=>y.value);d.disabled=!0,d.innerHTML="<span>Creating...</span>",a.style.display="none";try{await f.adminCreate({name:r,email:n,phone:c,password:s,role:p,status:l,permissions:m}),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent=`Administrator '${r}' created successfully! Redirecting...`,setTimeout(()=>{window.navigateTo?window.navigateTo("/admin/admins"):window.location.hash="#/admin/admins"},1200)}catch(y){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=y.message||"Failed to create administrator.",d.disabled=!1,d.innerHTML='<i data-lucide="shield-check" style="width: 16px; height: 16px;"></i><span>Provision Administrator</span>',window.lucide&&window.lucide.createIcons()}})}async function TM(i){i.innerHTML=`
     <div style="display: flex; justify-content: center; padding: 2rem 0;">
       <div style="width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 2rem;">
         
@@ -9314,17 +9391,17 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       </div>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const r=(await x.getAdminProfile()).user,c=r.name.split(" ").map(p=>p[0]).join("").toUpperCase().slice(0,2)||"AD";document.getElementById("profile-avatar-display").textContent=c,document.getElementById("profile-name-header").textContent=r.name,document.getElementById("profile-email-header").textContent=r.email,document.getElementById("profile-role-badge").textContent=r.role.replace("_"," ").toUpperCase(),document.getElementById("profile-status-badge").textContent=r.status.toUpperCase(),document.getElementById("profile-last-login").textContent=`Last Login: ${r.lastLoginAt?new Date(r.lastLoginAt).toLocaleString():"Just now"}`,document.getElementById("edit-profile-name").value=r.name,document.getElementById("edit-profile-email").value=r.email,document.getElementById("edit-profile-phone").value=r.phone||"";const s=document.getElementById("permissions-chips-container");r.permissions&&r.permissions.length>0?s.innerHTML=r.permissions.map(p=>`
+  `,window.lucide&&window.lucide.createIcons();try{const n=(await f.getAdminProfile()).user,c=n.name.split(" ").map(p=>p[0]).join("").toUpperCase().slice(0,2)||"AD";document.getElementById("profile-avatar-display").textContent=c,document.getElementById("profile-name-header").textContent=n.name,document.getElementById("profile-email-header").textContent=n.email,document.getElementById("profile-role-badge").textContent=n.role.replace("_"," ").toUpperCase(),document.getElementById("profile-status-badge").textContent=n.status.toUpperCase(),document.getElementById("profile-last-login").textContent=`Last Login: ${n.lastLoginAt?new Date(n.lastLoginAt).toLocaleString():"Just now"}`,document.getElementById("edit-profile-name").value=n.name,document.getElementById("edit-profile-email").value=n.email,document.getElementById("edit-profile-phone").value=n.phone||"";const s=document.getElementById("permissions-chips-container");n.permissions&&n.permissions.length>0?s.innerHTML=n.permissions.map(p=>`
         <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.75rem; font-family: monospace; color: var(--text-secondary);">
           <i data-lucide="check" style="width: 12px; height: 12px; color: #10B981;"></i>
           ${p}
         </span>
-      `).join(""):s.innerHTML='<span style="font-size: 0.8rem; color: var(--text-muted);">Full system access enabled.</span>',window.lucide&&window.lucide.createIcons()}catch(n){console.error("Failed to load profile:",n)}const e=document.getElementById("edit-profile-form"),a=document.getElementById("profile-info-alert");e.addEventListener("submit",async n=>{n.preventDefault();const r=document.getElementById("edit-profile-name").value.trim(),c=document.getElementById("edit-profile-phone").value.trim();try{await x.updateAdminProfile(r,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent="Profile updated successfully!",document.getElementById("profile-name-header").textContent=r;const s=document.getElementById("user-name-display");s&&(s.textContent=r),setTimeout(()=>{a.style.display="none"},3e3)}catch(s){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=s.message||"Failed to update profile."}});const d=document.getElementById("change-pwd-form"),o=document.getElementById("pwd-change-alert");d.addEventListener("submit",async n=>{n.preventDefault();const r=document.getElementById("current-pwd").value,c=document.getElementById("new-pwd").value,s=document.getElementById("confirm-pwd").value;if(c!==s){o.style.display="block",o.style.background="rgba(239, 68, 68, 0.15)",o.style.color="#991B1B",o.style.border="1px solid #EF4444",o.textContent="New passwords do not match.";return}try{await x.changeAdminPassword(r,c),o.style.display="block",o.style.background="rgba(16, 185, 129, 0.15)",o.style.color="#065F46",o.style.border="1px solid #10B981",o.textContent="Password changed successfully!",d.reset(),setTimeout(()=>{o.style.display="none"},3e3)}catch(p){o.style.display="block",o.style.background="rgba(239, 68, 68, 0.15)",o.style.color="#991B1B",o.style.border="1px solid #EF4444",o.textContent=p.message||"Failed to change password."}})}async function zM(i){let e=[],a=[],d="",o="all",n="all",r="all";async function c(){i.innerHTML=`
+      `).join(""):s.innerHTML='<span style="font-size: 0.8rem; color: var(--text-muted);">Full system access enabled.</span>',window.lucide&&window.lucide.createIcons()}catch(r){console.error("Failed to load profile:",r)}const e=document.getElementById("edit-profile-form"),a=document.getElementById("profile-info-alert");e.addEventListener("submit",async r=>{r.preventDefault();const n=document.getElementById("edit-profile-name").value.trim(),c=document.getElementById("edit-profile-phone").value.trim();try{await f.updateAdminProfile(n,c),a.style.display="block",a.style.background="rgba(16, 185, 129, 0.15)",a.style.color="#065F46",a.style.border="1px solid #10B981",a.textContent="Profile updated successfully!",document.getElementById("profile-name-header").textContent=n;const s=document.getElementById("user-name-display");s&&(s.textContent=n),setTimeout(()=>{a.style.display="none"},3e3)}catch(s){a.style.display="block",a.style.background="rgba(239, 68, 68, 0.15)",a.style.color="#991B1B",a.style.border="1px solid #EF4444",a.textContent=s.message||"Failed to update profile."}});const d=document.getElementById("change-pwd-form"),o=document.getElementById("pwd-change-alert");d.addEventListener("submit",async r=>{r.preventDefault();const n=document.getElementById("current-pwd").value,c=document.getElementById("new-pwd").value,s=document.getElementById("confirm-pwd").value;if(c!==s){o.style.display="block",o.style.background="rgba(239, 68, 68, 0.15)",o.style.color="#991B1B",o.style.border="1px solid #EF4444",o.textContent="New passwords do not match.";return}try{await f.changeAdminPassword(n,c),o.style.display="block",o.style.background="rgba(16, 185, 129, 0.15)",o.style.color="#065F46",o.style.border="1px solid #10B981",o.textContent="Password changed successfully!",d.reset(),setTimeout(()=>{o.style.display="none"},3e3)}catch(p){o.style.display="block",o.style.background="rgba(239, 68, 68, 0.15)",o.style.color="#991B1B",o.style.border="1px solid #EF4444",o.textContent=p.message||"Failed to change password."}})}async function zM(i){let e=[],a=[],d="",o="all",r="all",n="all";async function c(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading platform-wide pickup transfers...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{const[h,m]=await Promise.all([x.getPickups(),x.getAdminHotels()]);e=h.pickups||[],a=m.hotels||[],s()}catch(h){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickups: ${h.message}</div>`}}function s(){const h=e.filter(l=>{var M,f,k,H;const v=l.pickup||{},g=((M=l.booking_code)==null?void 0:M.toLowerCase().includes(d.toLowerCase()))||((f=l.customer_name)==null?void 0:f.toLowerCase().includes(d.toLowerCase()))||((k=l.hotel_name)==null?void 0:k.toLowerCase().includes(d.toLowerCase()))||((H=v.location_name)==null?void 0:H.toLowerCase().includes(d.toLowerCase())),b=o==="all"||v.status===o,S=n==="all"||l.hotel_id===n,w=r==="all"||v.type===r;return g&&b&&S&&w}),m=e.reduce((l,v)=>{var g;return l+(((g=v.pickup)==null?void 0:g.pickup_charge)||0)},0),y=e.filter(l=>{var v;return["confirmed","assigned","driver_on_way"].includes((v=l.pickup)==null?void 0:v.status)}).length,u=e.filter(l=>{var v;return((v=l.pickup)==null?void 0:v.status)==="completed"}).length;i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{const[l,m]=await Promise.all([f.getPickups(),f.getAdminHotels()]);e=l.pickups||[],a=m.hotels||[],s()}catch(l){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickups: ${l.message}</div>`}}function s(){const l=e.filter(h=>{var M,b,x,H;const v=h.pickup||{},g=((M=h.booking_code)==null?void 0:M.toLowerCase().includes(d.toLowerCase()))||((b=h.customer_name)==null?void 0:b.toLowerCase().includes(d.toLowerCase()))||((x=h.hotel_name)==null?void 0:x.toLowerCase().includes(d.toLowerCase()))||((H=v.location_name)==null?void 0:H.toLowerCase().includes(d.toLowerCase())),w=o==="all"||v.status===o,S=r==="all"||h.hotel_id===r,k=n==="all"||v.type===n;return g&&w&&S&&k}),m=e.reduce((h,v)=>{var g;return h+(((g=v.pickup)==null?void 0:g.pickup_charge)||0)},0),y=e.filter(h=>{var v;return["confirmed","assigned","driver_on_way"].includes((v=h.pickup)==null?void 0:v.status)}).length,u=e.filter(h=>{var v;return((v=h.pickup)==null?void 0:v.status)==="completed"}).length;i.innerHTML=`
       <!-- TOP METRIC CARDS -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
         <div class="panel-card" style="padding: 16px;">
@@ -9360,16 +9437,16 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
 
         <select class="select-filter" id="pickup-hotel-filter" style="min-width: 180px;">
-          <option value="all" ${n==="all"?"selected":""}>All Hotels</option>
-          ${a.map(l=>`<option value="${l.id}" ${n===l.id?"selected":""}>${l.name}</option>`).join("")}
+          <option value="all" ${r==="all"?"selected":""}>All Hotels</option>
+          ${a.map(h=>`<option value="${h.id}" ${r===h.id?"selected":""}>${h.name}</option>`).join("")}
         </select>
 
         <select class="select-filter" id="pickup-type-filter">
-          <option value="all" ${r==="all"?"selected":""}>All Pickup Types</option>
-          <option value="airport" ${r==="airport"?"selected":""}>Airport</option>
-          <option value="railway" ${r==="railway"?"selected":""}>Railway Station</option>
-          <option value="bus" ${r==="bus"?"selected":""}>Bus Stand</option>
-          <option value="other" ${r==="other"?"selected":""}>Custom Location</option>
+          <option value="all" ${n==="all"?"selected":""}>All Pickup Types</option>
+          <option value="airport" ${n==="airport"?"selected":""}>Airport</option>
+          <option value="railway" ${n==="railway"?"selected":""}>Railway Station</option>
+          <option value="bus" ${n==="bus"?"selected":""}>Bus Stand</option>
+          <option value="other" ${n==="other"?"selected":""}>Custom Location</option>
         </select>
 
         <select class="select-filter" id="pickup-status-filter">
@@ -9401,20 +9478,20 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${h.length===0?`
+              ${l.length===0?`
                 <tr><td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted);">No transfer activity found matching criteria.</td></tr>
-              `:h.map(l=>{const v=l.pickup||{},g=v.driver||{};return`
+              `:l.map(h=>{const v=h.pickup||{},g=v.driver||{};return`
                   <tr>
                     <td>
-                      <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${l.booking_code}</span>
-                      <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(l.created_at).toLocaleDateString()}</div>
+                      <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${h.booking_code}</span>
+                      <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(h.created_at).toLocaleDateString()}</div>
                     </td>
                     <td>
-                      <div style="font-weight: 700; color: var(--text-dark);">${l.hotel_name}</div>
+                      <div style="font-weight: 700; color: var(--text-dark);">${h.hotel_name}</div>
                     </td>
                     <td>
-                      <div style="font-weight: 600;">${l.customer_name}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${l.customer_phone||l.customer_email}</div>
+                      <div style="font-weight: 600;">${h.customer_name}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${h.customer_phone||h.customer_email}</div>
                     </td>
                     <td>
                       <div style="font-weight: 700; color: var(--color-primary-dark); text-transform: capitalize;">
@@ -9428,7 +9505,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                     </td>
                     <td>
                       <div style="font-weight: 600;">${v.pickup_time||"10:30 AM"}</div>
-                      <div style="font-size: 0.72rem; color: var(--text-muted);">${v.pickup_date||l.check_in_date}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">${v.pickup_date||h.check_in_date}</div>
                     </td>
                     <td>
                       <div style="font-weight: 700; color: #2E7D32;">${v.pickup_charge===0||v.pickup_service==="FREE"||v.service==="FREE"?"FREE (₹0)":`₹${(v.pickup_charge||0).toLocaleString("en-IN")}`}</div>
@@ -9451,12 +9528,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,p(),window.lucide&&window.lucide.createIcons()}function p(){var h,m,y,u;(h=i.querySelector("#pickup-search-input"))==null||h.addEventListener("input",l=>{d=l.target.value,s()}),(m=i.querySelector("#pickup-hotel-filter"))==null||m.addEventListener("change",l=>{n=l.target.value,s()}),(y=i.querySelector("#pickup-type-filter"))==null||y.addEventListener("change",l=>{r=l.target.value,s()}),(u=i.querySelector("#pickup-status-filter"))==null||u.addEventListener("change",l=>{o=l.target.value,s()})}c()}async function qM(i){i.innerHTML=`
+    `,p(),window.lucide&&window.lucide.createIcons()}function p(){var l,m,y,u;(l=i.querySelector("#pickup-search-input"))==null||l.addEventListener("input",h=>{d=h.target.value,s()}),(m=i.querySelector("#pickup-hotel-filter"))==null||m.addEventListener("change",h=>{r=h.target.value,s()}),(y=i.querySelector("#pickup-type-filter"))==null||y.addEventListener("change",h=>{n=h.target.value,s()}),(u=i.querySelector("#pickup-status-filter"))==null||u.addEventListener("change",h=>{o=h.target.value,s()})}c()}async function qM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotel dashboard...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d]=await Promise.all([x.getHotelAdminDashboard().catch(()=>({})),x.getHotelAdminBookings().catch(()=>x.getOwnerBookings().catch(()=>({}))),x.getHotelAdminHotel().catch(()=>x.getOwnerHotels().catch(()=>({})))]),o=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_rooms:0,available_rooms:0,occupied_rooms:0,upcoming_checkins_count:0,todays_arrivals:0,todays_departures:0,hotel_revenue:0},n=(a==null?void 0:a.bookings)||[],r=(e==null?void 0:e.hotel)||(d==null?void 0:d.hotel)||(d!=null&&d.hotels?d.hotels[0]:null)||{},c=new Date().toISOString().slice(0,10),s=n.filter(y=>y.check_in_date===c&&y.booking_status==="confirmed"),p=n.filter(y=>y.check_out_date===c&&y.booking_status==="checked_in"),h=n.reduce((y,u)=>y+(u.total_amount||0),0),m=n.reduce((y,u)=>y+(u.owner_payout||Math.round(u.total_amount*.85)),0);i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const[e,a,d]=await Promise.all([f.getHotelAdminDashboard().catch(()=>({})),f.getHotelAdminBookings().catch(()=>f.getOwnerBookings().catch(()=>({}))),f.getHotelAdminHotel().catch(()=>f.getOwnerHotels().catch(()=>({})))]),o=(e==null?void 0:e.kpis)||(e==null?void 0:e.data)||{total_rooms:0,available_rooms:0,occupied_rooms:0,upcoming_checkins_count:0,todays_arrivals:0,todays_departures:0,hotel_revenue:0},r=(a==null?void 0:a.bookings)||[],n=(e==null?void 0:e.hotel)||(d==null?void 0:d.hotel)||(d!=null&&d.hotels?d.hotels[0]:null)||{},c=new Date().toISOString().slice(0,10),s=r.filter(y=>y.check_in_date===c&&y.booking_status==="confirmed"),p=r.filter(y=>y.check_out_date===c&&y.booking_status==="checked_in"),l=r.reduce((y,u)=>y+(u.total_amount||0),0),m=r.reduce((y,u)=>y+(u.owner_payout||Math.round(u.total_amount*.85)),0);i.innerHTML=`
       <!-- Top Metrics Overview -->
       <div class="metrics-grid">
         <div class="metric-card">
@@ -9572,9 +9649,9 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               </tr>
             </thead>
             <tbody>
-              ${n.length===0?`
+              ${r.length===0?`
                 <tr><td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">No bookings found for your property yet.</td></tr>
-              `:n.map(y=>`
+              `:r.map(y=>`
                 <tr>
                   <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${y.booking_code}</span></td>
                   <td>
@@ -9598,10 +9675,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading hotel details...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{let k=function(C,V="info"){M&&(M.className=`upload-status-msg ${V}`,M.innerHTML=`
-        <i data-lucide="${V==="error"?"alert-triangle":V==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+  `,window.lucide&&window.lucide.createIcons();try{let x=function(C,L="info"){M&&(M.className=`upload-status-msg ${L}`,M.innerHTML=`
+        <i data-lucide="${L==="error"?"alert-triangle":L==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
         <span>${C}</span>
-      `,M.style.display="flex",window.lucide&&window.lucide.createIcons())},H=function(){M&&(M.style.display="none",M.innerHTML="")},P=function(C){h=C,v.className="upload-dropzone has-preview",v.innerHTML=`
+      `,M.style.display="flex",window.lucide&&window.lucide.createIcons())},H=function(){M&&(M.style.display="none",M.innerHTML="")},V=function(C){l=C,v.className="upload-dropzone has-preview",v.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container" style="max-height: 240px;">
           <img src="${C}" alt="Property Cover" class="upload-preview-img" id="hotel-cover-preview-img" style="height: 240px; object-fit: cover;">
           <div class="upload-preview-badge">
@@ -9616,7 +9693,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),R()},_=function(){h="",v.className="upload-dropzone",v.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),R()},P=function(){l="",v.className="upload-dropzone",v.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 26px; height: 26px;"></i>
@@ -9627,14 +9704,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Photo
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),E()},E=function(){const C=v.querySelector("#btn-upload-cover-trigger");C&&(C.onclick=V=>{V.stopPropagation(),l&&l.click()}),v.onclick=()=>{!v.classList.contains("has-preview")&&l&&l.click()},v.ondragover=V=>{V.preventDefault(),v.classList.add("drag-over")},v.ondragleave=()=>{v.classList.remove("drag-over")},v.ondrop=V=>{V.preventDefault(),v.classList.remove("drag-over"),V.dataTransfer&&V.dataTransfer.files&&V.dataTransfer.files.length>0&&q(V.dataTransfer.files[0])}},R=function(){const C=v.querySelector("#btn-change-cover"),V=v.querySelector("#btn-remove-cover");C&&(C.onclick=z=>{z.stopPropagation(),l&&l.click()}),V&&(V.onclick=z=>{z.stopPropagation(),_(),k('Cover photo removed. Click "Save Property Changes" to apply.',"info")})};var e=k,a=H,d=P,o=_,n=E,r=R;const s=(await x.getOwnerHotels()).hotels;if(!s||s.length===0){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),E()},E=function(){const C=v.querySelector("#btn-upload-cover-trigger");C&&(C.onclick=L=>{L.stopPropagation(),h&&h.click()}),v.onclick=()=>{!v.classList.contains("has-preview")&&h&&h.click()},v.ondragover=L=>{L.preventDefault(),v.classList.add("drag-over")},v.ondragleave=()=>{v.classList.remove("drag-over")},v.ondrop=L=>{L.preventDefault(),v.classList.remove("drag-over"),L.dataTransfer&&L.dataTransfer.files&&L.dataTransfer.files.length>0&&q(L.dataTransfer.files[0])}},R=function(){const C=v.querySelector("#btn-change-cover"),L=v.querySelector("#btn-remove-cover");C&&(C.onclick=z=>{z.stopPropagation(),h&&h.click()}),L&&(L.onclick=z=>{z.stopPropagation(),P(),x('Cover photo removed. Click "Save Property Changes" to apply.',"info")})};var e=x,a=H,d=V,o=P,r=E,n=R;const s=(await f.getOwnerHotels()).hotels;if(!s||s.length===0){i.innerHTML=`
         <div class="panel-card" style="text-align: center; padding: 40px;">
           <i data-lucide="building" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;"></i>
           <h3 style="font-size: 1.1rem; color: var(--text-main);">No Hotel Registered Yet</h3>
           <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">Complete our multi-step onboarding wizard to register your property for admin review.</p>
           <a href="#/owner/onboard" class="btn btn-primary">Start Hotel Onboarding Wizard</a>
         </div>
-      `,window.lucide&&window.lucide.createIcons();return}const p=s[0];let h=p.cover_image||"",m=!1,y=!1,u=null;try{const C=await x.get("/hotel-admin/banners");if(C&&Array.isArray(C.banners)){const V=C.banners.filter(z=>z.is_active!==!1&&(z.image_url||z.cover_image)).sort((z,A)=>{const $=(Number(z.sort_order)||0)-(Number(A.sort_order)||0);return $!==0?$:new Date(z.created_at||0)-new Date(A.created_at||0)});if(V.length>0){y=!0,u=V[0];const z=u.image_url||u.cover_image;z&&(h=z)}}}catch{}i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons();return}const p=s[0];let l=p.cover_image||"",m=!1,y=!1,u=null;try{const C=await f.get("/hotel-admin/banners");if(C&&Array.isArray(C.banners)){const L=C.banners.filter(z=>z.is_active!==!1&&(z.image_url||z.cover_image)).sort((z,A)=>{const _=(Number(z.sort_order)||0)-(Number(A.sort_order)||0);return _!==0?_:new Date(z.created_at||0)-new Date(A.created_at||0)});if(L.length>0){y=!0,u=L[0];const z=u.image_url||u.cover_image;z&&(l=z)}}}catch{}i.innerHTML=`
       <div style="max-width: 820px;">
         <div class="panel-card">
           <div class="card-header">
@@ -9708,10 +9785,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 <input type="file" id="hotel-cover-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
 
                 <!-- Dropzone / Preview Area -->
-                <div class="upload-dropzone ${h?"has-preview":""}" id="hotel-cover-dropzone">
-                  ${h?`
+                <div class="upload-dropzone ${l?"has-preview":""}" id="hotel-cover-dropzone">
+                  ${l?`
                     <div class="upload-preview-wrapper" id="upload-preview-container" style="max-height: 240px;">
-                      <img src="${h}" alt="Property Cover" class="upload-preview-img" id="hotel-cover-preview-img" style="height: 240px; object-fit: cover;">
+                      <img src="${l}" alt="Property Cover" class="upload-preview-img" id="hotel-cover-preview-img" style="height: 240px; object-fit: cover;">
                       <div class="upload-preview-badge">
                         <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
                       </div>
@@ -9768,7 +9845,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const l=i.querySelector("#hotel-cover-file-input"),v=i.querySelector("#hotel-cover-dropzone"),g=i.querySelector("#hotel-cover-progress-box"),b=i.querySelector("#hotel-cover-progress-fill"),S=i.querySelector("#hotel-cover-progress-percent"),w=i.querySelector("#hotel-cover-progress-label"),M=i.querySelector("#hotel-cover-status-box"),f=i.querySelector("#btn-save-hotel");async function q(C){if(!C)return;const V=["image/jpeg","image/jpg","image/png","image/webp"],z=C.name?C.name.split(".").pop().toLowerCase():"",A=["jpg","jpeg","png","webp"],$=V.includes((C.type||"").toLowerCase()),B=A.includes(z);if(!$&&!B){k("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const L=5*1024*1024;if(C.size>L){k(`File size exceeds 5 MB limit (${(C.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}H(),m=!0,f&&(f.disabled=!0),g.style.display="flex",b.style.width="0%",S.textContent="0%",w.textContent=`Uploading ${C.name}...`;try{const T=await x.uploadCoverImage(C,p.id,D=>{b.style.width=`${D}%`,S.textContent=`${D}%`});h=T.secure_url||T.url,P(h),k('Cover photo uploaded to Cloudinary! Click "Save Property Changes" to persist.',"success")}catch(T){console.error("Hotel cover upload failed:",T),k(T.message||"Cover photo upload failed. Please verify network or Cloudinary configuration.","error")}finally{m=!1,g.style.display="none",f&&(f.disabled=!1),l&&(l.value="")}}l&&(l.onchange=C=>{C.target.files&&C.target.files.length>0&&q(C.target.files[0])}),h?R():E(),f==null||f.addEventListener("click",async()=>{var A;if(m){(A=window.showToast)==null||A.call(window,"Please wait until image upload completes before saving.","error");return}const C=Array.from(i.querySelectorAll(".amenity-checkbox:checked")).map($=>$.value),V={name:i.querySelector("#edit-hotel-name").value,hotel_type:i.querySelector("#edit-hotel-type").value,city:i.querySelector("#edit-hotel-city").value,state:i.querySelector("#edit-hotel-state").value,address:i.querySelector("#edit-hotel-address").value,description:i.querySelector("#edit-hotel-desc").value,cover_image:h,amenities:C},z=f.innerHTML;f.disabled=!0,f.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons();try{await x.updateHotel(p.id,V),p.cover_image=h,p.name=V.name,k("Property details and cover photo saved successfully.","success"),window.showToast&&window.showToast("Hotel details and cover photo saved successfully.","success")}catch($){console.error("Save hotel failed:",$),k($.message||"Failed to save property changes. You can retry saving without re-uploading.","error"),window.showToast&&window.showToast($.message||"Failed to save hotel details.","error")}finally{f.disabled=!1,f.innerHTML=z,window.lucide&&window.lucide.createIcons()}})}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}async function BM(i){let e=null,a=[];i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const h=i.querySelector("#hotel-cover-file-input"),v=i.querySelector("#hotel-cover-dropzone"),g=i.querySelector("#hotel-cover-progress-box"),w=i.querySelector("#hotel-cover-progress-fill"),S=i.querySelector("#hotel-cover-progress-percent"),k=i.querySelector("#hotel-cover-progress-label"),M=i.querySelector("#hotel-cover-status-box"),b=i.querySelector("#btn-save-hotel");async function q(C){if(!C)return;const L=["image/jpeg","image/jpg","image/png","image/webp"],z=C.name?C.name.split(".").pop().toLowerCase():"",A=["jpg","jpeg","png","webp"],_=L.includes((C.type||"").toLowerCase()),B=A.includes(z);if(!_&&!B){x("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const $=5*1024*1024;if(C.size>$){x(`File size exceeds 5 MB limit (${(C.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}H(),m=!0,b&&(b.disabled=!0),g.style.display="flex",w.style.width="0%",S.textContent="0%",k.textContent=`Uploading ${C.name}...`;try{const T=await f.uploadCoverImage(C,p.id,D=>{w.style.width=`${D}%`,S.textContent=`${D}%`});l=T.secure_url||T.url,V(l),x('Cover photo uploaded to Cloudinary! Click "Save Property Changes" to persist.',"success")}catch(T){console.error("Hotel cover upload failed:",T),x(T.message||"Cover photo upload failed. Please verify network or Cloudinary configuration.","error")}finally{m=!1,g.style.display="none",b&&(b.disabled=!1),h&&(h.value="")}}h&&(h.onchange=C=>{C.target.files&&C.target.files.length>0&&q(C.target.files[0])}),l?R():E(),b==null||b.addEventListener("click",async()=>{var A;if(m){(A=window.showToast)==null||A.call(window,"Please wait until image upload completes before saving.","error");return}const C=Array.from(i.querySelectorAll(".amenity-checkbox:checked")).map(_=>_.value),L={name:i.querySelector("#edit-hotel-name").value,hotel_type:i.querySelector("#edit-hotel-type").value,city:i.querySelector("#edit-hotel-city").value,state:i.querySelector("#edit-hotel-state").value,address:i.querySelector("#edit-hotel-address").value,description:i.querySelector("#edit-hotel-desc").value,cover_image:l,amenities:C},z=b.innerHTML;b.disabled=!0,b.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons();try{await f.updateHotel(p.id,L),p.cover_image=l,p.name=L.name,x("Property details and cover photo saved successfully.","success"),window.showToast&&window.showToast("Hotel details and cover photo saved successfully.","success")}catch(_){console.error("Save hotel failed:",_),x(_.message||"Failed to save property changes. You can retry saving without re-uploading.","error"),window.showToast&&window.showToast(_.message||"Failed to save hotel details.","error")}finally{b.disabled=!1,b.innerHTML=z,window.lucide&&window.lucide.createIcons()}})}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}async function BM(i){let e=null,a=[];i.innerHTML=`
     <div class="card fade-in">
       <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
@@ -9799,7 +9876,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
     <!-- Modal container root -->
     <div id="banner-modal-root"></div>
-  `,window.lucide&&window.lucide.createIcons();const d=i.querySelector("#banners-grid"),o=i.querySelector("#banners-loading"),n=i.querySelector("#banners-error"),r=i.querySelector("#banners-subtitle"),c=i.querySelector("#btn-add-banner"),s=i.querySelector("#banner-modal-root");try{const m=await x.getOwnerHotels();m&&m.hotels&&m.hotels.length>0&&(e=m.hotels[0],r.textContent=`Manage promotional slider images for ${e.name}.`)}catch(m){console.warn("Could not fetch hotel details:",m.message)}async function p(){var m;try{o.style.display="block",d.style.display="none",n.style.display="none";const y=await x.get("/hotel-admin/banners");if(o.style.display="none",!y.success){n.textContent=y.message||"Failed to load banners.",n.style.display="block";return}if(a=y.banners||[],d.innerHTML="",a.length===0)d.style.display="block",d.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();const d=i.querySelector("#banners-grid"),o=i.querySelector("#banners-loading"),r=i.querySelector("#banners-error"),n=i.querySelector("#banners-subtitle"),c=i.querySelector("#btn-add-banner"),s=i.querySelector("#banner-modal-root");try{const m=await f.getOwnerHotels();m&&m.hotels&&m.hotels.length>0&&(e=m.hotels[0],n.textContent=`Manage promotional slider images for ${e.name}.`)}catch(m){console.warn("Could not fetch hotel details:",m.message)}async function p(){var m;try{o.style.display="block",d.style.display="none",r.style.display="none";const y=await f.get("/hotel-admin/banners");if(o.style.display="none",!y.success){r.textContent=y.message||"Failed to load banners.",r.style.display="block";return}if(a=y.banners||[],d.innerHTML="",a.length===0)d.style.display="block",d.innerHTML=`
           <div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
             <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
             <p style="font-weight: 500; font-size: 16px; margin-bottom: 8px;">No Banners Found</p>
@@ -9808,7 +9885,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
               <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Banner Now
             </button>
           </div>
-        `,window.lucide&&window.lucide.createIcons(),(m=d.querySelector("#btn-empty-add-banner"))==null||m.addEventListener("click",()=>h());else{d.style.display="grid";const u=a.filter(v=>v.is_active!==!1&&(v.image_url||v.cover_image)).slice().sort((v,g)=>{const b=(Number(v.sort_order)||0)-(Number(g.sort_order)||0);return b!==0?b:new Date(v.created_at||0)-new Date(g.created_at||0)}),l=u.length>0?u[0].id:null;a.forEach(v=>{const g=v.id===l,b=document.createElement("div");b.className="card",b.style.overflow="hidden",g&&(b.style.border="2px solid #800020",b.style.boxShadow="0 4px 14px rgba(128, 0, 32, 0.15)"),b.innerHTML=`
+        `,window.lucide&&window.lucide.createIcons(),(m=d.querySelector("#btn-empty-add-banner"))==null||m.addEventListener("click",()=>l());else{d.style.display="grid";const u=a.filter(v=>v.is_active!==!1&&(v.image_url||v.cover_image)).slice().sort((v,g)=>{const w=(Number(v.sort_order)||0)-(Number(g.sort_order)||0);return w!==0?w:new Date(v.created_at||0)-new Date(g.created_at||0)}),h=u.length>0?u[0].id:null;a.forEach(v=>{const g=v.id===h,w=document.createElement("div");w.className="card",w.style.overflow="hidden",g&&(w.style.border="2px solid #800020",w.style.boxShadow="0 4px 14px rgba(128, 0, 32, 0.15)"),w.innerHTML=`
             <div style="height: 160px; background: #e2e8f0; position: relative;">
               <img src="${v.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400x200?text=Invalid+Image'" />
               ${v.is_active?"":'<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; letter-spacing: 0.05em;">INACTIVE</div>'}
@@ -9840,7 +9917,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </button>
               </div>
             </div>
-          `,d.appendChild(b)}),d.querySelectorAll(".btn-edit").forEach(v=>{v.addEventListener("click",()=>{const g=a.find(b=>b.id===v.dataset.id);g&&h(g)})}),d.querySelectorAll(".btn-toggle").forEach(v=>{v.addEventListener("click",async()=>{const g=v.dataset.id,b=v.dataset.active==="true";if(confirm(`Are you sure you want to ${b?"disable":"enable"} this banner?`))try{v.textContent="...",await x.patch(`/hotel-admin/banners/${g}/status`,{is_active:!b}),window.showToast("Banner status updated","success"),p()}catch(S){window.showToast(S.message,"error"),p()}})}),d.querySelectorAll(".btn-delete").forEach(v=>{v.addEventListener("click",async()=>{if(confirm("Are you sure you want to delete this banner permanently?"))try{v.textContent="...",await x.delete(`/hotel-admin/banners/${v.dataset.id}`),window.showToast("Banner deleted successfully","success"),p()}catch(g){window.showToast(g.message,"error"),p()}})})}window.lucide&&window.lucide.createIcons()}catch(y){o.style.display="none",n.textContent=y.message,n.style.display="block"}}function h(m=null){var $,B;const y=!!m;let u=m?m.image_url:"",l=m?m.image_public_id:null,v=!1;s.innerHTML=`
+          `,d.appendChild(w)}),d.querySelectorAll(".btn-edit").forEach(v=>{v.addEventListener("click",()=>{const g=a.find(w=>w.id===v.dataset.id);g&&l(g)})}),d.querySelectorAll(".btn-toggle").forEach(v=>{v.addEventListener("click",async()=>{const g=v.dataset.id,w=v.dataset.active==="true";if(confirm(`Are you sure you want to ${w?"disable":"enable"} this banner?`))try{v.textContent="...",await f.patch(`/hotel-admin/banners/${g}/status`,{is_active:!w}),window.showToast("Banner status updated","success"),p()}catch(S){window.showToast(S.message,"error"),p()}})}),d.querySelectorAll(".btn-delete").forEach(v=>{v.addEventListener("click",async()=>{if(confirm("Are you sure you want to delete this banner permanently?"))try{v.textContent="...",await f.delete(`/hotel-admin/banners/${v.dataset.id}`),window.showToast("Banner deleted successfully","success"),p()}catch(g){window.showToast(g.message,"error"),p()}})})}window.lucide&&window.lucide.createIcons()}catch(y){o.style.display="none",r.textContent=y.message,r.style.display="block"}}function l(m=null){var _,B;const y=!!m;let u=m?m.image_url:"",h=m?m.image_public_id:null,v=!1;s.innerHTML=`
       <div class="modal-overlay active" id="modal-banner-overlay" style="display: flex;">
         <div class="modal-container" style="max-width: 540px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
@@ -9955,12 +10032,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const g=s.querySelector("#banner-photo-file-input"),b=s.querySelector("#banner-photo-dropzone"),S=s.querySelector("#upload-progress-box"),w=s.querySelector("#upload-progress-fill"),M=s.querySelector("#upload-progress-percent"),f=s.querySelector("#upload-progress-label"),k=s.querySelector("#upload-status-box"),H=s.querySelector("#btn-save-banner"),P=s.querySelector("#form-banner");function _(L,T="info"){k&&(k.className=`upload-status-msg ${T}`,k.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const g=s.querySelector("#banner-photo-file-input"),w=s.querySelector("#banner-photo-dropzone"),S=s.querySelector("#upload-progress-box"),k=s.querySelector("#upload-progress-fill"),M=s.querySelector("#upload-progress-percent"),b=s.querySelector("#upload-progress-label"),x=s.querySelector("#upload-status-box"),H=s.querySelector("#btn-save-banner"),V=s.querySelector("#form-banner");function P($,T="info"){x&&(x.className=`upload-status-msg ${T}`,x.innerHTML=`
         <i data-lucide="${T==="error"?"alert-triangle":T==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-        <span>${L}</span>
-      `,k.style.display="flex",window.lucide&&window.lucide.createIcons())}function q(){k&&(k.style.display="none",k.innerHTML="")}function E(L){u=L,b.className="upload-dropzone has-preview",b.innerHTML=`
+        <span>${$}</span>
+      `,x.style.display="flex",window.lucide&&window.lucide.createIcons())}function q(){x&&(x.style.display="none",x.innerHTML="")}function E($){u=$,w.className="upload-dropzone has-preview",w.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container">
-          <img src="${L}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
+          <img src="${$}" alt="Banner Preview" class="upload-preview-img" id="upload-preview-img" style="height: 160px; object-fit: cover; width: 100%; border-radius: 6px;" />
           <div class="upload-preview-badge">
             <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
           </div>
@@ -9973,7 +10050,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),z()}function R(){u="",l=null,b.className="upload-dropzone",b.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),z()}function R(){u="",h=null,w.className="upload-dropzone",w.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 28px; height: 28px;"></i>
@@ -9984,15 +10061,15 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),V()}async function C(L){if(!L)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(L.type.toLowerCase())){_("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const D=5*1024*1024;if(L.size>D){_(`File size exceeds 5 MB limit (${(L.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}q(),v=!0,H&&(H.disabled=!0),S.style.display="flex",w.style.width="0%",M.textContent="0%",f.textContent=`Uploading ${L.name}...`;try{const O=await x.uploadBannerImage(L,e?e.id:null,F=>{w.style.width=`${F}%`,M.textContent=`${F}%`});u=O.secure_url,l=O.public_id||null,E(u),_("Image uploaded securely to Cloudinary!","success")}catch(O){console.error("Banner upload failed:",O),_(O.message||"Image upload failed. Please check network or Cloudinary configuration.","error")}finally{v=!1,S.style.display="none",H&&(H.disabled=!1),g&&(g.value="")}}function V(){const L=b.querySelector("#btn-browse-trigger");L==null||L.addEventListener("click",T=>{T.stopPropagation(),g==null||g.click()})}function z(){var L,T;(L=b.querySelector("#btn-replace-image"))==null||L.addEventListener("click",D=>{D.stopPropagation(),g==null||g.click()}),(T=b.querySelector("#btn-remove-image"))==null||T.addEventListener("click",D=>{D.stopPropagation(),R(),q()})}b.addEventListener("click",()=>{!u&&!v&&(g==null||g.click())}),g==null||g.addEventListener("change",L=>{L.target.files&&L.target.files[0]&&C(L.target.files[0])}),["dragenter","dragover"].forEach(L=>{b.addEventListener(L,T=>{T.preventDefault(),T.stopPropagation(),b.classList.add("drag-over")})}),["dragleave","drop"].forEach(L=>{b.addEventListener(L,T=>{T.preventDefault(),T.stopPropagation(),b.classList.remove("drag-over")})}),b.addEventListener("drop",L=>{var D;if(v)return;const T=(D=L.dataTransfer)==null?void 0:D.files;T&&T.length>0&&C(T[0])}),u?z():V();const A=()=>{s.innerHTML=""};($=s.querySelector("#modal-close"))==null||$.addEventListener("click",A),(B=s.querySelector("#btn-cancel-banner"))==null||B.addEventListener("click",A),P==null||P.addEventListener("submit",async L=>{if(L.preventDefault(),v){window.showToast("Please wait for image upload to complete.","warning");return}if(!u){_("Banner image is required. Please upload an image first.","error"),window.showToast("Please upload a banner image before saving.","error");return}const T=s.querySelector("#banner-id").value,D={title:s.querySelector("#banner-title").value.trim(),image_url:u,image_public_id:l,sort_order:parseInt(s.querySelector("#banner-order").value)||0,is_active:s.querySelector("#banner-status").value==="true"};e&&(D.hotel_id=e.id);const O=H.textContent;H.textContent="Saving...",H.disabled=!0;try{T?(await x.put(`/hotel-admin/banners/${T}`,D),window.showToast("Banner updated successfully","success")):(await x.post("/hotel-admin/banners",D),window.showToast("Banner created successfully","success")),A(),p()}catch(F){window.showToast(F.message,"error"),_(F.message,"error")}finally{H.textContent=O,H.disabled=!1}})}c.addEventListener("click",()=>h()),p()}async function DM(i){let e=[];async function a(){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),L()}async function C($){if(!$)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes($.type.toLowerCase())){P("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const D=5*1024*1024;if($.size>D){P(`File size exceeds 5 MB limit (${($.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}q(),v=!0,H&&(H.disabled=!0),S.style.display="flex",k.style.width="0%",M.textContent="0%",b.textContent=`Uploading ${$.name}...`;try{const O=await f.uploadBannerImage($,e?e.id:null,F=>{k.style.width=`${F}%`,M.textContent=`${F}%`});u=O.secure_url,h=O.public_id||null,E(u),P("Image uploaded securely to Cloudinary!","success")}catch(O){console.error("Banner upload failed:",O),P(O.message||"Image upload failed. Please check network or Cloudinary configuration.","error")}finally{v=!1,S.style.display="none",H&&(H.disabled=!1),g&&(g.value="")}}function L(){const $=w.querySelector("#btn-browse-trigger");$==null||$.addEventListener("click",T=>{T.stopPropagation(),g==null||g.click()})}function z(){var $,T;($=w.querySelector("#btn-replace-image"))==null||$.addEventListener("click",D=>{D.stopPropagation(),g==null||g.click()}),(T=w.querySelector("#btn-remove-image"))==null||T.addEventListener("click",D=>{D.stopPropagation(),R(),q()})}w.addEventListener("click",()=>{!u&&!v&&(g==null||g.click())}),g==null||g.addEventListener("change",$=>{$.target.files&&$.target.files[0]&&C($.target.files[0])}),["dragenter","dragover"].forEach($=>{w.addEventListener($,T=>{T.preventDefault(),T.stopPropagation(),w.classList.add("drag-over")})}),["dragleave","drop"].forEach($=>{w.addEventListener($,T=>{T.preventDefault(),T.stopPropagation(),w.classList.remove("drag-over")})}),w.addEventListener("drop",$=>{var D;if(v)return;const T=(D=$.dataTransfer)==null?void 0:D.files;T&&T.length>0&&C(T[0])}),u?z():L();const A=()=>{s.innerHTML=""};(_=s.querySelector("#modal-close"))==null||_.addEventListener("click",A),(B=s.querySelector("#btn-cancel-banner"))==null||B.addEventListener("click",A),V==null||V.addEventListener("submit",async $=>{if($.preventDefault(),v){window.showToast("Please wait for image upload to complete.","warning");return}if(!u){P("Banner image is required. Please upload an image first.","error"),window.showToast("Please upload a banner image before saving.","error");return}const T=s.querySelector("#banner-id").value,D={title:s.querySelector("#banner-title").value.trim(),image_url:u,image_public_id:h,sort_order:parseInt(s.querySelector("#banner-order").value)||0,is_active:s.querySelector("#banner-status").value==="true"};e&&(D.hotel_id=e.id);const O=H.textContent;H.textContent="Saving...",H.disabled=!0;try{T?(await f.put(`/hotel-admin/banners/${T}`,D),window.showToast("Banner updated successfully","success")):(await f.post("/hotel-admin/banners",D),window.showToast("Banner created successfully","success")),A(),p()}catch(F){window.showToast(F.message,"error"),P(F.message,"error")}finally{H.textContent=O,H.disabled=!1}})}c.addEventListener("click",()=>l()),p()}async function DM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading room inventory...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerHotels()).hotels,d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){if(e.length===0){i.innerHTML='<div class="panel-card">Please register a hotel first.</div>';return}const r=e[0],c=r.rooms||[];i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getOwnerHotels()).hotels,d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){if(e.length===0){i.innerHTML='<div class="panel-card">Please register a hotel first.</div>';return}const n=e[0],c=n.rooms||[];i.innerHTML=`
       <div class="filter-bar">
         <div class="filter-group">
-          <h2 style="font-size: 1.1rem; font-weight: 700;">Room Categories for ${r.name}</h2>
+          <h2 style="font-size: 1.1rem; font-weight: 700;">Room Categories for ${n.name}</h2>
         </div>
         <button class="btn btn-primary" id="btn-add-room">
           <i data-lucide="plus"></i> Add New Room Category
@@ -10017,7 +10094,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                      <img src="${s.photos&&s.photos[0]?s.photos[0]:r.cover_image}" style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover;">
+                      <img src="${s.photos&&s.photos[0]?s.photos[0]:n.cover_image}" style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover;">
                       <div>
                         <div style="font-weight: 700;">${s.room_name}</div>
                         <div style="font-size: 0.72rem; color: var(--text-muted);">${s.room_type}</div>
@@ -10041,7 +10118,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="room-modal-root"></div>
-    `,o(r.id),window.lucide&&window.lucide.createIcons()}function o(r){var c;(c=i.querySelector("#btn-add-room"))==null||c.addEventListener("click",()=>{n(r,null)}),i.querySelectorAll(".btn-edit-room").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-room-id"),h=e[0].rooms.find(m=>m.id===p);n(r,h)})})}function n(r,c){var C,V,z;const s=i.querySelector("#room-modal-root"),p=!!c;let h=c&&c.photos&&c.photos[0]?c.photos[0]:"",m=c&&c.photo_public_id?c.photo_public_id:null,y=!1;s.innerHTML=`
+    `,o(n.id),window.lucide&&window.lucide.createIcons()}function o(n){var c;(c=i.querySelector("#btn-add-room"))==null||c.addEventListener("click",()=>{r(n,null)}),i.querySelectorAll(".btn-edit-room").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-room-id"),l=e[0].rooms.find(m=>m.id===p);r(n,l)})})}function r(n,c){var C,L,z;const s=i.querySelector("#room-modal-root"),p=!!c;let l=c&&c.photos&&c.photos[0]?c.photos[0]:"",m=c&&c.photo_public_id?c.photo_public_id:null,y=!1;s.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 580px; max-height: calc(100vh - 32px);">
           <div class="modal-header">
@@ -10100,10 +10177,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                   <input type="file" id="room-photo-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
 
                   <!-- Dropzone / Preview Area -->
-                  <div class="upload-dropzone ${h?"has-preview":""}" id="room-photo-dropzone">
-                    ${h?`
+                  <div class="upload-dropzone ${l?"has-preview":""}" id="room-photo-dropzone">
+                    ${l?`
                       <div class="upload-preview-wrapper" id="upload-preview-container">
-                        <img src="${h}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
+                        <img src="${l}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
                         <div class="upload-preview-badge">
                           <i data-lucide="check" style="width: 12px; height: 12px;"></i> Ready
                         </div>
@@ -10154,10 +10231,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const u=s.querySelector("#room-photo-file-input"),l=s.querySelector("#room-photo-dropzone"),v=s.querySelector("#upload-progress-box"),g=s.querySelector("#upload-progress-fill"),b=s.querySelector("#upload-progress-percent"),S=s.querySelector("#upload-progress-label"),w=s.querySelector("#upload-status-box"),M=s.querySelector("#btn-submit-room");function f(A,$="info"){w&&(w.className=`upload-status-msg ${$}`,w.innerHTML=`
-        <i data-lucide="${$==="error"?"alert-triangle":$==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+    `,window.lucide&&window.lucide.createIcons();const u=s.querySelector("#room-photo-file-input"),h=s.querySelector("#room-photo-dropzone"),v=s.querySelector("#upload-progress-box"),g=s.querySelector("#upload-progress-fill"),w=s.querySelector("#upload-progress-percent"),S=s.querySelector("#upload-progress-label"),k=s.querySelector("#upload-status-box"),M=s.querySelector("#btn-submit-room");function b(A,_="info"){k&&(k.className=`upload-status-msg ${_}`,k.innerHTML=`
+        <i data-lucide="${_==="error"?"alert-triangle":_==="success"?"check-circle-2":"info"}" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
         <span>${A}</span>
-      `,w.style.display="flex",window.lucide&&window.lucide.createIcons())}function k(){w&&(w.style.display="none",w.innerHTML="")}function H(A){h=A,l.className="upload-dropzone has-preview",l.innerHTML=`
+      `,k.style.display="flex",window.lucide&&window.lucide.createIcons())}function x(){k&&(k.style.display="none",k.innerHTML="")}function H(A){l=A,h.className="upload-dropzone has-preview",h.innerHTML=`
         <div class="upload-preview-wrapper" id="upload-preview-container">
           <img src="${A}" alt="Room Preview" class="upload-preview-img" id="upload-preview-img">
           <div class="upload-preview-badge">
@@ -10172,7 +10249,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </button>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),E()}function P(){h="",m=null,l.className="upload-dropzone",l.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),E()}function V(){l="",m=null,h.className="upload-dropzone",h.innerHTML=`
         <div class="upload-dropzone-content" id="upload-empty-content">
           <div class="upload-dropzone-icon">
             <i data-lucide="cloud-upload" style="width: 24px; height: 24px;"></i>
@@ -10183,12 +10260,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload Image
           </button>
         </div>
-      `,window.lucide&&window.lucide.createIcons(),q()}async function _(A){if(!A)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(A.type.toLowerCase())){f("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const B=5*1024*1024;if(A.size>B){f(`File size exceeds 5 MB limit (${(A.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}k(),y=!0,M&&(M.disabled=!0),v.style.display="flex",g.style.width="0%",b.textContent="0%",S.textContent=`Uploading ${A.name}...`;try{const L=await x.uploadRoomImage(A,r,T=>{g.style.width=`${T}%`,b.textContent=`${T}%`});h=L.secure_url,m=L.public_id||null,H(h),f("Image uploaded securely to Cloudinary!","success")}catch(L){console.error("Room image upload failed:",L),f(L.message||"Image upload failed. Please check your network or Cloudinary configuration.","error")}finally{y=!1,v.style.display="none",M&&(M.disabled=!1),u&&(u.value="")}}function q(){const A=l.querySelector("#btn-browse-trigger");A==null||A.addEventListener("click",$=>{$.stopPropagation(),u==null||u.click()})}function E(){var A,$;(A=l.querySelector("#btn-replace-image"))==null||A.addEventListener("click",B=>{B.stopPropagation(),u==null||u.click()}),($=l.querySelector("#btn-remove-image"))==null||$.addEventListener("click",B=>{B.stopPropagation(),P(),k()})}l.addEventListener("click",()=>{!h&&!y&&(u==null||u.click())}),u==null||u.addEventListener("change",A=>{A.target.files&&A.target.files[0]&&_(A.target.files[0])}),["dragenter","dragover"].forEach(A=>{l.addEventListener(A,$=>{$.preventDefault(),$.stopPropagation(),l.classList.add("drag-over")})}),["dragleave","drop"].forEach(A=>{l.addEventListener(A,$=>{$.preventDefault(),$.stopPropagation(),l.classList.remove("drag-over")})}),l.addEventListener("drop",A=>{var B;if(y)return;const $=(B=A.dataTransfer)==null?void 0:B.files;$&&$.length>0&&_($[0])}),h?E():q();const R=()=>{s.innerHTML=""};(C=s.querySelector("#modal-close"))==null||C.addEventListener("click",R),(V=s.querySelector("#modal-close-action"))==null||V.addEventListener("click",R),(z=s.querySelector("#room-form"))==null||z.addEventListener("submit",async A=>{if(A.preventDefault(),y){window.showToast("Please wait for image upload to complete.","warning");return}if(!h){f("Please upload a room photo before proceeding.","error"),window.showToast("Room photo is required.","error");return}const $={hotel_id:r,room_name:s.querySelector("#room-name").value.trim(),room_type:s.querySelector("#room-type").value,max_guests:Number(s.querySelector("#room-capacity").value),price_per_night:Number(s.querySelector("#room-price").value),total_inventory:Number(s.querySelector("#room-inventory").value),description:s.querySelector("#room-desc").value.trim(),photos:[h],photo_public_id:m};try{p?(await x.updateRoom(c.id,$),window.showToast("Room category updated successfully.","success")):(await x.createRoom($),window.showToast("New room category created successfully.","success")),R(),a()}catch(B){window.showToast(B.message,"error")}})}a()}async function RM(i){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),q()}async function P(A){if(!A)return;if(!["image/jpeg","image/jpg","image/png","image/webp"].includes(A.type.toLowerCase())){b("Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.","error");return}const B=5*1024*1024;if(A.size>B){b(`File size exceeds 5 MB limit (${(A.size/(1024*1024)).toFixed(2)} MB). Please select a smaller file.`,"error");return}x(),y=!0,M&&(M.disabled=!0),v.style.display="flex",g.style.width="0%",w.textContent="0%",S.textContent=`Uploading ${A.name}...`;try{const $=await f.uploadRoomImage(A,n,T=>{g.style.width=`${T}%`,w.textContent=`${T}%`});l=$.secure_url,m=$.public_id||null,H(l),b("Image uploaded securely to Cloudinary!","success")}catch($){console.error("Room image upload failed:",$),b($.message||"Image upload failed. Please check your network or Cloudinary configuration.","error")}finally{y=!1,v.style.display="none",M&&(M.disabled=!1),u&&(u.value="")}}function q(){const A=h.querySelector("#btn-browse-trigger");A==null||A.addEventListener("click",_=>{_.stopPropagation(),u==null||u.click()})}function E(){var A,_;(A=h.querySelector("#btn-replace-image"))==null||A.addEventListener("click",B=>{B.stopPropagation(),u==null||u.click()}),(_=h.querySelector("#btn-remove-image"))==null||_.addEventListener("click",B=>{B.stopPropagation(),V(),x()})}h.addEventListener("click",()=>{!l&&!y&&(u==null||u.click())}),u==null||u.addEventListener("change",A=>{A.target.files&&A.target.files[0]&&P(A.target.files[0])}),["dragenter","dragover"].forEach(A=>{h.addEventListener(A,_=>{_.preventDefault(),_.stopPropagation(),h.classList.add("drag-over")})}),["dragleave","drop"].forEach(A=>{h.addEventListener(A,_=>{_.preventDefault(),_.stopPropagation(),h.classList.remove("drag-over")})}),h.addEventListener("drop",A=>{var B;if(y)return;const _=(B=A.dataTransfer)==null?void 0:B.files;_&&_.length>0&&P(_[0])}),l?E():q();const R=()=>{s.innerHTML=""};(C=s.querySelector("#modal-close"))==null||C.addEventListener("click",R),(L=s.querySelector("#modal-close-action"))==null||L.addEventListener("click",R),(z=s.querySelector("#room-form"))==null||z.addEventListener("submit",async A=>{if(A.preventDefault(),y){window.showToast("Please wait for image upload to complete.","warning");return}if(!l){b("Please upload a room photo before proceeding.","error"),window.showToast("Room photo is required.","error");return}const _={hotel_id:n,room_name:s.querySelector("#room-name").value.trim(),room_type:s.querySelector("#room-type").value,max_guests:Number(s.querySelector("#room-capacity").value),price_per_night:Number(s.querySelector("#room-price").value),total_inventory:Number(s.querySelector("#room-inventory").value),description:s.querySelector("#room-desc").value.trim(),photos:[l],photo_public_id:m};try{p?(await f.updateRoom(c.id,_),window.showToast("Room category updated successfully.","success")):(await f.createRoom(_),window.showToast("New room category created successfully.","success")),R(),a()}catch(B){window.showToast(B.message,"error")}})}a()}async function RM(i){i.innerHTML=`
     <div style="text-align: center; padding: 60px 20px;">
       <i data-lucide="loader-2" style="width: 36px; height: 36px; color: var(--color-primary); animation: spin 1s linear infinite; margin-bottom: 12px; display: inline-block;"></i>
       <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Loading availability matrix & room inventory...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{let c=function(s){var g,b,S,w,M;const p=i.querySelector("#avail-modal-mount");if(!p)return;const h=s.date.split("-"),y=new Date(Number(h[0]),Number(h[1])-1,Number(h[2])).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});p.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{let c=function(s){var g,w,S,k,M;const p=i.querySelector("#avail-modal-mount");if(!p)return;const l=s.date.split("-"),y=new Date(Number(l[0]),Number(l[1])-1,Number(l[2])).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});p.innerHTML=`
         <div class="avail-modal-overlay" id="modal-overlay">
           <div class="avail-modal-card">
             <div class="modal-header">
@@ -10260,7 +10337,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </form>
           </div>
         </div>
-      `,window.lucide&&window.lucide.createIcons();const u=()=>{p.innerHTML=""};(g=p.querySelector("#btn-close-block-modal"))==null||g.addEventListener("click",u),(b=p.querySelector("#btn-modal-cancel"))==null||b.addEventListener("click",u),(S=p.querySelector("#modal-overlay"))==null||S.addEventListener("click",f=>{f.target.id==="modal-overlay"&&u()}),(w=p.querySelector("#btn-modal-clear-block"))==null||w.addEventListener("click",async()=>{window.confirm(`Set blocked rooms to 0 for ${s.date}?`)&&await v(0)}),(M=p.querySelector("#form-manage-block"))==null||M.addEventListener("submit",async f=>{f.preventDefault();const k=Number(p.querySelector("#input-blocked-count").value);if(isNaN(k)||k<0){l("Please enter a valid non-negative number.");return}if(k>s.maxBlockable){l(`Cannot block ${k} rooms. Maximum available to block is ${s.maxBlockable} rooms (${s.booked} already booked).`);return}const H=k===0?`Confirm unblocking all rooms for ${s.date}?`:`Confirm blocking ${k} rooms for ${s.date}? These rooms will not be available for guests to book.`;window.confirm(H)&&await v(k)});function l(f){const k=p.querySelector("#modal-error-box");k&&(k.textContent=f,k.style.display="block")}async function v(f){const k=p.querySelector("#btn-modal-save");k&&(k.disabled=!0,k.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons());try{await x.blockAvailability(s.roomId,s.date,f),u(),window.showToast&&window.showToast(f===0?`Unblocked rooms for ${s.date}.`:`Blocked ${f} rooms for ${s.date}.`,"success"),await r()}catch(H){k&&(k.disabled=!1,k.innerHTML="Save Changes"),l(H.message||"Failed to update room availability.")}}};var e=c;let a=[],d="";try{const s=await x.getOwnerHotels();if(s&&s.hotels&&s.hotels.length>0){const p=s.hotels[0];d=p.name||"Hotel Property",a=(p.rooms||[]).filter(h=>h.is_active!==!1)}}catch(s){console.warn("Owner hotels fetch error, falling back to hotel admin rooms:",s)}if(a.length===0)try{const s=await x.getHotelAdminRooms();s&&s.rooms&&s.rooms.length>0&&(a=s.rooms.filter(p=>p.is_active!==!1))}catch(s){console.warn("Hotel admin rooms fetch error:",s)}if(a.length===0){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons();const u=()=>{p.innerHTML=""};(g=p.querySelector("#btn-close-block-modal"))==null||g.addEventListener("click",u),(w=p.querySelector("#btn-modal-cancel"))==null||w.addEventListener("click",u),(S=p.querySelector("#modal-overlay"))==null||S.addEventListener("click",b=>{b.target.id==="modal-overlay"&&u()}),(k=p.querySelector("#btn-modal-clear-block"))==null||k.addEventListener("click",async()=>{window.confirm(`Set blocked rooms to 0 for ${s.date}?`)&&await v(0)}),(M=p.querySelector("#form-manage-block"))==null||M.addEventListener("submit",async b=>{b.preventDefault();const x=Number(p.querySelector("#input-blocked-count").value);if(isNaN(x)||x<0){h("Please enter a valid non-negative number.");return}if(x>s.maxBlockable){h(`Cannot block ${x} rooms. Maximum available to block is ${s.maxBlockable} rooms (${s.booked} already booked).`);return}const H=x===0?`Confirm unblocking all rooms for ${s.date}?`:`Confirm blocking ${x} rooms for ${s.date}? These rooms will not be available for guests to book.`;window.confirm(H)&&await v(x)});function h(b){const x=p.querySelector("#modal-error-box");x&&(x.textContent=b,x.style.display="block")}async function v(b){const x=p.querySelector("#btn-modal-save");x&&(x.disabled=!0,x.innerHTML='<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Saving...',window.lucide&&window.lucide.createIcons());try{await f.blockAvailability(s.roomId,s.date,b),u(),window.showToast&&window.showToast(b===0?`Unblocked rooms for ${s.date}.`:`Blocked ${b} rooms for ${s.date}.`,"success"),await n()}catch(H){x&&(x.disabled=!1,x.innerHTML="Save Changes"),h(H.message||"Failed to update room availability.")}}};var e=c;let a=[],d="";try{const s=await f.getOwnerHotels();if(s&&s.hotels&&s.hotels.length>0){const p=s.hotels[0];d=p.name||"Hotel Property",a=(p.rooms||[]).filter(l=>l.is_active!==!1)}}catch(s){console.warn("Owner hotels fetch error, falling back to hotel admin rooms:",s)}if(a.length===0)try{const s=await f.getHotelAdminRooms();s&&s.rooms&&s.rooms.length>0&&(a=s.rooms.filter(p=>p.is_active!==!1))}catch(s){console.warn("Hotel admin rooms fetch error:",s)}if(a.length===0){i.innerHTML=`
         <div class="panel-card" style="text-align: center; padding: 48px 24px;">
           <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-surface-secondary); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid var(--border-light);">
             <i data-lucide="bed-double" style="width: 28px; height: 28px; color: var(--text-muted);"></i>
@@ -10273,7 +10350,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <i data-lucide="plus"></i> Go to Room Categories
           </a>
         </div>
-      `,window.lucide&&window.lucide.createIcons();return}let o=a[0].id;const n=s=>{const p=s.getFullYear(),h=String(s.getMonth()+1).padStart(2,"0"),m=String(s.getDate()).padStart(2,"0");return`${p}-${h}-${m}`};async function r(){var S,w;const s=new Date,p=n(s),h=new Date(s.getFullYear(),s.getMonth(),s.getDate()+14),m=n(h),y=a.find(M=>M.id===o)||a[0];let u=[],l=null;try{const M=await x.getRoomAvailability(o,p,m);if(M&&Array.isArray(M.matrix))u=M.matrix;else throw new Error("Unexpected response format from availability endpoint.")}catch(M){l=M.message||"Failed to load availability data."}const v=u.reduce((M,f)=>M+(f.booked_count||0),0),g=u.reduce((M,f)=>M+(f.blocked_count||0),0),b=u.filter(M=>M.available_count===0).length;i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons();return}let o=a[0].id;const r=s=>{const p=s.getFullYear(),l=String(s.getMonth()+1).padStart(2,"0"),m=String(s.getDate()).padStart(2,"0");return`${p}-${l}-${m}`};async function n(){var S,k;const s=new Date,p=r(s),l=new Date(s.getFullYear(),s.getMonth(),s.getDate()+14),m=r(l),y=a.find(M=>M.id===o)||a[0];let u=[],h=null;try{const M=await f.getRoomAvailability(o,p,m);if(M&&Array.isArray(M.matrix))u=M.matrix;else throw new Error("Unexpected response format from availability endpoint.")}catch(M){h=M.message||"Failed to load availability data."}const v=u.reduce((M,b)=>M+(b.booked_count||0),0),g=u.reduce((M,b)=>M+(b.blocked_count||0),0),w=u.filter(M=>M.available_count===0).length;i.innerHTML=`
         <style>
           .avail-matrix-header {
             display: flex;
@@ -10491,19 +10568,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             </div>
             <div class="avail-summary-chip">
               <span class="avail-chip-label">Full Capacity Days</span>
-              <span class="avail-chip-value" style="color: ${b>0?"var(--status-danger)":"var(--status-success)"};">
-                ${b} / 14 Days
+              <span class="avail-chip-value" style="color: ${w>0?"var(--status-danger)":"var(--status-success)"};">
+                ${w} / 14 Days
               </span>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">${14-b} Days with Open Slots</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${14-w} Days with Open Slots</span>
             </div>
           </div>
 
           <!-- Error Alert if API failed -->
-          ${l?`
+          ${h?`
             <div style="background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); color: var(--status-danger); padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
-                <span style="font-size: 0.85rem; font-weight: 500;">${l}</span>
+                <span style="font-size: 0.85rem; font-weight: 500;">${h}</span>
               </div>
               <button class="btn btn-secondary btn-sm" id="btn-retry-matrix" style="padding: 4px 10px;">Retry</button>
             </div>
@@ -10530,15 +10607,15 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
           <!-- 14-Day Calendar Matrix Cards -->
           <div class="avail-grid-scroll">
-            ${u.map(M=>{const f=M.date.split("-"),k=new Date(Number(f[0]),Number(f[1])-1,Number(f[2])),H=k.toLocaleDateString("en-US",{weekday:"short"}),P=k.toLocaleDateString("en-US",{month:"short",day:"numeric"}),_=M.date===p,q=M.available_count===0,E=M.total_inventory||y.total_inventory||1,R=Math.round(M.booked_count/E*100),C=Math.round(M.blocked_count/E*100),V=Math.max(0,100-R-C);return`
-                <div class="avail-card ${_?"is-today":""} ${q?"is-zero":""}" data-date="${M.date}">
+            ${u.map(M=>{const b=M.date.split("-"),x=new Date(Number(b[0]),Number(b[1])-1,Number(b[2])),H=x.toLocaleDateString("en-US",{weekday:"short"}),V=x.toLocaleDateString("en-US",{month:"short",day:"numeric"}),P=M.date===p,q=M.available_count===0,E=M.total_inventory||y.total_inventory||1,R=Math.round(M.booked_count/E*100),C=Math.round(M.blocked_count/E*100),L=Math.max(0,100-R-C);return`
+                <div class="avail-card ${P?"is-today":""} ${q?"is-zero":""}" data-date="${M.date}">
                   <div>
                     <div class="avail-card-date">
                       <span>${H}</span>
-                      ${_?'<span class="badge" style="background: var(--color-primary); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">TODAY</span>':""}
-                      ${q&&!_?'<span class="badge" style="background: var(--status-danger); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">FULL</span>':""}
+                      ${P?'<span class="badge" style="background: var(--color-primary); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">TODAY</span>':""}
+                      ${q&&!P?'<span class="badge" style="background: var(--status-danger); color: #fff; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;">FULL</span>':""}
                     </div>
-                    <div class="avail-card-subdate">${P}</div>
+                    <div class="avail-card-subdate">${V}</div>
 
                     <div class="avail-count-badge">
                       <span class="avail-count-big">${M.available_count}</span>
@@ -10549,7 +10626,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                     <div class="avail-breakdown-bar" title="Booked: ${M.booked_count}, Blocked: ${M.blocked_count}, Available: ${M.available_count}">
                       <div class="avail-bar-booked" style="width: ${R}%;"></div>
                       <div class="avail-bar-blocked" style="width: ${C}%;"></div>
-                      <div class="avail-bar-free" style="width: ${V}%;"></div>
+                      <div class="avail-bar-free" style="width: ${L}%;"></div>
                     </div>
 
                     <div class="avail-breakdown-text">
@@ -10592,7 +10669,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
         <!-- Block Inventory Modal Mount Point -->
         <div id="avail-modal-mount"></div>
-      `,window.lucide&&window.lucide.createIcons(),(S=i.querySelector("#btn-retry-matrix"))==null||S.addEventListener("click",()=>{r()}),(w=i.querySelector("#select-room-matrix"))==null||w.addEventListener("change",M=>{o=M.target.value,r()}),i.querySelectorAll(".btn-unblock-direct").forEach(M=>{M.addEventListener("click",async f=>{f.stopPropagation();const k=M.getAttribute("data-date");if(window.confirm(`Are you sure you want to unblock all rooms for ${k}? This will restore available inventory for guests.`)){M.disabled=!0,M.innerHTML='<i data-lucide="loader-2" style="width: 12px; height: 12px; animation: spin 1s linear infinite;"></i> Unblocking...',window.lucide&&window.lucide.createIcons();try{await x.blockAvailability(o,k,0),window.showToast&&window.showToast(`Successfully unblocked rooms for ${k}.`,"success"),await r()}catch(P){M.disabled=!1,M.innerHTML='<i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Unblock',window.lucide&&window.lucide.createIcons(),window.showToast?window.showToast(P.message||"Failed to unblock rooms.","error"):alert(`Error: ${P.message}`)}}})}),i.querySelectorAll(".btn-open-block-modal").forEach(M=>{M.addEventListener("click",()=>{const f=M.getAttribute("data-date"),k=Number(M.getAttribute("data-available")),H=Number(M.getAttribute("data-booked")),P=Number(M.getAttribute("data-blocked")),_=Number(M.getAttribute("data-total")),q=Math.max(0,_-H);c({roomId:o,roomName:y.room_name||y.name,date:f,available:k,booked:H,currentBlocked:P,total:_,maxBlockable:q})})})}await r()}catch(a){i.innerHTML=`
+      `,window.lucide&&window.lucide.createIcons(),(S=i.querySelector("#btn-retry-matrix"))==null||S.addEventListener("click",()=>{n()}),(k=i.querySelector("#select-room-matrix"))==null||k.addEventListener("change",M=>{o=M.target.value,n()}),i.querySelectorAll(".btn-unblock-direct").forEach(M=>{M.addEventListener("click",async b=>{b.stopPropagation();const x=M.getAttribute("data-date");if(window.confirm(`Are you sure you want to unblock all rooms for ${x}? This will restore available inventory for guests.`)){M.disabled=!0,M.innerHTML='<i data-lucide="loader-2" style="width: 12px; height: 12px; animation: spin 1s linear infinite;"></i> Unblocking...',window.lucide&&window.lucide.createIcons();try{await f.blockAvailability(o,x,0),window.showToast&&window.showToast(`Successfully unblocked rooms for ${x}.`,"success"),await n()}catch(V){M.disabled=!1,M.innerHTML='<i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Unblock',window.lucide&&window.lucide.createIcons(),window.showToast?window.showToast(V.message||"Failed to unblock rooms.","error"):alert(`Error: ${V.message}`)}}})}),i.querySelectorAll(".btn-open-block-modal").forEach(M=>{M.addEventListener("click",()=>{const b=M.getAttribute("data-date"),x=Number(M.getAttribute("data-available")),H=Number(M.getAttribute("data-booked")),V=Number(M.getAttribute("data-blocked")),P=Number(M.getAttribute("data-total")),q=Math.max(0,P-H);c({roomId:o,roomName:y.room_name||y.name,date:b,available:x,booked:H,currentBlocked:V,total:P,maxBlockable:q})})})}await n()}catch(a){i.innerHTML=`
       <div class="panel-card" style="color: var(--status-danger); padding: 30px; text-align: center;">
         <i data-lucide="alert-circle" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
         <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Failed to initialize availability manager</h3>
@@ -10603,7 +10680,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading bookings for your hotel...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerBookings()).bookings,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getOwnerBookings()).bookings,d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="card-header" style="padding: 16px 20px; margin-bottom: 0;">
           <div class="card-title-group">
@@ -10653,7 +10730,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading arrivals...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerBookings()).bookings.filter(r=>r.booking_status==="confirmed"),d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getOwnerBookings()).bookings.filter(n=>n.booking_status==="confirmed"),d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
       <!-- Fast Check-In Search Widget -->
       <div class="panel-card" style="max-width: 620px; margin-bottom: 24px;">
         <div class="card-header">
@@ -10694,19 +10771,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${e.length===0?`
                 <tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">No pending guest arrivals for check-in.</td></tr>
-              `:e.map(n=>`
+              `:e.map(r=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.booking_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${n.customer_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.customer_phone||n.customer_email}</div>
+                    <div style="font-weight: 600;">${r.customer_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.customer_phone||r.customer_email}</div>
                   </td>
-                  <td>${n.room_name}</td>
-                  <td><strong style="color: var(--color-primary);">${n.check_in_date}</strong></td>
-                  <td>${n.nights} nights (${n.guests_count} guests)</td>
-                  <td style="font-weight: 700;">₹${n.total_amount.toLocaleString("en-IN")}</td>
+                  <td>${r.room_name}</td>
+                  <td><strong style="color: var(--color-primary);">${r.check_in_date}</strong></td>
+                  <td>${r.nights} nights (${r.guests_count} guests)</td>
+                  <td style="font-weight: 700;">₹${r.total_amount.toLocaleString("en-IN")}</td>
                   <td>
-                    <button class="btn btn-success btn-sm btn-confirm-checkin" data-booking-id="${n.id}" data-guest-name="${n.customer_name}">
+                    <button class="btn btn-success btn-sm btn-confirm-checkin" data-booking-id="${r.id}" data-guest-name="${r.customer_name}">
                       <i data-lucide="check-circle-2"></i> Complete Check-In
                     </button>
                   </td>
@@ -10716,12 +10793,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var n;i.querySelectorAll(".btn-confirm-checkin").forEach(r=>{r.addEventListener("click",async()=>{const c=r.getAttribute("data-booking-id"),s=r.getAttribute("data-guest-name");try{await x.checkInGuest(c),window.showToast(`Guest ${s} checked in successfully!`,"success"),a()}catch(p){window.showToast(p.message,"error")}})}),(n=i.querySelector("#btn-find-booking"))==null||n.addEventListener("click",()=>{const r=i.querySelector("#checkin-search-id").value.trim().toLowerCase();if(!r)return;const c=e.filter(s=>s.booking_code.toLowerCase().includes(r)||s.customer_name.toLowerCase().includes(r));c.length===0?window.showToast("No reservation matching that reference was found.","error"):window.showToast(`Found reservation for ${c[0].customer_name}!`,"info")})}a()}async function NM(i){let e=[];async function a(){i.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var r;i.querySelectorAll(".btn-confirm-checkin").forEach(n=>{n.addEventListener("click",async()=>{const c=n.getAttribute("data-booking-id"),s=n.getAttribute("data-guest-name");try{await f.checkInGuest(c),window.showToast(`Guest ${s} checked in successfully!`,"success"),a()}catch(p){window.showToast(p.message,"error")}})}),(r=i.querySelector("#btn-find-booking"))==null||r.addEventListener("click",()=>{const n=i.querySelector("#checkin-search-id").value.trim().toLowerCase();if(!n)return;const c=e.filter(s=>s.booking_code.toLowerCase().includes(n)||s.customer_name.toLowerCase().includes(n));c.length===0?window.showToast("No reservation matching that reference was found.","error"):window.showToast(`Found reservation for ${c[0].customer_name}!`,"info")})}a()}async function NM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading in-house guests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getOwnerBookings()).bookings.filter(r=>r.booking_status==="checked_in"),d()}catch(n){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${n.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getOwnerBookings()).bookings.filter(n=>n.booking_status==="checked_in"),d()}catch(r){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${r.message}</div>`}}function d(){i.innerHTML=`
       <div class="panel-card" style="padding: 0; overflow: hidden;">
         <div class="card-header" style="padding: 16px 20px; margin-bottom: 0;">
           <div class="card-title-group">
@@ -10746,19 +10823,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <tbody>
               ${e.length===0?`
                 <tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">No active in-house guests currently staying.</td></tr>
-              `:e.map(n=>`
+              `:e.map(r=>`
                 <tr>
-                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${n.booking_code}</span></td>
+                  <td><span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${r.booking_code}</span></td>
                   <td>
-                    <div style="font-weight: 600;">${n.customer_name}</div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">${n.customer_phone||n.customer_email}</div>
+                    <div style="font-weight: 600;">${r.customer_name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">${r.customer_phone||r.customer_email}</div>
                   </td>
-                  <td>${n.room_name}</td>
-                  <td>${n.check_in_date}</td>
-                  <td><strong style="color: var(--status-warning);">${n.check_out_date}</strong></td>
-                  <td style="font-weight: 700;">₹${n.total_amount.toLocaleString("en-IN")}</td>
+                  <td>${r.room_name}</td>
+                  <td>${r.check_in_date}</td>
+                  <td><strong style="color: var(--status-warning);">${r.check_out_date}</strong></td>
+                  <td style="font-weight: 700;">₹${r.total_amount.toLocaleString("en-IN")}</td>
                   <td>
-                    <button class="btn btn-primary btn-sm btn-confirm-checkout" data-booking-id="${n.id}" data-guest-name="${n.customer_name}">
+                    <button class="btn btn-primary btn-sm btn-confirm-checkout" data-booking-id="${r.id}" data-guest-name="${r.customer_name}">
                       <i data-lucide="log-out"></i> Complete Check-Out
                     </button>
                   </td>
@@ -10768,12 +10845,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-confirm-checkout").forEach(n=>{n.addEventListener("click",async()=>{const r=n.getAttribute("data-booking-id"),c=n.getAttribute("data-guest-name");try{await x.checkOutGuest(r),window.showToast(`Guest ${c} checked out. Room released to inventory!`,"success"),a()}catch(s){window.showToast(s.message,"error")}})})}a()}async function FM(i){let e=null;async function a(){i.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){i.querySelectorAll(".btn-confirm-checkout").forEach(r=>{r.addEventListener("click",async()=>{const n=r.getAttribute("data-booking-id"),c=r.getAttribute("data-guest-name");try{await f.checkOutGuest(n),window.showToast(`Guest ${c} checked out. Room released to inventory!`,"success"),a()}catch(s){window.showToast(s.message,"error")}})})}a()}async function FM(i){let e=null;async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner earnings ledger...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=await x.getOwnerEarnings(),d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=await f.getOwnerEarnings(),d()}catch(o){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${o.message}</div>`}}function d(){i.innerHTML=`
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-header">
@@ -10844,19 +10921,19 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </table>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons()}a()}async function ZM(i){let e="requests",a=[],d=[],o=null,n="all";async function r(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons()}a()}async function ZM(i){let e="requests",a=[],d=[],o=null,r="all";async function n(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading pickup services & requests...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{if(a=(await x.getOwnerHotels()).hotels||[],a.length>0){const l=a[0],[v,g]=await Promise.all([x.getPickups({hotel_id:l.id}),x.getHotelPickupSettings(l.id)]);d=v.pickups||[],o=g}c()}catch(u){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickup data: ${u.message}</div>`}}function c(){if(a.length===0){i.innerHTML='<div class="panel-card">Please register an active hotel first to manage pickup services.</div>';return}const u=a[0],l=o?o.pickup_service_enabled!==!1:!0,v=(o==null?void 0:o.all_locations)||u.pickup_locations||[],g=(o==null?void 0:o.all_vehicles)||u.pickup_vehicles||[],b=d.filter(S=>n==="all"?!0:S.pickup&&S.pickup.status===n);i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{if(a=(await f.getOwnerHotels()).hotels||[],a.length>0){const h=a[0],[v,g]=await Promise.all([f.getPickups({hotel_id:h.id}),f.getHotelPickupSettings(h.id)]);d=v.pickups||[],o=g}c()}catch(u){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error loading pickup data: ${u.message}</div>`}}function c(){if(a.length===0){i.innerHTML='<div class="panel-card">Please register an active hotel first to manage pickup services.</div>';return}const u=a[0],h=o?o.pickup_service_enabled!==!1:!0,v=(o==null?void 0:o.all_locations)||u.pickup_locations||[],g=(o==null?void 0:o.all_vehicles)||u.pickup_vehicles||[],w=d.filter(S=>r==="all"?!0:S.pickup&&S.pickup.status===r);i.innerHTML=`
       <!-- TOP STATUS BAR & GLOBAL TOGGLE -->
       <div class="panel-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
         <div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);">${u.name}</h2>
-            <span class="status-pill ${l?"active":"inactive"}">
-              ${l?"Pickup Service LIVE":"Pickup Service DISABLED"}
+            <span class="status-pill ${h?"active":"inactive"}">
+              ${h?"Pickup Service LIVE":"Pickup Service DISABLED"}
             </span>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
@@ -10865,9 +10942,9 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
-          <button id="btn-toggle-service" class="btn ${l?"btn-secondary":"btn-primary"}" style="font-size: 0.82rem;">
-            <i data-lucide="${l?"power-off":"check"}"></i>
-            ${l?"Disable Pickup Service":"Enable Pickup Service"}
+          <button id="btn-toggle-service" class="btn ${h?"btn-secondary":"btn-primary"}" style="font-size: 0.82rem;">
+            <i data-lucide="${h?"power-off":"check"}"></i>
+            ${h?"Disable Pickup Service":"Enable Pickup Service"}
           </button>
         </div>
       </div>
@@ -10891,14 +10968,14 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <div style="display: flex; gap: 8px; align-items: center;">
             <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Filter Status:</span>
             <select id="status-filter-select" class="form-control" style="padding: 4px 10px; font-size: 0.82rem; width: auto;">
-              <option value="all" ${n==="all"?"selected":""}>All Requests (${d.length})</option>
-              <option value="requested" ${n==="requested"?"selected":""}>Requested</option>
-              <option value="confirmed" ${n==="confirmed"?"selected":""}>Confirmed</option>
-              <option value="assigned" ${n==="assigned"?"selected":""}>Driver Assigned</option>
-              <option value="driver_on_way" ${n==="driver_on_way"?"selected":""}>Driver On Way</option>
-              <option value="arrived" ${n==="arrived"?"selected":""}>Arrived</option>
-              <option value="completed" ${n==="completed"?"selected":""}>Completed</option>
-              <option value="cancelled" ${n==="cancelled"?"selected":""}>Cancelled</option>
+              <option value="all" ${r==="all"?"selected":""}>All Requests (${d.length})</option>
+              <option value="requested" ${r==="requested"?"selected":""}>Requested</option>
+              <option value="confirmed" ${r==="confirmed"?"selected":""}>Confirmed</option>
+              <option value="assigned" ${r==="assigned"?"selected":""}>Driver Assigned</option>
+              <option value="driver_on_way" ${r==="driver_on_way"?"selected":""}>Driver On Way</option>
+              <option value="arrived" ${r==="arrived"?"selected":""}>Arrived</option>
+              <option value="completed" ${r==="completed"?"selected":""}>Completed</option>
+              <option value="cancelled" ${r==="cancelled"?"selected":""}>Cancelled</option>
             </select>
           </div>
         </div>
@@ -10920,9 +10997,9 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                 </tr>
               </thead>
               <tbody>
-                ${b.length===0?`
+                ${w.length===0?`
                   <tr><td colspan="9" style="text-align: center; padding: 36px; color: var(--text-muted);">No pickup requests found for this filter.</td></tr>
-                `:b.map(S=>{const w=S.pickup||{},M=w.driver||{},f=M.name&&M.name.trim()!=="";return`
+                `:w.map(S=>{const k=S.pickup||{},M=k.driver||{},b=M.name&&M.name.trim()!=="";return`
                     <tr>
                       <td>
                         <span style="font-family: monospace; font-weight: 700; color: var(--color-primary);">${S.booking_code}</span>
@@ -10933,27 +11010,27 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                       </td>
                       <td>
                         <div style="font-weight: 700; color: var(--color-primary-dark); text-transform: capitalize;">
-                          ${w.type==="airport"?"✈️ Airport":w.type==="railway"?"🚆 Railway":w.type==="bus"?"🚌 Bus":"📍 Custom"}
+                          ${k.type==="airport"?"✈️ Airport":k.type==="railway"?"🚆 Railway":k.type==="bus"?"🚌 Bus":"📍 Custom"}
                         </div>
                         <div style="font-size: 0.75rem; color: var(--text-dark); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                          ${w.location_name||"Designated Point"}
+                          ${k.location_name||"Designated Point"}
                         </div>
-                        ${w.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${w.flight_number}</div>`:""}
-                        ${w.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${w.train_number}</div>`:""}
+                        ${k.flight_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Flight: ${k.flight_number}</div>`:""}
+                        ${k.train_number?`<div style="font-size: 0.7rem; color: var(--color-primary);">Train: ${k.train_number}</div>`:""}
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${w.pickup_time||"10:30 AM"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${w.pickup_date||S.check_in_date}</div>
+                        <div style="font-weight: 600;">${k.pickup_time||"10:30 AM"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${k.pickup_date||S.check_in_date}</div>
                       </td>
                       <td>
-                        <div style="font-weight: 600;">${w.location_name||"Station Transfer"}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">${w.pickup_time||"10:30 AM"}</div>
+                        <div style="font-weight: 600;">${k.location_name||"Station Transfer"}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">${k.pickup_time||"10:30 AM"}</div>
                       </td>
                       <td>
-                        <strong style="color: #2E7D32; font-size: 0.95rem;">${w.pickup_charge===0||w.pickup_service==="FREE"||w.service==="FREE"?"FREE (₹0)":`₹${(w.pickup_charge||0).toLocaleString("en-IN")}`}</strong>
+                        <strong style="color: #2E7D32; font-size: 0.95rem;">${k.pickup_charge===0||k.pickup_service==="FREE"||k.service==="FREE"?"FREE (₹0)":`₹${(k.pickup_charge||0).toLocaleString("en-IN")}`}</strong>
                       </td>
                       <td>
-                        ${f?`
+                        ${b?`
                           <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-dark);">👤 ${M.name}</div>
                           <div style="font-size: 0.7rem; color: var(--text-muted);">${M.phone?"📞 "+M.phone:""} ${M.vehicle_number?`(${M.vehicle_number})`:""}</div>
                         `:`
@@ -10961,7 +11038,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
                         `}
                       </td>
                       <td>
-                        <span class="status-pill ${w.status||"confirmed"}">${(w.status||"confirmed").replace("_"," ")}</span>
+                        <span class="status-pill ${k.status||"confirmed"}">${(k.status||"confirmed").replace("_"," ")}</span>
                       </td>
                       <td>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
@@ -11084,7 +11161,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
       <!-- MODAL CONTAINER -->
       <div id="pickup-modal-root"></div>
-    `,s(u.id),window.lucide&&window.lucide.createIcons()}function s(u){var l,v,g,b,S,w,M;(l=i.querySelector("#tab-btn-requests"))==null||l.addEventListener("click",()=>{e="requests",c()}),(v=i.querySelector("#tab-btn-vehicles"))==null||v.addEventListener("click",()=>{e="vehicles",c()}),(g=i.querySelector("#tab-btn-locations"))==null||g.addEventListener("click",()=>{e="locations",c()}),(b=i.querySelector("#btn-toggle-service"))==null||b.addEventListener("click",async()=>{const f=o?o.pickup_service_enabled!==!1:!0;try{await x.updateHotelPickupSettings(u,!f),window.showToast(`Pickup service ${f?"disabled":"enabled"} for ${a[0].name}.`,"success"),r()}catch(k){window.showToast(k.message,"error")}}),(S=i.querySelector("#status-filter-select"))==null||S.addEventListener("change",f=>{n=f.target.value,c()}),i.querySelectorAll(".btn-assign-driver").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-booking-id"),H=d.find(P=>P.booking_id===k);p(k,H)})}),i.querySelectorAll(".btn-update-status").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-booking-id"),H=d.find(P=>P.booking_id===k);h(k,H)})}),(w=i.querySelector("#btn-add-vehicle"))==null||w.addEventListener("click",()=>{m(u,null)}),i.querySelectorAll(".btn-edit-vehicle").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-vehicle-id"),H=((o==null?void 0:o.all_vehicles)||a[0].pickup_vehicles||[]).find(P=>P.id===k);m(u,H)})}),i.querySelectorAll(".btn-delete-vehicle").forEach(f=>{f.addEventListener("click",async()=>{const k=f.getAttribute("data-vehicle-id");if(confirm("Are you sure you want to remove this vehicle from your fleet?"))try{await x.deletePickupVehicle(u,k),window.showToast("Vehicle removed from fleet.","success"),r()}catch(H){window.showToast(H.message,"error")}})}),(M=i.querySelector("#btn-add-location"))==null||M.addEventListener("click",()=>{y(u,null)}),i.querySelectorAll(".btn-edit-location").forEach(f=>{f.addEventListener("click",()=>{const k=f.getAttribute("data-location-id"),H=((o==null?void 0:o.all_locations)||a[0].pickup_locations||[]).find(P=>P.id===k);y(u,H)})}),i.querySelectorAll(".btn-delete-location").forEach(f=>{f.addEventListener("click",async()=>{const k=f.getAttribute("data-location-id");if(confirm("Are you sure you want to remove this pickup point?"))try{await x.deletePickupLocation(u,k),window.showToast("Pickup point removed.","success"),r()}catch(H){window.showToast(H.message,"error")}})})}function p(u,l){var S,w;const v=i.querySelector("#pickup-modal-root"),g=((S=l==null?void 0:l.pickup)==null?void 0:S.driver)||{};v.innerHTML=`
+    `,s(u.id),window.lucide&&window.lucide.createIcons()}function s(u){var h,v,g,w,S,k,M;(h=i.querySelector("#tab-btn-requests"))==null||h.addEventListener("click",()=>{e="requests",c()}),(v=i.querySelector("#tab-btn-vehicles"))==null||v.addEventListener("click",()=>{e="vehicles",c()}),(g=i.querySelector("#tab-btn-locations"))==null||g.addEventListener("click",()=>{e="locations",c()}),(w=i.querySelector("#btn-toggle-service"))==null||w.addEventListener("click",async()=>{const b=o?o.pickup_service_enabled!==!1:!0;try{await f.updateHotelPickupSettings(u,!b),window.showToast(`Pickup service ${b?"disabled":"enabled"} for ${a[0].name}.`,"success"),n()}catch(x){window.showToast(x.message,"error")}}),(S=i.querySelector("#status-filter-select"))==null||S.addEventListener("change",b=>{r=b.target.value,c()}),i.querySelectorAll(".btn-assign-driver").forEach(b=>{b.addEventListener("click",()=>{const x=b.getAttribute("data-booking-id"),H=d.find(V=>V.booking_id===x);p(x,H)})}),i.querySelectorAll(".btn-update-status").forEach(b=>{b.addEventListener("click",()=>{const x=b.getAttribute("data-booking-id"),H=d.find(V=>V.booking_id===x);l(x,H)})}),(k=i.querySelector("#btn-add-vehicle"))==null||k.addEventListener("click",()=>{m(u,null)}),i.querySelectorAll(".btn-edit-vehicle").forEach(b=>{b.addEventListener("click",()=>{const x=b.getAttribute("data-vehicle-id"),H=((o==null?void 0:o.all_vehicles)||a[0].pickup_vehicles||[]).find(V=>V.id===x);m(u,H)})}),i.querySelectorAll(".btn-delete-vehicle").forEach(b=>{b.addEventListener("click",async()=>{const x=b.getAttribute("data-vehicle-id");if(confirm("Are you sure you want to remove this vehicle from your fleet?"))try{await f.deletePickupVehicle(u,x),window.showToast("Vehicle removed from fleet.","success"),n()}catch(H){window.showToast(H.message,"error")}})}),(M=i.querySelector("#btn-add-location"))==null||M.addEventListener("click",()=>{y(u,null)}),i.querySelectorAll(".btn-edit-location").forEach(b=>{b.addEventListener("click",()=>{const x=b.getAttribute("data-location-id"),H=((o==null?void 0:o.all_locations)||a[0].pickup_locations||[]).find(V=>V.id===x);y(u,H)})}),i.querySelectorAll(".btn-delete-location").forEach(b=>{b.addEventListener("click",async()=>{const x=b.getAttribute("data-location-id");if(confirm("Are you sure you want to remove this pickup point?"))try{await f.deletePickupLocation(u,x),window.showToast("Pickup point removed.","success"),n()}catch(H){window.showToast(H.message,"error")}})})}function p(u,h){var S,k;const v=i.querySelector("#pickup-modal-root"),g=((S=h==null?void 0:h.pickup)==null?void 0:S.driver)||{};v.innerHTML=`
       <div class="modal-backdrop active" id="assign-driver-backdrop">
         <div class="modal-card" style="max-width: 480px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -11092,7 +11169,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <button class="btn btn-secondary btn-sm" id="btn-close-assign-modal">✕</button>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
-            Assign verified front-desk driver and vehicle for Booking <strong>${l==null?void 0:l.booking_code}</strong> (${l==null?void 0:l.customer_name}).
+            Assign verified front-desk driver and vehicle for Booking <strong>${h==null?void 0:h.booking_code}</strong> (${h==null?void 0:h.customer_name}).
           </p>
 
           <form id="form-assign-driver">
@@ -11107,7 +11184,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Model & Plate Number</label>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <input type="text" id="driver-vehicle" class="form-control" value="${g.vehicle||((w=l==null?void 0:l.pickup)==null?void 0:w.vehicle_name)||"Executive Sedan"}" placeholder="e.g. Toyota Etios">
+                <input type="text" id="driver-vehicle" class="form-control" value="${g.vehicle||((k=h==null?void 0:h.pickup)==null?void 0:k.vehicle_name)||"Executive Sedan"}" placeholder="e.g. Toyota Etios">
                 <input type="text" id="driver-vehicle-num" class="form-control" value="${g.vehicle_number||""}" placeholder="e.g. WB-30-AB-1290">
               </div>
             </div>
@@ -11119,7 +11196,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{v.innerHTML=""};v.querySelector("#btn-close-assign-modal").addEventListener("click",b),v.querySelector("#btn-cancel-assign").addEventListener("click",b),v.querySelector("#form-assign-driver").addEventListener("submit",async M=>{M.preventDefault();const f={driver_name:v.querySelector("#driver-name").value.trim(),driver_phone:v.querySelector("#driver-phone").value.trim(),vehicle:v.querySelector("#driver-vehicle").value.trim(),vehicle_number:v.querySelector("#driver-vehicle-num").value.trim()};try{await x.assignPickupDriver(u,f),window.showToast("Driver assigned successfully.","success"),b(),r()}catch(k){window.showToast(k.message,"error")}})}function h(u,l){var S;const v=i.querySelector("#pickup-modal-root"),g=((S=l==null?void 0:l.pickup)==null?void 0:S.status)||"confirmed";v.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const w=()=>{v.innerHTML=""};v.querySelector("#btn-close-assign-modal").addEventListener("click",w),v.querySelector("#btn-cancel-assign").addEventListener("click",w),v.querySelector("#form-assign-driver").addEventListener("submit",async M=>{M.preventDefault();const b={driver_name:v.querySelector("#driver-name").value.trim(),driver_phone:v.querySelector("#driver-phone").value.trim(),vehicle:v.querySelector("#driver-vehicle").value.trim(),vehicle_number:v.querySelector("#driver-vehicle-num").value.trim()};try{await f.assignPickupDriver(u,b),window.showToast("Driver assigned successfully.","success"),w(),n()}catch(x){window.showToast(x.message,"error")}})}function l(u,h){var S;const v=i.querySelector("#pickup-modal-root"),g=((S=h==null?void 0:h.pickup)==null?void 0:S.status)||"confirmed";v.innerHTML=`
       <div class="modal-backdrop active" id="update-status-backdrop">
         <div class="modal-card" style="max-width: 440px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -11127,7 +11204,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
             <button class="btn btn-secondary btn-sm" id="btn-close-status-modal">✕</button>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
-            Update live status for Booking <strong>${l==null?void 0:l.booking_code}</strong>.
+            Update live status for Booking <strong>${h==null?void 0:h.booking_code}</strong>.
           </p>
 
           <form id="form-update-status">
@@ -11157,7 +11234,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{v.innerHTML=""};v.querySelector("#btn-close-status-modal").addEventListener("click",b),v.querySelector("#btn-cancel-status").addEventListener("click",b),v.querySelector("#form-update-status").addEventListener("submit",async w=>{w.preventDefault();const M=v.querySelector("#pickup-new-status").value,f=v.querySelector("#status-notes").value.trim();try{await x.updatePickupStatus(u,M,f),window.showToast(`Pickup status updated to ${M.toUpperCase()}.`,"success"),b(),r()}catch(k){window.showToast(k.message,"error")}})}function m(u,l){const v=!!l,g=i.querySelector("#pickup-modal-root");g.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const w=()=>{v.innerHTML=""};v.querySelector("#btn-close-status-modal").addEventListener("click",w),v.querySelector("#btn-cancel-status").addEventListener("click",w),v.querySelector("#form-update-status").addEventListener("submit",async k=>{k.preventDefault();const M=v.querySelector("#pickup-new-status").value,b=v.querySelector("#status-notes").value.trim();try{await f.updatePickupStatus(u,M,b),window.showToast(`Pickup status updated to ${M.toUpperCase()}.`,"success"),w(),n()}catch(x){window.showToast(x.message,"error")}})}function m(u,h){const v=!!h,g=i.querySelector("#pickup-modal-root");g.innerHTML=`
       <div class="modal-backdrop active">
         <div class="modal-card" style="max-width: 460px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -11168,34 +11245,34 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <form id="form-vehicle-manage">
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Name / Model *</label>
-              <input type="text" id="veh-name" class="form-control" value="${(l==null?void 0:l.name)||""}" placeholder="e.g. Executive Sedan (Dzire)" required>
+              <input type="text" id="veh-name" class="form-control" value="${(h==null?void 0:h.name)||""}" placeholder="e.g. Executive Sedan (Dzire)" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Category</label>
               <select id="veh-type" class="form-control">
-                <option value="Sedan" ${(l==null?void 0:l.type)==="Sedan"?"selected":""}>Sedan</option>
-                <option value="SUV" ${(l==null?void 0:l.type)==="SUV"?"selected":""}>SUV</option>
-                <option value="Tempo Traveller" ${(l==null?void 0:l.type)==="Tempo Traveller"?"selected":""}>Tempo Traveller</option>
-                <option value="Luxury Bus" ${(l==null?void 0:l.type)==="Luxury Bus"?"selected":""}>Luxury Bus</option>
+                <option value="Sedan" ${(h==null?void 0:h.type)==="Sedan"?"selected":""}>Sedan</option>
+                <option value="SUV" ${(h==null?void 0:h.type)==="SUV"?"selected":""}>SUV</option>
+                <option value="Tempo Traveller" ${(h==null?void 0:h.type)==="Tempo Traveller"?"selected":""}>Tempo Traveller</option>
+                <option value="Luxury Bus" ${(h==null?void 0:h.type)==="Luxury Bus"?"selected":""}>Luxury Bus</option>
               </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
               <div class="form-group">
                 <label class="form-label">Max Capacity (Pax) *</label>
-                <input type="number" id="veh-capacity" class="form-control" min="1" max="50" value="${(l==null?void 0:l.capacity)||4}" required>
+                <input type="number" id="veh-capacity" class="form-control" min="1" max="50" value="${(h==null?void 0:h.capacity)||4}" required>
               </div>
               <div class="form-group">
                 <label class="form-label">Fixed Fare (₹) *</label>
-                <input type="number" id="veh-price" class="form-control" min="0" value="${(l==null?void 0:l.price)||800}" required>
+                <input type="number" id="veh-price" class="form-control" min="0" value="${(h==null?void 0:h.price)||800}" required>
               </div>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Vehicle Plate / Registration Number</label>
-              <input type="text" id="veh-plate" class="form-control" value="${(l==null?void 0:l.vehicle_number)||""}" placeholder="e.g. WB-30-AB-1290">
+              <input type="text" id="veh-plate" class="form-control" value="${(h==null?void 0:h.vehicle_number)||""}" placeholder="e.g. WB-30-AB-1290">
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
-                <input type="checkbox" id="veh-active" ${l?l.active!==!1?"checked":"":"checked"}>
+                <input type="checkbox" id="veh-active" ${h?h.active!==!1?"checked":"":"checked"}>
                 Vehicle is available for active bookings
               </label>
             </div>
@@ -11207,7 +11284,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{g.innerHTML=""};g.querySelector("#btn-close-veh-modal").addEventListener("click",b),g.querySelector("#btn-cancel-veh").addEventListener("click",b),g.querySelector("#form-vehicle-manage").addEventListener("submit",async S=>{S.preventDefault();const w={name:g.querySelector("#veh-name").value.trim(),type:g.querySelector("#veh-type").value,capacity:Number(g.querySelector("#veh-capacity").value),price:Number(g.querySelector("#veh-price").value),vehicle_number:g.querySelector("#veh-plate").value.trim(),active:g.querySelector("#veh-active").checked};try{v?(await x.updatePickupVehicle(u,l.id,w),window.showToast("Vehicle updated successfully.","success")):(await x.addPickupVehicle(u,w),window.showToast("Vehicle added to fleet.","success")),b(),r()}catch(M){window.showToast(M.message,"error")}})}function y(u,l){const v=!!l,g=i.querySelector("#pickup-modal-root");g.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const w=()=>{g.innerHTML=""};g.querySelector("#btn-close-veh-modal").addEventListener("click",w),g.querySelector("#btn-cancel-veh").addEventListener("click",w),g.querySelector("#form-vehicle-manage").addEventListener("submit",async S=>{S.preventDefault();const k={name:g.querySelector("#veh-name").value.trim(),type:g.querySelector("#veh-type").value,capacity:Number(g.querySelector("#veh-capacity").value),price:Number(g.querySelector("#veh-price").value),vehicle_number:g.querySelector("#veh-plate").value.trim(),active:g.querySelector("#veh-active").checked};try{v?(await f.updatePickupVehicle(u,h.id,k),window.showToast("Vehicle updated successfully.","success")):(await f.addPickupVehicle(u,k),window.showToast("Vehicle added to fleet.","success")),w(),n()}catch(M){window.showToast(M.message,"error")}})}function y(u,h){const v=!!h,g=i.querySelector("#pickup-modal-root");g.innerHTML=`
       <div class="modal-backdrop active">
         <div class="modal-card" style="max-width: 460px; padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -11218,24 +11295,24 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <form id="form-location-manage">
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Location Name *</label>
-              <input type="text" id="loc-name" class="form-control" value="${(l==null?void 0:l.name)||""}" placeholder="e.g. New Digha Railway Station" required>
+              <input type="text" id="loc-name" class="form-control" value="${(h==null?void 0:h.name)||""}" placeholder="e.g. New Digha Railway Station" required>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Location Category</label>
               <select id="loc-type" class="form-control">
-                <option value="railway" ${(l==null?void 0:l.type)==="railway"?"selected":""}>Railway Station</option>
-                <option value="airport" ${(l==null?void 0:l.type)==="airport"?"selected":""}>Airport</option>
-                <option value="bus" ${(l==null?void 0:l.type)==="bus"?"selected":""}>Bus Stand / Terminal</option>
-                <option value="custom" ${(l==null?void 0:l.type)==="custom"?"selected":""}>Custom Landmark / Other</option>
+                <option value="railway" ${(h==null?void 0:h.type)==="railway"?"selected":""}>Railway Station</option>
+                <option value="airport" ${(h==null?void 0:h.type)==="airport"?"selected":""}>Airport</option>
+                <option value="bus" ${(h==null?void 0:h.type)==="bus"?"selected":""}>Bus Stand / Terminal</option>
+                <option value="custom" ${(h==null?void 0:h.type)==="custom"?"selected":""}>Custom Landmark / Other</option>
               </select>
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label class="form-label">Address / Landmark Details</label>
-              <input type="text" id="loc-address" class="form-control" value="${(l==null?void 0:l.address)||""}" placeholder="e.g. Near Station Exit Gate 1, New Digha">
+              <input type="text" id="loc-address" class="form-control" value="${(h==null?void 0:h.address)||""}" placeholder="e.g. Near Station Exit Gate 1, New Digha">
             </div>
             <div class="form-group" style="margin-bottom: 12px;">
               <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
-                <input type="checkbox" id="loc-active" ${l?l.active!==!1?"checked":"":"checked"}>
+                <input type="checkbox" id="loc-active" ${h?h.active!==!1?"checked":"":"checked"}>
                 Location is active for guest bookings
               </label>
             </div>
@@ -11247,12 +11324,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const b=()=>{g.innerHTML=""};g.querySelector("#btn-close-loc-modal").addEventListener("click",b),g.querySelector("#btn-cancel-loc").addEventListener("click",b),g.querySelector("#form-location-manage").addEventListener("submit",async S=>{S.preventDefault();const w={name:g.querySelector("#loc-name").value.trim(),type:g.querySelector("#loc-type").value,address:g.querySelector("#loc-address").value.trim(),active:g.querySelector("#loc-active").checked};try{v?(await x.updatePickupLocation(u,l.id,w),window.showToast("Pickup point updated.","success")):(await x.addPickupLocation(u,w),window.showToast("Pickup point added.","success")),b(),r()}catch(M){window.showToast(M.message,"error")}})}r()}async function UM(i){let e=[];async function a(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const w=()=>{g.innerHTML=""};g.querySelector("#btn-close-loc-modal").addEventListener("click",w),g.querySelector("#btn-cancel-loc").addEventListener("click",w),g.querySelector("#form-location-manage").addEventListener("submit",async S=>{S.preventDefault();const k={name:g.querySelector("#loc-name").value.trim(),type:g.querySelector("#loc-type").value,address:g.querySelector("#loc-address").value.trim(),active:g.querySelector("#loc-active").checked};try{v?(await f.updatePickupLocation(u,h.id,k),window.showToast("Pickup point updated.","success")):(await f.addPickupLocation(u,k),window.showToast("Pickup point added.","success")),w(),n()}catch(M){window.showToast(M.message,"error")}})}n()}async function UM(i){let e=[];async function a(){i.innerHTML=`
       <div style="text-align: center; padding: 40px;">
         <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
         <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading support tickets...</p>
       </div>
-    `,window.lucide&&window.lucide.createIcons();try{e=(await x.getSupportTickets()).tickets,d()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();try{e=(await f.getSupportTickets()).tickets,d()}catch(c){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${c.message}</div>`}}function d(){i.innerHTML=`
       <div class="filter-bar">
         <h2 style="font-size: 1.1rem; font-weight: 700;">Partner Helpdesk & Platform Inquiries</h2>
         <button class="btn btn-primary" id="btn-raise-ticket">
@@ -11305,7 +11382,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       </div>
 
       <div id="support-modal-root"></div>
-    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var c;(c=i.querySelector("#btn-raise-ticket"))==null||c.addEventListener("click",()=>{n()}),i.querySelectorAll(".btn-open-thread").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-ticket-id");r(p)})})}function n(){var p,h,m;const c=i.querySelector("#support-modal-root");c.innerHTML=`
+    `,o(),window.lucide&&window.lucide.createIcons()}function o(){var c;(c=i.querySelector("#btn-raise-ticket"))==null||c.addEventListener("click",()=>{r()}),i.querySelectorAll(".btn-open-thread").forEach(s=>{s.addEventListener("click",()=>{const p=s.getAttribute("data-ticket-id");n(p)})})}function r(){var p,l,m;const c=i.querySelector("#support-modal-root");c.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 540px;">
           <div class="modal-header">
@@ -11343,7 +11420,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </form>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const s=()=>{c.innerHTML=""};(p=c.querySelector("#modal-close"))==null||p.addEventListener("click",s),(h=c.querySelector("#modal-close-action"))==null||h.addEventListener("click",s),(m=c.querySelector("#new-ticket-form"))==null||m.addEventListener("submit",async y=>{y.preventDefault();try{await x.createSupportTicket({subject:c.querySelector("#ticket-subject").value,category:c.querySelector("#ticket-category").value,message:c.querySelector("#ticket-message").value}),window.showToast("Support ticket dispatched to platform administrator.","success"),s(),a()}catch(u){window.showToast(u.message,"error")}})}function r(c){var m,y,u;const s=e.find(l=>l.id===c);if(!s)return;const p=i.querySelector("#support-modal-root");p.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const s=()=>{c.innerHTML=""};(p=c.querySelector("#modal-close"))==null||p.addEventListener("click",s),(l=c.querySelector("#modal-close-action"))==null||l.addEventListener("click",s),(m=c.querySelector("#new-ticket-form"))==null||m.addEventListener("submit",async y=>{y.preventDefault();try{await f.createSupportTicket({subject:c.querySelector("#ticket-subject").value,category:c.querySelector("#ticket-category").value,message:c.querySelector("#ticket-message").value}),window.showToast("Support ticket dispatched to platform administrator.","success"),s(),a()}catch(u){window.showToast(u.message,"error")}})}function n(c){var m,y,u;const s=e.find(h=>h.id===c);if(!s)return;const p=i.querySelector("#support-modal-root");p.innerHTML=`
       <div class="modal-overlay active">
         <div class="modal-container" style="max-width: 600px;">
           <div class="modal-header">
@@ -11356,10 +11433,10 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
 
           <div class="modal-body">
             <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding: 6px; margin-bottom: 14px;">
-              ${s.messages.map(l=>`
-                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${l.sender==="admin"?"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);":"align-self: flex-end; background: var(--color-primary); color: #fff;"}">
-                  <div>${l.text}</div>
-                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${l.sender==="admin"?"🛡️ Administrator Response":"👤 You"} • ${l.time}</span>
+              ${s.messages.map(h=>`
+                <div style="padding: 10px 14px; border-radius: var(--radius-sm); max-width: 85%; font-size: 0.85rem; line-height: 1.4; ${h.sender==="admin"?"align-self: flex-start; background: var(--bg-surface-secondary); border: 1px solid var(--border-light); color: var(--text-main);":"align-self: flex-end; background: var(--color-primary); color: #fff;"}">
+                  <div>${h.text}</div>
+                  <span style="font-size: 0.68rem; opacity: 0.7; margin-top: 4px; display: block;">${h.sender==="admin"?"🛡️ Administrator Response":"👤 You"} • ${h.time}</span>
                 </div>
               `).join("")}
             </div>
@@ -11375,7 +11452,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons();const h=()=>{p.innerHTML=""};(m=p.querySelector("#modal-close"))==null||m.addEventListener("click",h),(y=p.querySelector("#modal-close-action"))==null||y.addEventListener("click",h),(u=p.querySelector("#btn-send-reply"))==null||u.addEventListener("click",async()=>{const l=p.querySelector("#reply-input").value.trim();if(!l)return;await x.replySupportTicket(c,l),window.showToast("Reply added.","success"),e=(await x.getSupportTickets()).tickets,r(c)})}a()}function jM(i){let e=1;const a={name:"",hotel_type:"Boutique Hotel",description:"",phone:"",email:"",address:"",city:"",state:"",country:"India",postal_code:"",cover_image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",initial_rooms:[{room_name:"Executive Deluxe Suite",room_type:"Suite",description:"Spacious suite with king bed and city skyline view.",max_guests:2,total_inventory:10,price_per_night:6500}]};function d(){i.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons();const l=()=>{p.innerHTML=""};(m=p.querySelector("#modal-close"))==null||m.addEventListener("click",l),(y=p.querySelector("#modal-close-action"))==null||y.addEventListener("click",l),(u=p.querySelector("#btn-send-reply"))==null||u.addEventListener("click",async()=>{const h=p.querySelector("#reply-input").value.trim();if(!h)return;await f.replySupportTicket(c,h),window.showToast("Reply added.","success"),e=(await f.getSupportTickets()).tickets,n(c)})}a()}function jM(i){let e=1;const a={name:"",hotel_type:"Boutique Hotel",description:"",phone:"",email:"",address:"",city:"",state:"",country:"India",postal_code:"",cover_image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",initial_rooms:[{room_name:"Executive Deluxe Suite",room_type:"Suite",description:"Spacious suite with king bed and city skyline view.",max_guests:2,total_inventory:10,price_per_night:6500}]};function d(){i.innerHTML=`
       <div style="max-width: 820px; margin: 0 auto;">
         
         <!-- Multi-Step Header Wizard -->
@@ -11423,7 +11500,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         </div>
 
       </div>
-    `,n(),window.lucide&&window.lucide.createIcons()}function o(){if(e===1)return`
+    `,r(),window.lucide&&window.lucide.createIcons()}function o(){if(e===1)return`
         <h3 style="font-size: 1.1rem; margin-bottom: 6px;">Step 1: Basic Hotel Information</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 18px;">Provide your property title, branding, and contact credentials</p>
 
@@ -11545,12 +11622,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           <i data-lucide="info" style="width: 14px; height: 14px; display: inline; margin-right: 4px;"></i>
           Upon submission, your hotel will enter <strong>PENDING VERIFICATION</strong> state. Once the Administrator verifies your documents, your hotel will become immediately discoverable on the Customer Mobile App.
         </div>
-      `}function n(){var c,s,p;(c=i.querySelector("#btn-wizard-next"))==null||c.addEventListener("click",()=>{r(),e+=1,d()}),(s=i.querySelector("#btn-wizard-prev"))==null||s.addEventListener("click",()=>{r(),e-=1,d()}),(p=i.querySelector("#btn-wizard-submit"))==null||p.addEventListener("click",async()=>{try{await x.onboardHotel(a),window.showToast("Hotel submitted for Administrator Verification!","success"),window.navigateTo?window.navigateTo("/owner/dashboard"):window.location.hash="#/owner/dashboard"}catch(h){window.showToast(h.message,"error")}})}function r(){var c,s,p,h,m,y,u,l,v,g,b,S,w;e===1?(a.name=((c=i.querySelector("#inp-name"))==null?void 0:c.value)||a.name,a.hotel_type=((s=i.querySelector("#inp-type"))==null?void 0:s.value)||a.hotel_type,a.description=((p=i.querySelector("#inp-desc"))==null?void 0:p.value)||a.description,a.phone=((h=i.querySelector("#inp-phone"))==null?void 0:h.value)||a.phone,a.email=((m=i.querySelector("#inp-email"))==null?void 0:m.value)||a.email):e===2?(a.address=((y=i.querySelector("#inp-address"))==null?void 0:y.value)||a.address,a.city=((u=i.querySelector("#inp-city"))==null?void 0:u.value)||a.city,a.state=((l=i.querySelector("#inp-state"))==null?void 0:l.value)||a.state,a.postal_code=((v=i.querySelector("#inp-postal"))==null?void 0:v.value)||a.postal_code):e===3?a.cover_image=((g=i.querySelector("#inp-cover"))==null?void 0:g.value)||a.cover_image:e===4&&(a.initial_rooms[0].room_name=((b=i.querySelector("#inp-room-name"))==null?void 0:b.value)||a.initial_rooms[0].room_name,a.initial_rooms[0].price_per_night=Number((S=i.querySelector("#inp-room-price"))==null?void 0:S.value)||a.initial_rooms[0].price_per_night,a.initial_rooms[0].total_inventory=Number((w=i.querySelector("#inp-room-inv"))==null?void 0:w.value)||a.initial_rooms[0].total_inventory)}d()}async function GM(i){i.innerHTML=`
+      `}function r(){var c,s,p;(c=i.querySelector("#btn-wizard-next"))==null||c.addEventListener("click",()=>{n(),e+=1,d()}),(s=i.querySelector("#btn-wizard-prev"))==null||s.addEventListener("click",()=>{n(),e-=1,d()}),(p=i.querySelector("#btn-wizard-submit"))==null||p.addEventListener("click",async()=>{try{await f.onboardHotel(a),window.showToast("Hotel submitted for Administrator Verification!","success"),window.navigateTo?window.navigateTo("/owner/dashboard"):window.location.hash="#/owner/dashboard"}catch(l){window.showToast(l.message,"error")}})}function n(){var c,s,p,l,m,y,u,h,v,g,w,S,k;e===1?(a.name=((c=i.querySelector("#inp-name"))==null?void 0:c.value)||a.name,a.hotel_type=((s=i.querySelector("#inp-type"))==null?void 0:s.value)||a.hotel_type,a.description=((p=i.querySelector("#inp-desc"))==null?void 0:p.value)||a.description,a.phone=((l=i.querySelector("#inp-phone"))==null?void 0:l.value)||a.phone,a.email=((m=i.querySelector("#inp-email"))==null?void 0:m.value)||a.email):e===2?(a.address=((y=i.querySelector("#inp-address"))==null?void 0:y.value)||a.address,a.city=((u=i.querySelector("#inp-city"))==null?void 0:u.value)||a.city,a.state=((h=i.querySelector("#inp-state"))==null?void 0:h.value)||a.state,a.postal_code=((v=i.querySelector("#inp-postal"))==null?void 0:v.value)||a.postal_code):e===3?a.cover_image=((g=i.querySelector("#inp-cover"))==null?void 0:g.value)||a.cover_image:e===4&&(a.initial_rooms[0].room_name=((w=i.querySelector("#inp-room-name"))==null?void 0:w.value)||a.initial_rooms[0].room_name,a.initial_rooms[0].price_per_night=Number((S=i.querySelector("#inp-room-price"))==null?void 0:S.value)||a.initial_rooms[0].price_per_night,a.initial_rooms[0].total_inventory=Number((k=i.querySelector("#inp-room-inv"))==null?void 0:k.value)||a.initial_rooms[0].total_inventory)}d()}async function GM(i){i.innerHTML=`
     <div style="text-align: center; padding: 40px;">
       <i data-lucide="loader-2" style="width: 32px; height: 32px; color: var(--color-primary); animation: spin 1s linear infinite;"></i>
       <p style="margin-top: 10px; color: var(--text-muted); font-size: 0.85rem;">Loading owner profile...</p>
     </div>
-  `,window.lucide&&window.lucide.createIcons();try{const a=(await x.getMe()).user,d=a.ownerProfile||{business_name:"Registered Hospitality Partner",pan_no:"PAN-XXXXX",gstin:"GST-XXXXX",bank_account:"Bank account configured",kyc_status:"verified"};i.innerHTML=`
+  `,window.lucide&&window.lucide.createIcons();try{const a=(await f.getMe()).user,d=a.ownerProfile||{business_name:"Registered Hospitality Partner",pan_no:"PAN-XXXXX",gstin:"GST-XXXXX",bank_account:"Bank account configured",kyc_status:"verified"};i.innerHTML=`
       <div style="max-width: 680px;">
         <div class="panel-card">
           <div class="card-header">
@@ -11600,15 +11677,15 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
           </div>
         </div>
       </div>
-    `,window.lucide&&window.lucide.createIcons()}catch(e){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${e.message}</div>`}}window.lucide={createIcons:(i={})=>{try{yM({icons:s1,...i})}catch(e){console.warn("Lucide icon render warning:",e.message)}},icons:s1};const WM=new Set(["super_admin","admin","support_admin","finance_admin"]),KM=new Set(["hotel_admin","owner"]);window.showToast=function(i,e="info"){const a=document.getElementById("toast-root");if(!a)return;const d=document.createElement("div");d.className=`toast ${e}`,d.innerHTML=`
+    `,window.lucide&&window.lucide.createIcons()}catch(e){i.innerHTML=`<div class="panel-card" style="color: var(--status-danger);">Error: ${e.message}</div>`}}window.lucide={createIcons:(i={})=>{try{yM({icons:s1,...i})}catch(e){console.warn("Lucide icon render warning:",e.message)}},icons:s1};const JM=new Set(["super_admin","admin","support_admin","finance_admin"]),WM=new Set(["hotel_admin","owner"]);window.showToast=function(i,e="info"){const a=document.getElementById("toast-root");if(!a)return;const d=document.createElement("div");d.className=`toast ${e}`,d.innerHTML=`
     <i data-lucide="${e==="success"?"check-circle":e==="error"?"alert-circle":"info"}" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
     <span style="font-size: 0.84rem; font-weight: 500;">${i}</span>
-  `,a.appendChild(d),window.lucide&&window.lucide.createIcons(),setTimeout(()=>{d.style.opacity="0",d.style.transform="translateY(10px)",d.style.transition="all 0.3s ease",setTimeout(()=>d.remove(),300)},3500)};window.handleSignOut=function(){x.clearSession(),window.showToast("Signed out successfully.","info"),window.navigateTo("/login")};const j="hotelhub_theme";function U(i=localStorage.getItem(j)||"light"){const e=i==="dark"||i==="light"?i:"light";document.body.setAttribute("data-theme",e);const a=document.getElementById("header-theme-toggle"),d=document.getElementById("header-theme-icon");if(a&&d){const o=e==="dark";d.textContent=o?"☀️":"🌙",a.setAttribute("aria-label",o?"Switch to light mode":"Switch to dark mode"),a.setAttribute("title",o?"Switch to light mode":"Switch to dark mode")}}window.toggleAdminTheme=function(){const e=(document.body.getAttribute("data-theme")==="dark"?"dark":"light")==="dark"?"light":"dark";localStorage.setItem(j,e),U(e)};window.addEventListener("DOMContentLoaded",()=>{const i=localStorage.getItem(j);if(i==="dark"||i==="light"){U(i);return}const e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;U(e?"dark":"light")});window.addEventListener("storage",i=>{i.key===j&&(i.newValue==="dark"||i.newValue==="light")&&U(i.newValue)});const d1=document.getElementById("header-theme-toggle");d1&&d1.addEventListener("click",window.toggleAdminTheme);window.navigateTo=function(i){const e=i.startsWith("#")?i:`#${i.startsWith("/")?i:"/"+i}`;window.location.hash!==e?window.location.hash=e:K()};function JM(){let i=window.location.hash;return!i&&window.location.pathname&&window.location.pathname!=="/"&&window.location.pathname!=="/index.html"&&(i="#"+window.location.pathname),i||(i="#/login"),i.includes("?")&&(i=i.split("?")[0]),i.includes("&")&&(i=i.split("&")[0]),i.startsWith("#/")||(i.startsWith("#")?i="#/"+i.slice(1):i="#/"+i),i}function K(){const i=JM();window.location.hash!==i&&history.replaceState(null,"",i);const e=document.getElementById("app-sidebar"),a=document.getElementById("sidebar-backdrop");e&&e.classList.remove("open"),a&&a.classList.remove("active");const d=document.getElementById("view-content-area"),o=document.getElementById("header-view-title"),n=document.getElementById("header-view-subtitle"),r=document.getElementById("sidebar-nav-root"),c=document.getElementById("user-role-badge"),s=document.getElementById("user-name-display"),p=document.getElementById("sidebar-user-avatar"),h=document.getElementById("user-role-display"),m=document.getElementById("header-user-avatar"),y=document.getElementById("header-user-name"),u=document.getElementById("header-user-role"),l=document.querySelector(".top-header");if(!d)return;const v=x.currentUser,g=!!(x.token&&v),b=v&&WM.has(v.role),S=v&&KM.has(v.role),w=v&&v.role==="super_admin",M=v?v.role:null;if(["#/login","#/admin/login","#/hotel-admin/login","#/owner/login","#/","#",""].includes(i)){if(e&&(e.style.display="none"),l&&(l.style.display="none"),g){if(b){window.navigateTo("/admin/dashboard");return}else if(S){window.navigateTo("/hotel-admin/dashboard");return}}MM(d);return}if(i==="#/register"){e&&(e.style.display="none"),l&&(l.style.display="none"),xM(d);return}e&&(e.style.display="flex"),l&&(l.style.display="flex");const k=i.startsWith("#/admin"),H=i.startsWith("#/hotel-admin")||i.startsWith("#/owner");if(k){if(!g){window.navigateTo("/login");return}if(!b){if(S){window.showToast("Redirected: Hotel Admin workspace","info"),window.navigateTo("/hotel-admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(H){if(!g){window.navigateTo("/login");return}if(!S){if(b){window.showToast("Redirected: Platform Admin workspace","info"),window.navigateTo("/admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(v){const P=v.name||"Administrator",_=(v.role||"ADMIN").replace("_"," ").toUpperCase(),q=(P.split(" ").map(E=>E[0]).join("")||"AD").slice(0,2).toUpperCase();s&&(s.textContent=P),h&&(h.textContent=_),p&&(p.textContent=q),m&&(m.textContent=q),y&&(y.textContent=P),u&&(u.textContent=_)}if(k){const P=(v==null?void 0:v.role)==="super_admin"?"SUPER ADMIN":`${((v==null?void 0:v.role)||"ADMIN").replace("_"," ").toUpperCase()}`;c&&(c.textContent=P);let _=`
+  `,a.appendChild(d),window.lucide&&window.lucide.createIcons(),setTimeout(()=>{d.style.opacity="0",d.style.transform="translateY(10px)",d.style.transition="all 0.3s ease",setTimeout(()=>d.remove(),300)},3500)};window.handleSignOut=function(){f.clearSession(),window.showToast("Signed out successfully.","info"),window.navigateTo("/login")};const j="hotelhub_theme";function U(i=localStorage.getItem(j)||"light"){const e=i==="dark"||i==="light"?i:"light";document.body.setAttribute("data-theme",e);const a=document.getElementById("header-theme-toggle"),d=document.getElementById("header-theme-icon");if(a&&d){const o=e==="dark";d.textContent=o?"☀️":"🌙",a.setAttribute("aria-label",o?"Switch to light mode":"Switch to dark mode"),a.setAttribute("title",o?"Switch to light mode":"Switch to dark mode")}}window.toggleAdminTheme=function(){const e=(document.body.getAttribute("data-theme")==="dark"?"dark":"light")==="dark"?"light":"dark";localStorage.setItem(j,e),U(e)};window.addEventListener("DOMContentLoaded",()=>{const i=localStorage.getItem(j);if(i==="dark"||i==="light"){U(i);return}const e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;U(e?"dark":"light")});window.addEventListener("storage",i=>{i.key===j&&(i.newValue==="dark"||i.newValue==="light")&&U(i.newValue)});const d1=document.getElementById("header-theme-toggle");d1&&d1.addEventListener("click",window.toggleAdminTheme);window.navigateTo=function(i){const e=i.startsWith("#")?i:`#${i.startsWith("/")?i:"/"+i}`;window.location.hash!==e?window.location.hash=e:W()};function KM(){let i=window.location.hash;return!i&&window.location.pathname&&window.location.pathname!=="/"&&window.location.pathname!=="/index.html"&&(i="#"+window.location.pathname),i||(i="#/login"),i.includes("?")&&(i=i.split("?")[0]),i.includes("&")&&(i=i.split("&")[0]),i.startsWith("#/")||(i.startsWith("#")?i="#/"+i.slice(1):i="#/"+i),i}function W(){const i=KM();window.location.hash!==i&&history.replaceState(null,"",i);const e=document.getElementById("app-sidebar"),a=document.getElementById("sidebar-backdrop");e&&e.classList.remove("open"),a&&a.classList.remove("active");const d=document.getElementById("view-content-area"),o=document.getElementById("header-view-title"),r=document.getElementById("header-view-subtitle"),n=document.getElementById("sidebar-nav-root"),c=document.getElementById("user-role-badge"),s=document.getElementById("user-name-display"),p=document.getElementById("sidebar-user-avatar"),l=document.getElementById("user-role-display"),m=document.getElementById("header-user-avatar"),y=document.getElementById("header-user-name"),u=document.getElementById("header-user-role"),h=document.querySelector(".top-header");if(!d)return;const v=f.currentUser,g=!!(f.token&&v),w=v&&JM.has(v.role),S=v&&WM.has(v.role),k=v&&v.role==="super_admin",M=v?v.role:null;if(["#/login","#/admin/login","#/hotel-admin/login","#/owner/login","#/","#",""].includes(i)){if(e&&(e.style.display="none"),h&&(h.style.display="none"),g){if(w){window.navigateTo("/admin/dashboard");return}else if(S){window.navigateTo("/hotel-admin/dashboard");return}}MM(d);return}if(i==="#/register"){e&&(e.style.display="none"),h&&(h.style.display="none"),xM(d);return}e&&(e.style.display="flex"),h&&(h.style.display="flex");const x=i.startsWith("#/admin"),H=i.startsWith("#/hotel-admin")||i.startsWith("#/owner");if(x){if(!g){window.navigateTo("/login");return}if(!w){if(S){window.showToast("Redirected: Hotel Admin workspace","info"),window.navigateTo("/hotel-admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(H){if(!g){window.navigateTo("/login");return}if(!S){if(w){window.showToast("Redirected: Platform Admin workspace","info"),window.navigateTo("/admin/dashboard");return}if(i!=="#/admin/access-denied"){window.navigateTo("/admin/access-denied");return}}}if(v){const V=v.name||"Administrator",P=(v.role||"ADMIN").replace("_"," ").toUpperCase(),q=(V.split(" ").map(E=>E[0]).join("")||"AD").slice(0,2).toUpperCase();s&&(s.textContent=V),l&&(l.textContent=P),p&&(p.textContent=q),m&&(m.textContent=q),y&&(y.textContent=V),u&&(u.textContent=P)}if(x){const V=(v==null?void 0:v.role)==="super_admin"?"SUPER ADMIN":`${((v==null?void 0:v.role)||"ADMIN").replace("_"," ").toUpperCase()}`;c&&(c.textContent=V);let P=`
       <div class="nav-section-label">Core Executive</div>
       <a href="#/admin/dashboard" class="nav-item ${i==="#/admin/dashboard"?"active":""}">
         <div class="nav-item-left"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
       </a>
-    `;(w||M==="admin")&&(_+=`
+    `;(k||M==="admin")&&(P+=`
         <div class="nav-section-label">Hotel Ecosystem</div>
         <a href="#/admin/hotels" class="nav-item ${i==="#/admin/hotels"?"active":""}">
           <div class="nav-item-left"><i data-lucide="building-2"></i><span>Hotels</span></div>
@@ -11616,7 +11693,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/owners" class="nav-item ${i==="#/admin/owners"?"active":""}">
           <div class="nav-item-left"><i data-lucide="shield-check"></i><span>Owner KYC</span></div>
         </a>
-      `),_+=`
+      `),P+=`
       <div class="nav-section-label">Operations</div>
       <a href="#/admin/bookings" class="nav-item ${i==="#/admin/bookings"?"active":""}">
         <div class="nav-item-left"><i data-lucide="calendar-check"></i><span>Bookings</span></div>
@@ -11624,7 +11701,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="#/admin/pickups" class="nav-item ${i==="#/admin/pickups"?"active":""}">
         <div class="nav-item-left"><i data-lucide="car"></i><span>Pickups Activity</span></div>
       </a>
-    `,(w||M==="admin"||M==="finance_admin")&&(_+=`
+    `,(k||M==="admin"||M==="finance_admin")&&(P+=`
         <div class="nav-section-label">Financial Accounting</div>
         <a href="#/admin/payments" class="nav-item ${i==="#/admin/payments"?"active":""}">
           <div class="nav-item-left"><i data-lucide="credit-card"></i><span>Payments</span></div>
@@ -11638,7 +11715,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/reports" class="nav-item ${i==="#/admin/reports"||i==="#/admin/statements"?"active":""}">
           <div class="nav-item-left"><i data-lucide="file-bar-chart-2"></i><span>Statements</span></div>
         </a>
-      `),(w||M==="admin"||M==="support_admin")&&(_+=`
+      `),(k||M==="admin"||M==="support_admin")&&(P+=`
         <div class="nav-section-label">Guest Experience</div>
         <a href="#/admin/customers" class="nav-item ${i==="#/admin/customers"?"active":""}">
           <div class="nav-item-left"><i data-lucide="users"></i><span>Customers</span></div>
@@ -11646,7 +11723,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/support" class="nav-item ${i==="#/admin/support"?"active":""}">
           <div class="nav-item-left"><i data-lucide="life-buoy"></i><span>Support Desk</span></div>
         </a>
-      `),w?_+=`
+      `),k?P+=`
         <div class="nav-section-label">System</div>
         <a href="#/admin/admins" class="nav-item ${i.startsWith("#/admin/admins")?"active":""}">
           <div class="nav-item-left"><i data-lucide="user-cog"></i><span>Admin Users</span></div>
@@ -11654,12 +11731,12 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
         <a href="#/admin/settings" class="nav-item ${i==="#/admin/settings"?"active":""}">
           <div class="nav-item-left"><i data-lucide="sliders"></i><span>Settings</span></div>
         </a>
-      `:M==="admin"&&(_+=`
+      `:M==="admin"&&(P+=`
         <div class="nav-section-label">System</div>
         <a href="#/admin/settings" class="nav-item ${i==="#/admin/settings"?"active":""}">
           <div class="nav-item-left"><i data-lucide="sliders"></i><span>Settings</span></div>
         </a>
-      `),_+=`
+      `),P+=`
       <div class="nav-section-label">Account</div>
       <a href="#/admin/profile" class="nav-item ${i==="#/admin/profile"?"active":""}">
         <div class="nav-item-left"><i data-lucide="user"></i><span>Profile</span></div>
@@ -11667,7 +11744,7 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="javascript:void(0)" onclick="window.handleSignOut()" class="nav-item" style="color: #EF4444;">
         <div class="nav-item-left"><i data-lucide="log-out"></i><span>Sign Out</span></div>
       </a>
-    `,r.innerHTML=_}else H&&(c&&(c.textContent="HOTEL ADMIN"),r.innerHTML=`
+    `,n.innerHTML=P}else H&&(c&&(c.textContent="HOTEL ADMIN"),n.innerHTML=`
       <div class="nav-section-label">HOTEL MANAGEMENT</div>
       <a href="#/hotel-admin/dashboard" class="nav-item ${i==="#/hotel-admin/dashboard"||i==="#/owner/dashboard"?"active":""}">
         <div class="nav-item-left"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
@@ -11714,4 +11791,4 @@ lucide.createIcons({icons});\``);if(typeof document>"u")throw new Error("`create
       <a href="javascript:void(0)" onclick="window.handleSignOut()" class="nav-item" style="color: #EF4444;">
         <div class="nav-item-left"><i data-lucide="log-out"></i><span>Sign Out</span></div>
       </a>
-    `);switch(i){case"#/admin/dashboard":o.textContent="Executive Control Center",n.textContent="Live centralized overview of properties, bookings & financial settlements",fM(d);break;case"#/admin/hotels":o.textContent="Hotel Directory & Governance",n.textContent="Inspect properties, verify compliance documents, and control active status",bM(d);break;case"#/admin/owners":o.textContent="Hotel Owner Verification (KYC)",n.textContent="Review business registration, PAN/GSTIN documentation, and bank settlement details",wM(d);break;case"#/admin/bookings":o.textContent="Centralized Booking Ledger",n.textContent="Audit all guest reservations, stay dates, and digital invoice breakdowns",kM(d);break;case"#/admin/pickups":o.textContent="Centralized Transfer Logistics",n.textContent="Platform-wide pickup requests, hotel vehicle fleets, and transfer logs",zM(d);break;case"#/admin/payments":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Payment Transaction Logs",n.textContent="Real-time gateway settlements, UPI/Card transaction records, and status",SM(d);break;case"#/admin/refunds":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Cancellation Refund Queue",n.textContent="Process guest cancellation claims with policy fee deduction and bank settlement",HM(d);break;case"#/admin/commissions":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Commission Engine & Rules",n.textContent="Manage platform take-rate percentage and review auditable cut ledger",CM(d);break;case"#/admin/customers":if(!w&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Customer Accounts Directory",n.textContent="Registered mobile app guests, lifetime reservations, and contact records",AM(d);break;case"#/admin/support":if(!w&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Centralized Support Desk",n.textContent="Two-way resolution hub for customer and hotel partner inquiries",LM(d);break;case"#/admin/reports":case"#/admin/statements":if(!w&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Financial Income Statements",n.textContent="Daily and monthly revenue accounting with auditable CSV export",$M(d);break;case"#/admin/settings":if(!w&&M!=="admin"){I(d,"Super Administrator");break}o.textContent="Platform Global Settings",n.textContent="Configure live maintenance modes, payment gateways, and policies",VM(d);break;case"#/admin/admins":case"#/admin/users":if(!w){I(d,"Super Administrator");break}o.textContent="Administrator Security & Roles",n.textContent="Manage administrator accounts, assign role permissions, and view audit trail",_M(d);break;case"#/admin/admins/create":if(!w){I(d,"Super Administrator");break}o.textContent="Provision New Administrator",n.textContent="Grant controlled administrative authority and assign granular operational permissions",TM(d);break;case"#/admin/profile":o.textContent="Administrator Profile & Security",n.textContent="Manage personal administrative credentials and update password",PM(d);break;case"#/admin/access-denied":o.textContent="Access Restricted",n.textContent="You do not have the required permissions to view this administrative page",I(d);break;case"#/hotel-admin/dashboard":case"#/owner/dashboard":o.textContent="Hotel Management Dashboard",n.textContent="Track room inventory, today’s arrivals, departures, and net earnings",qM(d);break;case"#/hotel-admin/property":case"#/hotel-admin/hotel":case"#/owner/hotel":o.textContent="Property Details & Media",n.textContent="Edit hotel details, address, amenities, and high-resolution photo gallery",EM(d);break;case"#/hotel-admin/banners":case"#/owner/banners":o.textContent="Customer App Banners",n.textContent="Add, arrange, and manage the promotional hero sliders shown on the app",BM(d);break;case"#/hotel-admin/rooms":case"#/owner/rooms":o.textContent="Room Categories & Inventory",n.textContent="Add room categories, set nightly tariffs, capacity, and manage available units",DM(d);break;case"#/hotel-admin/availability":case"#/owner/availability":o.textContent="Availability Matrix",n.textContent="Real-time room occupancy grid with single-click blackout date blocking",RM(d);break;case"#/hotel-admin/bookings":case"#/owner/bookings":o.textContent="Reservations Management",n.textContent="Full list of guest bookings with stay dates, guest contact, and payout details",IM(d);break;case"#/hotel-admin/pickups":case"#/owner/pickups":o.textContent="Pickup Service & Fleet Logistics",n.textContent="Manage guest transfer requests, driver allocations, and vehicle fleets",ZM(d);break;case"#/hotel-admin/check-in":case"#/owner/check-in":o.textContent="Front Desk Check-In",n.textContent="Search by Booking ID to verify guest identity and confirm check-in",OM(d);break;case"#/hotel-admin/check-out":case"#/owner/check-out":o.textContent="Front Desk Check-Out",n.textContent="Check out guests, finalize billing, and release rooms back to active inventory",NM(d);break;case"#/hotel-admin/earnings":case"#/owner/earnings":o.textContent="Net Earnings & Settlements",n.textContent="Traceable 85% net earnings per reservation with platform fee deductions",FM(d);break;case"#/hotel-admin/onboard":case"#/owner/onboard":o.textContent="Register New Property",n.textContent="5-step onboarding wizard to submit new hotels for platform review",jM(d);break;case"#/hotel-admin/profile":case"#/owner/profile":o.textContent="Owner KYC & Business Profile",n.textContent="Commercial registration, PAN, GSTIN, and bank settlement details",GM(d);break;case"#/hotel-admin/support":case"#/owner/support":o.textContent="Partner Concierge & Support",n.textContent="Direct priority messaging channel with HotelHub platform administrators",UM(d);break;default:k?window.navigateTo("/admin/dashboard"):H?window.navigateTo("/hotel-admin/dashboard"):window.navigateTo("/admin/dashboard");break}window.lucide&&window.lucide.createIcons()}function YM(){const i=document.getElementById("btn-mobile-sidebar-toggle"),e=document.getElementById("btn-close-sidebar"),a=document.getElementById("sidebar-backdrop"),d=document.getElementById("app-sidebar");i&&d&&a&&i.addEventListener("click",o=>{o.stopPropagation(),d.classList.add("open"),a.classList.add("active")}),e&&d&&a&&e.addEventListener("click",o=>{o.stopPropagation(),d.classList.remove("open"),a.classList.remove("active")}),a&&d&&a.addEventListener("click",()=>{d.classList.remove("open"),a.classList.remove("active")})}window.addEventListener("hashchange",K);window.addEventListener("DOMContentLoaded",()=>{YM(),K()});
+    `);switch(i){case"#/admin/dashboard":o.textContent="Executive Control Center",r.textContent="Live centralized overview of properties, bookings & financial settlements",fM(d);break;case"#/admin/hotels":o.textContent="Hotel Directory & Governance",r.textContent="Inspect properties, verify compliance documents, and control active status",bM(d);break;case"#/admin/owners":o.textContent="Hotel Owner Verification (KYC)",r.textContent="Review business registration, PAN/GSTIN documentation, and bank settlement details",wM(d);break;case"#/admin/bookings":o.textContent="Centralized Booking Ledger",r.textContent="Audit all guest reservations, stay dates, and digital invoice breakdowns",kM(d);break;case"#/admin/pickups":o.textContent="Centralized Transfer Logistics",r.textContent="Platform-wide pickup requests, hotel vehicle fleets, and transfer logs",zM(d);break;case"#/admin/payments":if(!k&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Payment Transaction Logs",r.textContent="Real-time gateway settlements, UPI/Card transaction records, and status",SM(d);break;case"#/admin/refunds":if(!k&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Cancellation Refund Queue",r.textContent="Process guest cancellation claims with policy fee deduction and bank settlement",HM(d);break;case"#/admin/commissions":if(!k&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Commission Engine & Rules",r.textContent="Manage platform take-rate percentage and review auditable cut ledger",CM(d);break;case"#/admin/customers":if(!k&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Customer Accounts Directory",r.textContent="Registered mobile app guests, lifetime reservations, and contact records",AM(d);break;case"#/admin/support":if(!k&&M!=="admin"&&M!=="support_admin"){I(d,"Support Administrator");break}o.textContent="Centralized Support Desk",r.textContent="Two-way resolution hub for customer and hotel partner inquiries",LM(d);break;case"#/admin/reports":case"#/admin/statements":if(!k&&M!=="admin"&&M!=="finance_admin"){I(d,"Finance Administrator");break}o.textContent="Financial Income Statements",r.textContent="Daily and monthly revenue accounting with auditable CSV export",$M(d);break;case"#/admin/settings":if(!k&&M!=="admin"){I(d,"Super Administrator");break}o.textContent="Platform Global Settings",r.textContent="Configure live maintenance modes, payment gateways, and policies",VM(d);break;case"#/admin/admins":case"#/admin/users":if(!k){I(d,"Super Administrator");break}o.textContent="Administrator Security & Roles",r.textContent="Manage administrator accounts, assign role permissions, and view audit trail",_M(d);break;case"#/admin/admins/create":if(!k){I(d,"Super Administrator");break}o.textContent="Provision New Administrator",r.textContent="Grant controlled administrative authority and assign granular operational permissions",PM(d);break;case"#/admin/profile":o.textContent="Administrator Profile & Security",r.textContent="Manage personal administrative credentials and update password",TM(d);break;case"#/admin/access-denied":o.textContent="Access Restricted",r.textContent="You do not have the required permissions to view this administrative page",I(d);break;case"#/hotel-admin/dashboard":case"#/owner/dashboard":o.textContent="Hotel Management Dashboard",r.textContent="Track room inventory, today’s arrivals, departures, and net earnings",qM(d);break;case"#/hotel-admin/property":case"#/hotel-admin/hotel":case"#/owner/hotel":o.textContent="Property Details & Media",r.textContent="Edit hotel details, address, amenities, and high-resolution photo gallery",EM(d);break;case"#/hotel-admin/banners":case"#/owner/banners":o.textContent="Customer App Banners",r.textContent="Add, arrange, and manage the promotional hero sliders shown on the app",BM(d);break;case"#/hotel-admin/rooms":case"#/owner/rooms":o.textContent="Room Categories & Inventory",r.textContent="Add room categories, set nightly tariffs, capacity, and manage available units",DM(d);break;case"#/hotel-admin/availability":case"#/owner/availability":o.textContent="Availability Matrix",r.textContent="Real-time room occupancy grid with single-click blackout date blocking",RM(d);break;case"#/hotel-admin/bookings":case"#/owner/bookings":o.textContent="Reservations Management",r.textContent="Full list of guest bookings with stay dates, guest contact, and payout details",IM(d);break;case"#/hotel-admin/pickups":case"#/owner/pickups":o.textContent="Pickup Service & Fleet Logistics",r.textContent="Manage guest transfer requests, driver allocations, and vehicle fleets",ZM(d);break;case"#/hotel-admin/check-in":case"#/owner/check-in":o.textContent="Front Desk Check-In",r.textContent="Search by Booking ID to verify guest identity and confirm check-in",OM(d);break;case"#/hotel-admin/check-out":case"#/owner/check-out":o.textContent="Front Desk Check-Out",r.textContent="Check out guests, finalize billing, and release rooms back to active inventory",NM(d);break;case"#/hotel-admin/earnings":case"#/owner/earnings":o.textContent="Net Earnings & Settlements",r.textContent="Traceable 85% net earnings per reservation with platform fee deductions",FM(d);break;case"#/hotel-admin/onboard":case"#/owner/onboard":o.textContent="Register New Property",r.textContent="5-step onboarding wizard to submit new hotels for platform review",jM(d);break;case"#/hotel-admin/profile":case"#/owner/profile":o.textContent="Owner KYC & Business Profile",r.textContent="Commercial registration, PAN, GSTIN, and bank settlement details",GM(d);break;case"#/hotel-admin/support":case"#/owner/support":o.textContent="Partner Concierge & Support",r.textContent="Direct priority messaging channel with HotelHub platform administrators",UM(d);break;default:x?window.navigateTo("/admin/dashboard"):H?window.navigateTo("/hotel-admin/dashboard"):window.navigateTo("/admin/dashboard");break}window.lucide&&window.lucide.createIcons()}function YM(){const i=document.getElementById("btn-mobile-sidebar-toggle"),e=document.getElementById("btn-close-sidebar"),a=document.getElementById("sidebar-backdrop"),d=document.getElementById("app-sidebar");i&&d&&a&&i.addEventListener("click",o=>{o.stopPropagation(),d.classList.add("open"),a.classList.add("active")}),e&&d&&a&&e.addEventListener("click",o=>{o.stopPropagation(),d.classList.remove("open"),a.classList.remove("active")}),a&&d&&a.addEventListener("click",()=>{d.classList.remove("open"),a.classList.remove("active")})}window.addEventListener("hashchange",W);window.addEventListener("DOMContentLoaded",()=>{YM(),W()});

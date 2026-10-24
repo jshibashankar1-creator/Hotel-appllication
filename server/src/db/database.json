@@ -1826,7 +1826,10 @@
     "cancel_fee_pct": 10,
     "support_email": "support@hotelhub.com",
     "support_phone": "+91 1800 200 8899",
-    "updated_at": "2026-09-27T01:55:27.114Z"
+    "updated_at": "2026-09-27T01:55:27.114Z",
+    "home_hero_bg_image": null,
+    "home_hero_bg_public_id": null,
+    "home_hero_bg_updated_at": null
   },
   "audit_logs": [
     {

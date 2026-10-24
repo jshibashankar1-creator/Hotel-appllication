@@ -31,6 +31,9 @@ class RelationalDatabase {
         cancel_fee_pct: 10,
         support_email: 'support@hotelhub.com',
         support_phone: '+91 1800 200 8899',
+        home_hero_bg_image: null,
+        home_hero_bg_public_id: null,
+        home_hero_bg_updated_at: null,
         updated_at: new Date().toISOString()
       }
     };
@@ -47,6 +50,31 @@ class RelationalDatabase {
           this.data = JSON.parse(raw);
           if (!this.data.audit_logs) this.data.audit_logs = [];
           if (!Array.isArray(this.data.banners)) this.data.banners = [];
+          if (!this.data.platform_settings) {
+            this.data.platform_settings = {
+              commission_rate: 15,
+              app_mode: 'live',
+              payment_mode: 'production',
+              cancellation_window_hours: 24,
+              cancel_fee_pct: 10,
+              support_email: 'support@hotelhub.com',
+              support_phone: '+91 1800 200 8899',
+              home_hero_bg_image: null,
+              home_hero_bg_public_id: null,
+              home_hero_bg_updated_at: null,
+              updated_at: new Date().toISOString()
+            };
+          } else {
+            if (this.data.platform_settings.home_hero_bg_image === undefined) {
+              this.data.platform_settings.home_hero_bg_image = null;
+            }
+            if (this.data.platform_settings.home_hero_bg_public_id === undefined) {
+              this.data.platform_settings.home_hero_bg_public_id = null;
+            }
+            if (this.data.platform_settings.home_hero_bg_updated_at === undefined) {
+              this.data.platform_settings.home_hero_bg_updated_at = null;
+            }
+          }
           if (Array.isArray(this.data.hotels)) {
             this.data.hotels.forEach(h => {
               if (h.pickup_service_enabled === undefined) h.pickup_service_enabled = true;
@@ -339,7 +367,41 @@ class RelationalDatabase {
     return log;
   }
 
-  getSettings() { return this.data.platform_settings; }
+  getSettings() {
+    this.load();
+    return this.data.platform_settings;
+  }
+
+  getHomeHero() {
+    this.load();
+    return {
+      image_url: this.data.platform_settings?.home_hero_bg_image || null,
+      public_id: this.data.platform_settings?.home_hero_bg_public_id || null,
+      updated_at: this.data.platform_settings?.home_hero_bg_updated_at || null
+    };
+  }
+
+  setHomeHero(imageUrl, publicId = null) {
+    return this.transaction(data => {
+      if (!data.platform_settings) data.platform_settings = {};
+      data.platform_settings.home_hero_bg_image = imageUrl;
+      data.platform_settings.home_hero_bg_public_id = publicId;
+      data.platform_settings.home_hero_bg_updated_at = new Date().toISOString();
+      data.platform_settings.updated_at = new Date().toISOString();
+      return data.platform_settings;
+    });
+  }
+
+  removeHomeHero() {
+    return this.transaction(data => {
+      if (!data.platform_settings) data.platform_settings = {};
+      data.platform_settings.home_hero_bg_image = null;
+      data.platform_settings.home_hero_bg_public_id = null;
+      data.platform_settings.home_hero_bg_updated_at = new Date().toISOString();
+      data.platform_settings.updated_at = new Date().toISOString();
+      return data.platform_settings;
+    });
+  }
 }
 
 export const db = new RelationalDatabase();

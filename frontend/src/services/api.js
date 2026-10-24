@@ -457,6 +457,53 @@ class ApiService {
     }
   }
 
+  // --- SUPER ADMIN HOME HERO BACKGROUND UPLOAD ---
+  async uploadHeroImage(file, onProgress = null) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}/uploads/hero-image`);
+
+      if (this.token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${this.token}`);
+      }
+
+      if (xhr.upload && typeof onProgress === 'function') {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        let resData = {};
+        try {
+          resData = JSON.parse(xhr.responseText || '{}');
+        } catch (e) {
+          resData = { message: xhr.responseText || 'Upload failed' };
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300 && resData.success) {
+          resolve(resData);
+        } else {
+          const err = new Error(resData.message || `Upload failed with HTTP ${xhr.status}`);
+          err.status = xhr.status;
+          err.data = resData;
+          reject(err);
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('Network error during hero image upload to server.'));
+      };
+
+      const formData = new FormData();
+      formData.append('image', file);
+      xhr.send(formData);
+    });
+  }
+
   // --- AVAILABILITY ---
   async getRoomAvailability(roomId, startDate, endDate) {
     let startStr = startDate;
@@ -909,6 +956,24 @@ class ApiService {
     return this.request('/settings', {
       method: 'PUT',
       body: JSON.stringify(settingsData)
+    });
+  }
+
+  // --- HOME HERO BACKGROUND (Super Admin Only) ---
+  async getHomeHero() {
+    return this.request('/settings/home-hero');
+  }
+
+  async updateHomeHero(imageUrl, publicId = null) {
+    return this.request('/settings/home-hero', {
+      method: 'PUT',
+      body: JSON.stringify({ image_url: imageUrl, public_id: publicId })
+    });
+  }
+
+  async removeHomeHero() {
+    return this.request('/settings/home-hero', {
+      method: 'DELETE'
     });
   }
 

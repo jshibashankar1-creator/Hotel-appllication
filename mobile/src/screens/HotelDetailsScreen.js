@@ -53,6 +53,8 @@ export default function HotelDetailsScreen({ route, navigation }) {
   const [fetchError, setFetchError] = useState(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [hotelBanners, setHotelBanners] = useState([]);
+  const mainScrollViewRef = useRef(null);
+  const roomsSectionY = useRef(0);
 
   useEffect(() => {
     async function fetchDetails() {
@@ -102,6 +104,12 @@ export default function HotelDetailsScreen({ route, navigation }) {
     }
     fetchHotelBanners();
   }, [hotelId]);
+  // Ensure a room is selected once hotel data is loaded
+  useEffect(() => {
+    if (!selectedRoom && fullHotel?.rooms?.length > 0) {
+      setSelectedRoom(fullHotel.rooms[0]);
+    }
+  }, [fullHotel]);
 
   if (!hotelId) {
     return (
@@ -175,12 +183,9 @@ export default function HotelDetailsScreen({ route, navigation }) {
   };
 
   const displayRooms = fullHotel?.rooms || [];
-  if (!selectedRoom && displayRooms.length > 0) {
-    setSelectedRoom(displayRooms[0]);
-  }
 
-  const mainScrollViewRef = useRef(null);
-  const roomsSectionY = useRef(0);
+
+
 
   const handleBannerPress = (banner) => {
     // Scroll down to the Select Room / Booking section smoothly
